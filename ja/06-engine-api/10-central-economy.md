@@ -1,50 +1,71 @@
-# Chapter 6.10: Central Economy
+# 第6.10章: セントラルエコノミー
 
-[Home](../../README.md) | [<< Previous: Networking & RPC](09-networking.md) | **Central Economy** | [Next: Mission Hooks >>](11-mission-hooks.md)
+[ホーム](../../README.md) | [<< 前へ: ネットワークとRPC](09-networking.md) | **セントラルエコノミー** | [次へ: ミッションフック >>](11-mission-hooks.md)
 
 ---
 
 ## はじめに
 
-The Central Economy (CE) is DayZ's server-side system for managing all spawnable entities in the world: loot, vehicles, infected, animals, and dynamic events. It is configured entirely through XML files in the mission folder. While the CE itself is an engine system (not directly scriptable), understanding its configuration files is essential for any server mod. This chapter covers all CE configuration files, their structure, key parameters, and how they interact.
+セントラルエコノミー（CE）は、ワールド内のすべてのスポーン可能なエンティティ（ルート、車両、感染者、動物、動的イベント）を管理するDayZのサーバー側システムです。ミッションフォルダ内のXMLファイルで完全に設定されます。CE自体はエンジンシステム（スクリプトで直接制御できない）ですが、その設定ファイルを理解することはサーバーModにとって不可欠です。この章ではすべてのCE設定ファイル、その構造、主要パラメータ、およびそれらの相互作用について説明します。
 
 ---
 
-## How the CE Works
+## CEの仕組み
 
-1. The server reads `types.xml` to learn every item's **nominal** (target count) and **min** (minimum before restock).
-2. Items are assigned **usage flags** (e.g., `Military`, `Town`) that map to building/location types.
-3. Items are assigned **value flags** (e.g., `Tier1` through `Tier4`) that restrict them to map zones.
-4. The CE periodically scans the world, counts existing items, and spawns new ones when counts fall below `min`.
-5. Items untouched for their `lifetime` (seconds) are cleaned up.
-6. Dynamic events (`events.xml`) spawn vehicles, helicopter crashes, and infected groups on their own schedule.
+1. サーバーが `types.xml` を読み取り、各アイテムの**nominal**（目標数）と**min**（補充前の最小数）を学習します。
+2. アイテムには建物/場所タイプにマッピングされる**usageフラグ**（例：`Military`、`Town`）が割り当てられます。
+3. アイテムにはマップゾーンに制限する**valueフラグ**（例：`Tier1`から`Tier4`）が割り当てられます。
+4. CEは定期的にワールドをスキャンし、既存アイテムを数え、数が`min`を下回ると新しいアイテムをスポーンします。
+5. `lifetime`（秒）の間触れられなかったアイテムはクリーンアップされます。
+6. 動的イベント（`events.xml`）は独自のスケジュールで車両、ヘリコプタークラッシュ、感染者グループをスポーンします。
 
 ---
 
-## File Overview
+## ファイル概要
 
-All CE files live in the mission folder (e.g., `dayzOffline.chernarusplus/`).
+すべてのCEファイルはミッションフォルダ（例：`dayzOffline.chernarusplus/`）に配置されます。
 
-| File | Purpose |
+| ファイル | 目的 |
 |------|---------|
-| `db/types.xml` | Every spawnable item's parameters |
-| `db/events.xml` | Dynamic event definitions (vehicles, crashes, infected) |
-| `db/globals.xml` | Global CE parameters (timers, limits) |
-| `db/economy.xml` | Subsystem toggle switches |
-| `cfgeconomycore.xml` | Root classes, defaults, CE logging |
-| `cfgspawnabletypes.xml` | Per-item attachment and cargo rules |
-| `cfgrandompresets.xml` | Random loot preset pools |
-| `cfgeventspawns.xml` | World coordinates for event spawn positions |
-| `cfglimitsdefinition.xml` | All valid category, usage, and value flag names |
-| `cfgplayerspawnpoints.xml` | Fresh spawn locations |
+| `db/types.xml` | すべてのスポーン可能なアイテムのパラメータ |
+| `db/events.xml` | 動的イベント定義（車両、クラッシュ、感染者） |
+| `db/globals.xml` | グローバルCEパラメータ（タイマー、制限） |
+| `db/economy.xml` | サブシステムのトグルスイッチ |
+| `cfgeconomycore.xml` | ルートクラス、デフォルト値、CEログ |
+| `cfgspawnabletypes.xml` | アイテムごとのアタッチメントとカーゴルール |
+| `cfgrandompresets.xml` | ランダムルートプリセットプール |
+| `cfgeventspawns.xml` | イベントスポーン位置のワールド座標 |
+| `cfglimitsdefinition.xml` | すべての有効なカテゴリ、usage、valueフラグ名 |
+| `cfgplayerspawnpoints.xml` | 初期スポーン位置 |
+
+---
+
+## スポーンサイクル
+
+```mermaid
+flowchart TD
+    A[CE起動] --> B[types.xmlを読み込み]
+    B --> C[各アイテムタイプについて]
+    C --> D{現在の数 < nominal?}
+    D -->|はい| E{補充タイマー経過?}
+    E -->|はい| F[有効な位置にアイテムをスポーン]
+    E -->|いいえ| G[補充間隔を待つ]
+    D -->|いいえ| H{現在の数 > nominal?}
+    H -->|はい| I[余剰分をクリーンアップ対象にマーク]
+    H -->|いいえ| J[アイテム数がバランス]
+    F --> K{ライフタイム期限切れ?}
+    K -->|はい| L[アイテムを削除]
+    K -->|いいえ| M[アイテムが持続]
+    L --> C
+```
 
 ---
 
 ## types.xml
 
-The most critical CE file. Every item that can exist in the world must have an entry here.
+最も重要なCEファイルです。ワールドに存在できるすべてのアイテムにはここにエントリが必要です。
 
-### Structure
+### 構造
 
 ```xml
 <types>
@@ -66,38 +87,38 @@ The most critical CE file. Every item that can exist in the world must have an e
 </types>
 ```
 
-### Parameters
+### パラメータ
 
-| Parameter | Description | Typical Values |
+| パラメータ | 説明 | 一般的な値 |
 |-----------|-------------|----------------|
-| `nominal` | Target count on the entire map | 1 - 200 |
-| `lifetime` | Seconds before untouched items despawn | 3600 (1h) - 14400 (4h) |
-| `restock` | Seconds before CE attempts to respawn after item is taken | 0 (immediate) - 1800 |
-| `min` | Minimum count before CE spawns more | Usually `nominal / 2` |
-| `quantmin` | Minimum quantity % (ammo, liquids); -1 = not applicable | -1, 0 - 100 |
-| `quantmax` | Maximum quantity %; -1 = not applicable | -1, 0 - 100 |
-| `cost` | Priority cost (always 100 in vanilla) | 100 |
+| `nominal` | マップ全体の目標数 | 1 - 200 |
+| `lifetime` | 未使用アイテムがデスポーンするまでの秒数 | 3600（1時間）- 14400（4時間） |
+| `restock` | アイテムが取られた後にCEがリスポーンを試みるまでの秒数 | 0（即座）- 1800 |
+| `min` | CEがさらにスポーンする前の最小数 | 通常 `nominal / 2` |
+| `quantmin` | 最小数量%（弾薬、液体）；-1 = 該当なし | -1、0 - 100 |
+| `quantmax` | 最大数量%；-1 = 該当なし | -1、0 - 100 |
+| `cost` | 優先度コスト（バニラでは常に100） | 100 |
 
-### Flags
+### フラグ
 
-| Flag | Description |
+| フラグ | 説明 |
 |------|-------------|
-| `count_in_cargo` | Count items inside player/container cargo toward nominal |
-| `count_in_hoarder` | Count items in storage (tents, barrels, buried stashes) |
-| `count_in_map` | Count items on the ground and in buildings |
-| `count_in_player` | Count items on player characters |
-| `crafted` | Item is craftable (CE does not spawn it naturally) |
-| `deloot` | Dynamic event loot (spawned by events, not CE) |
+| `count_in_cargo` | プレイヤー/コンテナのカーゴ内アイテムをnominalにカウント |
+| `count_in_hoarder` | ストレージ内アイテム（テント、バレル、埋蔵物）をカウント |
+| `count_in_map` | 地面上と建物内のアイテムをカウント |
+| `count_in_player` | プレイヤーキャラクター上のアイテムをカウント |
+| `crafted` | アイテムはクラフト可能（CEは自然にスポーンしない） |
+| `deloot` | 動的イベントルート（イベントによりスポーン、CEによらない） |
 
-### Category, Usage, and Value
+### カテゴリ、Usage、Value
 
-- **category**: Item category (e.g., `weapons`, `tools`, `food`, `clothes`, `containers`)
-- **usage**: Where the item spawns (e.g., `Military`, `Police`, `Town`, `Village`, `Farm`, `Hunting`, `Coast`)
-- **value**: Map tier restriction (e.g., `Tier1` = coast, `Tier2` = inland, `Tier3` = military, `Tier4` = deep inland)
+- **category**: アイテムカテゴリ（例：`weapons`、`tools`、`food`、`clothes`、`containers`）
+- **usage**: アイテムがスポーンする場所（例：`Military`、`Police`、`Town`、`Village`、`Farm`、`Hunting`、`Coast`）
+- **value**: マップティア制限（例：`Tier1` = 海岸、`Tier2` = 内陸、`Tier3` = 軍事、`Tier4` = 深内陸）
 
-An item can have multiple `<usage>` and `<value>` tags to spawn in multiple locations and tiers.
+アイテムには複数の `<usage>` と `<value>` タグを付けて、複数の場所とティアにスポーンさせることができます。
 
-**Example --- add a custom item to the economy:**
+**例 --- カスタムアイテムをエコノミーに追加：**
 
 ```xml
 <type name="MyCustomRifle">
@@ -121,7 +142,7 @@ An item can have multiple `<usage>` and `<value>` tags to spawn in multiple loca
 
 ## globals.xml
 
-Global CE parameters that affect all items.
+すべてのアイテムに影響するグローバルCEパラメータです。
 
 ```xml
 <variables>
@@ -154,28 +175,28 @@ Global CE parameters that affect all items.
 </variables>
 ```
 
-### Key Parameters
+### 主要パラメータ
 
-| Variable | Description |
+| 変数 | 説明 |
 |----------|-------------|
-| `AnimalMaxCount` | Maximum animals alive simultaneously |
-| `ZombieMaxCount` | Maximum infected alive simultaneously |
-| `CleanupLifetimeDeadPlayer` | Seconds before dead player body despawns |
-| `CleanupLifetimeDeadInfected` | Seconds before dead zombie despawns |
-| `InitialSpawn` | Number of items to spawn on server startup |
-| `SpawnInitial` | Number of spawn attempts on startup |
-| `LootDamageMin` / `LootDamageMax` | Damage range applied to spawned loot (0-4: Pristine to Ruined) |
-| `RespawnAttempt` | Seconds between respawn checks |
-| `FlagRefreshFrequency` | Territory flag refresh interval (seconds) |
-| `TimeLogin` / `TimeLogout` | Login/logout timer (seconds) |
+| `AnimalMaxCount` | 同時に存在する動物の最大数 |
+| `ZombieMaxCount` | 同時に存在する感染者の最大数 |
+| `CleanupLifetimeDeadPlayer` | 死亡したプレイヤーの体がデスポーンするまでの秒数 |
+| `CleanupLifetimeDeadInfected` | 死亡したゾンビがデスポーンするまでの秒数 |
+| `InitialSpawn` | サーバー起動時にスポーンするアイテム数 |
+| `SpawnInitial` | 起動時のスポーン試行回数 |
+| `LootDamageMin` / `LootDamageMax` | スポーンされたルートに適用されるダメージ範囲（0-4: Pristine～Ruined） |
+| `RespawnAttempt` | リスポーンチェック間の秒数 |
+| `FlagRefreshFrequency` | テリトリーフラグのリフレッシュ間隔（秒） |
+| `TimeLogin` / `TimeLogout` | ログイン/ログアウトタイマー（秒） |
 
 ---
 
 ## events.xml
 
-Defines dynamic events: infected spawn zones, vehicle spawns, helicopter crashes, and other world events.
+動的イベントを定義します：感染者スポーンゾーン、車両スポーン、ヘリコプタークラッシュ、その他のワールドイベントです。
 
-### Structure
+### 構造
 
 ```xml
 <events>
@@ -200,34 +221,34 @@ Defines dynamic events: infected spawn zones, vehicle spawns, helicopter crashes
 </events>
 ```
 
-### Event Parameters
+### イベントパラメータ
 
-| Parameter | Description |
+| パラメータ | 説明 |
 |-----------|-------------|
-| `nominal` | Target number of active events |
-| `min` / `max` | Minimum and maximum active at once |
-| `lifetime` | Seconds before event despawns |
-| `saferadius` | Minimum distance from players when spawning |
-| `distanceradius` | Minimum distance between event instances |
-| `cleanupradius` | Radius for cleanup checks |
-| `position` | `"fixed"` (from cfgeventspawns.xml) or `"player"` (near players) |
-| `active` | `1` = enabled, `0` = disabled |
+| `nominal` | アクティブなイベントの目標数 |
+| `min` / `max` | 同時にアクティブな最小値と最大値 |
+| `lifetime` | イベントがデスポーンするまでの秒数 |
+| `saferadius` | スポーン時のプレイヤーからの最小距離 |
+| `distanceradius` | イベントインスタンス間の最小距離 |
+| `cleanupradius` | クリーンアップチェックの半径 |
+| `position` | `"fixed"`（cfgeventspawns.xmlから）または `"player"`（プレイヤー近く） |
+| `active` | `1` = 有効、`0` = 無効 |
 
-### Children (Event Objects)
+### Children（イベントオブジェクト）
 
-Each event can spawn one or more child objects:
+各イベントは1つ以上の子オブジェクトをスポーンできます：
 
-| Attribute | Description |
+| 属性 | 説明 |
 |-----------|-------------|
-| `type` | Class name of the object to spawn |
-| `min` / `max` | Count range for this child |
-| `lootmin` / `lootmax` | Number of loot items spawned with this child |
+| `type` | スポーンするオブジェクトのクラス名 |
+| `min` / `max` | この子の数の範囲 |
+| `lootmin` / `lootmax` | この子と共にスポーンされるルートアイテムの数 |
 
 ---
 
 ## cfgspawnabletypes.xml
 
-Defines what attachments and cargo spawn with specific items.
+特定のアイテムと共にスポーンするアタッチメントとカーゴを定義します。
 
 ```xml
 <spawnabletypes>
@@ -249,18 +270,18 @@ Defines what attachments and cargo spawn with specific items.
 </spawnabletypes>
 ```
 
-### How It Works
+### 仕組み
 
-- Each `<attachments>` block has a `chance` (0.0 - 1.0) of being applied.
-- Within a block, items are selected by their individual `chance` values (normalized to 100% within the block).
-- Multiple `<attachments>` blocks allow different attachment slots to be independently rolled.
-- `<cargo>` blocks work the same way for items placed in the entity's cargo.
+- 各 `<attachments>` ブロックには適用される `chance`（0.0 - 1.0）があります。
+- ブロック内のアイテムは個々の `chance` 値（ブロック内で100%に正規化）で選択されます。
+- 複数の `<attachments>` ブロックにより、異なるアタッチメントスロットを独立してロールできます。
+- `<cargo>` ブロックはエンティティのカーゴに配置されるアイテムについて同じように動作します。
 
 ---
 
 ## cfgrandompresets.xml
 
-Defines reusable loot preset pools referenced by `cfgspawnabletypes.xml`.
+`cfgspawnabletypes.xml` から参照される再利用可能なルートプリセットプールを定義します。
 
 ```xml
 <randompresets>
@@ -274,7 +295,7 @@ Defines reusable loot preset pools referenced by `cfgspawnabletypes.xml`.
 </randompresets>
 ```
 
-These presets can be referenced by name in `cfgspawnabletypes.xml`:
+これらのプリセットは `cfgspawnabletypes.xml` で名前で参照できます：
 
 ```xml
 <type name="Barrel_Green">
@@ -286,7 +307,7 @@ These presets can be referenced by name in `cfgspawnabletypes.xml`:
 
 ## cfgeconomycore.xml
 
-Root-level CE configuration. Defines default values, CE classes, and logging flags.
+ルートレベルのCE設定です。デフォルト値、CEクラス、ログフラグを定義します。
 
 ```xml
 <economycore>
@@ -307,13 +328,13 @@ Root-level CE configuration. Defines default values, CE classes, and logging fla
 </economycore>
 ```
 
-The `<ce folder="db"/>` tag tells the CE where to find `types.xml`, `events.xml`, and `globals.xml`.
+`<ce folder="db"/>` タグはCEに `types.xml`、`events.xml`、`globals.xml` の場所を伝えます。
 
 ---
 
 ## cfglimitsdefinition.xml
 
-Defines all valid category, usage, tag, and value flag names that can be used in `types.xml`.
+`types.xml` で使用できるすべての有効なカテゴリ、usage、tag、valueフラグ名を定義します。
 
 ```xml
 <lists>
@@ -352,105 +373,105 @@ Defines all valid category, usage, tag, and value flag names that can be used in
 </lists>
 ```
 
-Custom mods can add new flags here and reference them in their `types.xml` entries.
+カスタムModはここに新しいフラグを追加し、`types.xml` エントリで参照できます。
 
 ---
 
-## ECE Flags in Script
+## スクリプト内のECEフラグ
 
-When spawning entities from script, the ECE flags (covered in [Chapter 6.1](01-entity-system.md)) determine how the entity interacts with the CE:
+スクリプトからエンティティをスポーンする際、ECEフラグ（[第6.1章](01-entity-system.md)で説明）がエンティティのCEとの相互作用を決定します：
 
-| Flag | CE Behavior |
+| フラグ | CEの動作 |
 |------|-------------|
-| `ECE_NOLIFETIME` | Entity will never despawn (not tracked by CE lifetime) |
-| `ECE_DYNAMIC_PERSISTENCY` | Entity becomes persistent only after player interaction |
-| `ECE_EQUIP_ATTACHMENTS` | CE spawns configured attachments from `cfgspawnabletypes.xml` |
-| `ECE_EQUIP_CARGO` | CE spawns configured cargo from `cfgspawnabletypes.xml` |
+| `ECE_NOLIFETIME` | エンティティはデスポーンしない（CEライフタイムで追跡されない） |
+| `ECE_DYNAMIC_PERSISTENCY` | プレイヤーの操作後にのみエンティティが永続化される |
+| `ECE_EQUIP_ATTACHMENTS` | `cfgspawnabletypes.xml` から設定されたアタッチメントをCEがスポーン |
+| `ECE_EQUIP_CARGO` | `cfgspawnabletypes.xml` から設定されたカーゴをCEがスポーン |
 
-**Example --- spawn an item that persists forever:**
+**例 --- 永続的なアイテムをスポーン：**
 
 ```c
 int flags = ECE_PLACE_ON_SURFACE | ECE_NOLIFETIME;
 Object obj = GetGame().CreateObjectEx("Barrel_Green", pos, flags);
 ```
 
-**Example --- spawn with CE-configured attachments:**
+**例 --- CE設定のアタッチメント付きでスポーン：**
 
 ```c
 int flags = ECE_PLACE_ON_SURFACE | ECE_EQUIP_ATTACHMENTS | ECE_EQUIP_CARGO;
 Object obj = GetGame().CreateObjectEx("AKM", pos, flags);
-// The AKM will spawn with random attachments per cfgspawnabletypes.xml
+// AKMはcfgspawnabletypes.xmlに従ってランダムなアタッチメント付きでスポーンされます
 ```
 
 ---
 
-## Script API for CE Interaction
+## CE操作のスクリプトAPI
 
-While the CE is primarily XML-configured, there are some script-side interactions:
+CEは主にXMLで設定されますが、スクリプト側でのいくつかの操作があります：
 
-### Reading Config Values
+### 設定値の読み取り
 
 ```c
-// Check if an item exists in CfgVehicles
+// CfgVehiclesにアイテムが存在するかチェック
 bool exists = GetGame().ConfigIsExisting("CfgVehicles MyCustomItem");
 
-// Read config properties
+// 設定プロパティの読み取り
 string displayName;
 GetGame().ConfigGetText("CfgVehicles AKM displayName", displayName);
 
 int weight = GetGame().ConfigGetInt("CfgVehicles AKM weight");
 ```
 
-### Querying Objects in the World
+### ワールド内オブジェクトのクエリ
 
 ```c
-// Get objects near a position
+// 位置近くのオブジェクトを取得
 array<Object> objects = new array<Object>;
 array<CargoBase> proxyCargos = new array<CargoBase>;
 GetGame().GetObjectsAtPosition(pos, 50.0, objects, proxyCargos);
 ```
 
-### Surface and Position Queries
+### サーフェスと位置のクエリ
 
 ```c
-// Get terrain height (for placing items on ground)
+// 地形の高さを取得（アイテムを地面に配置するため）
 float surfaceY = GetGame().SurfaceY(x, z);
 
-// Get surface type at position
+// 位置のサーフェスタイプを取得
 string surfaceType;
 GetGame().SurfaceGetType(x, z, surfaceType);
 ```
 
 ---
 
-## Modding the Central Economy
+## セントラルエコノミーのMod対応
 
-### Adding Custom Items
+### カスタムアイテムの追加
 
-1. Define the item class in your mod's `config.cpp` under `CfgVehicles`.
-2. Add a `<type>` entry in `types.xml` with nominal, lifetime, usage, and value flags.
-3. Optionally add attachment/cargo rules in `cfgspawnabletypes.xml`.
-4. If using new usage/value flags, define them in `cfglimitsdefinition.xml`.
+1. Modの `config.cpp` の `CfgVehicles` でアイテムクラスを定義します。
+2. `types.xml` に nominal、lifetime、usage、valueフラグを含む `<type>` エントリを追加します。
+3. オプションで `cfgspawnabletypes.xml` にアタッチメント/カーゴルールを追加します。
+4. 新しいusage/valueフラグを使用する場合は、`cfglimitsdefinition.xml` で定義します。
 
-### Modifying Existing Items
+### 既存アイテムの変更
 
-Edit the `<type>` entry in `types.xml` to change spawn rates, lifetimes, or location restrictions. Changes take effect on server restart.
+`types.xml` の `<type>` エントリを編集して、スポーン率、ライフタイム、場所制限を変更します。変更はサーバー再起動後に反映されます。
 
-### Disabling Items
+### アイテムの無効化
 
-Set `nominal` and `min` to `0`:
+`nominal` と `min` を `0` に設定します：
 
 ```xml
 <type name="UnwantedItem">
     <nominal>0</nominal>
     <min>0</min>
-    <!-- rest of parameters -->
+    <!-- 残りのパラメータ -->
 </type>
 ```
 
-### Adding Custom Events
+### カスタムイベントの追加
 
-Add a new `<event>` block in `events.xml` and corresponding spawn positions in `cfgeventspawns.xml`:
+`events.xml` に新しい `<event>` ブロックを追加し、`cfgeventspawns.xml` に対応するスポーン位置を追加します：
 
 ```xml
 <!-- events.xml -->
@@ -487,26 +508,44 @@ Add a new `<event>` block in `events.xml` and corresponding spawn positions in `
 
 ## まとめ
 
-| File | Purpose | Key Parameters |
+| ファイル | 目的 | 主要パラメータ |
 |------|---------|----------------|
-| `types.xml` | Item spawn definitions | `nominal`, `min`, `lifetime`, `usage`, `value` |
-| `globals.xml` | Global CE variables | `ZombieMaxCount`, `AnimalMaxCount`, cleanup timers |
-| `events.xml` | Dynamic events | `nominal`, `lifetime`, `position`, `children` |
-| `cfgspawnabletypes.xml` | Attachment/cargo rules per item | `attachments`, `cargo`, `chance` |
-| `cfgrandompresets.xml` | Reusable loot pools | `cargo`/`attachments` presets |
-| `cfgeconomycore.xml` | Root CE configuration | `classes`, `defaults`, CE folder |
-| `cfglimitsdefinition.xml` | Valid flag definitions | `categories`, `usageflags`, `valueflags` |
+| `types.xml` | アイテムスポーン定義 | `nominal`、`min`、`lifetime`、`usage`、`value` |
+| `globals.xml` | グローバルCE変数 | `ZombieMaxCount`、`AnimalMaxCount`、クリーンアップタイマー |
+| `events.xml` | 動的イベント | `nominal`、`lifetime`、`position`、`children` |
+| `cfgspawnabletypes.xml` | アイテムごとのアタッチメント/カーゴルール | `attachments`、`cargo`、`chance` |
+| `cfgrandompresets.xml` | 再利用可能なルートプール | `cargo`/`attachments` プリセット |
+| `cfgeconomycore.xml` | ルートCE設定 | `classes`、`defaults`、CEフォルダ |
+| `cfglimitsdefinition.xml` | 有効なフラグ定義 | `categories`、`usageflags`、`valueflags` |
 
-| 概念 | 要点 |
+| 概念 | 重要ポイント |
 |---------|-----------|
-| Nominal/Min | CE spawns items when count drops below `min`, targeting `nominal` |
-| Lifetime | Seconds before untouched items despawn |
-| Usage flags | Where items spawn (Military, Town, etc.) |
-| Value flags | Map tier restriction (Tier1 = coast through Tier4 = deep inland) |
-| Count flags | Which items count toward nominal (cargo, hoarder, map, player) |
-| Events | Dynamic spawns with their own lifecycle (crashes, vehicles, infected) |
-| ECE flags | `ECE_NOLIFETIME`, `ECE_EQUIP` for script-spawned items |
+| Nominal/Min | 数が `min` を下回るとCEがアイテムをスポーンし、`nominal` を目標にする |
+| Lifetime | 未使用アイテムがデスポーンするまでの秒数 |
+| Usageフラグ | アイテムがスポーンする場所（Military、Townなど） |
+| Valueフラグ | マップティア制限（Tier1 = 海岸からTier4 = 深内陸） |
+| Countフラグ | nominalにカウントされるアイテム（cargo、hoarder、map、player） |
+| Events | 独自のライフサイクルを持つ動的スポーン（クラッシュ、車両、感染者） |
+| ECEフラグ | スクリプトスポーンアイテム用の `ECE_NOLIFETIME`、`ECE_EQUIP` |
 
 ---
 
-[<< 前： Networking & RPC](09-networking.md) | **Central Economy** | [ホーム](../../README.md)
+## ベストプラクティス
+
+- **高価値アイテムには `count_in_hoarder="1"` を設定してください。** このフラグがないと、プレイヤーがワールドのスポーン数を減らさずに隠し場所にレア武器を溜め込め、実質的にアイテムの重複が発生します。
+- **ほとんどのアイテムで `restock` は0のままにしてください。** ゼロでないrestock値はアイテムが拾われた後のリスポーンを遅延させます。すぐに再出現すべきでないアイテム（例：レアな軍事装備）にのみ使用してください。
+- **プレイヤーがいるライブサーバーでnominal/min比率をテストしてください。** 静的テストでは実際のCE動作は明らかになりません。アイテムはプレイヤーの移動パターン、コンテナストレージ、クリーンアップタイマーと相互作用し、実際の負荷下でのみ見える方法で動作します。
+- **新しいアイテムは常に `config.cpp` と `types.xml` の両方で定義してください。** types.xmlエントリのないconfig.cppエントリは、アイテムが自然にスポーンしないことを意味します。configクラスのないtypes.xmlエントリはCEエラーを引き起こします。
+- **`cfgspawnabletypes.xml` を使用して武器のバリエーションを作成してください。** 裸の武器をスポーンする代わりに、アタッチメントプリセットを定義して、プレイヤーがランダムなストック、ハンドガード、マガジン付きの武器を見つけられるようにしてください -- これによりルートの品質認識が大幅に向上します。
+
+---
+
+## 互換性と影響
+
+- **マルチMod:** 複数のModが `types.xml` にエントリを追加できます。2つのModが同じ `<type name="">` を定義した場合、最後に読み込まれたファイルが優先されます。衝突を避けるためにユニークなクラス名を使用してください。コミュニティサーバーではtypes.xmlエントリを慎重にマージしてください。
+- **パフォーマンス:** 多くのアイテムタイプの高い `nominal` 値（200以上）はCEのスポーンループに負荷をかけます。CEは追跡されるエンティティの総数に応じてスケールする定期的なスキャンを実行します。nominalは現実的に保ってください -- 武器は5-20、一般的なアイテムは20-100。
+- **サーバー/クライアント:** CEは完全にサーバー上で実行されます。クライアントはCEの状態を見ることができません。すべてのXMLファイルはサーバー側専用で、クライアントには配布されません。
+
+---
+
+[ホーム](../../README.md) | [<< 前へ: ネットワークとRPC](09-networking.md) | **セントラルエコノミー** | [次へ: ミッションフック >>](11-mission-hooks.md)

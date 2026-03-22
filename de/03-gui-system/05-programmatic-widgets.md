@@ -1,32 +1,36 @@
-# Chapter 3.5: Programmatic Widget Creation
+# Kapitel 3.5: Programmatische Widget-Erstellung
 
-[Home](../../README.md) | [<< Previous: Container Widgets](04-containers.md) | **Programmatic Widget Creation** | [Next: Event Handling >>](06-event-handling.md)
-
----
-
-## Two Approaches
-
-DayZ provides two ways to create widgets in code:
-
-1. **`CreateWidgets()`** -- Load a `.layout` file and instantiate its widget tree
-2. **`CreateWidget()`** -- Create a single widget with explicit parameters
-
-Both methods are called on the `WorkspaceWidget` obtained from `GetGame().GetWorkspace()`.
+[Startseite](../../README.md) | [<< Zurück: Container-Widgets](04-containers.md) | **Programmatische Widget-Erstellung** | [Weiter: Event-Handling >>](06-event-handling.md)
 
 ---
 
-## CreateWidgets() -- From Layout Files
+Während `.layout`-Dateien der Standardweg sind, um UI-Strukturen zu definieren, können Sie Widgets auch vollständig aus dem Code heraus erstellen und konfigurieren. Das ist nützlich für dynamische UIs, prozedural generierte Elemente und Situationen, in denen das Layout zur Kompilierzeit nicht bekannt ist.
 
-The most common approach. Loads a `.layout` file and creates the entire widget tree, attaching it to a parent widget.
+---
+
+## Zwei Ansätze
+
+DayZ bietet zwei Möglichkeiten, Widgets im Code zu erstellen:
+
+1. **`CreateWidgets()`** -- Eine `.layout`-Datei laden und ihren Widget-Baum instanziieren
+2. **`CreateWidget()`** -- Ein einzelnes Widget mit expliziten Parametern erstellen
+
+Beide Methoden werden auf dem `WorkspaceWidget` aufgerufen, das über `GetGame().GetWorkspace()` abgerufen wird.
+
+---
+
+## CreateWidgets() -- Aus Layout-Dateien
+
+Der häufigste Ansatz. Lädt eine `.layout`-Datei und erstellt den gesamten Widget-Baum, wobei dieser an ein Eltern-Widget angehängt wird.
 
 ```c
 Widget root = GetGame().GetWorkspace().CreateWidgets(
-    "MyMod/gui/layouts/MyPanel.layout",   // Path to layout file
-    parentWidget                            // Parent widget (or null for root)
+    "MyMod/gui/layouts/MyPanel.layout",   // Pfad zur Layout-Datei
+    parentWidget                            // Eltern-Widget (oder null für Root)
 );
 ```
 
-The returned `Widget` is the root widget from the layout file. You can then find child widgets by name:
+Das zurückgegebene `Widget` ist das Wurzel-Widget aus der Layout-Datei. Sie können dann Kind-Widgets nach Namen suchen:
 
 ```c
 TextWidget title = TextWidget.Cast(root.FindAnyWidget("TitleText"));
@@ -35,9 +39,9 @@ title.SetText("Hello World");
 ButtonWidget closeBtn = ButtonWidget.Cast(root.FindAnyWidget("CloseButton"));
 ```
 
-### Creating Multiple Instances
+### Mehrere Instanzen erstellen
 
-A common pattern is creating multiple instances of a layout template (e.g., list items):
+Ein häufiges Muster ist das Erstellen mehrerer Instanzen einer Layout-Vorlage (z.B. Listeneinträge):
 
 ```c
 void PopulateList(WrapSpacerWidget container, array<string> items)
@@ -51,45 +55,45 @@ void PopulateList(WrapSpacerWidget container, array<string> items)
         label.SetText(item);
     }
 
-    container.Update();  // Force layout recalculation
+    container.Update();  // Layout-Neuberechnung erzwingen
 }
 ```
 
 ---
 
-## CreateWidget() -- Programmatic Creation
+## CreateWidget() -- Programmatische Erstellung
 
-Creates a single widget with explicit type, position, size, flags, and parent.
+Erstellt ein einzelnes Widget mit explizitem Typ, Position, Größe, Flags und Eltern-Element.
 
 ```c
 Widget w = GetGame().GetWorkspace().CreateWidget(
-    FrameWidgetTypeID,      // Widget type ID constant
-    0,                       // X position
-    0,                       // Y position
-    100,                     // Width
-    100,                     // Height
+    FrameWidgetTypeID,      // Widget-Typ-ID-Konstante
+    0,                       // X-Position
+    0,                       // Y-Position
+    100,                     // Breite
+    100,                     // Höhe
     WidgetFlags.VISIBLE | WidgetFlags.EXACTSIZE | WidgetFlags.EXACTPOS,
-    -1,                      // Color (ARGB integer, -1 = white/default)
-    0,                       // Sort order (priority)
-    parentWidget             // Parent widget
+    -1,                      // Farbe (ARGB-Integer, -1 = weiß/Standard)
+    0,                       // Sortierreihenfolge (Priorität)
+    parentWidget             // Eltern-Widget
 );
 ```
 
-### Parameters
+### Parameter
 
-| Parameter | Type | Description |
+| Parameter | Typ | Beschreibung |
 |---|---|---|
-| typeID | int | Widget type constant (e.g., `FrameWidgetTypeID`, `TextWidgetTypeID`) |
-| x | float | X position (proportional or pixel based on flags) |
-| y | float | Y position |
-| width | float | Widget width |
-| height | float | Widget height |
-| flags | int | Bitwise OR of `WidgetFlags` constants |
-| color | int | ARGB color integer (-1 for default/white) |
-| sort | int | Z-order (higher renders on top) |
-| parent | Widget | Parent widget to attach to |
+| typeID | int | Widget-Typ-Konstante (z.B. `FrameWidgetTypeID`, `TextWidgetTypeID`) |
+| x | float | X-Position (proportional oder pixelbasiert je nach Flags) |
+| y | float | Y-Position |
+| width | float | Widget-Breite |
+| height | float | Widget-Höhe |
+| flags | int | Bitweises ODER von `WidgetFlags`-Konstanten |
+| color | int | ARGB-Farb-Integer (-1 für Standard/Weiß) |
+| sort | int | Z-Reihenfolge (höhere Werte werden oben gerendert) |
+| parent | Widget | Eltern-Widget zum Anhängen |
 
-### Widget Type IDs
+### Widget-Typ-IDs
 
 ```c
 FrameWidgetTypeID
@@ -119,107 +123,107 @@ WorkspaceWidgetTypeID
 
 ## WidgetFlags
 
-Flags control widget behavior when created programmatically. Combine them with bitwise OR (`|`).
+Flags steuern das Widget-Verhalten bei programmatischer Erstellung. Kombinieren Sie sie mit bitweisem ODER (`|`).
 
-| Flag | Effect |
+| Flag | Wirkung |
 |---|---|
-| `WidgetFlags.VISIBLE` | Widget starts visible |
-| `WidgetFlags.IGNOREPOINTER` | Widget does not receive mouse events |
-| `WidgetFlags.DRAGGABLE` | Widget can be dragged |
-| `WidgetFlags.EXACTSIZE` | Size values are in pixels (not proportional) |
-| `WidgetFlags.EXACTPOS` | Position values are in pixels (not proportional) |
-| `WidgetFlags.SOURCEALPHA` | Use source alpha channel |
-| `WidgetFlags.BLEND` | Enable alpha blending |
-| `WidgetFlags.FLIPU` | Flip texture horizontally |
-| `WidgetFlags.FLIPV` | Flip texture vertically |
+| `WidgetFlags.VISIBLE` | Widget ist initial sichtbar |
+| `WidgetFlags.IGNOREPOINTER` | Widget empfängt keine Maus-Events |
+| `WidgetFlags.DRAGGABLE` | Widget kann gezogen werden |
+| `WidgetFlags.EXACTSIZE` | Größenwerte sind in Pixeln (nicht proportional) |
+| `WidgetFlags.EXACTPOS` | Positionswerte sind in Pixeln (nicht proportional) |
+| `WidgetFlags.SOURCEALPHA` | Quell-Alphakanal verwenden |
+| `WidgetFlags.BLEND` | Alpha-Blending aktivieren |
+| `WidgetFlags.FLIPU` | Textur horizontal spiegeln |
+| `WidgetFlags.FLIPV` | Textur vertikal spiegeln |
 
-Common flag combinations:
+Häufige Flag-Kombinationen:
 
 ```c
-// Visible, pixel-sized, pixel-positioned, alpha-blended
+// Sichtbar, pixelgroß, pixelpositioniert, alpha-geblendet
 int FLAGS_EXACT = WidgetFlags.VISIBLE | WidgetFlags.EXACTSIZE | WidgetFlags.EXACTPOS | WidgetFlags.SOURCEALPHA | WidgetFlags.BLEND;
 
-// Visible, proportional, non-interactive
+// Sichtbar, proportional, nicht-interaktiv
 int FLAGS_OVERLAY = WidgetFlags.VISIBLE | WidgetFlags.IGNOREPOINTER | WidgetFlags.SOURCEALPHA | WidgetFlags.BLEND;
 ```
 
-After creation, you can modify flags dynamically:
+Nach der Erstellung können Sie Flags dynamisch ändern:
 
 ```c
-widget.SetFlags(WidgetFlags.VISIBLE);          // Add a flag
-widget.ClearFlags(WidgetFlags.IGNOREPOINTER);  // Remove a flag
-int flags = widget.GetFlags();                  // Read current flags
+widget.SetFlags(WidgetFlags.VISIBLE);          // Ein Flag hinzufügen
+widget.ClearFlags(WidgetFlags.IGNOREPOINTER);  // Ein Flag entfernen
+int flags = widget.GetFlags();                  // Aktuelle Flags lesen
 ```
 
 ---
 
-## Setting Properties After Creation
+## Eigenschaften nach der Erstellung setzen
 
-After creating a widget with `CreateWidget()`, you need to configure it. The widget is returned as the base `Widget` type, so you must cast to the specific type.
+Nach dem Erstellen eines Widgets mit `CreateWidget()` müssen Sie es konfigurieren. Das Widget wird als Basistyp `Widget` zurückgegeben, daher müssen Sie zum spezifischen Typ casten.
 
-### Setting Name
+### Namen setzen
 
 ```c
 Widget w = GetGame().GetWorkspace().CreateWidget(TextWidgetTypeID, ...);
 w.SetName("MyTextWidget");
 ```
 
-Names are important for `FindAnyWidget()` lookups and debugging.
+Namen sind wichtig für `FindAnyWidget()`-Abfragen und das Debugging.
 
-### Setting Text
+### Text setzen
 
 ```c
 TextWidget tw = TextWidget.Cast(w);
 tw.SetText("Hello World");
-tw.SetTextExactSize(16);           // Font size in pixels
-tw.SetOutline(1, ARGB(255, 0, 0, 0));  // 1px black outline
+tw.SetTextExactSize(16);           // Schriftgröße in Pixeln
+tw.SetOutline(1, ARGB(255, 0, 0, 0));  // 1px schwarzer Umriss
 ```
 
-### Setting Color
+### Farbe setzen
 
-Colors in DayZ use ARGB format (Alpha, Red, Green, Blue), packed into a single 32-bit integer:
+Farben in DayZ verwenden das ARGB-Format (Alpha, Rot, Grün, Blau), gepackt in einen einzelnen 32-Bit-Integer:
 
 ```c
-// Using the ARGB helper function (0-255 per channel)
-int red    = ARGB(255, 255, 0, 0);       // Opaque red
-int green  = ARGB(255, 0, 255, 0);       // Opaque green
-int blue   = ARGB(200, 0, 0, 255);       // Semi-transparent blue
-int black  = ARGB(255, 0, 0, 0);         // Opaque black
-int white  = ARGB(255, 255, 255, 255);   // Opaque white  (same as -1)
+// ARGB-Hilfsfunktion verwenden (0-255 pro Kanal)
+int red    = ARGB(255, 255, 0, 0);       // Deckendes Rot
+int green  = ARGB(255, 0, 255, 0);       // Deckendes Grün
+int blue   = ARGB(200, 0, 0, 255);       // Halbtransparentes Blau
+int black  = ARGB(255, 0, 0, 0);         // Deckendes Schwarz
+int white  = ARGB(255, 255, 255, 255);   // Deckendes Weiß (gleich wie -1)
 
-// Using the float version (0.0-1.0 per channel)
+// Float-Version verwenden (0.0-1.0 pro Kanal)
 int color = ARGBF(1.0, 0.5, 0.25, 0.1);
 
-// Decompose a color back to floats
+// Farbe zurück in Floats zerlegen
 float a, r, g, b;
 InverseARGBF(color, a, r, g, b);
 
-// Apply to any widget
+// Auf jedes Widget anwenden
 widget.SetColor(ARGB(255, 100, 150, 200));
-widget.SetAlpha(0.5);  // Override just the alpha
+widget.SetAlpha(0.5);  // Nur das Alpha überschreiben
 ```
 
-The hexadecimal format `0xAARRGGBB` is also common:
+Das Hexadezimalformat `0xAARRGGBB` ist ebenfalls gebräuchlich:
 
 ```c
 int color = 0xFF4B77BE;   // A=255, R=75, G=119, B=190
 widget.SetColor(color);
 ```
 
-### Setting an Event Handler
+### Event-Handler setzen
 
 ```c
-widget.SetHandler(myEventHandler);  // ScriptedWidgetEventHandler instance
+widget.SetHandler(myEventHandler);  // ScriptedWidgetEventHandler-Instanz
 ```
 
-### Setting User Data
+### Benutzerdaten setzen
 
-Attach arbitrary data to a widget for later retrieval:
+Beliebige Daten an ein Widget anhängen, um sie später abzurufen:
 
 ```c
-widget.SetUserData(myDataObject);  // Must inherit from Managed
+widget.SetUserData(myDataObject);  // Muss von Managed erben
 
-// Later retrieve it:
+// Später abrufen:
 Managed data;
 widget.GetUserData(data);
 MyDataClass myData = MyDataClass.Cast(data);
@@ -227,28 +231,28 @@ MyDataClass myData = MyDataClass.Cast(data);
 
 ---
 
-## Widget Cleanup
+## Widget-Bereinigung
 
-Widgets that are no longer needed must be properly cleaned up to avoid memory leaks.
+Widgets, die nicht mehr benötigt werden, müssen ordnungsgemäß bereinigt werden, um Speicherlecks zu vermeiden.
 
 ### Unlink()
 
-Removes a widget from its parent and destroys it (and all its children):
+Entfernt ein Widget von seinem Eltern-Element und zerstört es (und alle seine Kinder):
 
 ```c
 widget.Unlink();
 ```
 
-After calling `Unlink()`, the widget reference becomes invalid. Set it to `null`:
+Nach dem Aufruf von `Unlink()` wird die Widget-Referenz ungültig. Setzen Sie sie auf `null`:
 
 ```c
 widget.Unlink();
 widget = null;
 ```
 
-### Removing All Children
+### Alle Kinder entfernen
 
-To clear a container widget of all its children:
+Um ein Container-Widget von allen seinen Kindern zu befreien:
 
 ```c
 void ClearChildren(Widget parent)
@@ -263,50 +267,50 @@ void ClearChildren(Widget parent)
 }
 ```
 
-**Important:** You must get `GetSibling()` **before** calling `Unlink()`, because unlinking invalidates the widget's sibling chain.
+**Wichtig:** Sie müssen `GetSibling()` **vor** dem Aufruf von `Unlink()` aufrufen, da das Entfernen die Geschwisterkette des Widgets ungültig macht.
 
-### Null Checks
+### Null-Prüfungen
 
-Always null-check widgets before using them. `FindAnyWidget()` returns `null` if the widget is not found, and cast operations return `null` if the type does not match:
+Prüfen Sie Widgets immer auf null, bevor Sie sie verwenden. `FindAnyWidget()` gibt `null` zurück, wenn das Widget nicht gefunden wird, und Cast-Operationen geben `null` zurück, wenn der Typ nicht übereinstimmt:
 
 ```c
 TextWidget tw = TextWidget.Cast(root.FindAnyWidget("MaybeExists"));
 if (tw)
 {
-    tw.SetText("Found it");
+    tw.SetText("Gefunden");
 }
 ```
 
 ---
 
-## Widget Hierarchy Navigation
+## Widget-Hierarchie-Navigation
 
-Navigate the widget tree from code:
+Navigieren Sie den Widget-Baum aus dem Code:
 
 ```c
-Widget parent = widget.GetParent();           // Parent widget
-Widget firstChild = widget.GetChildren();     // First child
-Widget nextSibling = widget.GetSibling();     // Next sibling
-Widget found = widget.FindAnyWidget("Name");  // Recursive search by name
+Widget parent = widget.GetParent();           // Eltern-Widget
+Widget firstChild = widget.GetChildren();     // Erstes Kind
+Widget nextSibling = widget.GetSibling();     // Nächstes Geschwister
+Widget found = widget.FindAnyWidget("Name");  // Rekursive Suche nach Name
 
-string name = widget.GetName();               // Widget name
-string typeName = widget.GetTypeName();       // e.g., "TextWidget"
+string name = widget.GetName();               // Widget-Name
+string typeName = widget.GetTypeName();       // z.B. "TextWidget"
 ```
 
-To iterate all children:
+Alle Kinder durchlaufen:
 
 ```c
 Widget child = parent.GetChildren();
 while (child)
 {
-    // Process child
-    Print("Child: " + child.GetName());
+    // Kind verarbeiten
+    Print("Kind: " + child.GetName());
 
     child = child.GetSibling();
 }
 ```
 
-To iterate all descendants recursively:
+Alle Nachkommen rekursiv durchlaufen:
 
 ```c
 void WalkWidgets(Widget w, int depth = 0)
@@ -324,9 +328,9 @@ void WalkWidgets(Widget w, int depth = 0)
 
 ---
 
-## Complete Example: Creating a Dialog in Code
+## Vollständiges Beispiel: Dialog im Code erstellen
 
-Here is a complete example that creates a simple information dialog entirely in code, without any layout file:
+Hier ist ein vollständiges Beispiel, das einen einfachen Informationsdialog komplett im Code erstellt, ohne jegliche Layout-Datei:
 
 ```c
 class SimpleCodeDialog : ScriptedWidgetEventHandler
@@ -345,36 +349,36 @@ class SimpleCodeDialog : ScriptedWidgetEventHandler
 
         WorkspaceWidget workspace = GetGame().GetWorkspace();
 
-        // Root frame: 400x200 pixels, centered on screen
+        // Wurzel-Frame: 400x200 Pixel, auf dem Bildschirm zentriert
         m_Root = workspace.CreateWidget(
             FrameWidgetTypeID, 0, 0, 400, 200, FLAGS_EXACT,
             ARGB(230, 30, 30, 30), 100, null);
 
-        // Center it manually
+        // Manuell zentrieren
         int sw, sh;
         GetScreenSize(sw, sh);
         m_Root.SetScreenPos((sw - 400) / 2, (sh - 200) / 2);
 
-        // Title text: full width, 30px tall, at top
+        // Titeltext: volle Breite, 30px hoch, oben
         Widget titleW = workspace.CreateWidget(
             TextWidgetTypeID, 0, 0, 400, 30, FLAGS_EXACT,
             ARGB(255, 100, 160, 220), 0, m_Root);
         m_Title = TextWidget.Cast(titleW);
         m_Title.SetText(title);
 
-        // Message text: below title, fills remaining space
+        // Nachrichtentext: unter dem Titel, füllt den verbleibenden Platz
         Widget msgW = workspace.CreateWidget(
             TextWidgetTypeID, 10, 40, 380, 110, FLAGS_EXACT,
             ARGB(255, 200, 200, 200), 0, m_Root);
         m_Message = TextWidget.Cast(msgW);
         m_Message.SetText(message);
 
-        // Close button: 80x30 pixels, bottom-right area
+        // Schließen-Button: 80x30 Pixel, rechts unten
         Widget btnW = workspace.CreateWidget(
             ButtonWidgetTypeID, 310, 160, 80, 30, FLAGS_EXACT,
             ARGB(255, 80, 130, 200), 0, m_Root);
         m_CloseBtn = ButtonWidget.Cast(btnW);
-        m_CloseBtn.SetText("Close");
+        m_CloseBtn.SetText("Schließen");
         m_CloseBtn.SetHandler(this);
     }
 
@@ -403,28 +407,136 @@ class SimpleCodeDialog : ScriptedWidgetEventHandler
     }
 }
 
-// Usage:
-SimpleCodeDialog dialog = new SimpleCodeDialog("Alert", "Server restart in 5 minutes.");
+// Verwendung:
+SimpleCodeDialog dialog = new SimpleCodeDialog("Warnung", "Server-Neustart in 5 Minuten.");
 ```
 
 ---
 
-## Layout Files vs. Programmatic: Wann verwenden Each
+## Widget-Pooling
 
-| Situation | Recommendation |
+Das Erstellen und Zerstören von Widgets in jedem Frame verursacht Leistungsprobleme. Stattdessen sollten Sie einen Pool wiederverwendbarer Widgets verwalten:
+
+```c
+class WidgetPool
+{
+    protected ref array<Widget> m_Pool;
+    protected ref array<Widget> m_Active;
+    protected Widget m_Parent;
+    protected string m_LayoutPath;
+
+    void WidgetPool(Widget parent, string layoutPath, int initialSize = 10)
+    {
+        m_Pool = new array<Widget>();
+        m_Active = new array<Widget>();
+        m_Parent = parent;
+        m_LayoutPath = layoutPath;
+
+        // Widgets vorab erstellen
+        for (int i = 0; i < initialSize; i++)
+        {
+            Widget w = GetGame().GetWorkspace().CreateWidgets(m_LayoutPath, m_Parent);
+            w.Show(false);
+            m_Pool.Insert(w);
+        }
+    }
+
+    Widget Acquire()
+    {
+        Widget w;
+        if (m_Pool.Count() > 0)
+        {
+            w = m_Pool[m_Pool.Count() - 1];
+            m_Pool.Remove(m_Pool.Count() - 1);
+        }
+        else
+        {
+            w = GetGame().GetWorkspace().CreateWidgets(m_LayoutPath, m_Parent);
+        }
+        w.Show(true);
+        m_Active.Insert(w);
+        return w;
+    }
+
+    void Release(Widget w)
+    {
+        w.Show(false);
+        int idx = m_Active.Find(w);
+        if (idx >= 0)
+            m_Active.Remove(idx);
+        m_Pool.Insert(w);
+    }
+
+    void ReleaseAll()
+    {
+        foreach (Widget w : m_Active)
+        {
+            w.Show(false);
+            m_Pool.Insert(w);
+        }
+        m_Active.Clear();
+    }
+}
+```
+
+**Wann Pooling verwenden:**
+- Listen, die häufig aktualisiert werden (Killfeed, Chat, Spielerliste)
+- Raster mit dynamischem Inhalt (Inventar, Markt)
+- Jede UI, die 10+ Widgets pro Sekunde erstellt/zerstört
+
+**Wann KEIN Pooling verwenden:**
+- Statische Panels, die einmal erstellt werden
+- Dialoge, die ein-/ausgeblendet werden (einfach Show/Hide verwenden)
+
+---
+
+## Layout-Dateien vs. Programmatisch: Wann was verwenden
+
+| Situation | Empfehlung |
 |---|---|
-| Static UI structure | Layout file (`.layout`) |
-| Complex widget trees | Layout file |
-| Dynamic number of items | `CreateWidgets()` from a template layout |
-| Simple runtime elements (debug text, markers) | `CreateWidget()` |
-| Rapid prototyping | `CreateWidget()` |
-| Production mod UI | Layout file + code configuration |
+| Statische UI-Struktur | Layout-Datei (`.layout`) |
+| Komplexe Widget-Bäume | Layout-Datei |
+| Dynamische Anzahl von Elementen | `CreateWidgets()` aus einer Vorlagen-Layout-Datei |
+| Einfache Laufzeit-Elemente (Debug-Text, Marker) | `CreateWidget()` |
+| Schnelles Prototyping | `CreateWidget()` |
+| Produktions-Mod-UI | Layout-Datei + Code-Konfiguration |
 
-In practice, most mods use **layout files** for the structure and **code** for populating data, showing/hiding elements, and handling events. Purely programmatic UIs are rare outside of debug tools.
+In der Praxis verwenden die meisten Mods **Layout-Dateien** für die Struktur und **Code** zum Befüllen von Daten, Ein-/Ausblenden von Elementen und zur Event-Behandlung. Rein programmatische UIs sind außerhalb von Debug-Tools selten.
 
 ---
 
 ## Nächste Schritte
 
-- [3.6 Event Handling](06-event-handling.md) -- Handle clicks, changes, and mouse events
-- [3.7 Styles, Fonts & Images](07-styles-fonts.md) -- Visual styling and image resources
+- [3.6 Event-Handling](06-event-handling.md) -- Klicks, Änderungen und Maus-Events verarbeiten
+- [3.7 Styles, Schriftarten & Bilder](07-styles-fonts.md) -- Visuelle Gestaltung und Bildressourcen
+
+---
+
+## Theorie vs. Praxis
+
+| Konzept | Theorie | Realität |
+|---------|---------|---------|
+| `CreateWidget()` erstellt jeden Widget-Typ | Alle TypeIDs funktionieren mit `CreateWidget()` | `ScrollWidget` und `WrapSpacerWidget`, die programmatisch erstellt werden, benötigen oft manuelle Flag-Einrichtung (`EXACTSIZE`, Größenangaben), die Layout-Dateien automatisch handhaben |
+| `Unlink()` gibt allen Speicher frei | Widget und Kinder werden zerstört | Referenzen in Script-Variablen werden zu hängenden Zeigern. Setzen Sie Widget-Referenzen nach `Unlink()` immer auf `null`, sonst riskieren Sie Abstürze |
+| `SetHandler()` leitet alle Events weiter | Ein Handler empfängt alle Widget-Events | Der Handler empfängt nur Events von Widgets, die `SetHandler(this)` aufgerufen haben. Kinder erben den Handler nicht vom Eltern-Element |
+| `CreateWidgets()` aus Layout ist sofort | Layout wird synchron geladen | Große Layouts mit vielen verschachtelten Widgets verursachen einen Frame-Spike. Laden Sie Layouts während Ladebildschirmen vor, nicht während des Spiels |
+| Proportionale Größenangabe (0.0-1.0) skaliert zum Eltern-Element | Werte sind relativ zu den Eltern-Dimensionen | Ohne `EXACTSIZE`-Flag werden selbst `CreateWidget()`-Werte wie `100` als proportional (0-1-Bereich) behandelt, wodurch Widgets das gesamte Eltern-Element ausfüllen |
+
+---
+
+## Kompatibilität & Auswirkungen
+
+- **Multi-Mod:** Programmatisch erstellte Widgets sind privat für den erstellenden Mod. Anders als bei `modded class` gibt es kein Kollisionsrisiko, es sei denn, zwei Mods hängen Widgets an dasselbe Vanilla-Eltern-Widget nach Namen an.
+- **Leistung:** Jeder `CreateWidgets()`-Aufruf parst die Layout-Datei von der Festplatte. Cachen Sie das Wurzel-Widget und blenden Sie es ein/aus, anstatt es bei jedem Öffnen der UI neu aus dem Layout zu erstellen.
+
+---
+
+## In echten Mods beobachtet
+
+| Muster | Mod | Detail |
+|---------|-----|--------|
+| Layout-Vorlage + Code-Befüllung | COT, Expansion | Ein Zeilen-`.layout`-Template wird pro Listeneintrag über `CreateWidgets()` geladen und dann über `FindAnyWidget()` befüllt |
+| Widget-Pooling für Killfeed | Colorful UI | Erstellt 20 Feed-Eintrags-Widgets im Voraus und blendet sie ein/aus, anstatt sie zu erstellen und zu zerstören |
+| Reine Code-Dialoge | Debug/Admin-Tools | Einfache Warndialoge werden vollständig mit `CreateWidget()` erstellt, um das Mitliefern zusätzlicher `.layout`-Dateien zu vermeiden |
+| `SetHandler(this)` auf jedem interaktiven Kind | VPP Admin Tools | Iteriert nach dem Layout-Laden alle Buttons und ruft auf jedem einzeln `SetHandler()` auf |
+| `Unlink()` + null-Muster | DabsFramework | Jede `Close()`-Methode eines Dialogs ruft konsistent `m_Root.Unlink(); m_Root = null;` auf |
