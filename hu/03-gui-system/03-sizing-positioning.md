@@ -1,41 +1,45 @@
-# Chapter 3.3: Sizing & Positioning
+# 3.3. fejezet: Méretezés és pozícionálás
 
-[Home](../../README.md) | [<< Previous: Layout File Format](02-layout-files.md) | **Sizing & Positioning** | [Next: Container Widgets >>](04-containers.md)
+[Kezdőlap](../../README.md) | [<< Előző: Layout fájl formátum](02-layout-files.md) | **Méretezés és pozícionálás** | [Következő: Konténer widgetek >>](04-containers.md)
 
 ---
 
-## Az alapfogalom: Proportional vs. Pixel
+A DayZ layout rendszere **kettős koordináta módot** használ -- minden dimenzió lehet arányos (a szülőhöz képest relatív) vagy pixel-alapú (abszolút képernyő pixelek). Ennek a rendszernek a félreértése az egyes számú forrása a layout hibáknak. Ez a fejezet alaposan elmagyarázza.
 
-Every widget has a position (`x, y`) and a size (`width, height`). Each of these four values can independently be either:
+---
 
-- **Proportional** (0.0 to 1.0) -- relative to the parent widget's dimensions
-- **Pixel** (any positive number) -- absolute screen pixels
+## Az alapfogalom: Arányos vs. Pixel
 
-The mode for each axis is controlled by four flags:
+Minden widgetnek van pozíciója (`x, y`) és mérete (`szélesség, magasság`). Ez a négy érték egyenként lehet akár:
 
-| Flag | Controls | `0` = Proportional | `1` = Pixel |
+- **Arányos** (0.0-tól 1.0-ig) -- a szülő widget méreteihez viszonyítva
+- **Pixel** (bármilyen pozitív szám) -- abszolút képernyő pixelek
+
+A módot minden tengelyre négy jelző szabályozza:
+
+| Jelző | Vezérli | `0` = Arányos | `1` = Pixel |
 |---|---|---|---|
-| `hexactpos` | X position | Fraction of parent width | Pixels from left |
-| `vexactpos` | Y position | Fraction of parent height | Pixels from top |
-| `hexactsize` | Width | Fraction of parent width | Pixel width |
-| `vexactsize` | Height | Fraction of parent height | Pixel height |
+| `hexactpos` | X pozíció | A szülő szélességének hányada | Pixelek balról |
+| `vexactpos` | Y pozíció | A szülő magasságának hányada | Pixelek felülről |
+| `hexactsize` | Szélesség | A szülő szélességének hányada | Pixel szélesség |
+| `vexactsize` | Magasság | A szülő magasságának hányada | Pixel magasság |
 
-This means you can mix modes freely. For example, a widget can have proportional width but pixel height -- a very common pattern for rows and bars.
+Ez azt jelenti, hogy szabadon keverhetők a módok. Például egy widget rendelkezhet arányos szélességgel, de pixel magassággal -- ez egy nagyon gyakori minta soroknál és sávoknál.
 
 ---
 
-## Understanding Proportional Mode
+## Az arányos mód megértése
 
-When a flag is `0` (proportional), the value represents a **fraction of the parent's dimension**:
+Amikor egy jelző `0` (arányos), az érték a **szülő dimenziójának hányadát** jelenti:
 
-- `size 1 1` with `hexactsize 0` and `vexactsize 0` means "100% of parent width, 100% of parent height" -- the child fills the parent.
-- `size 0.5 0.3` means "50% of parent width, 30% of parent height."
-- `position 0.5 0` with `hexactpos 0` means "start at 50% of parent width from the left."
+- `size 1 1` a `hexactsize 0` és `vexactsize 0` beállítással azt jelenti: "a szülő szélességének 100%-a, a szülő magasságának 100%-a" -- a gyermek kitölti a szülőt.
+- `size 0.5 0.3` azt jelenti: "a szülő szélességének 50%-a, a szülő magasságának 30%-a."
+- `position 0.5 0` a `hexactpos 0` beállítással azt jelenti: "a szülő szélességének 50%-ától balról indul."
 
-Proportional mode is resolution-independent. The widget scales automatically when the parent changes size or when the game runs at a different resolution.
+Az arányos mód felbontás-független. A widget automatikusan skálázódik, amikor a szülő mérete változik, vagy amikor a játék más felbontáson fut.
 
 ```
-// A widget that fills the left half of its parent
+// Egy widget, amely kitölti a szülő bal felét
 FrameWidgetClass LeftHalf {
  position 0 0
  size 0.5 1
@@ -48,17 +52,17 @@ FrameWidgetClass LeftHalf {
 
 ---
 
-## Understanding Pixel Mode
+## A pixel mód megértése
 
-When a flag is `1` (pixel/exact), the value is in **screen pixels**:
+Amikor egy jelző `1` (pixel/pontos), az érték **képernyő pixelekben** van:
 
-- `size 200 40` with `hexactsize 1` and `vexactsize 1` means "200 pixels wide, 40 pixels tall."
-- `position 10 10` with `hexactpos 1` and `vexactpos 1` means "10 pixels from parent's left edge, 10 pixels from parent's top edge."
+- `size 200 40` a `hexactsize 1` és `vexactsize 1` beállítással azt jelenti: "200 pixel széles, 40 pixel magas."
+- `position 10 10` a `hexactpos 1` és `vexactpos 1` beállítással azt jelenti: "10 pixel a szülő bal szélétől, 10 pixel a szülő felső szélétől."
 
-Pixel mode gives you exact control but does NOT automatically scale with resolution.
+A pixel mód pontos vezérlést ad, de NEM skálázódik automatikusan a felbontással.
 
 ```
-// A fixed-size button: 120x30 pixels
+// Fix méretű gomb: 120x30 pixel
 ButtonWidgetClass MyButton {
  position 10 10
  size 120 30
@@ -72,59 +76,59 @@ ButtonWidgetClass MyButton {
 
 ---
 
-## Mixing Modes: The Most Common Pattern
+## Módok keverése: A leggyakoribb minta
 
-The real power comes from mixing proportional and pixel modes. The most common pattern in professional DayZ mods is:
+Az igazi erő a módok keveréséből ered. A professzionális DayZ modokban a leggyakoribb minta:
 
-**Proportional width, pixel height** -- for bars, rows, and headers.
+**Arányos szélesség, pixel magasság** -- sávokhoz, sorokhoz és fejlécekhez.
 
 ```
-// Full-width row, exactly 30 pixels tall
+// Teljes szélességű sor, pontosan 30 pixel magas
 FrameWidgetClass Row {
  position 0 0
  size 1 30
  hexactpos 0
  vexactpos 0
- hexactsize 0        // Width: proportional (100% of parent)
- vexactsize 1        // Height: pixel (30px)
+ hexactsize 0        // Szélesség: arányos (a szülő 100%-a)
+ vexactsize 1        // Magasság: pixel (30px)
 }
 ```
 
-**Proportional width and height, pixel position** -- for centered panels offset by a fixed amount.
+**Arányos szélesség és magasság, pixel pozíció** -- fix mennyiséggel eltolt középre igazított panelekhez.
 
 ```
-// 60% x 70% panel, offset 0px from center
+// 60% x 70% panel, 0px eltolás a középponttól
 FrameWidgetClass Dialog {
  position 0 0
  size 0.6 0.7
  halign center_ref
  valign center_ref
- hexactpos 1         // Position: pixel (0px offset from center)
+ hexactpos 1         // Pozíció: pixel (0px eltolás a középponttól)
  vexactpos 1
- hexactsize 0        // Size: proportional (60% x 70%)
+ hexactsize 0        // Méret: arányos (60% x 70%)
  vexactsize 0
 }
 ```
 
 ---
 
-## Alignment References: halign and valign
+## Igazítási referenciapontok: halign és valign
 
-The `halign` and `valign` attributes change the **reference point** for positioning:
+A `halign` és `valign` attribútumok megváltoztatják a pozícionálás **referenciapontját**:
 
-| Ertek | Hatas |
+| Érték | Hatás |
 |---|---|
-| `left_ref` (default) | Position is measured from parent's left edge |
-| `center_ref` | Position is measured from parent's center |
-| `right_ref` | Position is measured from parent's right edge |
-| `top_ref` (default) | Position is measured from parent's top edge |
-| `center_ref` | Position is measured from parent's center |
-| `bottom_ref` | Position is measured from parent's bottom edge |
+| `left_ref` (alapértelmezett) | A pozíció a szülő bal szélétől mérve |
+| `center_ref` | A pozíció a szülő középpontjától mérve |
+| `right_ref` | A pozíció a szülő jobb szélétől mérve |
+| `top_ref` (alapértelmezett) | A pozíció a szülő felső szélétől mérve |
+| `center_ref` | A pozíció a szülő középpontjától mérve |
+| `bottom_ref` | A pozíció a szülő alsó szélétől mérve |
 
-When combined with pixel position (`hexactpos 1`), alignment references make centering trivial:
+Pixel pozícióval (`hexactpos 1`) kombinálva az igazítási referenciapontok triviálissá teszik a középre igazítást:
 
 ```
-// Centered on screen with no offset
+// Képernyő közepén, eltolás nélkül
 FrameWidgetClass CenteredDialog {
  position 0 0
  size 0.4 0.5
@@ -137,12 +141,12 @@ FrameWidgetClass CenteredDialog {
 }
 ```
 
-With `center_ref`, a position of `0 0` means "centered in parent." A position of `10 0` means "10 pixels right of center."
+A `center_ref` használatával a `0 0` pozíció azt jelenti: "a szülőben középre igazított." A `10 0` pozíció azt jelenti: "10 pixellel a középponttól jobbra."
 
-### Right-Aligned Elements
+### Jobbra igazított elemek
 
 ```
-// Icon pinned to the right edge, 5px from the edge
+// Ikon a jobb szélhez rögzítve, 5px-re a széltől
 ImageWidgetClass StatusIcon {
  position 5 5
  size 24 24
@@ -155,10 +159,10 @@ ImageWidgetClass StatusIcon {
 }
 ```
 
-### Bottom-Aligned Elements
+### Alulra igazított elemek
 
 ```
-// Status bar at the bottom of its parent
+// Állapotsáv a szülő alján
 FrameWidgetClass StatusBar {
  position 0 0
  size 1 30
@@ -173,17 +177,17 @@ FrameWidgetClass StatusBar {
 
 ---
 
-## CRITICAL: No Negative Size Values
+## KRITIKUS: Nincs negatív méretérték
 
-**Never use negative values for widget size in layout files.** Negative sizes cause undefined behavior -- widgets may become invisible, render incorrectly, or crash the UI system. If you need a widget to be hidden, use `visible 0` instead.
+**Soha ne használj negatív értékeket a widget méretéhez layout fájlokban.** A negatív méretek meghatározatlan viselkedést okoznak -- a widgetek láthatatlanná válhatnak, hibásan renderelődhetnek, vagy összeomlaszthatják az UI rendszert. Ha el akarod rejteni a widgetet, használd a `visible 0` beállítást helyette.
 
-This is one of the most common layout mistakes. If your widget is not showing up, check that you have not accidentally set a negative size value.
+Ez az egyik leggyakoribb layout hiba. Ha a widgeted nem jelenik meg, ellenőrizd, hogy nem állítottál-e be véletlenül negatív méretértéket.
 
 ---
 
-## Common Sizing Patterns
+## Gyakori méretezési minták
 
-### Full Screen Overlay
+### Teljes képernyős fedőréteg
 
 ```
 FrameWidgetClass Overlay {
@@ -196,7 +200,7 @@ FrameWidgetClass Overlay {
 }
 ```
 
-### Centered Dialog (60% x 70%)
+### Középre igazított párbeszédablak (60% x 70%)
 
 ```
 FrameWidgetClass Dialog {
@@ -211,7 +215,7 @@ FrameWidgetClass Dialog {
 }
 ```
 
-### Right-Aligned Side Panel (25% Width)
+### Jobbra igazított oldalsáv (25% szélesség)
 
 ```
 FrameWidgetClass SidePanel {
@@ -225,7 +229,7 @@ FrameWidgetClass SidePanel {
 }
 ```
 
-### Top Bar (Full Width, Fixed Height)
+### Felső sáv (teljes szélesség, fix magasság)
 
 ```
 FrameWidgetClass TopBar {
@@ -238,7 +242,7 @@ FrameWidgetClass TopBar {
 }
 ```
 
-### Bottom-Right Corner Badge
+### Jobb alsó sarok jelvény
 
 ```
 FrameWidgetClass Badge {
@@ -253,7 +257,7 @@ FrameWidgetClass Badge {
 }
 ```
 
-### Fixed-Size Centered Icon
+### Fix méretű középre igazított ikon
 
 ```
 ImageWidgetClass Icon {
@@ -270,26 +274,26 @@ ImageWidgetClass Icon {
 
 ---
 
-## Programmatic Position & Size
+## Programozott pozíció és méret
 
-In code, you can read and set position and size using both proportional and pixel (screen) coordinates:
+Kódban mind arányos, mind pixel (képernyő) koordinátákkal olvashatod és állíthatod a pozíciót és méretet:
 
 ```c
-// Proportional coordinates (0-1 range)
+// Arányos koordináták (0-1 tartomány)
 float x, y, w, h;
-widget.GetPos(x, y);           // Read proportional position
-widget.SetPos(0.5, 0.1);      // Set proportional position
-widget.GetSize(w, h);          // Read proportional size
-widget.SetSize(0.3, 0.2);     // Set proportional size
+widget.GetPos(x, y);           // Arányos pozíció olvasása
+widget.SetPos(0.5, 0.1);      // Arányos pozíció beállítása
+widget.GetSize(w, h);          // Arányos méret olvasása
+widget.SetSize(0.3, 0.2);     // Arányos méret beállítása
 
-// Pixel/screen coordinates
-widget.GetScreenPos(x, y);     // Read pixel position
-widget.SetScreenPos(100, 50);  // Set pixel position
-widget.GetScreenSize(w, h);    // Read pixel size
-widget.SetScreenSize(400, 300);// Set pixel size
+// Pixel/képernyő koordináták
+widget.GetScreenPos(x, y);     // Pixel pozíció olvasása
+widget.SetScreenPos(100, 50);  // Pixel pozíció beállítása
+widget.GetScreenSize(w, h);    // Pixel méret olvasása
+widget.SetScreenSize(400, 300);// Pixel méret beállítása
 ```
 
-To center a widget on screen programmatically:
+Widget középre igazítása a képernyőn programozottan:
 
 ```c
 int screen_w, screen_h;
@@ -302,39 +306,99 @@ widget.SetScreenPos((screen_w - w) / 2, (screen_h - h) / 2);
 
 ---
 
-## The `scaled` Attribute
+## A `scaled` attribútum
 
-When `scaled 1` is set, the widget respects DayZ's UI scaling setting (Options > Video > HUD Size). This is important for HUD elements that should scale with the user's preference.
+Amikor a `scaled 1` be van állítva, a widget figyelembe veszi a DayZ UI skálázási beállítását (Beállítások > Videó > HUD méret). Ez fontos a HUD elemekhez, amelyeknek a felhasználó preferenciájával kell skálázódniuk.
 
-Without `scaled`, pixel-sized widgets will be the same physical size regardless of the UI scaling option.
-
----
-
-## The `fixaspect` Attribute
-
-Use `fixaspect` to maintain a widget's aspect ratio:
-
-- `fixaspect fixwidth` -- Height adjusts to maintain aspect ratio based on width
-- `fixaspect fixheight` -- Width adjusts to maintain aspect ratio based on height
-
-This is primarily useful for `ImageWidget` to prevent image distortion.
+A `scaled` nélkül a pixel-méretű widgetek ugyanolyan fizikai méretűek lesznek az UI skálázási beállítástól függetlenül.
 
 ---
 
-## Meretezesi problmak hibakeresese
+## A `fixaspect` attribútum
 
-When a widget is not appearing where you expect:
+Használd a `fixaspect` attribútumot a widget képarányának megtartásához:
 
-1. **Check exact flags** -- Is `hexactsize` set to `0` when you meant pixels? A value of `200` in proportional mode means 200x the parent width (way off screen).
-2. **Check for negative sizes** -- Any negative value in `size` will cause problems.
-3. **Check the parent size** -- A proportional child of a zero-size parent is zero-size.
-4. **Check `visible`** -- Widgets default to visible, but if a parent is hidden, all children are too.
-5. **Check `priority`** -- A widget with lower priority may be hidden behind another.
-6. **Use `clipchildren`** -- If a parent has `clipchildren 1`, children outside its bounds are not visible.
+- `fixaspect fixwidth` -- A magasság igazodik a képarány megtartásához a szélesség alapján
+- `fixaspect fixheight` -- A szélesség igazodik a képarány megtartásához a magasság alapján
+
+Ez elsősorban az `ImageWidget`-nél hasznos a képtorzulás megelőzésére.
 
 ---
 
-## Kovetkezo lepesek
+## Z-sorrend és prioritás
 
-- [3.4 Kontener widgetek](04-containers.md) -- How spacers and scroll widgets handle layout automatically
-- [3.5 Programozott widget letrehozas](05-programmatic-widgets.md) -- Setting size and position from code
+A `priority` attribútum szabályozza, mely widgetek renderelődnek felülre, ha átfedik egymást. A magasabb értékek az alacsonyabbak fölé renderelődnek.
+
+| Prioritás tartomány | Tipikus használat |
+|----------------|-------------|
+| 0-5 | Háttérelemek, dekoratív panelek |
+| 10-50 | Normál UI elemek, HUD komponensek |
+| 50-100 | Fedőréteg elemek, lebegő panelek |
+| 100-200 | Értesítések, tooltipek |
+| 998-999 | Modális párbeszédablakok, blokkoló fedőrétegek |
+
+```
+FrameWidget myBackground {
+    priority 1
+    // ...
+}
+
+FrameWidget myDialog {
+    priority 999
+    // ...
+}
+```
+
+**Fontos:** A prioritás csak az azonos szülőn belüli testvérek renderelési sorrendjét befolyásolja. A beágyazott gyermekek mindig a szülőjük fölé rajzolódnak, a prioritás értékektől függetlenül.
+
+---
+
+## Méretezési problémák hibakeresése
+
+Amikor egy widget nem ott jelenik meg, ahol várod:
+
+1. **Ellenőrizd a pontos jelzőket** -- A `hexactsize` `0`-ra van állítva, miközben pixeleket akartál? A `200` érték arányos módban a szülő szélességének 200-szorosát jelenti (messze a képernyőn kívül).
+2. **Ellenőrizd a negatív méreteket** -- Bármilyen negatív érték a `size`-ban problémákat okoz.
+3. **Ellenőrizd a szülő méretét** -- Egy nulla méretű szülő arányos gyermeke nulla méretű.
+4. **Ellenőrizd a `visible` értéket** -- A widgetek alapértelmezetten láthatók, de ha egy szülő rejtett, az összes gyermeke is az.
+5. **Ellenőrizd a `priority` értéket** -- Egy alacsonyabb prioritású widget elrejtőzhet egy másik mögött.
+6. **Használd a `clipchildren` beállítást** -- Ha egy szülőnél `clipchildren 1` van beállítva, a határain kívüli gyermekek nem láthatók.
+
+---
+
+## Bevált gyakorlatok
+
+- Mindig adj meg mind a négy pontos jelzőt explicit módon (`hexactpos`, `vexactpos`, `hexactsize`, `vexactsize`). Ezek elhagyása kiszámíthatatlan viselkedéshez vezet, mert az alapértelmezések widget típusonként változnak.
+- Használd az arányos szélesség + pixel magasság mintát sorokhoz és sávokhoz. Ez a leginkább felbontás-biztos kombináció és a professzionális modok szabványa.
+- Középre igazítsd a párbeszédablakokat `halign center_ref` + `valign center_ref` + `0 0` pixel pozícióval, ne `0.5 0.5` arányos pozícióval. Az igazítási referencia módszer a widget méretétől függetlenül középen marad.
+- Kerüld a pixel méreteket teljes képernyős vagy közel teljes képernyős elemeknél. Használj arányos méretezést, hogy az UI bármilyen felbontáshoz alkalmazkodjon (1080p, 1440p, 4K).
+- A `SetScreenPos()` / `SetScreenSize()` kódban történő használatakor hívd meg őket azután, hogy a widget a szülőjéhez csatolva van. A csatolás előtti hívás hibás koordinátákat eredményezhet.
+
+---
+
+## Elmélet vs. gyakorlat
+
+> Amit a dokumentáció mond, és hogyan működnek a dolgok ténylegesen futásidőben.
+
+| Fogalom | Elmélet | Valóság |
+|---------|---------|---------|
+| Arányos méretezés | A 0.0-1.0 értékek a szülőhöz viszonyítva skálázódnak | Ha a szülőnak pixel mérete van, a gyermek arányos értékei ahhoz a pixel értékhez viszonyítva értendők, nem a képernyőhöz -- egy 200px széles szülő gyermeke `size 0.5` értékkel 100px lesz |
+| `center_ref` igazítás | A widget a szülőjében középre igazítja magát | A widget bal felső sarka a középpontra kerül -- a widget a középponttól jobbra és lefelé lóg, hacsak a pozíció nem `0 0` pixel módban |
+| `priority` z-rendezés | A magasabb értékek felülre renderelődnek | A prioritás csak az azonos szülőn belüli testvéreket befolyásolja. Egy gyermek mindig a szülője fölé renderelődik, a prioritás értékektől függetlenül |
+| `scaled` attribútum | A widget figyelembe veszi a HUD méret beállítást | Csak a pixel-módú dimenziókat befolyásolja. Az arányos dimenziók már a szülővel skálázódnak és figyelmen kívül hagyják a `scaled` jelzőt |
+| Negatív pozíció értékek | Fordított irányban kellene eltolniuk | A pozíciónál működik (eltolás balra/felfelé a referenciaponttól), de a negatív méretértékek meghatározatlan renderelési viselkedést okoznak -- soha ne használd őket |
+
+---
+
+## Kompatibilitás és hatás
+
+- **Több moddal:** A méretezés és pozícionálás widgetenként történik és nem ütközhet modok között. Azonban azok a modok, amelyek teljes képernyős fedőrétegeket használnak (`size 1 1` a gyökéren) `priority 999` beállítással, blokkolhatják más modok UI elemeinek bevétel fogadását.
+- **Teljesítmény:** Az arányos méretezés szülőhöz viszonyított újraszámítást igényel minden képkockánál animált vagy dinamikus widgeteknél. Statikus layoutoknál nincs mérhető különbség az arányos és pixel módok között.
+- **Verzió:** A kettős koordináta rendszer (arányos vs pixel) a DayZ 0.63 kísérleti verziója óta stabil. A `scaled` attribútum viselkedését a DayZ 1.14-ben finomították a HUD méret csúszka jobb támogatásához.
+
+---
+
+## Következő lépések
+
+- [3.4 Konténer widgetek](04-containers.md) -- Hogyan kezelik a spacer és scroll widgetek automatikusan az elrendezést
+- [3.5 Programozott widget létrehozás](05-programmatic-widgets.md) -- Méret és pozíció beállítása kódból
