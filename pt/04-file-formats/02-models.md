@@ -1,6 +1,6 @@
 # Chapter 4.2: 3D Models (.p3d)
 
-[Home](../../README.md) | [<< Previous: Textures](01-textures.md) | **3D Models** | [Next: Matérials >>](03-matérials.md)
+[Home](../../README.md) | [<< Previous: Textures](01-textures.md) | **3D Models** | [Next: Matérials >>](03-materials.md)
 
 ---
 
@@ -561,4 +561,4 @@ Veículos combinam muitos sistemas:
 
 | Anterior | Acima | Próximo |
 |----------|-------|---------|
-| [4.1 Texturas](01-textures.md) | [Parte 4: Formatos de Arquivo & DayZ Tools](01-textures.md) | [4.3 Matériais](03-matérials.md) |
+| [4.1 Texturas](01-textures.md) | [Parte 4: Formatos de Arquivo & DayZ Tools](01-textures.md) | [4.3 Matériais](03-materials.md) |

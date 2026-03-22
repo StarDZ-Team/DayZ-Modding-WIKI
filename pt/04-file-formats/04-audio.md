@@ -1,6 +1,6 @@
 # Chapter 4.4: Audio (.ogg, .wss)
 
-[Home](../../README.md) | [<< Previous: Matérials](03-matérials.md) | **Audio** | [Next: DayZ Tools Workflow >>](05-dayz-tools.md)
+[Home](../../README.md) | [<< Previous: Matérials](03-materials.md) | **Audio** | [Next: DayZ Tools Workflow >>](05-dayz-tools.md)
 
 ---
 
@@ -657,4 +657,4 @@ frequencyRandomizer = 0.05;    // +/- 5% pitch variation
 
 | Anterior | Acima | Próximo |
 |----------|-------|---------|
-| [4.3 Matériais](03-matérials.md) | [Parte 4: Formatos de Arquivo & DayZ Tools](01-textures.md) | [4.5 Fluxo de Trabalho DayZ Tools](05-dayz-tools.md) |
+| [4.3 Matériais](03-materials.md) | [Parte 4: Formatos de Arquivo & DayZ Tools](01-textures.md) | [4.5 Fluxo de Trabalho DayZ Tools](05-dayz-tools.md) |
