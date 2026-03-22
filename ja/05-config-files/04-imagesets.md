@@ -1,55 +1,59 @@
-# Chapter 5.4: ImageSet Format
+# Chapter 5.4: ImageSetフォーマット
 
-[Home](../../README.md) | [<< Previous: Credits.json](03-credits-json.md) | **ImageSet Format** | [Next: Server Configuration Files >>](05-server-configs.md)
+[ホーム](../../README.md) | [<< 前: Credits.json](03-credits-json.md) | **ImageSetフォーマット** | [次: サーバー設定ファイル >>](05-server-configs.md)
+
+---
+
+> **概要：** ImageSetはテクスチャアトラス内の名前付きスプライト領域を定義します。レイアウトファイルやスクリプトからアイコン、UIグラフィックス、スプライトシートを参照するためのDayZの主要な仕組みです。数百の個別画像ファイルを読み込む代わりに、すべてのアイコンを1枚のテクスチャにパックし、各アイコンの位置とサイズをimagesetの定義ファイルに記述します。
 
 ---
 
 ## 目次
 
-- [Overview](#overview)
-- [How ImageSets Work](#how-imagesets-work)
-- [DayZ Native ImageSet Format](#dayz-native-imageset-format)
-- [XML ImageSet Format](#xml-imageset-format)
-- [Registering ImageSets in config.cpp](#registering-imagesets-in-configcpp)
-- [Referencing Images in Layouts](#referencing-images-in-layouts)
-- [Referencing Images in Scripts](#referencing-images-in-scripts)
-- [Image Flags](#image-flags)
-- [Multi-Resolution Textures](#multi-resolution-textures)
-- [Creating Custom Icon Sets](#creating-custom-icon-sets)
-- [Font Awesome Integration Pattern](#font-awesome-integration-pattern)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+- [概要](#overview)
+- [ImageSetの仕組み](#how-imagesets-work)
+- [DayZネイティブImageSetフォーマット](#dayz-native-imageset-format)
+- [XML ImageSetフォーマット](#xml-imageset-format)
+- [config.cppでのImageSetの登録](#registering-imagesets-in-configcpp)
+- [レイアウトでの画像参照](#referencing-images-in-layouts)
+- [スクリプトでの画像参照](#referencing-images-in-scripts)
+- [画像フラグ](#image-flags)
+- [マルチ解像度テクスチャ](#multi-resolution-textures)
+- [カスタムアイコンセットの作成](#creating-custom-icon-sets)
+- [Font Awesome統合パターン](#font-awesome-integration-pattern)
+- [実際の例](#real-examples)
+- [よくある間違い](#common-mistakes)
 
 ---
 
 ## 概要
 
-A texture atlas is a single large image (typically in `.edds` format) containing many smaller icons arranged in a grid or freeform layout. An imageset file maps human-readable names to rectangular regions within that atlas.
+テクスチャアトラスは、多くの小さなアイコンをグリッドまたはフリーフォームレイアウトで配置した1枚の大きな画像（通常`.edds`フォーマット）です。imagesetファイルは、そのアトラス内の矩形領域に人間が読める名前をマッピングします。
 
-For example, a 1024x1024 texture might contain 64 icons at 64x64 pixels each. The imageset file says "the icon named `arrow_down` is at position (128, 64) and is 64x64 pixels." Your layout files and scripts reference `arrow_down` by name, and the engine extracts the correct sub-rectangle from the atlas at render time.
+例えば、1024x1024テクスチャに64x64ピクセルのアイコンが64個含まれているとします。imagesetファイルは「`arrow_down`という名前のアイコンは位置(128, 64)にあり、64x64ピクセルです」と記述します。レイアウトファイルとスクリプトは名前で`arrow_down`を参照し、エンジンはレンダリング時にアトラスから正しいサブ矩形を抽出します。
 
-This approach is efficient: one GPU texture load serves all icons, reducing draw calls and memory overhead.
-
----
-
-## How ImageSets Work
-
-The data flow:
-
-1. **Texture atlas** (`.edds` file) --- a single image containing all icons
-2. **ImageSet definition** (`.imageset` file) --- maps names to regions in the atlas
-3. **config.cpp registration** --- tells the engine to load the imageset at startup
-4. **Layout/script reference** --- uses `set:name image:iconName` syntax to render a specific icon
-
-Once registered, any widget in any layout file can reference any image from the set by name.
+このアプローチは効率的です：1つのGPUテクスチャ読み込みですべてのアイコンに対応し、ドローコールとメモリオーバーヘッドを削減します。
 
 ---
 
-## DayZ Native ImageSet Format
+## ImageSetの仕組み
 
-The native format uses the Enfusion engine's class-based syntax (similar to config.cpp). This is the format used by the vanilla game and most established mods.
+データの流れは以下の通りです：
 
-### Structure
+1. **テクスチャアトラス**（`.edds`ファイル） --- すべてのアイコンを含む1枚の画像
+2. **ImageSet定義**（`.imageset`ファイル） --- アトラス内の領域に名前をマッピング
+3. **config.cppでの登録** --- 起動時にimagesetを読み込むようエンジンに指示
+4. **レイアウト/スクリプトからの参照** --- `set:name image:iconName`構文で特定のアイコンをレンダリング
+
+一度登録すると、任意のレイアウトファイルの任意のウィジェットが、セットから名前で任意の画像を参照できます。
+
+---
+
+## DayZネイティブImageSetフォーマット
+
+ネイティブフォーマットは、Enfusionエンジンのクラスベース構文（config.cppに類似）を使用します。これはバニラゲームとほとんどの確立されたModで使用されるフォーマットです。
+
+### 構造
 
 ```
 ImageSetClass {
@@ -72,34 +76,34 @@ ImageSetClass {
 }
 ```
 
-### Top-Level Fields
+### トップレベルフィールド
 
-| Field | Description |
+| フィールド | 説明 |
 |-------|-------------|
-| `Name` | The set name. Used in the `set:` part of image references. Must be unique across all loaded mods. |
-| `RefSize` | Reference dimensions of the texture (width height). Used for coordinate mapping. |
-| `Textures` | Contains one or more `ImageSetTextureClass` entries for different resolution mip levels. |
+| `Name` | セット名。画像参照の`set:`部分で使用されます。読み込まれたすべてのMod間で一意である必要があります。 |
+| `RefSize` | テクスチャの参照寸法（幅 高さ）。座標マッピングに使用されます。 |
+| `Textures` | 異なる解像度のミップレベル用に1つ以上の`ImageSetTextureClass`エントリを含みます。 |
 
-### Texture Entry Fields
+### テクスチャエントリフィールド
 
-| Field | Description |
+| フィールド | 説明 |
 |-------|-------------|
-| `mpix` | Minimum pixel level (mip level). `0` = lowest resolution, `1` = standard resolution. |
-| `path` | Path to the `.edds` texture file, relative to the mod root. Can use Enfusion GUID format (`{GUID}path`) or plain relative paths. |
+| `mpix` | 最小ピクセルレベル（ミップレベル）。`0` = 最低解像度、`1` = 標準解像度。 |
+| `path` | `.edds`テクスチャファイルへのパス。Modルートからの相対パスです。Enfusion GUIDフォーマット（`{GUID}path`）またはプレーンな相対パスを使用できます。 |
 
-### Image Entry Fields
+### 画像エントリフィールド
 
-Each image is an `ImageSetDefClass` inside the `Images` block:
+各画像は`Images`ブロック内の`ImageSetDefClass`です：
 
-| Field | Description |
+| フィールド | 説明 |
 |-------|-------------|
-| Class name | Must match the `Name` field (used for engine lookups) |
-| `Name` | The image identifier. Used in the `image:` part of references. |
-| `Pos` | Top-left corner position in the atlas (x y), in pixels |
-| `Size` | Dimensions (width height), in pixels |
-| `Flags` | Tiling behavior flags (see [Image Flags](#image-flags)) |
+| クラス名 | `Name`フィールドと一致する必要があります（エンジンのルックアップに使用） |
+| `Name` | 画像識別子。参照の`image:`部分で使用されます。 |
+| `Pos` | アトラス内の左上角の位置（x y）、ピクセル単位 |
+| `Size` | 寸法（幅 高さ）、ピクセル単位 |
+| `Flags` | タイリング動作フラグ（[画像フラグ](#image-flags)を参照） |
 
-### Full Example (DayZ Vanilla)
+### 完全な例（DayZバニラ）
 
 ```
 ImageSetClass {
@@ -134,11 +138,11 @@ ImageSetClass {
 
 ---
 
-## XML ImageSet Format
+## XML ImageSetフォーマット
 
-An alternative XML-based format exists and is used by some mods. It is simpler but offers fewer features (no multi-resolution support).
+代替のXMLベースフォーマットが存在し、一部のModで使用されています。よりシンプルですが、機能は少なくなります（マルチ解像度サポートなし）。
 
-### Structure
+### 構造
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -149,41 +153,41 @@ An alternative XML-based format exists and is used by some mods. It is simpler b
 </imageset>
 ```
 
-### XML Attributes
+### XML属性
 
-**`<imageset>` element:**
+**`<imageset>`要素：**
 
-| Attribute | Description |
+| 属性 | 説明 |
 |-----------|-------------|
-| `name` | The set name (equivalent to native `Name`) |
-| `file` | Path to the texture file (equivalent to native `path`) |
+| `name` | セット名（ネイティブの`Name`に相当） |
+| `file` | テクスチャファイルへのパス（ネイティブの`path`に相当） |
 
-**`<image>` element:**
+**`<image>`要素：**
 
-| Attribute | Description |
+| 属性 | 説明 |
 |-----------|-------------|
-| `name` | Image identifier |
-| `pos` | Top-left position as `"x y"` |
-| `size` | Dimensions as `"width height"` |
+| `name` | 画像識別子 |
+| `pos` | `"x y"`としての左上位置 |
+| `size` | `"幅 高さ"`としての寸法 |
 
-### 使い分け Which Format
+### どちらのフォーマットを使うべきか
 
-| Feature | Native Format | XML Format |
+| 機能 | ネイティブフォーマット | XMLフォーマット |
 |---------|---------------|------------|
-| Multi-resolution (mip levels) | Yes | No |
-| Tiling flags | Yes | No |
-| Enfusion GUID paths | Yes | Yes |
-| Simplicity | Lower | Higher |
-| Used by vanilla DayZ | Yes | No |
-| Used by Expansion, MyMod, VPP | Yes | Occasionally |
+| マルチ解像度（ミップレベル） | はい | いいえ |
+| タイリングフラグ | はい | いいえ |
+| Enfusion GUIDパス | はい | はい |
+| シンプルさ | 低い | 高い |
+| バニラDayZで使用 | はい | いいえ |
+| Expansion、MyMod、VPPで使用 | はい | 時々 |
 
-**Recommendation:** Use the native format for production mods. Use the XML format for quick prototyping or simple icon sets that do not need tiling or multi-resolution support.
+**推奨：** プロダクションModにはネイティブフォーマットを使用してください。タイリングやマルチ解像度サポートが不要なクイックプロトタイピングやシンプルなアイコンセットにはXMLフォーマットを使用してください。
 
 ---
 
-## Registering ImageSets in config.cpp
+## config.cppでのImageSetの登録
 
-ImageSet files must be registered in your mod's `config.cpp` under the `CfgMods` > `class defs` > `class imageSets` block. Without this registration, the engine never loads the imageset and your image references fail silently.
+ImageSetファイルは、Modの`config.cpp`の`CfgMods` > `class defs` > `class imageSets`ブロックに登録する必要があります。この登録がないと、エンジンはimagesetを読み込まず、画像参照はサイレントに失敗します。
 
 ### 構文
 
@@ -192,7 +196,7 @@ class CfgMods
 {
     class MyMod
     {
-        // ... other fields ...
+        // ... その他のフィールド ...
         class defs
         {
             class imageSets
@@ -208,9 +212,9 @@ class CfgMods
 };
 ```
 
-### Real Example: MyFramework
+### 実際の例：MyFramework
 
-MyFramework registers seven imagesets including Font Awesome icon sets:
+MyFrameworkはFont Awesomeアイコンセットを含む7つのimagesetを登録しています：
 
 ```cpp
 class defs
@@ -231,7 +235,7 @@ class defs
 };
 ```
 
-### Real Example: VPP Admin Tools
+### 実際の例：VPP Admin Tools
 
 ```cpp
 class defs
@@ -246,7 +250,7 @@ class defs
 };
 ```
 
-### Real Example: DayZ Editor
+### 実際の例：DayZ Editor
 
 ```cpp
 class defs
@@ -263,9 +267,9 @@ class defs
 
 ---
 
-## Referencing Images in Layouts
+## レイアウトでの画像参照
 
-In `.layout` files, use the `image0` property with the `set:name image:imageName` syntax:
+`.layout`ファイルでは、`image0`プロパティに`set:name image:imageName`構文を使用します：
 
 ```
 ImageWidgetClass MyIcon {
@@ -276,18 +280,18 @@ ImageWidgetClass MyIcon {
 }
 ```
 
-### 構文 Breakdown
+### 構文の分解
 
 ```
 set:SETNAME image:IMAGENAME
 ```
 
-- `SETNAME` --- the `Name` field from the imageset definition (e.g., `dayz_gui`, `solid`, `brands`)
-- `IMAGENAME` --- the `Name` field from a specific `ImageSetDefClass` entry (e.g., `icon_refresh`, `arrow_down`)
+- `SETNAME` --- imageset定義の`Name`フィールド（例：`dayz_gui`、`solid`、`brands`）
+- `IMAGENAME` --- 特定の`ImageSetDefClass`エントリの`Name`フィールド（例：`icon_refresh`、`arrow_down`）
 
-### Multiple Image States
+### 複数の画像ステート
 
-Some widgets support multiple image states (normal, hover, pressed):
+一部のウィジェットは複数の画像ステート（通常、ホバー、押下）をサポートします：
 
 ```
 ImageWidgetClass icon {
@@ -299,21 +303,21 @@ ButtonWidgetClass btn {
 }
 ```
 
-### Examples from Real Mods
+### 実際のModからの例
 
 ```
-image0 "set:regular image:arrow_down_short_wide"     -- MyMod: Font Awesome regular icon
-image0 "set:dayz_gui image:icon_minus"                -- MyMod: vanilla DayZ icon
-image0 "set:dayz_gui image:icon_collapse"             -- MyMod: vanilla DayZ icon
-image0 "set:dayz_gui image:circle"                    -- MyMod: vanilla DayZ shape
-image0 "set:dayz_editor_gui image:eye_open"           -- DayZ Editor: custom icon
+image0 "set:regular image:arrow_down_short_wide"     -- MyMod: Font Awesome regularアイコン
+image0 "set:dayz_gui image:icon_minus"                -- MyMod: バニラDayZアイコン
+image0 "set:dayz_gui image:icon_collapse"             -- MyMod: バニラDayZアイコン
+image0 "set:dayz_gui image:circle"                    -- MyMod: バニラDayZ図形
+image0 "set:dayz_editor_gui image:eye_open"           -- DayZ Editor: カスタムアイコン
 ```
 
 ---
 
-## Referencing Images in Scripts
+## スクリプトでの画像参照
 
-In Enforce Script, use `ImageWidget.LoadImageFile()` or set image properties on widgets:
+Enforce Scriptでは、`ImageWidget.LoadImageFile()`を使用するか、ウィジェットの画像プロパティを設定します：
 
 ### LoadImageFile
 
@@ -322,47 +326,47 @@ ImageWidget icon = ImageWidget.Cast(layoutRoot.FindAnyWidget("MyIcon"));
 icon.LoadImageFile(0, "set:solid image:circle");
 ```
 
-The `0` parameter is the image index (corresponding to `image0` in layouts).
+`0`パラメータは画像インデックス（レイアウトの`image0`に対応）です。
 
-### Multiple States via Index
+### インデックスによる複数ステート
 
 ```c
 ImageWidget collapseIcon;
-collapseIcon.LoadImageFile(0, "set:regular image:square_plus");    // Normal state
-collapseIcon.LoadImageFile(1, "set:solid image:square_minus");     // Toggled state
+collapseIcon.LoadImageFile(0, "set:regular image:square_plus");    // 通常ステート
+collapseIcon.LoadImageFile(1, "set:solid image:square_minus");     // トグルステート
 ```
 
-Switch between states using `SetImage(index)`:
+`SetImage(index)`を使用してステートを切り替えます：
 
 ```c
 collapseIcon.SetImage(isExpanded ? 1 : 0);
 ```
 
-### Using String Variables
+### 文字列変数の使用
 
 ```c
-// From DayZ Editor
+// DayZ Editorから
 string icon = "set:dayz_editor_gui image:search";
 searchBarIcon.LoadImageFile(0, icon);
 
-// Later, change dynamically
+// 後で動的に変更
 searchBarIcon.LoadImageFile(0, "set:dayz_gui image:icon_x");
 ```
 
 ---
 
-## Image Flags
+## 画像フラグ
 
-The `Flags` field in native-format imageset entries controls tiling behavior when the image is stretched beyond its natural size.
+ネイティブフォーマットのimagesetエントリの`Flags`フィールドは、画像が自然なサイズを超えてストレッチされた場合のタイリング動作を制御します。
 
-| Flag | Value | Description |
+| フラグ | 値 | 説明 |
 |------|-------|-------------|
-| `0` | 0 | No tiling. The image stretches to fill the widget. |
-| `ISHorizontalTile` | 1 | Tiles horizontally when the widget is wider than the image. |
-| `ISVerticalTile` | 2 | Tiles vertically when the widget is taller than the image. |
-| Both | 3 | Tiles in both directions (`ISHorizontalTile` + `ISVerticalTile`). |
+| `0` | 0 | タイリングなし。画像はウィジェットを埋めるようにストレッチされます。 |
+| `ISHorizontalTile` | 1 | ウィジェットが画像より広い場合、水平方向にタイリングします。 |
+| `ISVerticalTile` | 2 | ウィジェットが画像より高い場合、垂直方向にタイリングします。 |
+| 両方 | 3 | 両方向にタイリングします（`ISHorizontalTile` + `ISVerticalTile`）。 |
 
-### Usage
+### 使用方法
 
 ```
 ImageSetDefClass Gradient {
@@ -373,15 +377,15 @@ ImageSetDefClass Gradient {
 }
 ```
 
-This `Gradient` image is 75x5 pixels. When used in a widget taller than 5 pixels, it tiles vertically to fill the height, creating a repeating gradient stripe.
+この`Gradient`画像は75x5ピクセルです。5ピクセルより高いウィジェットで使用すると、高さを埋めるために垂直にタイリングし、繰り返しグラデーションストライプを作成します。
 
-Most icons use `Flags 0` (no tiling). Tiling flags are primarily for UI elements like borders, dividers, and repeating patterns.
+ほとんどのアイコンは`Flags 0`（タイリングなし）を使用します。タイリングフラグは主にボーダー、ディバイダー、繰り返しパターンなどのUI要素に使用されます。
 
 ---
 
-## Multi-Resolution Textures
+## マルチ解像度テクスチャ
 
-The native format supports multiple resolution textures for the same imageset. This allows the engine to use higher-resolution artwork on high-DPI displays.
+ネイティブフォーマットは、同じimageset用の複数解像度テクスチャをサポートします。これにより、エンジンは高DPIディスプレイでより高解像度のアートワークを使用できます。
 
 ```
 Textures {
@@ -396,14 +400,14 @@ Textures {
 }
 ```
 
-- `mpix 0` --- low resolution (used on low-quality settings or distant UI elements)
-- `mpix 1` --- standard/high resolution (default)
+- `mpix 0` --- 低解像度（低品質設定または遠くのUI要素で使用）
+- `mpix 1` --- 標準/高解像度（デフォルト）
 
-The `@2x` naming convention is borrowed from Apple's Retina display system but is not enforced --- you can name the file anything.
+`@2x`命名規則はAppleのRetinaディスプレイシステムから借用されていますが、強制ではありません --- ファイル名は何でも構いません。
 
-### In Practice
+### 実際の運用
 
-Most mods only include `mpix 1` (a single resolution). Multi-resolution support is primarily used by the vanilla game:
+ほとんどのModは`mpix 1`のみを含みます（単一解像度）。マルチ解像度サポートは主にバニラゲームで使用されています：
 
 ```
 Textures {
@@ -416,28 +420,28 @@ Textures {
 
 ---
 
-## Creating Custom Icon Sets
+## カスタムアイコンセットの作成
 
-### Step-by-Step Workflow
+### ステップバイステップのワークフロー
 
-**1. Create the Texture Atlas**
+**1. テクスチャアトラスの作成**
 
-Use an image editor (Photoshop, GIMP, etc.) to arrange your icons on a single canvas:
-- Choose a power-of-two size (256x256, 512x512, 1024x1024, etc.)
-- Arrange icons in a grid for easy coordinate calculation
-- Leave some padding between icons to prevent texture bleeding
-- Save as `.tga` or `.png`
+画像エディタ（Photoshop、GIMPなど）を使用して、1枚のキャンバスにアイコンを配置します：
+- 2の累乗サイズを選択します（256x256、512x512、1024x1024など）
+- 座標計算を容易にするためにアイコンをグリッドに配置します
+- テクスチャブリーディングを防ぐためにアイコン間にパディングを残します
+- `.tga`または`.png`として保存します
 
-**2. Convert to EDDS**
+**2. EDDSに変換**
 
-DayZ uses `.edds` (Enfusion DDS) format for textures. Use the DayZ Workbench or Mikero's tools to convert:
-- Import your `.tga` into DayZ Workbench
-- Or use `Pal2PacE.exe` to convert `.paa` to `.edds`
-- The output must be an `.edds` file
+DayZはテクスチャに`.edds`（Enfusion DDS）フォーマットを使用します。DayZ WorkbenchまたはMikeroのツールで変換します：
+- `.tga`をDayZ Workbenchにインポートします
+- または`Pal2PacE.exe`を使用して`.paa`を`.edds`に変換します
+- 出力は`.edds`ファイルである必要があります
 
-**3. Write the ImageSet Definition**
+**3. ImageSet定義の作成**
 
-Map each icon to a named region. If your icons are on a 64-pixel grid:
+各アイコンを名前付き領域にマッピングします。アイコンが64ピクセルグリッドにある場合：
 
 ```
 ImageSetClass {
@@ -472,9 +476,9 @@ ImageSetClass {
 }
 ```
 
-**4. Register in config.cpp**
+**4. config.cppに登録**
 
-Add the imageset path to your mod's config.cpp:
+Modのconfig.cppにimagesetパスを追加します：
 
 ```cpp
 class imageSets
@@ -486,7 +490,7 @@ class imageSets
 };
 ```
 
-**5. Use in Layouts and Scripts**
+**5. レイアウトとスクリプトで使用**
 
 ```
 ImageWidgetClass SettingsIcon {
@@ -499,29 +503,29 @@ ImageWidgetClass SettingsIcon {
 
 ---
 
-## Font Awesome Integration Pattern
+## Font Awesome統合パターン
 
-MyFramework (inherited from DabsFramework) demonstrates a powerful pattern: converting Font Awesome icon fonts into DayZ imagesets. This gives mods access to thousands of professional-quality icons without creating custom artwork.
+MyFramework（DabsFrameworkから継承）は、Font Awesomeアイコンフォントをdayzi imagesetに変換する強力なパターンを実演しています。これにより、カスタムアートワークを作成することなく、数千のプロフェッショナル品質のアイコンにアクセスできます。
 
-### How It Works
+### 仕組み
 
-1. Font Awesome icons are rendered to a texture atlas at a fixed grid size (64x64 per icon)
-2. Each icon style gets its own imageset: `solid`, `regular`, `light`, `thin`, `brands`
-3. Icon names in the imageset match Font Awesome icon names (e.g., `circle`, `arrow_down`, `discord`)
-4. The imagesets are registered in config.cpp and available to any layout or script
+1. Font Awesomeアイコンが固定グリッドサイズ（アイコンあたり64x64）でテクスチャアトラスにレンダリングされます
+2. 各アイコンスタイルが独自のimagesetを取得します：`solid`、`regular`、`light`、`thin`、`brands`
+3. imageset内のアイコン名がFont Awesomeのアイコン名と一致します（例：`circle`、`arrow_down`、`discord`）
+4. imagesetがconfig.cppに登録され、任意のレイアウトやスクリプトから利用可能になります
 
-### MyFramework / DabsFramework Icon Sets
+### MyFramework / DabsFrameworkアイコンセット
 
 ```
 MyFramework/GUI/icons/
-  solid.imageset       -- Filled icons (3648x3712 atlas, 64x64 per icon)
-  regular.imageset     -- Outlined icons
-  light.imageset       -- Light-weight outlined icons
-  thin.imageset        -- Ultra-thin outlined icons
-  brands.imageset      -- Brand logos (Discord, GitHub, etc.)
+  solid.imageset       -- 塗りつぶしアイコン（3648x3712アトラス、アイコンあたり64x64）
+  regular.imageset     -- アウトラインアイコン
+  light.imageset       -- 軽量アウトラインアイコン
+  thin.imageset        -- 超薄型アウトラインアイコン
+  brands.imageset      -- ブランドロゴ（Discord、GitHubなど）
 ```
 
-### Usage in Layouts
+### レイアウトでの使用
 
 ```
 image0 "set:solid image:circle"
@@ -531,25 +535,25 @@ image0 "set:brands image:discord"
 image0 "set:brands image:500px"
 ```
 
-### Usage in Scripts
+### スクリプトでの使用
 
 ```c
-// DayZ Editor using the solid set
+// solidセットを使用するDayZ Editor
 CollapseIcon.LoadImageFile(1, "set:solid image:square_minus");
 CollapseIcon.LoadImageFile(0, "set:regular image:square_plus");
 ```
 
-### Why This Pattern Works Well
+### このパターンがうまく機能する理由
 
-- **Massive icon library**: Thousands of icons available without any artwork creation
-- **Consistent style**: All icons share the same visual weight and style
-- **Multiple weights**: Choose solid, regular, light, or thin for different visual contexts
-- **Brand icons**: Ready-made logos for Discord, Steam, GitHub, etc.
-- **Standard names**: Icon names follow Font Awesome conventions, making discovery easy
+- **大規模なアイコンライブラリ**：アートワーク作成なしで数千のアイコンが利用可能
+- **一貫したスタイル**：すべてのアイコンが同じビジュアルウェイトとスタイルを共有
+- **複数のウェイト**：異なるビジュアルコンテキストに応じてsolid、regular、light、thinを選択可能
+- **ブランドアイコン**：Discord、Steam、GitHubなどの既製ロゴ
+- **標準的な名前**：アイコン名がFont Awesomeの規約に従い、発見が容易
 
-### The Atlas Structure
+### アトラス構造
 
-The solid imageset, for example, has a `RefSize` of 3648x3712 with icons arranged at 64-pixel intervals:
+例えば、solidのimagesetは64ピクセル間隔で配置されたアイコンを持つ`RefSize`3648x3712です：
 
 ```
 ImageSetClass {
@@ -585,7 +589,7 @@ ImageSetClass {
 
 ### VPP Admin Tools
 
-VPP packs all admin tool icons into a single 1920x1080 atlas with freeform positioning (not a strict grid):
+VPPはすべての管理ツールアイコンを、フリーフォームの配置（厳密なグリッドではない）で1枚の1920x1080アトラスにパックしています：
 
 ```
 ImageSetClass {
@@ -614,14 +618,14 @@ ImageSetClass {
 }
 ```
 
-Referenced in layouts as:
+レイアウトでの参照：
 ```
 image0 "set:dayz_gui_vpp image:vpp_icon_cloud"
 ```
 
 ### MyWeapons Mod
 
-Weapon and attachment icons packed into large atlases with varied icon sizes:
+さまざまなアイコンサイズで大きなアトラスにパックされた武器とアタッチメントのアイコン：
 
 ```
 ImageSetClass {
@@ -650,11 +654,11 @@ ImageSetClass {
 }
 ```
 
-This shows that icons do not need to be uniform size --- inventory icons for weapons use 300x300 while UI icons typically use 64x64.
+これは、アイコンが均一なサイズである必要がないことを示しています --- 武器のインベントリアイコンは300x300を使用し、UIアイコンは通常64x64を使用します。
 
 ### MyFramework Prefabs
 
-UI primitives (rounded corners, alpha gradients) packed into a small 256x256 atlas:
+小さな256x256アトラスにパックされたUIプリミティブ（角丸、アルファグラデーション）：
 
 ```
 ImageSetClass {
@@ -683,11 +687,11 @@ ImageSetClass {
 }
 ```
 
-Notable: image names can contain spaces when quoted (e.g., `"Alpha 10"`). However, referencing these in layouts requires the exact name including the space.
+注目点：画像名はクォートで囲むことでスペースを含むことができます（例：`"Alpha 10"`）。ただし、レイアウトでこれらを参照するにはスペースを含む正確な名前が必要です。
 
-### MyMod Market Hub (XML Format)
+### MyMod Market Hub（XMLフォーマット）
 
-A simpler XML imageset for the market hub module:
+マーケットハブモジュール用のよりシンプルなXML imageset：
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -702,7 +706,7 @@ A simpler XML imageset for the market hub module:
 </imageset>
 ```
 
-Referenced as:
+参照方法：
 ```
 image0 "set:mh_icons image:icon_store"
 ```
@@ -711,41 +715,41 @@ image0 "set:mh_icons image:icon_store"
 
 ## よくある間違い
 
-### Forgetting config.cpp Registration
+### config.cppでの登録忘れ
 
-The most common issue. If your imageset file exists but is not listed in `class imageSets { files[] = { ... }; };` in config.cpp, the engine never loads it. All image references will fail silently (widgets appear blank).
+最も一般的な問題です。imagesetファイルが存在していても、config.cppの`class imageSets { files[] = { ... }; };`にリストされていない場合、エンジンはそれを読み込みません。すべての画像参照はサイレントに失敗します（ウィジェットが空白で表示されます）。
 
-### Set Name Collisions
+### セット名の衝突
 
-If two mods register imagesets with the same `Name`, only one is loaded (the last one wins). Use a unique prefix:
-
-```
-Name "mymod_icons"     -- Good
-Name "icons"           -- Risky, too generic
-```
-
-### Wrong Texture Path
-
-The `path` must be relative to the PBO root (how the file appears inside the packed PBO):
+2つのModが同じ`Name`でimagesetを登録した場合、1つのみが読み込まれます（最後のものが優先）。一意のプレフィックスを使用してください：
 
 ```
-path "MyMod/GUI/imagesets/icons.edds"     -- Correct if MyMod is the PBO root
-path "GUI/imagesets/icons.edds"            -- Wrong if the PBO root is MyMod/
-path "C:/Users/dev/icons.edds"            -- Wrong: absolute paths do not work
+Name "mymod_icons"     -- 良い
+Name "icons"           -- リスクあり、一般的すぎる
 ```
 
-### Mismatched RefSize
+### 間違ったテクスチャパス
 
-The `RefSize` must match the actual pixel dimensions of your texture. If you specify `RefSize 512 512` but your texture is 1024x1024, all icon positions will be off by a factor of two.
+`path`はPBOルートからの相対パス（パックされたPBO内でファイルがどのように表示されるか）である必要があります：
 
-### Pos Coordinates Off by One
+```
+path "MyMod/GUI/imagesets/icons.edds"     -- PBOルートがMyMod/の場合は正しい
+path "GUI/imagesets/icons.edds"            -- PBOルートがMyMod/の場合は間違い
+path "C:/Users/dev/icons.edds"            -- 間違い：絶対パスは機能しません
+```
 
-`Pos` is the top-left corner of the icon region. If your icons are at 64-pixel intervals but you accidentally offset by 1 pixel, icons will have a thin slice of the adjacent icon visible.
+### RefSizeの不一致
 
-### Using .png or .tga Directly
+`RefSize`はテクスチャの実際のピクセル寸法と一致する必要があります。`RefSize 512 512`を指定しているがテクスチャが1024x1024の場合、すべてのアイコン位置が2倍ずれます。
 
-The engine requires `.edds` format for texture atlases referenced by imagesets. Raw `.png` or `.tga` files will not load. Always convert to `.edds` using DayZ Workbench or Mikero's tools.
+### Pos座標の1ピクセルズレ
 
-### Spaces in Image Names
+`Pos`はアイコン領域の左上角です。アイコンが64ピクセル間隔にあるが、誤って1ピクセルオフセットした場合、隣接するアイコンの薄いスライスが見えてしまいます。
 
-While the engine supports spaces in image names (e.g., `"Alpha 10"`), they can cause issues in some parsing contexts. Prefer underscores: `Alpha_10`.
+### .pngや.tgaの直接使用
+
+エンジンは、imagesetが参照するテクスチャアトラスに`.edds`フォーマットを必要とします。生の`.png`や`.tga`ファイルは読み込まれません。DayZ WorkbenchまたはMikeroのツールを使用して常に`.edds`に変換してください。
+
+### 画像名のスペース
+
+エンジンは画像名のスペースをサポートしていますが（例：`"Alpha 10"`）、一部のパースコンテキストで問題を引き起こす可能性があります。アンダースコアの使用を推奨します：`Alpha_10`。

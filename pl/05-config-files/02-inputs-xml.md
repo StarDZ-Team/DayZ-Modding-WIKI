@@ -1,40 +1,44 @@
-# Chapter 5.2: inputs.xml --- Custom Keybindings
+# Rozdział 5.2: inputs.xml --- Własne skróty klawiszowe
 
-[Home](../../README.md) | [<< Previous: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Next: Credits.json >>](03-credits-json.md)
-
----
-
-## Spis tresci
-
-- [Overview](#overview)
-- [File Location](#file-location)
-- [Complete XML Structure](#complete-xml-structure)
-- [Actions Block](#actions-block)
-- [Sorting Block](#sorting-block)
-- [Preset Block (Default Keybindings)](#preset-block-default-keybindings)
-- [Modifier Combos](#modifier-combos)
-- [Hidden Inputs](#hidden-inputs)
-- [Multiple Default Keys](#multiple-default-keys)
-- [Accessing Inputs in Script](#accessing-inputs-in-script)
-- [Input Methods Reference](#input-methods-reference)
-- [Suppressing and Disabling Inputs](#suppressing-and-disabling-inputs)
-- [Key Names Reference](#key-names-reference)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+[Strona główna](../../README.md) | [<< Poprzedni: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Następny: Credits.json >>](03-credits-json.md)
 
 ---
 
-## Przeglad
+> **Podsumowanie:** Plik `inputs.xml` pozwala twojemu modowi rejestrować własne skróty klawiszowe, które pojawiają się w menu Ustawienia > Sterowanie gracza. Gracze mogą przeglądać, przypisywać i przełączać te skróty tak samo jak vanilla akcje. Jest to standardowy mechanizm dodawania klawiszy skrótów do modów DayZ.
 
-When your mod needs the player to press a key --- opening a menu, toggling a feature, commanding an AI unit --- you register a custom input action in `inputs.xml`. The engine reads this file at startup and integrates your actions into the universal input system. Players see your keybindings in the game's Settings > Controls menu, grouped under a heading you define.
+---
 
-Custom inputs are identified by a unique action name (conventionally prefixed with `UA` for "User Action") and can have default keybindings that players can rebind at will.
+## Spis treści
+
+- [Przegląd](#przegląd)
+- [Lokalizacja pliku](#lokalizacja-pliku)
+- [Kompletna struktura XML](#kompletna-struktura-xml)
+- [Blok akcji](#blok-akcji)
+- [Blok sortowania](#blok-sortowania)
+- [Blok presetów (domyślne przypisania klawiszy)](#blok-presetów-domyślne-przypisania-klawiszy)
+- [Kombinacje z modyfikatorami](#kombinacje-z-modyfikatorami)
+- [Ukryte dane wejściowe](#ukryte-dane-wejściowe)
+- [Wiele domyślnych klawiszy](#wiele-domyślnych-klawiszy)
+- [Dostęp do danych wejściowych w skrypcie](#dostęp-do-danych-wejściowych-w-skrypcie)
+- [Referencja metod wejściowych](#referencja-metod-wejściowych)
+- [Tłumienie i wyłączanie danych wejściowych](#tłumienie-i-wyłączanie-danych-wejściowych)
+- [Referencja nazw klawiszy](#referencja-nazw-klawiszy)
+- [Przykłady z praktyki](#przykłady-z-praktyki)
+- [Najczęstsze błędy](#najczęstsze-błędy)
+
+---
+
+## Przegląd
+
+Gdy twój mod wymaga od gracza naciśnięcia klawisza --- otwarcia menu, przełączenia funkcji, wydania rozkazu jednostce AI --- rejestrujesz własną akcję wejściową w `inputs.xml`. Silnik odczytuje ten plik przy starcie i integruje twoje akcje z uniwersalnym systemem wejść. Gracze widzą twoje przypisania klawiszy w menu gry Ustawienia > Sterowanie, pogrupowane pod nagłówkiem, który definiujesz.
+
+Własne wejścia są identyfikowane przez unikalną nazwę akcji (konwencjonalnie z prefiksem `UA` od "User Action") i mogą mieć domyślne przypisania klawiszy, które gracze mogą dowolnie zmieniać.
 
 ---
 
 ## Lokalizacja pliku
 
-Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
+Umieść `inputs.xml` w podfolderze `data` katalogu Scripts:
 
 ```
 @MyMod/
@@ -42,47 +46,47 @@ Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
     MyMod_Scripts.pbo
       Scripts/
         data/
-          inputs.xml        <-- Here
+          inputs.xml        <-- Tutaj
         3_Game/
         4_World/
         5_Mission/
 ```
 
-Some mods place it directly in the `Scripts/` folder. Both locations work. The engine discovers the file automatically --- no config.cpp registration is needed.
+Niektóre mody umieszczają go bezpośrednio w folderze `Scripts/`. Obie lokalizacje działają. Silnik wykrywa plik automatycznie --- rejestracja w config.cpp nie jest wymagana.
 
 ---
 
 ## Kompletna struktura XML
 
-An `inputs.xml` file has three sections, all wrapped in a `<modded_inputs>` root element:
+Plik `inputs.xml` ma trzy sekcje, wszystkie opakowane w element główny `<modded_inputs>`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <modded_inputs>
     <inputs>
         <actions>
-            <!-- Action definitions go here -->
+            <!-- Definicje akcji tutaj -->
         </actions>
 
         <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
-            <!-- Sort order for the settings menu -->
+            <!-- Kolejność sortowania dla menu ustawień -->
         </sorting>
     </inputs>
     <preset>
-        <!-- Default keybinding assignments go here -->
+        <!-- Domyślne przypisania klawiszy tutaj -->
     </preset>
 </modded_inputs>
 ```
 
-All three sections --- `<actions>`, `<sorting>`, and `<preset>` --- work together but serve different purposes.
+Wszystkie trzy sekcje --- `<actions>`, `<sorting>` i `<preset>` --- współpracują, ale służą różnym celom.
 
 ---
 
 ## Blok akcji
 
-The `<actions>` block declares every input action your mod provides. Each action is a single `<input>` element.
+Blok `<actions>` deklaruje każdą akcję wejściową, którą zapewnia twój mod. Każda akcja to pojedynczy element `<input>`.
 
-### Skladnia
+### Składnia
 
 ```xml
 <actions>
@@ -91,17 +95,17 @@ The `<actions>` block declares every input action your mod provides. Each action
 </actions>
 ```
 
-### Attributes
+### Atrybuty
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `name` | Yes | Unique action identifier. Convention: prefix with `UA` (User Action). Used in scripts to poll this input. |
-| `loc` | No | Stringtable key for the display name in the Controls menu. **No `#` prefix** --- the system adds it. |
-| `visible` | No | Set to `"false"` to hide from the Controls menu. Defaults to `true`. |
+| Atrybut | Wymagany | Opis |
+|---------|----------|------|
+| `name` | Tak | Unikalny identyfikator akcji. Konwencja: prefiks `UA` (User Action). Używany w skryptach do odpytywania tego wejścia. |
+| `loc` | Nie | Klucz stringtable dla nazwy wyświetlanej w menu Sterowanie. **Bez prefiksu `#`** --- system dodaje go sam. |
+| `visible` | Nie | Ustaw na `"false"`, aby ukryć w menu Sterowanie. Domyślnie `true`. |
 
 ### Konwencja nazewnictwa
 
-Action names must be globally unique across all loaded mods. Use your mod prefix:
+Nazwy akcji muszą być globalnie unikalne wśród wszystkich załadowanych modów. Używaj prefiksu swojego moda:
 
 ```xml
 <input name="UAMyModAdminPanel" loc="STR_MYMOD_INPUT_ADMIN_PANEL" />
@@ -109,15 +113,15 @@ Action names must be globally unique across all loaded mods. Use your mod prefix
 <input name="eAICommandMenu" loc="STR_EXPANSION_AI_COMMAND_MENU" />
 ```
 
-The `UA` prefix is conventional but not enforced. Expansion AI uses `eAI` as its prefix, which also works.
+Prefiks `UA` jest konwencjonalny, ale nie wymagany. Expansion AI używa `eAI` jako prefiksu, co również działa.
 
 ---
 
 ## Blok sortowania
 
-The `<sorting>` block controls how your inputs appear in the player's Controls settings. It defines a named group (which becomes a section header) and lists the inputs in display order.
+Blok `<sorting>` kontroluje, jak twoje wejścia pojawiają się w ustawieniach Sterowanie gracza. Definiuje nazwaną grupę (która staje się nagłówkiem sekcji) i wymienia wejścia w kolejności wyświetlania.
 
-### Skladnia
+### Składnia
 
 ```xml
 <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
@@ -127,32 +131,32 @@ The `<sorting>` block controls how your inputs appear in the player's Controls s
 </sorting>
 ```
 
-### Attributes
+### Atrybuty
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `name` | Yes | Internal identifier for this sorting group |
-| `loc` | Yes | Stringtable key for the group header displayed in Settings > Controls |
+| Atrybut | Wymagany | Opis |
+|---------|----------|------|
+| `name` | Tak | Wewnętrzny identyfikator tej grupy sortowania |
+| `loc` | Tak | Klucz stringtable dla nagłówka grupy wyświetlanego w Ustawienia > Sterowanie |
 
-### How It Appears
+### Jak to wygląda
 
-In the Controls settings, the player sees:
+W ustawieniach Sterowanie gracz widzi:
 
 ```
-[MyMod]                          <-- from the sorting loc
-  Open Menu .............. [Y]   <-- from the input loc + preset
-  Toggle HUD ............. [H]   <-- from the input loc + preset
+[MyMod]                          <-- z loc sortowania
+  Open Menu .............. [Y]   <-- z loc wejścia + preset
+  Toggle HUD ............. [H]   <-- z loc wejścia + preset
 ```
 
-Only inputs listed in the `<sorting>` block appear in the settings menu. Inputs defined in `<actions>` but not listed in `<sorting>` are silently registered but invisible to the player (even if `visible` is not explicitly set to `false`).
+Tylko wejścia wymienione w bloku `<sorting>` pojawiają się w menu ustawień. Wejścia zdefiniowane w `<actions>`, ale nie wymienione w `<sorting>`, są cicho zarejestrowane, ale niewidoczne dla gracza (nawet jeśli `visible` nie jest jawnie ustawione na `false`).
 
 ---
 
-## Preset Block (Default Keybindings)
+## Blok presetów (domyślne przypisania klawiszy)
 
-The `<preset>` block assigns default keys to your actions. These are the keys the player starts with before any customization.
+Blok `<preset>` przypisuje domyślne klawisze do twoich akcji. To są klawisze, z którymi gracz zaczyna przed jakąkolwiek personalizacją.
 
-### Simple Key Binding
+### Proste przypisanie klawisza
 
 ```xml
 <preset>
@@ -162,19 +166,19 @@ The `<preset>` block assigns default keys to your actions. These are the keys th
 </preset>
 ```
 
-This binds the `Y` key as the default for `UAMyModOpenMenu`.
+To przypisuje klawisz `Y` jako domyślny dla `UAMyModOpenMenu`.
 
-### Brak domyslnego klawisza
+### Brak domyślnego klawisza
 
-If you omit an action from the `<preset>` block, it has no default binding. The player must manually assign a key in Settings > Controls. This is appropriate for optional or advanced bindings.
+Jeśli pominiesz akcję w bloku `<preset>`, nie ma domyślnego przypisania. Gracz musi ręcznie przypisać klawisz w Ustawienia > Sterowanie. Jest to odpowiednie dla opcjonalnych lub zaawansowanych przypisań.
 
 ---
 
-## Modifier Combos
+## Kombinacje z modyfikatorami
 
-To require a modifier key (Ctrl, Shift, Alt), nest `<btn>` elements:
+Aby wymagać klawisza modyfikatora (Ctrl, Shift, Alt), zagnieźdź elementy `<btn>`:
 
-### Ctrl + Left Mouse Button
+### Ctrl + Lewy przycisk myszy
 
 ```xml
 <input name="eAISetWaypoint">
@@ -184,9 +188,9 @@ To require a modifier key (Ctrl, Shift, Alt), nest `<btn>` elements:
 </input>
 ```
 
-The outer `<btn>` is the modifier; the inner `<btn>` is the primary key. The player must hold the modifier and then press the primary key.
+Zewnętrzny `<btn>` to modyfikator; wewnętrzny `<btn>` to klawisz główny. Gracz musi przytrzymać modyfikator, a następnie nacisnąć klawisz główny.
 
-### Shift + Key
+### Shift + Klawisz
 
 ```xml
 <input name="UAMyModQuickAction">
@@ -196,17 +200,17 @@ The outer `<btn>` is the modifier; the inner `<btn>` is the primary key. The pla
 </input>
 ```
 
-### Zasady zagniezdzania
+### Zasady zagnieżdżania
 
-- The **outer** `<btn>` is always the modifier (held down)
-- The **inner** `<btn>` is the trigger (pressed while modifier is held)
-- Only one level of nesting is typical; deeper nesting is untested and not recommended
+- **Zewnętrzny** `<btn>` to zawsze modyfikator (przytrzymywany)
+- **Wewnętrzny** `<btn>` to wyzwalacz (naciskany podczas przytrzymywania modyfikatora)
+- Typowy jest tylko jeden poziom zagnieżdżenia; głębsze zagnieżdżanie jest nietestowane i niezalecane
 
 ---
 
-## Ukryte dane wejsciowe
+## Ukryte dane wejściowe
 
-Use `visible="false"` to register an input that the player cannot see or rebind in the Controls menu. This is useful for internal inputs used by your mod's code that should not be player-configurable.
+Użyj `visible="false"`, aby zarejestrować wejście, którego gracz nie może zobaczyć ani przypisać w menu Sterowanie. Jest to przydatne dla wewnętrznych wejść używanych przez kod twojego moda, które nie powinny być konfigurowane przez gracza.
 
 ```xml
 <actions>
@@ -215,7 +219,7 @@ Use `visible="false"` to register an input that the player cannot see or rebind 
 </actions>
 ```
 
-Hidden inputs can still have default key assignments in the `<preset>` block:
+Ukryte wejścia nadal mogą mieć domyślne przypisania klawiszy w bloku `<preset>`:
 
 ```xml
 <preset>
@@ -227,9 +231,9 @@ Hidden inputs can still have default key assignments in the `<preset>` block:
 
 ---
 
-## Wiele domyslnych klawiszy
+## Wiele domyślnych klawiszy
 
-An action can have multiple default keys. List multiple `<btn>` elements as siblings:
+Akcja może mieć wiele domyślnych klawiszy. Wymień wiele elementów `<btn>` jako rodzeństwo:
 
 ```xml
 <input name="UAExpansionConfirm">
@@ -238,23 +242,23 @@ An action can have multiple default keys. List multiple `<btn>` elements as sibl
 </input>
 ```
 
-Both `Enter` and `Numpad Enter` will trigger `UAExpansionConfirm`. This is useful for actions where multiple physical keys should map to the same logical action.
+Zarówno `Enter`, jak i `Numpad Enter` wyzwolą `UAExpansionConfirm`. Jest to przydatne dla akcji, gdzie wiele fizycznych klawiszy powinno mapować na tę samą logiczną akcję.
 
 ---
 
-## Dostep do danych wejsciowych w skrypcie
+## Dostęp do danych wejściowych w skrypcie
 
-### Getting the Input API
+### Uzyskanie API wejścia
 
-All input access goes through `GetUApi()`, which returns the global User Action API:
+Cały dostęp do wejść odbywa się przez `GetUApi()`, który zwraca globalne API User Action:
 
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyModOpenMenu");
 ```
 
-### Polling in OnUpdate
+### Odpytywanie w OnUpdate
 
-Custom inputs are typically polled in `MissionGameplay.OnUpdate()` or similar per-frame callbacks:
+Własne wejścia są zwykle odpytywane w `MissionGameplay.OnUpdate()` lub podobnych callbackach wywoływanych co klatkę:
 
 ```c
 modded class MissionGameplay
@@ -267,16 +271,16 @@ modded class MissionGameplay
 
         if (input.LocalPress())
         {
-            // Key was just pressed this frame
+            // Klawisz został właśnie naciśnięty w tej klatce
             OpenMyModMenu();
         }
     }
 }
 ```
 
-### Alternative: Using the Input Name Directly
+### Alternatywa: użycie nazwy wejścia bezpośrednio
 
-Many mods check inputs inline using the `UAInputAPI` methods with string names:
+Wiele modów sprawdza wejścia inline używając metod `UAInputAPI` z nazwami stringów:
 
 ```c
 override void OnUpdate(float timeslice)
@@ -292,26 +296,26 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-The `false` parameter in `LocalPress("name", false)` indicates that the check should not consume the input event.
+Parametr `false` w `LocalPress("nazwa", false)` oznacza, że sprawdzenie nie powinno konsumować zdarzenia wejścia.
 
 ---
 
-## Referencja metod wejsciowych
+## Referencja metod wejściowych
 
-Once you have a `UAInput` reference (from `GetUApi().GetInputByName()`), or are using the `Input` class directly, these methods detect different input states:
+Gdy masz referencję `UAInput` (z `GetUApi().GetInputByName()`) lub używasz klasy `Input` bezpośrednio, te metody wykrywają różne stany wejścia:
 
-| Method | Returns | When True |
-|--------|---------|-----------|
-| `LocalPress()` | `bool` | The key was pressed **this frame** (single trigger on key-down) |
-| `LocalRelease()` | `bool` | The key was released **this frame** (single trigger on key-up) |
-| `LocalClick()` | `bool` | The key was pressed and released quickly (tap) |
-| `LocalHold()` | `bool` | The key has been held down for a threshold duration |
-| `LocalDoubleClick()` | `bool` | The key was tapped twice quickly |
-| `LocalValue()` | `float` | Current analog value (0.0 or 1.0 for digital keys; variable for analog axes) |
+| Metoda | Zwraca | Kiedy true |
+|--------|--------|------------|
+| `LocalPress()` | `bool` | Klawisz został naciśnięty **w tej klatce** (pojedyncze wyzwolenie przy wciśnięciu) |
+| `LocalRelease()` | `bool` | Klawisz został zwolniony **w tej klatce** (pojedyncze wyzwolenie przy zwolnieniu) |
+| `LocalClick()` | `bool` | Klawisz został naciśnięty i szybko zwolniony (tapnięcie) |
+| `LocalHold()` | `bool` | Klawisz był przytrzymywany przez progowy czas |
+| `LocalDoubleClick()` | `bool` | Klawisz został szybko tapnięty dwukrotnie |
+| `LocalValue()` | `float` | Aktualna wartość analogowa (0.0 lub 1.0 dla klawiszy cyfrowych; zmienna dla osi analogowych) |
 
-### Usage Patterns
+### Wzorce użycia
 
-**Toggle on press:**
+**Przełączanie przy naciśnięciu:**
 ```c
 if (input.LocalPress("UAMyModToggle", false))
 {
@@ -319,7 +323,7 @@ if (input.LocalPress("UAMyModToggle", false))
 }
 ```
 
-**Hold to activate, release to deactivate:**
+**Przytrzymaj aby aktywować, zwolnij aby dezaktywować:**
 ```c
 if (input.LocalPress("eAICommandMenu", false))
 {
@@ -332,7 +336,7 @@ if (input.LocalRelease("eAICommandMenu", false) || input.LocalValue("eAICommandM
 }
 ```
 
-**Double-tap action:**
+**Akcja na podwójne tapnięcie:**
 ```c
 if (input.LocalDoubleClick("UAMyModSpecial", false))
 {
@@ -340,7 +344,7 @@ if (input.LocalDoubleClick("UAMyModSpecial", false))
 }
 ```
 
-**Hold for extended action:**
+**Przytrzymanie dla rozszerzonej akcji:**
 ```c
 if (input.LocalHold("UAExpansionGPSToggle"))
 {
@@ -350,23 +354,23 @@ if (input.LocalHold("UAExpansionGPSToggle"))
 
 ---
 
-## Tlumienie i wylaczanie danych wejsciowych
+## Tłumienie i wyłączanie danych wejściowych
 
 ### ForceDisable
 
-Temporarily disables a specific input. Commonly used when opening menus to prevent game actions from firing while a UI is active:
+Tymczasowo wyłącza konkretne wejście. Powszechnie używane przy otwieraniu menu, aby zapobiec wyzwalaniu akcji gry, gdy UI jest aktywne:
 
 ```c
-// Disable the input while menu is open
+// Wyłącz wejście gdy menu jest otwarte
 GetUApi().GetInputByName("UAMyModToggle").ForceDisable(true);
 
-// Re-enable when menu closes
+// Włącz ponownie gdy menu się zamknie
 GetUApi().GetInputByName("UAMyModToggle").ForceDisable(false);
 ```
 
 ### SupressNextFrame
 
-Suppresses all input processing for the next frame. Used during input context transitions (e.g., closing menus) to prevent one-frame input bleed:
+Tłumi całe przetwarzanie wejść na następną klatkę. Używane podczas przejść kontekstu wejścia (np. zamykanie menu), aby zapobiec jednoklatkowemu "przenikaniu" wejścia:
 
 ```c
 GetUApi().SupressNextFrame(true);
@@ -374,22 +378,22 @@ GetUApi().SupressNextFrame(true);
 
 ### UpdateControls
 
-After modifying input states, call `UpdateControls()` to apply changes immediately:
+Po modyfikacji stanów wejścia wywołaj `UpdateControls()`, aby natychmiast zastosować zmiany:
 
 ```c
 GetUApi().GetInputByName("UAExpansionBookToggle").ForceDisable(false);
 GetUApi().UpdateControls();
 ```
 
-### Input Excludes
+### Wykluczenia wejść
 
-The vanilla mission system provides exclude groups. When a menu is active, you can exclude categories of inputs:
+System misji vanilla udostępnia grupy wykluczeń. Gdy menu jest aktywne, możesz wykluczyć kategorie wejść:
 
 ```c
-// Suppress gameplay inputs while inventory is open
+// Tłum wejścia rozgrywki gdy ekwipunek jest otwarty
 AddActiveInputExcludes({"inventory"});
 
-// Restore when closing
+// Przywróć przy zamknięciu
 RemoveActiveInputExcludes({"inventory"});
 ```
 
@@ -397,54 +401,54 @@ RemoveActiveInputExcludes({"inventory"});
 
 ## Referencja nazw klawiszy
 
-Key names used in the `<btn name="">` attribute follow a specific naming convention. Here is the complete reference.
+Nazwy klawiszy używane w atrybucie `<btn name="">` podążają za określoną konwencją nazewnictwa. Oto kompletna referencja.
 
 ### Klawisze klawiatury
 
-| Category | Key Names |
-|----------|-----------|
-| Letters | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
-| Numbers (top row) | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
-| Function keys | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
-| Modifiers | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
-| Navigation | `kUp`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPageUp`, `kPageDown` |
-| Editing | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
-| Numpad | `kNumpad0` ... `kNumpad9`, `kNumpadEnter`, `kNumpadPlus`, `kNumpadMinus`, `kNumpadMultiply`, `kNumpadDivide`, `kNumpadDecimal` |
-| Punctuation | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
-| Locks | `kCapsLock`, `kNumLock`, `kScrollLock` |
+| Kategoria | Nazwy klawiszy |
+|-----------|----------------|
+| Litery | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
+| Cyfry (górny rząd) | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
+| Klawisze funkcyjne | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
+| Modyfikatory | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
+| Nawigacja | `kUp`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPageUp`, `kPageDown` |
+| Edycja | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
+| Klawiatura numeryczna | `kNumpad0` ... `kNumpad9`, `kNumpadEnter`, `kNumpadPlus`, `kNumpadMinus`, `kNumpadMultiply`, `kNumpadDivide`, `kNumpadDecimal` |
+| Interpunkcja | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
+| Blokady | `kCapsLock`, `kNumLock`, `kScrollLock` |
 
 ### Przyciski myszy
 
-| Name | Button |
-|------|--------|
-| `mBLeft` | Left mouse button |
-| `mBRight` | Right mouse button |
-| `mBMiddle` | Middle mouse button (scroll wheel click) |
-| `mBExtra1` | Mouse button 4 (side button back) |
-| `mBExtra2` | Mouse button 5 (side button forward) |
+| Nazwa | Przycisk |
+|-------|----------|
+| `mBLeft` | Lewy przycisk myszy |
+| `mBRight` | Prawy przycisk myszy |
+| `mBMiddle` | Środkowy przycisk myszy (kliknięcie kółkiem) |
+| `mBExtra1` | Przycisk myszy 4 (boczny przycisk wstecz) |
+| `mBExtra2` | Przycisk myszy 5 (boczny przycisk naprzód) |
 
 ### Osie myszy
 
-| Name | Axis |
-|------|------|
-| `mAxisX` | Mouse horizontal movement |
-| `mAxisY` | Mouse vertical movement |
-| `mWheelUp` | Scroll wheel up |
-| `mWheelDown` | Scroll wheel down |
+| Nazwa | Oś |
+|-------|-----|
+| `mAxisX` | Ruch myszy w poziomie |
+| `mAxisY` | Ruch myszy w pionie |
+| `mWheelUp` | Kółko przewijania w górę |
+| `mWheelDown` | Kółko przewijania w dół |
 
 ### Wzorzec nazewnictwa
 
-- **Keyboard**: `k` prefix + key name (e.g., `kT`, `kF5`, `kLControl`)
-- **Mouse buttons**: `mB` prefix + button name (e.g., `mBLeft`, `mBRight`)
-- **Mouse axes**: `m` prefix + axis name (e.g., `mAxisX`, `mWheelUp`)
+- **Klawiatura**: prefiks `k` + nazwa klawisza (np. `kT`, `kF5`, `kLControl`)
+- **Przyciski myszy**: prefiks `mB` + nazwa przycisku (np. `mBLeft`, `mBRight`)
+- **Osie myszy**: prefiks `m` + nazwa osi (np. `mAxisX`, `mWheelUp`)
 
 ---
 
-## Przyklady z praktyki
+## Przykłady z praktyki
 
 ### DayZ Expansion AI
 
-A well-structured inputs.xml with visible keybindings, hidden debug inputs, and modifier combos:
+Dobrze zorganizowany inputs.xml z widocznymi przypisaniami klawiszy, ukrytymi wejściami debugowymi i kombinacjami modyfikatorów:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -498,14 +502,14 @@ A well-structured inputs.xml with visible keybindings, hidden debug inputs, and 
 </modded_inputs>
 ```
 
-Key observations:
-- `eAICommandMenu` bound to `T` --- visible in settings, player can rebind
-- `eAISetWaypoint` uses a **Ctrl + Left Click** modifier combo
-- Test inputs are `visible="false"` --- hidden from players but accessible in code
+Kluczowe obserwacje:
+- `eAICommandMenu` przypisany do `T` --- widoczny w ustawieniach, gracz może zmienić
+- `eAISetWaypoint` używa kombinacji **Ctrl + Lewy Klik** z modyfikatorem
+- Wejścia testowe są `visible="false"` --- ukryte przed graczami, ale dostępne w kodzie
 
 ### DayZ Expansion Market
 
-A minimal inputs.xml for a hidden utility input with multiple default keys:
+Minimalny inputs.xml dla ukrytego wejścia narzędziowego z wieloma domyślnymi klawiszami:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -524,14 +528,14 @@ A minimal inputs.xml for a hidden utility input with multiple default keys:
 </modded_inputs>
 ```
 
-Key observations:
-- Hidden input (`visible="false"`) with empty `loc` --- never shown in settings
-- Two default keys: both Enter and Numpad Enter trigger the same action
-- No `<sorting>` block --- not needed since the input is hidden
+Kluczowe obserwacje:
+- Ukryte wejście (`visible="false"`) z pustym `loc` --- nigdy nie wyświetlane w ustawieniach
+- Dwa domyślne klawisze: zarówno Enter, jak i Numpad Enter wyzwalają tę samą akcję
+- Brak bloku `<sorting>` --- nie jest potrzebny, ponieważ wejście jest ukryte
 
-### Complete Starter Template
+### Kompletny szablon startowy
 
-A minimal but complete template for a new mod:
+Minimalny, ale kompletny szablon dla nowego moda:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -551,12 +555,12 @@ A minimal but complete template for a new mod:
         <input name="UAMyModOpenMenu">
             <btn name="kF6"/>
         </input>
-        <!-- UAMyModQuickAction has no default key; player must bind it -->
+        <!-- UAMyModQuickAction nie ma domyślnego klawisza; gracz musi go przypisać -->
     </preset>
 </modded_inputs>
 ```
 
-With a corresponding stringtable.csv:
+Z odpowiadającym stringtable.csv:
 
 ```csv
 "Language","original","english"
@@ -567,37 +571,55 @@ With a corresponding stringtable.csv:
 
 ---
 
-## Najczestsze bledy
+## Najczęstsze błędy
 
-### Using `#` in the loc Attribute
+### Używanie `#` w atrybucie loc
 
 ```xml
-<!-- WRONG -->
+<!-- ŹLE -->
 <input name="UAMyAction" loc="#STR_MYMOD_ACTION" />
 
-<!-- CORRECT -->
+<!-- POPRAWNIE -->
 <input name="UAMyAction" loc="STR_MYMOD_ACTION" />
 ```
 
-The input system prepends `#` internally. Adding it yourself causes a double-prefix and the lookup fails.
+System wejść dodaje `#` wewnętrznie. Dodanie go samodzielnie powoduje podwójny prefiks i wyszukiwanie się nie udaje.
 
-### Action Name Collisions
+### Kolizje nazw akcji
 
-If two mods define `UAOpenMenu`, only one will work. Always use your mod prefix:
+Jeśli dwa mody definiują `UAOpenMenu`, tylko jeden zadziała. Zawsze używaj prefiksu swojego moda:
 
 ```xml
-<input name="UAMyModOpenMenu" />     <!-- Good -->
-<input name="UAOpenMenu" />          <!-- Risky -->
+<input name="UAMyModOpenMenu" />     <!-- Dobrze -->
+<input name="UAOpenMenu" />          <!-- Ryzykowne -->
 ```
 
-### Missing Sorting Entry
+### Brakujący wpis sortowania
 
-If you define an action in `<actions>` but forget to list it in `<sorting>`, the action works in code but is invisible in the Controls menu. The player has no way to rebind it.
+Jeśli zdefiniujesz akcję w `<actions>`, ale zapomnisz wymienić ją w `<sorting>`, akcja działa w kodzie, ale jest niewidoczna w menu Sterowanie. Gracz nie ma możliwości zmiany przypisania.
 
-### Forgetting to Define in Actions
+### Zapomnienie o definicji w akcjach
 
-If you list an input in `<sorting>` or `<preset>` but never define it in `<actions>`, the engine silently ignores it.
+Jeśli wymienisz wejście w `<sorting>` lub `<preset>`, ale nigdy nie zdefiniujesz go w `<actions>`, silnik cicho je zignoruje.
 
-### Binding Conflicting Keys
+### Przypisywanie kolidujących klawiszy
 
-Choosing keys that conflict with vanilla bindings (like `W`, `A`, `S`, `D`, `Tab`, `I`) causes both your action and the vanilla action to fire simultaneously. Use less common keys (F5-F12, numpad keys) or modifier combos for safety.
+Wybieranie klawiszy, które kolidują z vanilla przypisaniami (jak `W`, `A`, `S`, `D`, `Tab`, `I`) powoduje, że zarówno twoja akcja, jak i vanilla akcja wyzwalają się jednocześnie. Używaj mniej popularnych klawiszy (F5-F12, klawiatura numeryczna) lub kombinacji z modyfikatorami dla bezpieczeństwa.
+
+---
+
+## Dobre praktyki
+
+- Zawsze prefiksuj nazwy akcji `UA` + nazwa twojego moda (np. `UAMyModOpenMenu`). Ogólne nazwy jak `UAOpenMenu` będą kolidować z innymi modami.
+- Udostępniaj atrybut `loc` dla każdego widocznego wejścia i zdefiniuj odpowiadający klucz stringtable. Bez niego menu Sterowanie wyświetla surową nazwę akcji.
+- Wybieraj mało popularne domyślne klawisze (F5-F12, klawiatura numeryczna) lub kombinacje modyfikatorów (Ctrl+klawisz), aby zminimalizować konflikty z vanilla i popularnymi modami.
+- Zawsze wymieniaj widoczne wejścia w bloku `<sorting>`. Wejście zdefiniowane w `<actions>`, ale brakujące w `<sorting>` jest niewidoczne dla gracza i nie może być przypisane.
+- Cachuj referencję `UAInput` z `GetUApi().GetInputByName()` w zmiennej składowej zamiast wywoływać ją co klatkę w `OnUpdate`. Wyszukiwanie stringowe ma narzut.
+
+---
+
+## Kompatybilność i wpływ
+
+- **Multi-Mod:** Kolizje nazw akcji to główne ryzyko. Jeśli dwa mody definiują `UAOpenMenu`, tylko jeden działa, a konflikt jest cichy. Silnik nie daje ostrzeżenia o zduplikowanych nazwach akcji między modami.
+- **Wydajność:** Odpytywanie wejścia przez `GetUApi().GetInputByName()` obejmuje wyszukiwanie hasza stringowego. Odpytywanie 5-10 wejść na klatkę jest znikome, ale cachowanie referencji `UAInput` jest nadal zalecane dla modów z wieloma wejściami.
+- **Wersja:** Format `inputs.xml` i struktura `<modded_inputs>` są stabilne od DayZ 1.0. Atrybut `visible` został dodany później (około 1.08) -- w starszych wersjach wszystkie wejścia są zawsze widoczne w menu Sterowanie.

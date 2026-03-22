@@ -1,151 +1,155 @@
-# Chapter 5.1: stringtable.csv --- Localization
+# 5.1. fejezet: stringtable.csv --- Lokalizáció
 
-[Home](../../README.md) | **stringtable.csv** | [Next: inputs.xml >>](02-inputs-xml.md)
-
----
-
-## Tartalomjegyzek
-
-- [Overview](#overview)
-- [CSV Format](#csv-format)
-- [Column Reference](#column-reference)
-- [Key Naming Convention](#key-naming-convention)
-- [Referencing Strings](#referencing-strings)
-- [Creating a New Stringtable](#creating-a-new-stringtable)
-- [Empty Cell Handling and Fallback Behavior](#empty-cell-handling-and-fallback-behavior)
-- [Multi-Language Workflow](#multi-language-workflow)
-- [Modular Stringtable Approach (DayZ Expansion)](#modular-stringtable-approach-dayz-expansion)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+[Főoldal](../../README.md) | **stringtable.csv** | [Következő: inputs.xml >>](02-inputs-xml.md)
 
 ---
 
-## Attekintes
-
-DayZ uses a CSV-based localization system. When the engine encounters a string key prefixed with `#` (for example, `#STR_MYMOD_HELLO`), it looks up that key in all loaded stringtable files and returns the translation matching the player's current language. If no match is found for the active language, the engine falls back through a defined chain.
-
-The stringtable file must be named exactly `stringtable.csv` and placed inside your mod's PBO structure. The engine discovers it automatically --- no config.cpp registration is required.
+> **Összefoglalás:** A `stringtable.csv` fájl biztosítja a lokalizált szövegeket a DayZ mododhoz. A motor indításkor beolvassa ezt a CSV fájlt, és a játékos nyelvi beállítása alapján oldja fel a fordítási kulcsokat. Minden felhasználó számára látható szöveg --- UI feliratok, billentyűkötés nevek, tárgy leírások, értesítési szövegek --- a stringtable-ben kell elhelyezni a hardkódolás helyett.
 
 ---
 
-## CSV Format
+## Tartalomjegyzék
 
-The file is a standard comma-separated values file with quoted fields. The first row is the header, and every subsequent row defines one translation key.
+- [Áttekintés](#overview)
+- [CSV formátum](#csv-format)
+- [Oszlop referencia](#column-reference)
+- [Kulcs elnevezési konvenció](#key-naming-convention)
+- [Sztringek hivatkozása](#referencing-strings)
+- [Új stringtable létrehozása](#creating-a-new-stringtable)
+- [Üres cellák kezelése és tartalék viselkedés](#empty-cell-handling-and-fallback-behavior)
+- [Többnyelvű munkafolyamat](#multi-language-workflow)
+- [Moduláris stringtable megközelítés (DayZ Expansion)](#modular-stringtable-approach-dayz-expansion)
+- [Valós példák](#real-examples)
+- [Gyakori hibák](#common-mistakes)
 
-### Header Row
+---
 
-The header row defines the columns. DayZ recognizes up to 15 columns:
+## Áttekintés
+
+A DayZ CSV-alapú lokalizációs rendszert használ. Amikor a motor egy `#` előtaggal ellátott sztring kulccsal találkozik (például `#STR_MYMOD_HELLO`), megkeresi azt a kulcsot az összes betöltött stringtable fájlban, és visszaadja a játékos aktuális nyelvének megfelelő fordítást. Ha nem talál egyezést az aktív nyelven, egy meghatározott tartalék láncon halad végig.
+
+A stringtable fájl nevének pontosan `stringtable.csv`-nek kell lennie, és a mod PBO struktúráján belül kell elhelyezni. A motor automatikusan felfedezi --- nincs szükség config.cpp regisztrációra.
+
+---
+
+## CSV formátum
+
+A fájl egy szabványos vesszővel elválasztott értékfájl idézőjeles mezőkkel. Az első sor a fejléc, és minden további sor egy fordítási kulcsot definiál.
+
+### Fejléc sor
+
+A fejléc sor határozza meg az oszlopokat. A DayZ legfeljebb 15 oszlopot ismer fel:
 
 ```csv
 "Language","original","english","czech","german","russian","polish","hungarian","italian","spanish","french","chinese","japanese","portuguese","chinesesimp",
 ```
 
-### Data Rows
+### Adat sorok
 
-Each row starts with the string key (no `#` prefix in the CSV), followed by the translation for each language:
+Minden sor a sztring kulccsal kezdődik (a CSV-ben `#` előtag nélkül), amelyet az egyes nyelvekhez tartozó fordítás követ:
 
 ```csv
 "STR_MYMOD_HELLO","Hello World","Hello World","Ahoj světe","Hallo Welt","Привет мир","Witaj świecie","Helló világ","Ciao mondo","Hola mundo","Bonjour le monde","你好世界","ハローワールド","Olá mundo","你好世界",
 ```
 
-### Trailing Comma
+### Záró vessző
 
-Many stringtable files include a trailing comma after the last column. This is conventional and safe --- the engine tolerates it.
+Sok stringtable fájl tartalmaz záró vesszőt az utolsó oszlop után. Ez szokásos és biztonságos --- a motor elfogadja.
 
-### Quoting Rules
+### Idézőjelezési szabályok
 
-- Fields **must** be quoted with double quotes if they contain commas, newlines, or double quotes.
-- In practice, most mods quote every field for consistency.
-- Some mods (like MyMissions Mod) omit quotes entirely; the engine handles both styles as long as the field content does not contain commas.
+- A mezőket **kötelező** dupla idézőjelbe tenni, ha vesszőt, sortörést vagy dupla idézőjelet tartalmaznak.
+- A gyakorlatban a legtöbb mod minden mezőt idézőjelez az egységesség kedvéért.
+- Egyes modok (mint a MyMissions Mod) teljesen elhagyják az idézőjeleket; a motor mindkét stílust kezeli, amíg a mező tartalma nem tartalmaz vesszőt.
 
 ---
 
-## Column Reference
+## Oszlop referencia
 
-DayZ supports 13 player-selectable languages. The CSV has 15 columns because the first column is the key name and the second is the `original` column (the mod author's native language or default text).
+A DayZ 13 játékos által választható nyelvet támogat. A CSV 15 oszloppal rendelkezik, mert az első oszlop a kulcs neve, a második pedig az `original` oszlop (a mod szerző anyanyelve vagy alapértelmezett szöveg).
 
-| # | Column Name | Language | Megjegyzesek |
+| # | Oszlop neve | Nyelv | Megjegyzések |
 |---|-------------|----------|-------|
-| 1 | `Language` | --- | The string key identifier (e.g. `STR_MYMOD_HELLO`) |
-| 2 | `original` | Author's native | Fallback of last resort; used if no other column matches |
-| 3 | `english` | English | Most common primary language for international mods |
-| 4 | `czech` | Czech | |
-| 5 | `german` | German | |
-| 6 | `russian` | Russian | |
-| 7 | `polish` | Polish | |
-| 8 | `hungarian` | Hungarian | |
-| 9 | `italian` | Italian | |
-| 10 | `spanish` | Spanish | |
-| 11 | `french` | French | |
-| 12 | `chinese` | Chinese (Traditional) | Traditional Chinese characters |
-| 13 | `japanese` | Japanese | |
-| 14 | `portuguese` | Portuguese | |
-| 15 | `chinesesimp` | Chinese (Simplified) | Simplified Chinese characters |
+| 1 | `Language` | --- | A sztring kulcs azonosító (pl. `STR_MYMOD_HELLO`) |
+| 2 | `original` | Szerző anyanyelve | Végső tartalék; akkor használt, ha más oszlop sem egyezik |
+| 3 | `english` | Angol | A leggyakoribb elsődleges nyelv nemzetközi modokhoz |
+| 4 | `czech` | Cseh | |
+| 5 | `german` | Német | |
+| 6 | `russian` | Orosz | |
+| 7 | `polish` | Lengyel | |
+| 8 | `hungarian` | Magyar | |
+| 9 | `italian` | Olasz | |
+| 10 | `spanish` | Spanyol | |
+| 11 | `french` | Francia | |
+| 12 | `chinese` | Kínai (Hagyományos) | Hagyományos kínai karakterek |
+| 13 | `japanese` | Japán | |
+| 14 | `portuguese` | Portugál | |
+| 15 | `chinesesimp` | Kínai (Egyszerűsített) | Egyszerűsített kínai karakterek |
 
-### Column Order Matters
+### Az oszlopsorrend számít
 
-The engine identifies columns by their **header name**, not by position. However, following the standard order shown above is strongly recommended for compatibility and readability.
+A motor a **fejléc neve** alapján azonosítja az oszlopokat, nem a pozíció alapján. Mindazonáltal a fent bemutatott szabványos sorrend követése erősen ajánlott a kompatibilitás és olvashatóság érdekében.
 
-### Optional Columns
+### Opcionális oszlopok
 
-You do not need to include all 15 columns. If your mod only supports English, you can use a minimal header:
+Nem kell mind a 15 oszlopot szerepeltetni. Ha a modod csak angolt támogat, használhatsz minimális fejlécet:
 
 ```csv
 "Language","english"
 "STR_MYMOD_HELLO","Hello World"
 ```
 
-Some mods add non-standard columns like `korean` (MyMissions Mod does this). The engine ignores columns it does not recognize as a supported language, but those columns can serve as documentation or preparation for future language support.
+Egyes modok nem szabványos oszlopokat adnak hozzá, mint a `korean` (a MyMissions Mod teszi ezt). A motor figyelmen kívül hagyja azokat az oszlopokat, amelyeket nem ismer fel támogatott nyelvként, de ezek az oszlopok dokumentációként vagy jövőbeli nyelvtámogatás előkészítéseként szolgálhatnak.
 
 ---
 
-## Key Naming Convention
+## Kulcs elnevezési konvenció
 
-String keys follow a hierarchical naming pattern:
+A sztring kulcsok hierarchikus elnevezési mintát követnek:
 
 ```
 STR_MODNAME_CATEGORY_ELEMENT
 ```
 
-### Rules
+### Szabályok
 
-1. **Always start with `STR_`** --- this is a universal DayZ convention
-2. **Mod prefix** --- uniquely identifies your mod (e.g., `MYMOD`, `COT`, `EXPANSION`, `VPP`)
-3. **Category** --- groups related strings (e.g., `INPUT`, `TAB`, `CONFIG`, `DIR`)
-4. **Element** --- the specific string (e.g., `ADMIN_PANEL`, `NORTH`, `SAVE`)
-5. **Use UPPERCASE** --- the convention across all major mods
-6. **Use underscores** as separators, never spaces or hyphens
+1. **Mindig `STR_`-vel kezdődik** --- ez egyetemes DayZ konvenció
+2. **Mod előtag** --- egyedileg azonosítja a mododat (pl. `MYMOD`, `COT`, `EXPANSION`, `VPP`)
+3. **Kategória** --- csoportosítja a kapcsolódó sztringeket (pl. `INPUT`, `TAB`, `CONFIG`, `DIR`)
+4. **Elem** --- az adott sztring (pl. `ADMIN_PANEL`, `NORTH`, `SAVE`)
+5. **NAGYBETŰS** --- a konvenció az összes jelentős mod között
+6. **Aláhúzásjeleket** használj elválasztóként, soha szóközöket vagy kötőjeleket
 
-### Examples from Real Mods
-
-```
-STR_MYMOD_INPUT_ADMIN_PANEL       -- MyMod: keybinding label
-STR_MYMOD_CLOSE                   -- MyMod: generic "Close" button
-STR_MyDIR_NORTH                  -- MyMod: compass direction
-STR_MyTAB_ONLINE                 -- MyMod: admin panel tab name
-STR_COT_ESP_MODULE_NAME            -- COT: module display name
-STR_COT_CAMERA_MODULE_BLUR         -- COT: camera tool label
-STR_EXPANSION_ATM                  -- Expansion: feature name
-STR_EXPANSION_AI_COMMAND_MENU      -- Expansion: input label
-```
-
-### Anti-mintak
+### Példák valós modokból
 
 ```
-STR_hello_world          -- Bad: lowercase, no mod prefix
-MY_STRING                -- Bad: missing STR_ prefix
-STR_MYMOD Hello World    -- Bad: spaces in key
+STR_MYMOD_INPUT_ADMIN_PANEL       -- MyMod: billentyűkötés felirat
+STR_MYMOD_CLOSE                   -- MyMod: általános "Bezárás" gomb
+STR_MyDIR_NORTH                  -- MyMod: iránytű irány
+STR_MyTAB_ONLINE                 -- MyMod: admin panel fül neve
+STR_COT_ESP_MODULE_NAME            -- COT: modul megjelenítési neve
+STR_COT_CAMERA_MODULE_BLUR         -- COT: kamera eszköz felirat
+STR_EXPANSION_ATM                  -- Expansion: funkció neve
+STR_EXPANSION_AI_COMMAND_MENU      -- Expansion: beviteli felirat
+```
+
+### Kerülendő minták
+
+```
+STR_hello_world          -- Rossz: kisbetűs, nincs mod előtag
+MY_STRING                -- Rossz: hiányzó STR_ előtag
+STR_MYMOD Hello World    -- Rossz: szóközök a kulcsban
 ```
 
 ---
 
-## Referencing Strings
+## Sztringek hivatkozása
 
-There are three distinct contexts where you reference localized strings, and each uses a slightly different syntax.
+Három különböző kontextus van, ahol lokalizált sztringekre hivatkozhatsz, és mindegyik kissé eltérő szintaxist használ.
 
-### In Layout Files (.layout)
+### Layout fájlokban (.layout)
 
-Use the `#` prefix before the key name. The engine resolves it at widget creation time.
+Használd a `#` előtagot a kulcs neve előtt. A motor a widget létrehozásakor oldja fel.
 
 ```
 TextWidgetClass MyLabel {
@@ -154,83 +158,83 @@ TextWidgetClass MyLabel {
 }
 ```
 
-The `#` prefix tells the layout parser "this is a localization key, not literal text."
+A `#` előtag jelzi a layout parsernek, hogy "ez egy lokalizációs kulcs, nem szó szerinti szöveg."
 
-### In Enforce Script (.c files)
+### Enforce Scriptben (.c fájlok)
 
-Use `Widget.TranslateString()` to resolve the key at runtime. The `#` prefix is required in the argument.
+Használd a `Widget.TranslateString()` metódust a kulcs futásidejű feloldásához. A `#` előtag kötelező az argumentumban.
 
 ```c
 string translated = Widget.TranslateString("#STR_MYMOD_CLOSE");
-// translated == "Close" (if player language is English)
-// translated == "Fechar" (if player language is Portuguese)
+// translated == "Close" (ha a játékos nyelve angol)
+// translated == "Fechar" (ha a játékos nyelve portugál)
 ```
 
-You can also set widget text directly:
+A widget szövegét közvetlenül is beállíthatod:
 
 ```c
 TextWidget label = TextWidget.Cast(layoutRoot.FindAnyWidget("MyLabel"));
 label.SetText(Widget.TranslateString("#STR_MYMOD_ADMIN_PANEL"));
 ```
 
-Or use string keys directly in widget text properties, and the engine resolves them:
+Vagy használhatsz sztring kulcsokat közvetlenül widget szöveg tulajdonságokban, és a motor feloldja őket:
 
 ```c
-label.SetText("#STR_MYMOD_ADMIN_PANEL");  // Also works -- engine auto-resolves
+label.SetText("#STR_MYMOD_ADMIN_PANEL");  // Ez is működik -- a motor automatikusan feloldja
 ```
 
-### In inputs.xml
+### Az inputs.xml fájlban
 
-Use the `loc` attribute **without** the `#` prefix.
+Használd a `loc` attribútumot a `#` előtag **nélkül**.
 
 ```xml
 <input name="UAMyAction" loc="STR_MYMOD_INPUT_MY_ACTION" />
 ```
 
-This is the one place where you omit the `#`. The input system adds it internally.
+Ez az egyetlen hely, ahol elhagyod a `#`-t. A beviteli rendszer belsőleg hozzáadja.
 
-### Osszefoglalas Table
+### Összefoglaló táblázat
 
-| Context | Szintaxis | Pelda |
+| Kontextus | Szintaxis | Példa |
 |---------|--------|---------|
-| Layout file `text` attribute | `#STR_KEY` | `text "#STR_MYMOD_CLOSE"` |
+| Layout fájl `text` attribútum | `#STR_KEY` | `text "#STR_MYMOD_CLOSE"` |
 | Script `TranslateString()` | `"#STR_KEY"` | `Widget.TranslateString("#STR_MYMOD_CLOSE")` |
-| Script widget text | `"#STR_KEY"` | `label.SetText("#STR_MYMOD_CLOSE")` |
-| inputs.xml `loc` attribute | `STR_KEY` (no #) | `loc="STR_MYMOD_INPUT_ADMIN_PANEL"` |
+| Script widget szöveg | `"#STR_KEY"` | `label.SetText("#STR_MYMOD_CLOSE")` |
+| inputs.xml `loc` attribútum | `STR_KEY` (# nélkül) | `loc="STR_MYMOD_INPUT_ADMIN_PANEL"` |
 
 ---
 
-## Creating a New Stringtable
+## Új stringtable létrehozása
 
-### Step 1: Create the File
+### 1. lépés: Fájl létrehozása
 
-Create `stringtable.csv` at the root of your mod's PBO content directory. The engine scans all loaded PBOs for files named exactly `stringtable.csv`.
+Hozd létre a `stringtable.csv` fájlt a mod PBO tartalom könyvtárának gyökerében. A motor az összes betöltött PBO-ban megkeresi a pontosan `stringtable.csv` nevű fájlokat.
 
-Typical placement:
+Tipikus elhelyezés:
 
 ```
 @MyMod/
   Addons/
     MyMod_Scripts.pbo
       config.cpp
-      stringtable.csv        <-- Here
+      stringtable.csv        <-- Itt
       Scripts/
         3_Game/
         4_World/
         5_Mission/
 ```
 
-### Step 2: Write the Header
+### 2. lépés: Fejléc megírása
 
-Start with the full 15-column header:
+Kezdd a teljes 15 oszlopos fejléccel:
 
 ```csv
 "Language","original","english","czech","german","russian","polish","hungarian","italian","spanish","french","chinese","japanese","portuguese","chinesesimp",
 ```
 
-### Step 3: Add Your Strings
+### 3. lépés: Sztringek hozzáadása
 
-Add one row per translatable string. Start with English, fill in other languages as translations become available:
+Adj hozzá egy sort fordítandó sztringenként. Kezdd az angollal, töltsd ki a többi nyelvet ahogy a fordítások elérhetővé válnak:
 
 ```csv
 "Language","original","english","czech","german","russian","polish","hungarian","italian","spanish","french","chinese","japanese","portuguese","chinesesimp",
@@ -238,65 +242,65 @@ Add one row per translatable string. Start with English, fill in other languages
 "STR_MYMOD_OPEN","Open","Open","Otevřít","Öffnen","Открыть","Otwórz","Megnyitás","Apri","Abrir","Ouvrir","打开","開く","Abrir","打开",
 ```
 
-### Step 4: Pack and Test
+### 4. lépés: Csomagolás és tesztelés
 
-Build your PBO. Launch the game. Verify that `Widget.TranslateString("#STR_MYMOD_TITLE")` returns "My Cool Mod" in your script logs. Change the game language in settings to verify fallback behavior.
+Építsd meg a PBO-dat. Indítsd el a játékot. Ellenőrizd, hogy a `Widget.TranslateString("#STR_MYMOD_TITLE")` visszaadja-e a "My Cool Mod" értéket a script logokban. Változtasd meg a játék nyelvét a beállításokban a tartalék viselkedés ellenőrzéséhez.
 
 ---
 
-## Empty Cell Handling and Fallback Behavior
+## Üres cellák kezelése és tartalék viselkedés
 
-When the engine looks up a string key for the player's current language and finds an empty cell, it follows a fallback chain:
+Amikor a motor megkeres egy sztring kulcsot a játékos aktuális nyelvén és üres cellát talál, egy tartalék láncon halad végig:
 
-1. **Player's selected language column** --- checked first
-2. **`english` column** --- if the player's language cell is empty
-3. **`original` column** --- if `english` is also empty
-4. **Raw key name** --- if all columns are empty, the engine displays the key itself (e.g., `STR_MYMOD_TITLE`)
+1. **A játékos kiválasztott nyelve oszlop** --- először ellenőrzi
+2. **`english` oszlop** --- ha a játékos nyelve cellája üres
+3. **`original` oszlop** --- ha az `english` is üres
+4. **Nyers kulcsnév** --- ha minden oszlop üres, a motor magát a kulcsot jeleníti meg (pl. `STR_MYMOD_TITLE`)
 
-This means you can safely leave non-English columns empty during development. English-speaking players see the `english` column, and other players see the English fallback until a proper translation is added.
+Ez azt jelenti, hogy fejlesztés közben biztonságosan üresen hagyhatod a nem angol oszlopokat. Az angolul beszélő játékosok az `english` oszlopot látják, a többi játékos pedig az angol tartalékot, amíg megfelelő fordítás nem kerül hozzáadásra.
 
-### Practical Implication
+### Gyakorlati következmény
 
-You do not need to copy the English text into every column as a placeholder. Leave untranslated cells empty:
+Nem kell az angol szöveget minden oszlopba másolni helyőrzőként. Hagyd üresen a le nem fordított cellákat:
 
 ```csv
 "STR_MYMOD_HELLO","Hello","Hello","","","","","","","","","","","","",
 ```
 
-Players whose language is German will see "Hello" (the English fallback) until a German translation is provided.
+Azok a játékosok, akiknek a nyelve német, a "Hello" szöveget fogják látni (az angol tartalékot), amíg német fordítás nem kerül megadásra.
 
 ---
 
-## Multi-Language Workflow
+## Többnyelvű munkafolyamat
 
-### For Solo Developers
+### Egyéni fejlesztőknek
 
-1. Write all strings in English (both `original` and `english` columns).
-2. Release the mod. English serves as the universal fallback.
-3. As community members volunteer translations, fill in additional columns.
-4. Rebuild and release updates.
+1. Írd meg az összes sztringet angolul (mind az `original`, mind az `english` oszlopban).
+2. Add ki a modot. Az angol egyetemes tartalékként szolgál.
+3. Ahogy a közösség tagjai önkéntesen fordítanak, töltsd ki a további oszlopokat.
+4. Építsd újra és add ki a frissítéseket.
 
-### For Teams with Translators
+### Fordítókkal rendelkező csapatoknak
 
-1. Maintain the CSV in a shared repository or spreadsheet.
-2. Assign one translator per language.
-3. Use the `original` column for the author's native language (e.g., Portuguese for Brazilian developers).
-4. The `english` column is always filled --- it is the international baseline.
-5. Use a diff tool to track which keys have been added since the last translation pass.
+1. Tartsd a CSV-t egy megosztott adattárban vagy táblázatkezelőben.
+2. Rendelj hozzá egy fordítót nyelvenként.
+3. Használd az `original` oszlopot a szerző anyanyelvéhez (pl. portugál brazil fejlesztőknek).
+4. Az `english` oszlop mindig ki van töltve --- ez a nemzetközi alap.
+5. Használj diff eszközt annak nyomon követésére, hogy mely kulcsok lettek hozzáadva az utolsó fordítási menet óta.
 
-### Using Spreadsheet Software
+### Táblázatkezelő szoftver használata
 
-CSV files open naturally in Excel, Google Sheets, or LibreOffice Calc. Be aware of these pitfalls:
+A CSV fájlok természetesen megnyílnak Excelben, Google Sheetsben vagy LibreOffice Calc-ban. Legyél tudatában ezeknek a buktatóknak:
 
-- **Excel may add BOM (Byte Order Mark)** to UTF-8 files. DayZ handles BOM, but it can cause issues with some tools. Save as "CSV UTF-8" to be safe.
-- **Excel auto-formatting** can mangle fields that look like dates or numbers.
-- **Line endings**: DayZ accepts both `\r\n` (Windows) and `\n` (Unix).
+- **Az Excel hozzáadhat BOM-ot (Byte Order Mark-ot)** az UTF-8 fájlokhoz. A DayZ kezeli a BOM-ot, de egyes eszközöknél problémákat okozhat. Biztonság kedvéért mentsd el "CSV UTF-8"-ként.
+- **Az Excel automatikus formázása** megváltoztathatja a dátumnak vagy számnak tűnő mezőket.
+- **Sorvégek**: a DayZ elfogadja mind a `\r\n` (Windows), mind a `\n` (Unix) formátumot.
 
 ---
 
-## Modular Stringtable Approach (DayZ Expansion)
+## Moduláris stringtable megközelítés (DayZ Expansion)
 
-DayZ Expansion demonstrates a best practice for large mods: splitting translations across multiple stringtable files organized by feature module. Their structure uses 20 separate stringtable files inside a `languagecore` directory:
+A DayZ Expansion egy bevált gyakorlatot mutat be nagy modokhoz: a fordítások szétosztása több stringtable fájlba, funkció modulok szerint rendezve. A struktúrájuk 20 különálló stringtable fájlt használ egy `languagecore` könyvtáron belül:
 
 ```
 DayZExpansion/
@@ -323,25 +327,25 @@ DayZExpansion/
     Weapons/stringtable.csv
 ```
 
-### Why Split?
+### Miért érdemes szétválasztani?
 
-- **Manageability**: A single stringtable for a large mod can grow to thousands of lines. Splitting by feature module makes each file manageable.
-- **Independent updates**: Translators can work on one module at a time without merge conflicts.
-- **Conditional inclusion**: Each sub-mod's PBO only includes the stringtable for its own feature, keeping PBO sizes smaller.
+- **Kezelhetőség**: Egy nagy mod egyetlen stringtable-je több ezer sorra nőhet. A funkció modulok szerinti felosztás minden fájlt kezelhetővé tesz.
+- **Független frissítések**: A fordítók egyszerre egy modulon dolgozhatnak merge konfliktusok nélkül.
+- **Feltételes bevonás**: Minden al-mod PBO-ja csak a saját funkciójához tartozó stringtable-t tartalmazza, kisebb PBO méreteket biztosítva.
 
-### How It Works
+### Hogyan működik
 
-The engine scans every loaded PBO for `stringtable.csv`. Since each Expansion sub-module is packed into its own PBO, each one naturally includes only its own stringtable. No special configuration is needed --- just name the file `stringtable.csv` and place it inside the PBO.
+A motor minden betöltött PBO-ban megkeresi a `stringtable.csv` fájlt. Mivel minden Expansion al-modul saját PBO-ba van csomagolva, mindegyik természetesen csak a saját stringtable-jét tartalmazza. Nincs szükség különleges konfigurációra --- egyszerűen nevezd el a fájlt `stringtable.csv`-nek és helyezd a PBO-ba.
 
-Key names still use a global prefix (`STR_EXPANSION_`) to avoid collisions.
+A kulcsnevek továbbra is globális előtagot használnak (`STR_EXPANSION_`), hogy elkerüljék az ütközéseket.
 
 ---
 
-## Valos peldak
+## Valós példák
 
 ### MyFramework
 
-MyFramework uses the full 15-column format with Portuguese as the `original` language (the development team's native language) and comprehensive translations for all 13 supported languages:
+A MyFramework a teljes 15 oszlopos formátumot használja, portugállal mint `original` nyelv (a fejlesztőcsapat anyanyelve), és átfogó fordításokkal mind a 13 támogatott nyelvhez:
 
 ```csv
 "Language","original","english","czech","german","russian","polish","hungarian","italian","spanish","french","chinese","japanese","portuguese","chinesesimp",
@@ -351,14 +355,14 @@ MyFramework uses the full 15-column format with Portuguese as the `original` lan
 "STR_MYMOD_SAVE","Salvar","Save","Uložit","Speichern","Сохранить","Zapisz","Mentés","Salva","Guardar","Sauvegarder","保存","保存","Salvar","保存",
 ```
 
-Notable patterns:
-- `original` contains Portuguese text (the team's native language)
-- `english` is always filled as the international baseline
-- All 13 language columns are populated
+Figyelemreméltó minták:
+- Az `original` portugál szöveget tartalmaz (a csapat anyanyelve)
+- Az `english` mindig ki van töltve nemzetközi alapként
+- Mind a 13 nyelvi oszlop ki van töltve
 
 ### COT (Community Online Tools)
 
-COT uses the same 15-column format. Its keys follow the `STR_COT_MODULE_CATEGORY_ELEMENT` pattern:
+A COT ugyanazt a 15 oszlopos formátumot használja. A kulcsai a `STR_COT_MODULE_CATEGORY_ELEMENT` mintát követik:
 
 ```csv
 Language,original,english,czech,german,russian,polish,hungarian,italian,spanish,french,chinese,japanese,portuguese,chinesesimp,
@@ -368,73 +372,73 @@ STR_COT_ESP_MODULE_NAME,Camera Tools,Camera Tools,Nástroje kamery,Kamera-Werkze
 
 ### VPP Admin Tools
 
-VPP uses a reduced column set (13 columns, no `hungarian` column) and does not prefix keys with `STR_`:
+A VPP csökkentett oszlopkészletet használ (13 oszlop, nincs `hungarian` oszlop), és nem használ `STR_` előtagot a kulcsokhoz:
 
 ```csv
 "Language","original","english","czech","german","russian","polish","italian","spanish","french","chinese","japanese","portuguese","chinesesimp"
 "vpp_focus_on_game","[Hold/2xTap] Focus On Game","[Hold/2xTap] Focus On Game","...","...","...","...","...","...","...","...","...","...","..."
 ```
 
-This demonstrates that the `STR_` prefix is a convention, not a requirement. However, omitting it means you cannot use the `#` prefix resolution in layout files. VPP references these keys only through script code. The `STR_` prefix is strongly recommended for all new mods.
+Ez bizonyítja, hogy az `STR_` előtag konvenció, nem követelmény. Mindazonáltal ennek elhagyása azt jelenti, hogy nem használhatod a `#` előtagos feloldást layout fájlokban. A VPP ezeket a kulcsokat csak script kódon keresztül hivatkozza. Az `STR_` előtag erősen ajánlott minden új modhoz.
 
 ### MyMissions Mod
 
-MyMissions Mod uses an unquoted, headerless-style CSV (no quotes around fields) with an extra `Korean` column:
+A MyMissions Mod idézőjel nélküli, fejléc nélküli stílusú CSV-t használ (nincs idézőjel a mezők körül), egy extra `Korean` oszloppal:
 
 ```csv
 Language,English,Czech,German,Russian,Polish,Hungarian,Italian,Spanish,French,Chinese,Japanese,Portuguese,Korean
 STR_MyMISSION_AVAILABLE,MISSION AVAILABLE,MISE K DISPOZICI,MISSION VERFÜGBAR,МИССИЯ ДОСТУПНА,...
 ```
 
-Notable: the `original` column is absent, and `Korean` is added as an extra language. The engine ignores unrecognized column names, so `Korean` serves as documentation until official Korean support is added.
+Megjegyzés: az `original` oszlop hiányzik, és a `Korean` extra nyelvként van hozzáadva. A motor figyelmen kívül hagyja a fel nem ismert oszlopneveket, így a `Korean` dokumentációként szolgál, amíg a hivatalos koreai támogatás hozzá nem kerül.
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-### Forgetting the `#` Prefix in Scripts
+### A `#` előtag elfelejtése scriptekben
 
 ```c
-// WRONG -- displays the raw key, not the translation
+// HELYTELEN -- a nyers kulcsot jeleníti meg, nem a fordítást
 label.SetText("STR_MYMOD_HELLO");
 
-// CORRECT
+// HELYES
 label.SetText("#STR_MYMOD_HELLO");
 ```
 
-### Using `#` in inputs.xml
+### A `#` használata az inputs.xml-ben
 
 ```xml
-<!-- WRONG -- the input system adds # internally -->
+<!-- HELYTELEN -- a beviteli rendszer belsőleg adja hozzá a # jelet -->
 <input name="UAMyAction" loc="#STR_MYMOD_MY_ACTION" />
 
-<!-- CORRECT -->
+<!-- HELYES -->
 <input name="UAMyAction" loc="STR_MYMOD_MY_ACTION" />
 ```
 
-### Duplicate Keys Across Mods
+### Duplikált kulcsok modok között
 
-If two mods define `STR_CLOSE`, the engine uses whichever PBO loads last. Always use your mod prefix:
+Ha két mod definiálja az `STR_CLOSE` kulcsot, a motor azt használja, amelyik PBO utoljára töltődik be. Mindig használd a mod előtagodat:
 
 ```csv
 "STR_MYMOD_CLOSE","Close","Close",...
 ```
 
-### Mismatched Column Count
+### Eltérő oszlopszám
 
-If a row has fewer columns than the header, the engine may silently skip it or assign empty strings to the missing columns. Always ensure every row has the same number of fields as the header.
+Ha egy sornak kevesebb oszlopa van, mint a fejlécnek, a motor csendben kihagyhatja, vagy üres sztringeket rendelhet a hiányzó oszlopokhoz. Mindig gondoskodj arról, hogy minden sor ugyanannyi mezővel rendelkezzen, mint a fejléc.
 
-### BOM Issues
+### BOM problémák
 
-Some text editors insert a UTF-8 BOM (byte order mark) at the start of the file. This can cause the first key in the CSV to be silently broken. If your first string key never resolves, check for and remove the BOM.
+Egyes szövegszerkesztők UTF-8 BOM-ot (byte order mark-ot) szúrnak be a fájl elejére. Ez a CSV első kulcsának csendes törését okozhatja. Ha az első sztring kulcsod soha nem oldódik fel, ellenőrizd és távolítsd el a BOM-ot.
 
-### Using Commas Inside Unquoted Fields
+### Vesszők használata idézőjel nélküli mezőkben
 
 ```csv
 STR_MYMOD_MSG,Hello, World,Hello, World,...
 ```
 
-This breaks parsing because `Hello` and ` World` are read as separate columns. Either quote the field or avoid commas in values:
+Ez elrontja az elemzést, mert a `Hello` és a ` World` külön oszlopként kerül beolvasásra. Vagy idézőjelezd a mezőt, vagy kerüld a vesszőket az értékekben:
 
 ```csv
 "STR_MYMOD_MSG","Hello, World","Hello, World",...

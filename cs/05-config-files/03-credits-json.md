@@ -1,37 +1,37 @@
-# Chapter 5.3: Credits.json
+# Kapitola 5.3: Credits.json
 
 [Domů](../../README.md) | [<< Předchozí: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Další: Formát ImageSet >>](04-imagesets.md)
 
 ---
 
-> **Shrnutí:** The `Credits.json` file defines the credits that DayZ displays for your mod in the game's mod menu. It lists team members, contributors, and acknowledgments organized by departments and sections. Zatímco purely cosmetic, it is the standard way to give credit to your development team.
+> **Shrnutí:** Soubor `Credits.json` definuje titulky, které DayZ zobrazuje pro váš mod v herním menu modů. Obsahuje seznam členů týmu, přispěvatelů a poděkování uspořádaných podle oddělení a sekcí. Ačkoli je čistě kosmetický, jedná se o standardní způsob, jak ocenit práci vašeho vývojového týmu.
 
 ---
 
 ## Obsah
 
-- [Overview](#overview)
-- [File Location](#file-location)
-- [JSON Structure](#json-structure)
-- [How DayZ Displays Credits](#how-dayz-displays-credits)
-- [Using Localized Section Names](#using-lokálníized-section-names)
-- [Templates](#templates)
-- [Real Examples](#real-examples)
-- [Běžné Mistakes](#common-mistakes)
+- [Přehled](#přehled)
+- [Umístění souboru](#umístění-souboru)
+- [Struktura JSON](#struktura-json)
+- [Jak DayZ zobrazuje titulky](#jak-dayz-zobrazuje-titulky)
+- [Použití lokalizovaných názvů sekcí](#použití-lokalizovaných-názvů-sekcí)
+- [Šablony](#šablony)
+- [Reálné příklady](#reálné-příklady)
+- [Časté chyby](#časté-chyby)
 
 ---
 
 ## Přehled
 
-When hráč selects your mod in the DayZ launcher or ve hře mod menu, engine looks for a `Credits.json` file inside your mod's PBO. If found, the credits are displayed in a scrolling view organized into departments and sections --- similar to movie credits.
+Když hráč vybere váš mod v launcheru DayZ nebo v herním menu modů, engine hledá soubor `Credits.json` uvnitř PBO vašeho modu. Pokud je nalezen, titulky se zobrazí v rolujícím zobrazení uspořádaném do oddělení a sekcí --- podobně jako filmové titulky.
 
-Soubor je volitelný. If absent, no credits section appears for your mod. But including one is good practice: it acknowledges your team's work and gives your mod a professional appearance.
+Soubor je volitelný. Pokud chybí, pro váš mod se žádná sekce titulků nezobrazí. Nicméně jeho zahrnutí je dobrým postupem: oceňuje práci vašeho týmu a dodává modu profesionální vzhled.
 
 ---
 
 ## Umístění souboru
 
-Place `Credits.json` inside a `Data` subfolder of your Scripts directory, or přímo in the Scripts root:
+Umístěte `Credits.json` do podsložky `Data` vašeho adresáře Scripts, nebo přímo do kořene Scripts:
 
 ```
 @MyMod/
@@ -39,11 +39,11 @@ Place `Credits.json` inside a `Data` subfolder of your Scripts directory, or př
     MyMod_Scripts.pbo
       Scripts/
         Data/
-          Credits.json       <-- Common location (COT, Expansion, DayZ Editor)
-        Credits.json         <-- Also valid (DabsFramework, Colorful-UI)
+          Credits.json       <-- Běžné umístění (COT, Expansion, DayZ Editor)
+        Credits.json         <-- Také platné (DabsFramework, Colorful-UI)
 ```
 
-Obě umístění fungují. Engine scans the PBO contents for a file named `Credits.json` (case-sensitive on některé platforms).
+Obě umístění fungují. Engine prohledává obsah PBO a hledá soubor pojmenovaný přesně `Credits.json` (na některých platformách záleží na velikosti písmen).
 
 ---
 
@@ -70,37 +70,37 @@ Soubor používá přímočarou strukturu JSON se třemi úrovněmi hierarchie:
 
 ### Pole nejvyšší úrovně
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `Header` | string | No | Main title displayed at the top of the credits. If omitted, no header is shown. |
-| `Departments` | array | Yes | Array of department objects |
+| Pole | Typ | Povinné | Popis |
+|------|-----|---------|-------|
+| `Header` | string | Ne | Hlavní nadpis zobrazený na vrcholu titulků. Pokud je vynechán, žádný nadpis se nezobrazí. |
+| `Departments` | array | Ano | Pole objektů oddělení |
 
 ### Objekt oddělení
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `DepartmentName` | string | Yes | Section header text. Can be prázdný `""` for visual grouping without a header. |
-| `Sections` | array | Yes | Array of section objects within this department |
+| Pole | Typ | Povinné | Popis |
+|------|-----|---------|-------|
+| `DepartmentName` | string | Ano | Text záhlaví sekce. Může být prázdný `""` pro vizuální seskupení bez záhlaví. |
+| `Sections` | array | Ano | Pole objektů sekcí v rámci tohoto oddělení |
 
 ### Objekt sekce
 
-Two variants exist in the wild for listing names. Engine supports oba.
+V praxi existují dvě varianty pro výpis jmen. Engine podporuje obě.
 
-**Variant 1: `Names` array** (used by MyMod Core)
+**Varianta 1: Pole `Names`** (používá MyMod Core)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `SectionName` | string | Yes | Sub-header within the department |
-| `Names` | array of strings | Yes | List of contributor names |
+| Pole | Typ | Povinné | Popis |
+|------|-----|---------|-------|
+| `SectionName` | string | Ano | Podnadpis v rámci oddělení |
+| `Names` | pole řetězců | Ano | Seznam jmen přispěvatelů |
 
-**Variant 2: `SectionLines` array** (used by COT, Expansion, DabsFramework)
+**Varianta 2: Pole `SectionLines`** (používají COT, Expansion, DabsFramework)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `SectionName` | string | Yes | Sub-header within the department |
-| `SectionLines` | array of strings | Yes | List of contributor names or text lines |
+| Pole | Typ | Povinné | Popis |
+|------|-----|---------|-------|
+| `SectionName` | string | Ano | Podnadpis v rámci oddělení |
+| `SectionLines` | pole řetězců | Ano | Seznam jmen přispěvatelů nebo textových řádků |
 
-Oba `Names` and `SectionLines` serve the stejný purpose. Use whichever you prefer --- engine renders them identicky.
+Obě pole `Names` i `SectionLines` slouží ke stejnému účelu. Použijte to, které preferujete --- engine je vykresluje identicky.
 
 ---
 
@@ -110,12 +110,12 @@ Zobrazení titulků sleduje tuto vizuální hierarchii:
 
 ```
 ╔══════════════════════════════════╗
-║         MY MOD NAME              ║  <-- Header (large, centered)
+║         MY MOD NAME              ║  <-- Header (velký, centrovaný)
 ║                                  ║
-║     DEPARTMENT NAME              ║  <-- DepartmentName (medium, centered)
+║     DEPARTMENT NAME              ║  <-- DepartmentName (střední, centrovaný)
 ║                                  ║
-║     Section Name                 ║  <-- SectionName (small, centered)
-║     Person 1                     ║  <-- Names/SectionLines (list)
+║     Section Name                 ║  <-- SectionName (malý, centrovaný)
+║     Person 1                     ║  <-- Names/SectionLines (seznam)
 ║     Person 2                     ║
 ║     Person 3                     ║
 ║                                  ║
@@ -128,14 +128,14 @@ Zobrazení titulků sleduje tuto vizuální hierarchii:
 ╚══════════════════════════════════╝
 ```
 
-- The `Header` appears once at the top
+- `Header` se zobrazí jednou na vrcholu
 - Každý `DepartmentName` funguje jako hlavní oddělovač sekcí
 - Každý `SectionName` funguje jako podnadpis
 - Jména se rolují vertikálně v zobrazení titulků
 
 ### Prázdné řetězce pro odsazení
 
-Expansion uses prázdný `DepartmentName` and `SectionName` strings, plus whitespace-only entries in `SectionLines`, to create visual spacing:
+Expansion používá prázdné řetězce `DepartmentName` a `SectionName` plus záznamy obsahující pouze mezery v `SectionLines` k vytvoření vizuálního odsazení:
 
 ```json
 {
@@ -147,13 +147,13 @@ Expansion uses prázdný `DepartmentName` and `SectionName` strings, plus whites
 }
 ```
 
-This is běžný trick for controlling visual layout in the credits scroll.
+Toto je běžný trik pro ovládání vizuálního rozvržení v rolování titulků.
 
 ---
 
 ## Použití lokalizovaných názvů sekcí
 
-Názvy sekcí mohou odkazovat na klíče stringtable pomocí `#` prefix, jen like UI text:
+Názvy sekcí mohou odkazovat na klíče stringtable pomocí předpony `#`, stejně jako text v UI:
 
 ```json
 {
@@ -162,9 +162,9 @@ Názvy sekcí mohou odkazovat na klíče stringtable pomocí `#` prefix, jen lik
 }
 ```
 
-When engine renders this, it resolves `#STR_EXPANSION_CREDITS_SCRIPTERS` to the lokálníized text matching hráč's language. This is užitečný if your mod supports více languages and chcete the credits section headers to be translated.
+Když engine toto vykreslí, přeloží `#STR_EXPANSION_CREDITS_SCRIPTERS` na lokalizovaný text odpovídající jazyku hráče. To je užitečné, pokud váš mod podporuje více jazyků a chcete, aby byly záhlaví sekcí titulků přeloženy.
 
-Department names can také use stringtable references:
+Názvy oddělení mohou také používat reference na stringtable:
 
 ```json
 {
@@ -293,7 +293,7 @@ Department names can také use stringtable references:
 
 ### MyMod Core
 
-A minimal but complete credits file using the `Names` variant:
+Minimální, ale úplný soubor titulků používající variantu `Names`:
 
 ```json
 {
@@ -314,7 +314,7 @@ A minimal but complete credits file using the `Names` variant:
 
 ### Community Online Tools (COT)
 
-Uses the `SectionLines` variant with více sections and acknowledgments:
+Používá variantu `SectionLines` s více sekcemi a poděkováními:
 
 ```json
 {
@@ -355,7 +355,7 @@ Uses the `SectionLines` variant with více sections and acknowledgments:
 }
 ```
 
-Notable: COT omits the `Header` field celýly. The mod name comes from jiný metadata (config.cpp `CfgMods`).
+Pozoruhodné: COT zcela vynechává pole `Header`. Název modu pochází z jiných metadat (config.cpp `CfgMods`).
 
 ### DabsFramework
 
@@ -390,11 +390,11 @@ Notable: COT omits the `Header` field celýly. The mod name comes from jiný met
 
 ### DayZ Expansion
 
-Expansion demonstrates the většina sophisticated use of Credits.json, including:
-- Localized section names viřetězectable references (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
-- Legal notices as a oddělený department
-- Empty department and section names for visual spacing
-- A supporters list with dozens of names
+Expansion demonstruje nejsofistikovanější použití Credits.json, včetně:
+- Lokalizovaných názvů sekcí přes reference na stringtable (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
+- Právních upozornění jako samostatného oddělení
+- Prázdných názvů oddělení a sekcí pro vizuální odsazení
+- Seznamu podporovatelů s desítkami jmen
 
 ---
 
@@ -403,19 +403,19 @@ Expansion demonstrates the většina sophisticated use of Credits.json, includin
 ### Neplatná syntaxe JSON
 
 Nejčastější problém. JSON je přísný ohledně:
-- **Trailing commas**: `["a", "b",]` is neplatný JSON (the trailing comma after `"b"`)
-- **Single quotes**: Use `"double quotes"`, not `'single quotes'`
-- **Unquoted keys**: `DepartmentName` musí být `"DepartmentName"`
+- **Koncové čárky**: `["a", "b",]` je neplatný JSON (koncová čárka za `"b"`)
+- **Jednoduché uvozovky**: Používejte `"dvojité uvozovky"`, ne `'jednoduché uvozovky'`
+- **Klíče bez uvozovek**: `DepartmentName` musí být `"DepartmentName"`
 
-Před distribucí použijte platnýátor JSON.
+Před distribucí použijte validátor JSON.
 
 ### Špatný název souboru
 
-The file musí být named exactly `Credits.json` (capital C). Na souborových systémech citlivých na velikost písmen, `credits.json` or `CREDITS.JSON` nebude nalezen.
+Soubor musí být pojmenován přesně `Credits.json` (velké C). Na souborových systémech citlivých na velikost písmen nebude `credits.json` ani `CREDITS.JSON` nalezen.
 
 ### Míchání Names a SectionLines
 
-V rámci a jeden section, use one or the jiný:
+V rámci jedné sekce použijte jedno nebo druhé:
 
 ```json
 {
@@ -425,25 +425,25 @@ V rámci a jeden section, use one or the jiný:
 }
 ```
 
-This is ambiguous. Pick one format and use it konzistentně throughout soubor.
+Toto je nejednoznačné. Zvolte si jeden formát a používejte ho konzistentně v celém souboru.
 
 ### Problémy s kódováním
 
-Uložte soubor jako UTF-8. Non-ASCII characters (accented names, CJK characters) require UTF-8 encoding to display správně ve hře.
+Uložte soubor jako UTF-8. Znaky mimo ASCII (jména s diakritikou, znaky CJK) vyžadují kódování UTF-8, aby se ve hře zobrazovaly správně.
 
 ---
 
 ## Osvědčené postupy
 
-- Validate your JSON with an externí přílišl before packing into a PBO -- engine gives no užitečný error message for malformed JSON.
-- Use the `SectionLines` variant pro konzistenci, protože je to formát používaný COT, Expansion a DabsFramework.
-- Zahrňte a "Legal Notices" department if your mod bundles od třetích stran assets (fonts, icons, sounds) with attribution requirements.
-- Udržujte the `Header` field matching your mod's `name` in `mod.cpp` and `config.cpp` for a consistent identity.
-- Use prázdný `DepartmentName` and `SectionName` strings sparingly for visual spacing -- overuse makes credits look fragmented.
+- Před zabalením do PBO ověřte svůj JSON externím nástrojem --- engine neposkytuje žádnou užitečnou chybovou zprávu pro nesprávně formátovaný JSON.
+- Pro konzistenci používejte variantu `SectionLines`, protože je to formát používaný modly COT, Expansion a DabsFramework.
+- Zahrňte oddělení "Legal Notices", pokud váš mod obsahuje assety třetích stran (fonty, ikony, zvuky) s požadavky na uvedení autora.
+- Udržujte pole `Header` shodné s `name` vašeho modu v `mod.cpp` a `config.cpp` pro konzistentní identitu.
+- Prázdné řetězce `DepartmentName` a `SectionName` používejte střídmě pro vizuální odsazení --- nadměrné použití způsobí fragmentovaný vzhled titulků.
 
 ---
 
 ## Kompatibilita a dopad
 
-- **Více modů:** Each mod has its own nezávislý `Credits.json`. There is no risk of collision -- engine reads soubor from within každý mod's PBO samostatně.
-- **Výkon:** Credits are loaded pouze when hráč opens the mod details screen. File size has no impact on gameplay performance.
+- **Více modů:** Každý mod má svůj vlastní nezávislý `Credits.json`. Nehrozí žádné kolize --- engine čte soubor z PBO každého modu samostatně.
+- **Výkon:** Titulky se načítají pouze tehdy, když hráč otevře obrazovku detailů modu. Velikost souboru nemá žádný dopad na herní výkon.

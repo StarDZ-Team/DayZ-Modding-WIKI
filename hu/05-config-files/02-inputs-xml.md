@@ -1,40 +1,44 @@
-# Chapter 5.2: inputs.xml --- Custom Keybindings
+# 5.2. fejezet: inputs.xml --- Egyéni billentyűkötések
 
-[Home](../../README.md) | [<< Previous: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Next: Credits.json >>](03-credits-json.md)
-
----
-
-## Tartalomjegyzek
-
-- [Overview](#overview)
-- [File Location](#file-location)
-- [Complete XML Structure](#complete-xml-structure)
-- [Actions Block](#actions-block)
-- [Sorting Block](#sorting-block)
-- [Preset Block (Default Keybindings)](#preset-block-default-keybindings)
-- [Modifier Combos](#modifier-combos)
-- [Hidden Inputs](#hidden-inputs)
-- [Multiple Default Keys](#multiple-default-keys)
-- [Accessing Inputs in Script](#accessing-inputs-in-script)
-- [Input Methods Reference](#input-methods-reference)
-- [Suppressing and Disabling Inputs](#suppressing-and-disabling-inputs)
-- [Key Names Reference](#key-names-reference)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+[Főoldal](../../README.md) | [<< Előző: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Következő: Credits.json >>](03-credits-json.md)
 
 ---
 
-## Attekintes
-
-When your mod needs the player to press a key --- opening a menu, toggling a feature, commanding an AI unit --- you register a custom input action in `inputs.xml`. The engine reads this file at startup and integrates your actions into the universal input system. Players see your keybindings in the game's Settings > Controls menu, grouped under a heading you define.
-
-Custom inputs are identified by a unique action name (conventionally prefixed with `UA` for "User Action") and can have default keybindings that players can rebind at will.
+> **Összefoglalás:** Az `inputs.xml` fájl lehetővé teszi, hogy a modod egyéni billentyűkötéseket regisztráljon, amelyek megjelennek a játékos Vezérlés beállítások menüjében. A játékosok megtekinthetik, átrendezhetik és kapcsolgathatják ezeket a beviteleket, ugyanúgy mint a vanilla akciókat. Ez a szabványos mechanizmus gyorsbillentyűk hozzáadásához DayZ modokban.
 
 ---
 
-## File Location
+## Tartalomjegyzék
 
-Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
+- [Áttekintés](#overview)
+- [Fájl helye](#file-location)
+- [Teljes XML struktúra](#complete-xml-structure)
+- [Actions blokk](#actions-block)
+- [Sorting blokk](#sorting-block)
+- [Preset blokk (alapértelmezett billentyűkötések)](#preset-block-default-keybindings)
+- [Módosító kombók](#modifier-combos)
+- [Rejtett bemenetek](#hidden-inputs)
+- [Több alapértelmezett billentyű](#multiple-default-keys)
+- [Bemenetek elérése szkriptben](#accessing-inputs-in-script)
+- [Beviteli metódusok referencia](#input-methods-reference)
+- [Bemenetek elnyomása és letiltása](#suppressing-and-disabling-inputs)
+- [Billentyűnevek referencia](#key-names-reference)
+- [Valós példák](#real-examples)
+- [Gyakori hibák](#common-mistakes)
+
+---
+
+## Áttekintés
+
+Amikor a modod igényli, hogy a játékos megnyomjon egy billentyűt --- menü megnyitása, funkció kapcsolgatása, AI egység irányítása --- regisztrálsz egy egyéni beviteli akciót az `inputs.xml` fájlban. A motor indításkor beolvassa ezt a fájlt, és integrálja az akcióidat az univerzális beviteli rendszerbe. A játékosok az általad definiált csoportcím alatt látják a billentyűkötéseidet a játék Beállítások > Vezérlés menüjében.
+
+Az egyéni bemenetek egy egyedi akciónévvel azonosíthatók (konvenció szerint `UA` előtaggal, ami "User Action"-t jelent), és rendelkezhetnek alapértelmezett billentyűkötésekkel, amelyeket a játékosok tetszés szerint módosíthatnak.
+
+---
+
+## Fájl helye
+
+Helyezd az `inputs.xml` fájlt a Scripts könyvtárad `data` almappájába:
 
 ```
 @MyMod/
@@ -42,47 +46,47 @@ Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
     MyMod_Scripts.pbo
       Scripts/
         data/
-          inputs.xml        <-- Here
+          inputs.xml        <-- Itt
         3_Game/
         4_World/
         5_Mission/
 ```
 
-Some mods place it directly in the `Scripts/` folder. Both locations work. The engine discovers the file automatically --- no config.cpp registration is needed.
+Egyes modok közvetlenül a `Scripts/` mappába helyezik. Mindkét hely működik. A motor automatikusan felfedezi a fájlt --- nincs szükség config.cpp regisztrációra.
 
 ---
 
-## Complete XML Structure
+## Teljes XML struktúra
 
-An `inputs.xml` file has three sections, all wrapped in a `<modded_inputs>` root element:
+Az `inputs.xml` fájl három szekcióval rendelkezik, amelyek mind egy `<modded_inputs>` gyökérelembe vannak csomagolva:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <modded_inputs>
     <inputs>
         <actions>
-            <!-- Action definitions go here -->
+            <!-- Akció definíciók ide kerülnek -->
         </actions>
 
         <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
-            <!-- Sort order for the settings menu -->
+            <!-- Rendezési sorrend a beállítások menühöz -->
         </sorting>
     </inputs>
     <preset>
-        <!-- Default keybinding assignments go here -->
+        <!-- Alapértelmezett billentyűkötés hozzárendelések ide kerülnek -->
     </preset>
 </modded_inputs>
 ```
 
-All three sections --- `<actions>`, `<sorting>`, and `<preset>` --- work together but serve different purposes.
+Mindhárom szekció --- `<actions>`, `<sorting>` és `<preset>` --- együtt működik, de különböző célokat szolgál.
 
 ---
 
-## Actions Block
+## Actions blokk
 
-The `<actions>` block declares every input action your mod provides. Each action is a single `<input>` element.
+Az `<actions>` blokk deklarálja a modod által biztosított összes beviteli akciót. Minden akció egyetlen `<input>` elem.
 
-### Syntax
+### Szintaxis
 
 ```xml
 <actions>
@@ -91,17 +95,17 @@ The `<actions>` block declares every input action your mod provides. Each action
 </actions>
 ```
 
-### Attributes
+### Attribútumok
 
-| Attributum | Kotelezo | Leiras |
+| Attribútum | Kötelező | Leírás |
 |-----------|----------|-------------|
-| `name` | Yes | Unique action identifier. Convention: prefix with `UA` (User Action). Used in scripts to poll this input. |
-| `loc` | No | Stringtable key for the display name in the Controls menu. **No `#` prefix** --- the system adds it. |
-| `visible` | No | Set to `"false"` to hide from the Controls menu. Defaults to `true`. |
+| `name` | Igen | Egyedi akció azonosító. Konvenció: `UA` (User Action) előtag. Szkriptekben használatos a bemenet lekérdezéséhez. |
+| `loc` | Nem | Stringtable kulcs a Vezérlés menüben megjelenő névhez. **`#` előtag nélkül** --- a rendszer maga adja hozzá. |
+| `visible` | Nem | Állítsd `"false"`-ra a Vezérlés menüből való elrejtéshez. Alapértelmezés: `true`. |
 
-### Naming Convention
+### Elnevezési konvenció
 
-Action names must be globally unique across all loaded mods. Use your mod prefix:
+Az akcióneveknek globálisan egyedinek kell lenniük az összes betöltött mod között. Használd a mod előtagodat:
 
 ```xml
 <input name="UAMyModAdminPanel" loc="STR_MYMOD_INPUT_ADMIN_PANEL" />
@@ -109,15 +113,15 @@ Action names must be globally unique across all loaded mods. Use your mod prefix
 <input name="eAICommandMenu" loc="STR_EXPANSION_AI_COMMAND_MENU" />
 ```
 
-The `UA` prefix is conventional but not enforced. Expansion AI uses `eAI` as its prefix, which also works.
+Az `UA` előtag konvenció, de nem kötelező. Az Expansion AI az `eAI`-t használja előtagként, ami szintén működik.
 
 ---
 
-## Sorting Block
+## Sorting blokk
 
-The `<sorting>` block controls how your inputs appear in the player's Controls settings. It defines a named group (which becomes a section header) and lists the inputs in display order.
+A `<sorting>` blokk szabályozza, hogyan jelennek meg a beviteleid a játékos Vezérlés beállításaiban. Egy megnevezett csoportot definiál (amely szekció fejlécként jelenik meg), és felsorolja a bemeneteket megjelenítési sorrendben.
 
-### Syntax
+### Szintaxis
 
 ```xml
 <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
@@ -127,32 +131,32 @@ The `<sorting>` block controls how your inputs appear in the player's Controls s
 </sorting>
 ```
 
-### Attributes
+### Attribútumok
 
-| Attributum | Kotelezo | Leiras |
+| Attribútum | Kötelező | Leírás |
 |-----------|----------|-------------|
-| `name` | Yes | Internal identifier for this sorting group |
-| `loc` | Yes | Stringtable key for the group header displayed in Settings > Controls |
+| `name` | Igen | A rendezési csoport belső azonosítója |
+| `loc` | Igen | Stringtable kulcs a Beállítások > Vezérlés menüben megjelenő csoportfejléchez |
 
-### How It Appears
+### Hogyan jelenik meg
 
-In the Controls settings, the player sees:
+A Vezérlés beállításokban a játékos ezt látja:
 
 ```
-[MyMod]                          <-- from the sorting loc
-  Open Menu .............. [Y]   <-- from the input loc + preset
-  Toggle HUD ............. [H]   <-- from the input loc + preset
+[MyMod]                          <-- a sorting loc-ból
+  Open Menu .............. [Y]   <-- az input loc + preset alapján
+  Toggle HUD ............. [H]   <-- az input loc + preset alapján
 ```
 
-Only inputs listed in the `<sorting>` block appear in the settings menu. Inputs defined in `<actions>` but not listed in `<sorting>` are silently registered but invisible to the player (even if `visible` is not explicitly set to `false`).
+Csak a `<sorting>` blokkban felsorolt bemenetek jelennek meg a beállítások menüben. Az `<actions>`-ban definiált, de a `<sorting>`-ban nem felsorolt bemenetek csendben regisztrálódnak, de láthatatlanok a játékos számára (még ha a `visible` nincs is kifejezetten `false`-ra állítva).
 
 ---
 
-## Preset Block (Default Keybindings)
+## Preset blokk (alapértelmezett billentyűkötések)
 
-The `<preset>` block assigns default keys to your actions. These are the keys the player starts with before any customization.
+A `<preset>` blokk alapértelmezett billentyűket rendel az akcióidhoz. Ezek azok a billentyűk, amelyekkel a játékos indul bármilyen testreszabás előtt.
 
-### Simple Key Binding
+### Egyszerű billentyűkötés
 
 ```xml
 <preset>
@@ -162,19 +166,19 @@ The `<preset>` block assigns default keys to your actions. These are the keys th
 </preset>
 ```
 
-This binds the `Y` key as the default for `UAMyModOpenMenu`.
+Ez az `Y` billentyűt köti hozzá alapértelmezettként az `UAMyModOpenMenu` akcióhoz.
 
-### No Default Key
+### Nincs alapértelmezett billentyű
 
-If you omit an action from the `<preset>` block, it has no default binding. The player must manually assign a key in Settings > Controls. This is appropriate for optional or advanced bindings.
+Ha kihagysz egy akciót a `<preset>` blokkból, nincs alapértelmezett kötése. A játékosnak manuálisan kell hozzárendelnie egy billentyűt a Beállítások > Vezérlés menüben. Ez megfelelő opcionális vagy haladó kötésekhez.
 
 ---
 
-## Modifier Combos
+## Módosító kombók
 
-To require a modifier key (Ctrl, Shift, Alt), nest `<btn>` elements:
+Módosító billentyű (Ctrl, Shift, Alt) megköveteléséhez ágyazd egymásba a `<btn>` elemeket:
 
-### Ctrl + Left Mouse Button
+### Ctrl + Bal egérgomb
 
 ```xml
 <input name="eAISetWaypoint">
@@ -184,9 +188,9 @@ To require a modifier key (Ctrl, Shift, Alt), nest `<btn>` elements:
 </input>
 ```
 
-The outer `<btn>` is the modifier; the inner `<btn>` is the primary key. The player must hold the modifier and then press the primary key.
+A külső `<btn>` a módosító; a belső `<btn>` az elsődleges billentyű. A játékosnak le kell tartania a módosítót, majd meg kell nyomnia az elsődleges billentyűt.
 
-### Shift + Key
+### Shift + billentyű
 
 ```xml
 <input name="UAMyModQuickAction">
@@ -196,17 +200,17 @@ The outer `<btn>` is the modifier; the inner `<btn>` is the primary key. The pla
 </input>
 ```
 
-### Nesting Rules
+### Beágyazási szabályok
 
-- The **outer** `<btn>` is always the modifier (held down)
-- The **inner** `<btn>` is the trigger (pressed while modifier is held)
-- Only one level of nesting is typical; deeper nesting is untested and not recommended
+- A **külső** `<btn>` mindig a módosító (lenyomva tartott)
+- A **belső** `<btn>` a kiváltó (a módosító lenyomva tartása közben megnyomott)
+- Jellemzően csak egy szintű beágyazás szokásos; a mélyebb beágyazás nem tesztelt és nem ajánlott
 
 ---
 
-## Hidden Inputs
+## Rejtett bemenetek
 
-Use `visible="false"` to register an input that the player cannot see or rebind in the Controls menu. This is useful for internal inputs used by your mod's code that should not be player-configurable.
+Használd a `visible="false"` attribútumot egy olyan bemenet regisztrálásához, amelyet a játékos nem láthat és nem köthet át a Vezérlés menüben. Ez hasznos a mod kódja által használt belső bemenetekhez, amelyeknek nem kellene játékos által konfigurálhatónak lenniük.
 
 ```xml
 <actions>
@@ -215,7 +219,7 @@ Use `visible="false"` to register an input that the player cannot see or rebind 
 </actions>
 ```
 
-Hidden inputs can still have default key assignments in the `<preset>` block:
+A rejtett bemenetek továbbra is rendelkezhetnek alapértelmezett billentyű-hozzárendelésekkel a `<preset>` blokkban:
 
 ```xml
 <preset>
@@ -227,9 +231,9 @@ Hidden inputs can still have default key assignments in the `<preset>` block:
 
 ---
 
-## Multiple Default Keys
+## Több alapértelmezett billentyű
 
-An action can have multiple default keys. List multiple `<btn>` elements as siblings:
+Egy akciónak több alapértelmezett billentyűje is lehet. Sorold fel a `<btn>` elemeket testvérként:
 
 ```xml
 <input name="UAExpansionConfirm">
@@ -238,23 +242,23 @@ An action can have multiple default keys. List multiple `<btn>` elements as sibl
 </input>
 ```
 
-Both `Enter` and `Numpad Enter` will trigger `UAExpansionConfirm`. This is useful for actions where multiple physical keys should map to the same logical action.
+Mind az `Enter`, mind a `Numpad Enter` kiváltja az `UAExpansionConfirm` akciót. Ez hasznos olyan akcióknál, ahol több fizikai billentyűnek ugyanazt a logikai akciót kell végrehajtania.
 
 ---
 
-## Accessing Inputs in Script
+## Bemenetek elérése szkriptben
 
-### Getting the Input API
+### A beviteli API megszerzése
 
-All input access goes through `GetUApi()`, which returns the global User Action API:
+Minden beviteli hozzáférés a `GetUApi()`-n keresztül történik, amely a globális User Action API-t adja vissza:
 
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyModOpenMenu");
 ```
 
-### Polling in OnUpdate
+### Lekérdezés OnUpdate-ben
 
-Custom inputs are typically polled in `MissionGameplay.OnUpdate()` or similar per-frame callbacks:
+Az egyéni bemeneteket jellemzően a `MissionGameplay.OnUpdate()` vagy hasonló képkockánkénti visszahívásokban kérdezik le:
 
 ```c
 modded class MissionGameplay
@@ -267,16 +271,16 @@ modded class MissionGameplay
 
         if (input.LocalPress())
         {
-            // Key was just pressed this frame
+            // A billentyűt éppen ebben a képkockában nyomták meg
             OpenMyModMenu();
         }
     }
 }
 ```
 
-### Alternative: Using the Input Name Directly
+### Alternatíva: Beviteli név közvetlen használata
 
-Many mods check inputs inline using the `UAInputAPI` methods with string names:
+Sok mod ellenőrzi a bemeneteket soron belül az `UAInputAPI` metódusaival sztring nevekkel:
 
 ```c
 override void OnUpdate(float timeslice)
@@ -292,26 +296,26 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-The `false` parameter in `LocalPress("name", false)` indicates that the check should not consume the input event.
+A `false` paraméter a `LocalPress("name", false)` metódusban azt jelzi, hogy az ellenőrzés ne fogyassza el a beviteli eseményt.
 
 ---
 
-## Input Methods Reference
+## Beviteli metódusok referencia
 
-Once you have a `UAInput` reference (from `GetUApi().GetInputByName()`), or are using the `Input` class directly, these methods detect different input states:
+Ha van `UAInput` referenciád (a `GetUApi().GetInputByName()`-ből), vagy közvetlenül az `Input` osztályt használod, ezek a metódusok érzékelik a különböző beviteli állapotokat:
 
-| Metodus | Visszater | When True |
+| Metódus | Visszatérés | Mikor igaz |
 |--------|---------|-----------|
-| `LocalPress()` | `bool` | The key was pressed **this frame** (single trigger on key-down) |
-| `LocalRelease()` | `bool` | The key was released **this frame** (single trigger on key-up) |
-| `LocalClick()` | `bool` | The key was pressed and released quickly (tap) |
-| `LocalHold()` | `bool` | The key has been held down for a threshold duration |
-| `LocalDoubleClick()` | `bool` | The key was tapped twice quickly |
-| `LocalValue()` | `float` | Current analog value (0.0 or 1.0 for digital keys; variable for analog axes) |
+| `LocalPress()` | `bool` | A billentyűt **ebben a képkockában** nyomták meg (egyszeri kiváltás billentyű-lenyomáskor) |
+| `LocalRelease()` | `bool` | A billentyűt **ebben a képkockában** engedték fel (egyszeri kiváltás billentyű-felengedéskor) |
+| `LocalClick()` | `bool` | A billentyűt gyorsan lenyomták és felengedték (koppintás) |
+| `LocalHold()` | `bool` | A billentyűt egy küszöbidőtartamon túl nyomva tartották |
+| `LocalDoubleClick()` | `bool` | A billentyűt kétszer gyorsan megérintették |
+| `LocalValue()` | `float` | Aktuális analóg érték (0.0 vagy 1.0 digitális billentyűknél; változó analóg tengeleknél) |
 
-### Usage Patterns
+### Használati minták
 
-**Toggle on press:**
+**Kapcsolgatás megnyomásra:**
 ```c
 if (input.LocalPress("UAMyModToggle", false))
 {
@@ -319,7 +323,7 @@ if (input.LocalPress("UAMyModToggle", false))
 }
 ```
 
-**Hold to activate, release to deactivate:**
+**Tartás az aktiváláshoz, felengedés a deaktiváláshoz:**
 ```c
 if (input.LocalPress("eAICommandMenu", false))
 {
@@ -332,7 +336,7 @@ if (input.LocalRelease("eAICommandMenu", false) || input.LocalValue("eAICommandM
 }
 ```
 
-**Double-tap action:**
+**Dupla koppintás akció:**
 ```c
 if (input.LocalDoubleClick("UAMyModSpecial", false))
 {
@@ -340,7 +344,7 @@ if (input.LocalDoubleClick("UAMyModSpecial", false))
 }
 ```
 
-**Hold for extended action:**
+**Nyomvatartás kiterjesztett akcióhoz:**
 ```c
 if (input.LocalHold("UAExpansionGPSToggle"))
 {
@@ -350,23 +354,23 @@ if (input.LocalHold("UAExpansionGPSToggle"))
 
 ---
 
-## Suppressing and Disabling Inputs
+## Bemenetek elnyomása és letiltása
 
 ### ForceDisable
 
-Temporarily disables a specific input. Commonly used when opening menus to prevent game actions from firing while a UI is active:
+Ideiglenesen letilt egy adott bemenetet. Gyakran használják menük megnyitásakor, hogy megakadályozzák a játék akcióinak kiváltását, amíg a UI aktív:
 
 ```c
-// Disable the input while menu is open
+// Bemenet letiltása amíg a menü nyitva van
 GetUApi().GetInputByName("UAMyModToggle").ForceDisable(true);
 
-// Re-enable when menu closes
+// Újra engedélyezés a menü bezárásakor
 GetUApi().GetInputByName("UAMyModToggle").ForceDisable(false);
 ```
 
 ### SupressNextFrame
 
-Suppresses all input processing for the next frame. Used during input context transitions (e.g., closing menus) to prevent one-frame input bleed:
+Elnyomja az összes bemenet feldolgozását a következő képkockára. Beviteli kontextus átmenetek során használatos (pl. menük bezárásakor), hogy megelőzze az egyképkockás beviteli átszivárgást:
 
 ```c
 GetUApi().SupressNextFrame(true);
@@ -374,77 +378,77 @@ GetUApi().SupressNextFrame(true);
 
 ### UpdateControls
 
-After modifying input states, call `UpdateControls()` to apply changes immediately:
+A beviteli állapotok módosítása után hívd meg az `UpdateControls()` metódust a változások azonnali alkalmazásához:
 
 ```c
 GetUApi().GetInputByName("UAExpansionBookToggle").ForceDisable(false);
 GetUApi().UpdateControls();
 ```
 
-### Input Excludes
+### Beviteli kizárások
 
-The vanilla mission system provides exclude groups. When a menu is active, you can exclude categories of inputs:
+A vanilla mission rendszer kizárási csoportokat biztosít. Amikor egy menü aktív, kizárhatsz beviteli kategóriákat:
 
 ```c
-// Suppress gameplay inputs while inventory is open
+// Játékmenet bemenetek elnyomása amíg a leltár nyitva van
 AddActiveInputExcludes({"inventory"});
 
-// Restore when closing
+// Visszaállítás bezáráskor
 RemoveActiveInputExcludes({"inventory"});
 ```
 
 ---
 
-## Key Names Reference
+## Billentyűnevek referencia
 
-Key names used in the `<btn name="">` attribute follow a specific naming convention. Here is the complete reference.
+A `<btn name="">` attribútumban használt billentyűnevek meghatározott elnevezési konvenciót követnek. Itt a teljes referencia.
 
-### Keyboard Keys
+### Billentyűzet billentyűk
 
-| Kategoria | Key Names |
+| Kategória | Billentyűnevek |
 |----------|-----------|
-| Letters | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
-| Numbers (top row) | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
-| Function keys | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
-| Modifiers | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
-| Navigation | `kUp`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPageUp`, `kPageDown` |
-| Editing | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
+| Betűk | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
+| Számok (felső sor) | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
+| Funkcióbillentyűk | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
+| Módosítók | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
+| Navigáció | `kUp`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPageUp`, `kPageDown` |
+| Szerkesztés | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
 | Numpad | `kNumpad0` ... `kNumpad9`, `kNumpadEnter`, `kNumpadPlus`, `kNumpadMinus`, `kNumpadMultiply`, `kNumpadDivide`, `kNumpadDecimal` |
-| Punctuation | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
-| Locks | `kCapsLock`, `kNumLock`, `kScrollLock` |
+| Írásjelek | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
+| Zárkapcsolók | `kCapsLock`, `kNumLock`, `kScrollLock` |
 
-### Mouse Buttons
+### Egérgombok
 
-| Name | Button |
+| Név | Gomb |
 |------|--------|
-| `mBLeft` | Left mouse button |
-| `mBRight` | Right mouse button |
-| `mBMiddle` | Middle mouse button (scroll wheel click) |
-| `mBExtra1` | Mouse button 4 (side button back) |
-| `mBExtra2` | Mouse button 5 (side button forward) |
+| `mBLeft` | Bal egérgomb |
+| `mBRight` | Jobb egérgomb |
+| `mBMiddle` | Középső egérgomb (görgő kattintás) |
+| `mBExtra1` | Egérgomb 4 (oldalsó gomb hátra) |
+| `mBExtra2` | Egérgomb 5 (oldalsó gomb előre) |
 
-### Mouse Axes
+### Egér tengelyek
 
-| Name | Axis |
+| Név | Tengely |
 |------|------|
-| `mAxisX` | Mouse horizontal movement |
-| `mAxisY` | Mouse vertical movement |
-| `mWheelUp` | Scroll wheel up |
-| `mWheelDown` | Scroll wheel down |
+| `mAxisX` | Egér vízszintes mozgás |
+| `mAxisY` | Egér függőleges mozgás |
+| `mWheelUp` | Görgő felfelé |
+| `mWheelDown` | Görgő lefelé |
 
-### Naming Pattern
+### Elnevezési minta
 
-- **Keyboard**: `k` prefix + key name (e.g., `kT`, `kF5`, `kLControl`)
-- **Mouse buttons**: `mB` prefix + button name (e.g., `mBLeft`, `mBRight`)
-- **Mouse axes**: `m` prefix + axis name (e.g., `mAxisX`, `mWheelUp`)
+- **Billentyűzet**: `k` előtag + billentyű neve (pl. `kT`, `kF5`, `kLControl`)
+- **Egérgombok**: `mB` előtag + gomb neve (pl. `mBLeft`, `mBRight`)
+- **Egér tengelyek**: `m` előtag + tengely neve (pl. `mAxisX`, `mWheelUp`)
 
 ---
 
-## Valos peldak
+## Valós példák
 
 ### DayZ Expansion AI
 
-A well-structured inputs.xml with visible keybindings, hidden debug inputs, and modifier combos:
+Jól strukturált inputs.xml látható billentyűkötésekkel, rejtett hibakeresési bemenetekkel és módosító kombókkal:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -498,14 +502,14 @@ A well-structured inputs.xml with visible keybindings, hidden debug inputs, and 
 </modded_inputs>
 ```
 
-Key observations:
-- `eAICommandMenu` bound to `T` --- visible in settings, player can rebind
-- `eAISetWaypoint` uses a **Ctrl + Left Click** modifier combo
-- Test inputs are `visible="false"` --- hidden from players but accessible in code
+Fontos megfigyelések:
+- `eAICommandMenu` a `T` billentyűhöz van kötve --- látható a beállításokban, a játékos átköthet
+- `eAISetWaypoint` **Ctrl + Bal kattintás** módosító kombót használ
+- A teszt bemenetek `visible="false"` --- rejtve a játékosok elől, de a kódból elérhetők
 
 ### DayZ Expansion Market
 
-A minimal inputs.xml for a hidden utility input with multiple default keys:
+Minimális inputs.xml rejtett segéd bemenettel és több alapértelmezett billentyűvel:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -524,14 +528,14 @@ A minimal inputs.xml for a hidden utility input with multiple default keys:
 </modded_inputs>
 ```
 
-Key observations:
-- Hidden input (`visible="false"`) with empty `loc` --- never shown in settings
-- Two default keys: both Enter and Numpad Enter trigger the same action
-- No `<sorting>` block --- not needed since the input is hidden
+Fontos megfigyelések:
+- Rejtett bemenet (`visible="false"`) üres `loc`-cal --- soha nem jelenik meg a beállításokban
+- Két alapértelmezett billentyű: mind az Enter, mind a Numpad Enter kiváltja ugyanazt az akciót
+- Nincs `<sorting>` blokk --- nem szükséges, mivel a bemenet rejtett
 
-### Complete Starter Template
+### Teljes kezdő sablon
 
-A minimal but complete template for a new mod:
+Minimális de teljes sablon egy új modhoz:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -551,12 +555,12 @@ A minimal but complete template for a new mod:
         <input name="UAMyModOpenMenu">
             <btn name="kF6"/>
         </input>
-        <!-- UAMyModQuickAction has no default key; player must bind it -->
+        <!-- UAMyModQuickAction-nek nincs alapértelmezett billentyűje; a játékosnak kell hozzárendelnie -->
     </preset>
 </modded_inputs>
 ```
 
-With a corresponding stringtable.csv:
+A hozzá tartozó stringtable.csv:
 
 ```csv
 "Language","original","english"
@@ -567,37 +571,37 @@ With a corresponding stringtable.csv:
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-### Using `#` in the loc Attribute
+### A `#` használata a loc attribútumban
 
 ```xml
-<!-- WRONG -->
+<!-- HELYTELEN -->
 <input name="UAMyAction" loc="#STR_MYMOD_ACTION" />
 
-<!-- CORRECT -->
+<!-- HELYES -->
 <input name="UAMyAction" loc="STR_MYMOD_ACTION" />
 ```
 
-The input system prepends `#` internally. Adding it yourself causes a double-prefix and the lookup fails.
+A beviteli rendszer belsőleg fűzi hozzá a `#`-t. Ha te is hozzáadod, dupla előtag keletkezik és a keresés sikertelen.
 
-### Action Name Collisions
+### Akciónév ütközések
 
-If two mods define `UAOpenMenu`, only one will work. Always use your mod prefix:
+Ha két mod definiálja az `UAOpenMenu`-t, csak az egyik fog működni. Mindig használd a mod előtagodat:
 
 ```xml
-<input name="UAMyModOpenMenu" />     <!-- Good -->
-<input name="UAOpenMenu" />          <!-- Risky -->
+<input name="UAMyModOpenMenu" />     <!-- Jó -->
+<input name="UAOpenMenu" />          <!-- Kockázatos -->
 ```
 
-### Missing Sorting Entry
+### Hiányzó sorting bejegyzés
 
-If you define an action in `<actions>` but forget to list it in `<sorting>`, the action works in code but is invisible in the Controls menu. The player has no way to rebind it.
+Ha definiálsz egy akciót az `<actions>`-ban, de elfelejteted felsorolni a `<sorting>`-ban, az akció kódból működik, de láthatatlan a Vezérlés menüben. A játékosnak nincs módja átkötni.
 
-### Forgetting to Define in Actions
+### Elfelejtett definíció az actions-ben
 
-If you list an input in `<sorting>` or `<preset>` but never define it in `<actions>`, the engine silently ignores it.
+Ha felsorolsz egy bemenetet a `<sorting>`-ban vagy `<preset>`-ben, de soha nem definiálod az `<actions>`-ban, a motor csendben figyelmen kívül hagyja.
 
-### Binding Conflicting Keys
+### Ütköző billentyűk kötése
 
-Choosing keys that conflict with vanilla bindings (like `W`, `A`, `S`, `D`, `Tab`, `I`) causes both your action and the vanilla action to fire simultaneously. Use less common keys (F5-F12, numpad keys) or modifier combos for safety.
+Az olyan billentyűk választása, amelyek ütköznek a vanilla kötésekkel (mint a `W`, `A`, `S`, `D`, `Tab`, `I`), azt okozza, hogy mind a te akciód, mind a vanilla akció egyszerre aktiválódik. Használj kevésbé gyakori billentyűket (F5-F12, numpad billentyűk) vagy módosító kombókat a biztonság érdekében.

@@ -1,47 +1,49 @@
-# Chapter 5.5: Server Configuration Files
+# Capitolo 5.5: File di Configurazione del Server
 
-[Home](../../README.md) | [<< Previous: ImageSet Format](04-imagesets.md) | **Server Configuration Files** | [Next: Spawning Gear Configuration >>](06-spawning-gear.md)
+[Home](../../README.md) | [<< Precedente: Formato ImageSet](04-imagesets.md) | **File di Configurazione del Server** | [Successivo: Configurazione dello Spawn Gear >>](06-spawning-gear.md)
 
 ---
+
+> **Sommario:** I server DayZ sono configurati tramite file XML, JSON e script nella cartella della missione (es. `mpmissions/dayzOffline.chernarusplus/`). Questi file controllano gli spawn degli oggetti, il comportamento dell'economia, le regole di gioco e l'identità del server. Comprenderli è essenziale per aggiungere oggetti personalizzati all'economia del loot, regolare i parametri del server o costruire una missione personalizzata.
 
 ---
 
 ## Indice
 
-- [Overview](#overview)
-- [init.c --- Mission Entry Point](#initc--mission-entry-point)
-- [types.xml --- Item Spawn Definitions](#typesxml--item-spawn-definitions)
-- [cfgspawnabletypes.xml --- Attachments and Cargo](#cfgspawnabletypesxml--attachments-and-cargo)
-- [cfgrandompresets.xml --- Reusable Loot Pools](#cfgrandompresetsxml--reusable-loot-pools)
-- [globals.xml --- Economy Parameters](#globalsxml--economy-parameters)
-- [cfggameplay.json --- Gameplay Settings](#cfggameplayjson--gameplay-settings)
-- [serverDZ.cfg --- Server Settings](#serverdzcfg--server-settings)
-- [How Mods Interact with the Economy](#how-mods-interact-with-the-economy)
-- [Common Mistakes](#common-mistakes)
+- [Panoramica](#panoramica)
+- [init.c --- Punto di Ingresso della Missione](#initc----punto-di-ingresso-della-missione)
+- [types.xml --- Definizioni di Spawn degli Oggetti](#typesxml----definizioni-di-spawn-degli-oggetti)
+- [cfgspawnabletypes.xml --- Accessori e Carico](#cfgspawnabletypesxml----accessori-e-carico)
+- [cfgrandompresets.xml --- Pool di Loot Riutilizzabili](#cfgrandompresetsxml----pool-di-loot-riutilizzabili)
+- [globals.xml --- Parametri dell'Economia](#globalsxml----parametri-delleconomia)
+- [cfggameplay.json --- Impostazioni di Gioco](#cfggameplayjson----impostazioni-di-gioco)
+- [serverDZ.cfg --- Impostazioni del Server](#serverdzcfg----impostazioni-del-server)
+- [Come i Mod Interagiscono con l'Economia](#come-i-mod-interagiscono-con-leconomia)
+- [Errori Comuni](#errori-comuni)
 
 ---
 
 ## Panoramica
 
-Every DayZ server loads its configuration from a **mission folder**. The Central Economy (CE) files definisci what items spawn, where, and for how long. The server executable itself is configured through `serverDZ.cfg`, which lives alongside the executable.
+Ogni server DayZ carica la sua configurazione da una **cartella missione**. I file della Central Economy (CE) definiscono quali oggetti appaiono, dove e per quanto tempo. L'eseguibile del server stesso è configurato tramite `serverDZ.cfg`, che si trova accanto all'eseguibile.
 
 | File | Scopo |
-|------|---------|
-| `init.c` | Mission entry point --- Hive init, date/time, spawn loadout |
-| `db/types.xml` | Item spawn definitions: quantities, lifetimes, locations |
-| `cfgspawnabletypes.xml` | Pre-attached items and cargo on spawned entities |
-| `cfgrandompresets.xml` | Reusable item pools for cfgspawnabletypes |
-| `db/globals.xml` | Global economy parameters: max counts, cleanup timers |
-| `cfggameplay.json` | Gameplay tuning: stamina, base building, UI |
-| `cfgeconomycore.xml` | Root class registration and CE logging |
-| `cfglimitsdefinition.xml` | Valid category, usage, and value tag definitions |
-| `serverDZ.cfg` | Server name, password, max players, mod loading |
+|------|-------|
+| `init.c` | Punto di ingresso della missione --- inizializzazione Hive, data/ora, equipaggiamento iniziale |
+| `db/types.xml` | Definizioni di spawn degli oggetti: quantità, durata, posizioni |
+| `cfgspawnabletypes.xml` | Oggetti pre-attaccati e carico sulle entità generate |
+| `cfgrandompresets.xml` | Pool di oggetti riutilizzabili per cfgspawnabletypes |
+| `db/globals.xml` | Parametri globali dell'economia: conteggi massimi, timer di pulizia |
+| `cfggameplay.json` | Regolazione del gameplay: stamina, costruzione basi, UI |
+| `cfgeconomycore.xml` | Registrazione delle classi radice e logging della CE |
+| `cfglimitsdefinition.xml` | Definizioni valide di tag categoria, uso e valore |
+| `serverDZ.cfg` | Nome del server, password, giocatori massimi, caricamento mod |
 
 ---
 
-## init.c --- Mission Entry Point
+## init.c --- Punto di Ingresso della Missione
 
-The `init.c` script is the first thing the server executes. It initializes the Central Economy and creates the mission instance.
+Lo script `init.c` è la prima cosa che il server esegue. Inizializza la Central Economy e crea l'istanza della missione.
 
 ```c
 void main()
@@ -82,15 +84,15 @@ Mission CreateCustomMission(string path)
 }
 ```
 
-The `Hive` manages the CE database. Without `CreateHive()`, no items spawn and persistence is disabled. `CreateCharacter` creates the player entity at spawn, and `StartingEquipSetup` definiscis the items a fresh character receives. Other useful `MissionServer` overrides include `OnInit()`, `OnUpdate()`, `InvokeOnConnect()`, and `InvokeOnDisconnect()`.
+L'`Hive` gestisce il database della CE. Senza `CreateHive()`, nessun oggetto appare e la persistenza è disabilitata. `CreateCharacter` crea l'entità del giocatore allo spawn, e `StartingEquipSetup` definisce gli oggetti che un personaggio appena creato riceve. Altre sovrascritture utili di `MissionServer` includono `OnInit()`, `OnUpdate()`, `InvokeOnConnect()` e `InvokeOnDisconnect()`.
 
 ---
 
-## types.xml --- Item Spawn Definitions
+## types.xml --- Definizioni di Spawn degli Oggetti
 
-Located at `db/types.xml`, this file is the heart of the CE. Every item that can spawn must have an entry here.
+Situato in `db/types.xml`, questo file è il cuore della CE. Ogni oggetto che può apparire deve avere una voce qui.
 
-### Complete Entry
+### Voce Completa
 
 ```xml
 <type name="AK74">
@@ -114,47 +116,47 @@ Located at `db/types.xml`, this file is the heart of the CE. Every item that can
 
 | Campo | Descrizione |
 |-------|-------------|
-| `nominal` | Target count on the map. CE spawns items until this is reached |
-| `min` | Minimum count before CE triggers restocking |
-| `lifetime` | Seconds an item persists on the ground before despawning |
-| `restock` | Minimum seconds between restock attempts (0 = immediate) |
-| `quantmin/quantmax` | Fill percentage for items with quantity (magazines, bottles). Use `-1` for items without quantity |
-| `cost` | CE priority weight (higher = prioritized). Most items use `100` |
+| `nominal` | Conteggio obiettivo sulla mappa. La CE genera oggetti fino a raggiungere questo valore |
+| `min` | Conteggio minimo prima che la CE avvii il rifornimento |
+| `lifetime` | Secondi di permanenza di un oggetto a terra prima della rimozione |
+| `restock` | Secondi minimi tra tentativi di rifornimento (0 = immediato) |
+| `quantmin/quantmax` | Percentuale di riempimento per oggetti con quantità (caricatori, bottiglie). Usa `-1` per oggetti senza quantità |
+| `cost` | Peso di priorità della CE (più alto = prioritario). La maggior parte degli oggetti usa `100` |
 
 ### Flag
 
 | Flag | Scopo |
-|------|---------|
-| `count_in_cargo` | Count items inside containers toward nominal |
-| `count_in_hoarder` | Count items in stashes/tents/barrels toward nominal |
-| `count_in_map` | Count items on the ground toward nominal |
-| `count_in_player` | Count items in player inventory toward nominal |
-| `crafted` | Item is crafted only, not naturally spawned |
-| `deloot` | Dynamic Event loot (heli crashes, etc.) |
+|------|-------|
+| `count_in_cargo` | Conta gli oggetti dentro i contenitori verso il nominale |
+| `count_in_hoarder` | Conta gli oggetti in nascondigli/tende/barili verso il nominale |
+| `count_in_map` | Conta gli oggetti a terra verso il nominale |
+| `count_in_player` | Conta gli oggetti nell'inventario del giocatore verso il nominale |
+| `crafted` | L'oggetto è solo fabbricabile, non appare naturalmente |
+| `deloot` | Loot da Evento Dinamico (crash di elicotteri, ecc.) |
 
 ### Tag di Categoria, Uso e Valore
 
-These tags control **where** items spawn:
+Questi tag controllano **dove** appaiono gli oggetti:
 
-- **`category`** --- Item type. Vanilla: `tools`, `containers`, `clothes`, `food`, `weapons`, `books`, `explosives`, `lootdispatch`.
-- **`usage`** --- Building types. Vanilla: `Military`, `Police`, `Medic`, `Firefighter`, `Industrial`, `Farm`, `Coast`, `Town`, `Village`, `Hunting`, `Office`, `School`, `Prison`, `ContaminatedArea`, `Historical`.
-- **`value`** --- Map tier zones. Vanilla: `Tier1` (coast), `Tier2` (inland), `Tier3` (military), `Tier4` (deep military), `Unique`.
+- **`category`** --- Tipo di oggetto. Vanilla: `tools`, `containers`, `clothes`, `food`, `weapons`, `books`, `explosives`, `lootdispatch`.
+- **`usage`** --- Tipi di edifici. Vanilla: `Military`, `Police`, `Medic`, `Firefighter`, `Industrial`, `Farm`, `Coast`, `Town`, `Village`, `Hunting`, `Office`, `School`, `Prison`, `ContaminatedArea`, `Historical`.
+- **`value`** --- Zone tier della mappa. Vanilla: `Tier1` (costa), `Tier2` (entroterra), `Tier3` (militare), `Tier4` (militare profondo), `Unique`.
 
-Multiple tags can be combined. No `usage` tags = item will not spawn. No `value` tags = spawns in all tiers.
+Si possono combinare più tag. Nessun tag `usage` = l'oggetto non apparirà. Nessun tag `value` = appare in tutti i tier.
 
 ### Disabilitare un Oggetto
 
-Set `nominal=0` and `min=0`. The item never spawns but can still exist through scripts or crafting.
+Imposta `nominal=0` e `min=0`. L'oggetto non appare mai ma può comunque esistere tramite script o fabbricazione.
 
 ---
 
-## cfgspawnabletypes.xml --- Attachments and Cargo
+## cfgspawnabletypes.xml --- Accessori e Carico
 
-Controls what spawns **already attached to or inside** other items.
+Controlla cosa appare **già attaccato o dentro** altri oggetti.
 
 ### Marcatura degli Accumulatori
 
-Storage containers are tagged so the CE knows they hold player items:
+I contenitori di stoccaggio vengono marcati affinché la CE sappia che contengono oggetti dei giocatori:
 
 ```xml
 <type name="SeaChest">
@@ -170,7 +172,7 @@ Storage containers are tagged so the CE knows they hold player items:
 </type>
 ```
 
-Values range from `0.0` (pristine) to `1.0` (ruined).
+I valori vanno da `0.0` (integro) a `1.0` (distrutto).
 
 ### Accessori
 
@@ -186,7 +188,7 @@ Values range from `0.0` (pristine) to `1.0` (ruined).
 </type>
 ```
 
-The outer `chance` determines if the attachment group is evaluated. The inner `chance` selects the specific item when multiple items are listed in one group.
+La `chance` esterna determina se il gruppo di accessori viene valutato. La `chance` interna seleziona l'oggetto specifico quando più oggetti sono elencati in un gruppo.
 
 ### Preset del Carico
 
@@ -198,13 +200,13 @@ The outer `chance` determines if the attachment group is evaluated. The inner `c
 </type>
 ```
 
-Each line rolls the preset independently --- three lines means three separate chances.
+Ogni riga tira il preset indipendentemente --- tre righe significano tre possibilità separate.
 
 ---
 
-## cfgrandompresets.xml --- Reusable Loot Pools
+## cfgrandompresets.xml --- Pool di Loot Riutilizzabili
 
-Defines named item pools referenced by `cfgspawnabletypes.xml`:
+Definisce pool di oggetti con nome referenziati da `cfgspawnabletypes.xml`:
 
 ```xml
 <randompresets>
@@ -224,13 +226,13 @@ Defines named item pools referenced by `cfgspawnabletypes.xml`:
 </randompresets>
 ```
 
-The preset's `chance` is the overall probability anything spawns. If the roll succeeds, one item is selected from the pool based on individual item chances. To add modded items, create a new `cargo` block and reference it in `cfgspawnabletypes.xml`.
+La `chance` del preset è la probabilità complessiva che qualcosa appaia. Se il tiro ha successo, un oggetto viene selezionato dalla pool in base alle probabilità individuali degli oggetti. Per aggiungere oggetti moddati, crea un nuovo blocco `cargo` e referenzialo in `cfgspawnabletypes.xml`.
 
 ---
 
-## globals.xml --- Economy Parameters
+## globals.xml --- Parametri dell'Economia
 
-Located at `db/globals.xml`, this file sets global CE parameters:
+Situato in `db/globals.xml`, questo file imposta i parametri globali della CE:
 
 ```xml
 <variables>
@@ -258,27 +260,27 @@ Located at `db/globals.xml`, this file sets global CE parameters:
 ### Variabili Chiave
 
 | Variabile | Predefinito | Descrizione |
-|----------|---------|-------------|
-| `AnimalMaxCount` | 200 | Maximum animals on the map |
-| `ZombieMaxCount` | 1000 | Maximum infected on the map |
-| `CleanupLifetimeDeadPlayer` | 3600 | Dead body removal time (seconds) |
-| `CleanupLifetimeRuined` | 330 | Ruined item removal time |
-| `FlagRefreshFrequency` | 432000 | Territory flag refresh interval (5 days) |
-| `FlagRefreshMaxDuration` | 3456000 | Max flag lifetime (40 days) |
-| `FoodDecay` | 1 | Food spoilage toggle (0=off, 1=on) |
-| `InitialSpawn` | 100 | Percentage of nominal spawned on startup |
-| `LootDamageMax` | 0.82 | Maximum damage on spawned loot |
-| `TimeLogin` / `TimeLogout` | 15 | Login/logout timer (anti-combat-log) |
-| `TimePenalty` | 20 | Combat log penalty timer |
-| `ZoneSpawnDist` | 300 | Player distance triggering zombie/animal spawns |
+|-----------|-------------|-------------|
+| `AnimalMaxCount` | 200 | Animali massimi sulla mappa |
+| `ZombieMaxCount` | 1000 | Infetti massimi sulla mappa |
+| `CleanupLifetimeDeadPlayer` | 3600 | Tempo di rimozione dei cadaveri (secondi) |
+| `CleanupLifetimeRuined` | 330 | Tempo di rimozione degli oggetti distrutti |
+| `FlagRefreshFrequency` | 432000 | Intervallo di aggiornamento della bandiera territoriale (5 giorni) |
+| `FlagRefreshMaxDuration` | 3456000 | Durata massima della bandiera (40 giorni) |
+| `FoodDecay` | 1 | Attiva/disattiva il deterioramento del cibo (0=off, 1=on) |
+| `InitialSpawn` | 100 | Percentuale del nominale generata all'avvio |
+| `LootDamageMax` | 0.82 | Danno massimo sul loot generato |
+| `TimeLogin` / `TimeLogout` | 15 | Timer di login/logout (anti-combat-log) |
+| `TimePenalty` | 20 | Timer di penalità per combat log |
+| `ZoneSpawnDist` | 300 | Distanza del giocatore che attiva lo spawn di zombie/animali |
 
-The `type` attribute is `0` for integer, `1` for float. Using the wrong type truncates the value.
+L'attributo `type` è `0` per intero, `1` per decimale. Usare il tipo sbagliato tronca il valore.
 
 ---
 
-## cfggameplay.json --- Gameplay Settings
+## cfggameplay.json --- Impostazioni di Gioco
 
-Loaded only when `enableCfgGameplayFile = 1` in `serverDZ.cfg`. Without this, il motore uses hardcoded defaults.
+Caricato solo quando `enableCfgGameplayFile = 1` è impostato in `serverDZ.cfg`. Senza questo, il motore usa i valori predefiniti hardcoded.
 
 ### Struttura
 
@@ -325,13 +327,13 @@ Loaded only when `enableCfgGameplayFile = 1` in `serverDZ.cfg`. Without this, il
 }
 ```
 
-Key settings: `disableBaseDamage` prevents base damage, `disablePersonalLight` removes the fresh-spawn light, `staminaWeightLimitThreshold` is in grams (6000 = 6kg), temperature arrays have 12 values (January--December), `lightingConfig` accepts `0` (default) or `1` (darker nights), and `displayPlayerPosition` shows the player dot on the map.
+Impostazioni chiave: `disableBaseDamage` impedisce i danni alle basi, `disablePersonalLight` rimuove la luce dello spawn iniziale, `staminaWeightLimitThreshold` è in grammi (6000 = 6kg), gli array delle temperature hanno 12 valori (Gennaio--Dicembre), `lightingConfig` accetta `0` (predefinito) o `1` (notti più scure), e `displayPlayerPosition` mostra il punto del giocatore sulla mappa.
 
 ---
 
-## serverDZ.cfg --- Server Settings
+## serverDZ.cfg --- Impostazioni del Server
 
-This file sits next to the server executable, not in the mission del tuo mod.
+Questo file si trova accanto all'eseguibile del server, non nella cartella della missione.
 
 ### Impostazioni Chiave
 
@@ -350,31 +352,31 @@ storageAutoFix = 1;
 
 | Parametro | Descrizione |
 |-----------|-------------|
-| `hostname` | Server name in the browser |
-| `password` | Join password (empty = open) |
-| `passwordAdmin` | RCON admin password |
-| `maxPlayers` | Maximum concurrent players |
-| `template` | Mission folder name |
-| `verifySignatures` | Signature check level (2 = strict) |
-| `enableCfgGameplayFile` | Load cfggameplay.json (0/1) |
+| `hostname` | Nome del server nel browser |
+| `password` | Password di accesso (vuota = aperto) |
+| `passwordAdmin` | Password admin RCON |
+| `maxPlayers` | Giocatori simultanei massimi |
+| `template` | Nome della cartella missione |
+| `verifySignatures` | Livello di verifica delle firme (2 = rigoroso) |
+| `enableCfgGameplayFile` | Carica cfggameplay.json (0/1) |
 
 ### Caricamento dei Mod
 
-Mods are specified via launch parameters, not in the config file:
+I mod vengono specificati tramite parametri di avvio, non nel file di configurazione:
 
 ```
 DayZServer_x64.exe -config=serverDZ.cfg -mod=@CF;@MyMod -servermod=@MyServerMod -port=2302
 ```
 
-`-mod=` mods must be installed by clients. `-servermod=` mods run server-side only.
+I mod `-mod=` devono essere installati dai client. I mod `-servermod=` funzionano solo lato server.
 
 ---
 
 ## Come i Mod Interagiscono con l'Economia
 
-### cfgeconomycore.xml --- Root Class Registration
+### cfgeconomycore.xml --- Registrazione delle Classi Radice
 
-Every item class hierarchy must trace back to a registered root class:
+Ogni gerarchia di classi degli oggetti deve risalire a una classe radice registrata:
 
 ```xml
 <economycore>
@@ -389,11 +391,11 @@ Every item class hierarchy must trace back to a registered root class:
 </economycore>
 ```
 
-If your mod introduces a new classe base not inheriting from `Inventory_Base`, `DefaultWeapon`, or `DefaultMagazine`, add it as a `rootclass`. The `act` attribute specifies entity type: `character` for AI, `car` for vehicles.
+Se la tua mod introduce una nuova classe base che non eredita da `Inventory_Base`, `DefaultWeapon` o `DefaultMagazine`, aggiungila come `rootclass`. L'attributo `act` specifica il tipo di entità: `character` per IA, `car` per veicoli.
 
-### cfglimitsdefinition.xml --- Custom Tags
+### cfglimitsdefinition.xml --- Tag Personalizzati
 
-Any `category`, `usage`, or `value` used in `types.xml` must be definiscid here:
+Qualsiasi `category`, `usage` o `value` usato in `types.xml` deve essere definito qui:
 
 ```xml
 <lists>
@@ -409,11 +411,11 @@ Any `category`, `usage`, or `value` used in `types.xml` must be definiscid here:
 </lists>
 ```
 
-Use `cfglimitsdefinitionuser.xml` for additions that should not overwrite the vanilla file.
+Usa `cfglimitsdefinitionuser.xml` per aggiunte che non dovrebbero sovrascrivere il file vanilla.
 
-### economy.xml --- Subsystem Control
+### economy.xml --- Controllo dei Sottosistemi
 
-Controls which CE subsystems are active:
+Controlla quali sottosistemi della CE sono attivi:
 
 ```xml
 <economy>
@@ -424,11 +426,11 @@ Controls which CE subsystems are active:
 </economy>
 ```
 
-Flags: `init` (spawn on startup), `load` (load persistence), `respawn` (respawn after cleanup), `save` (persist to database).
+Flag: `init` (genera all'avvio), `load` (carica persistenza), `respawn` (rigenera dopo pulizia), `save` (persisti nel database).
 
 ### Interazione Economica lato Script
 
-Items created via `CreateInInventory()` are automatically CE-managed. For world spawns, use ECE flags:
+Gli oggetti creati tramite `CreateInInventory()` sono automaticamente gestiti dalla CE. Per gli spawn nel mondo, usa i flag ECE:
 
 ```c
 EntityAI item = GetGame().CreateObjectEx("AK74", position, ECE_PLACE_ON_SURFACE);
@@ -440,61 +442,61 @@ EntityAI item = GetGame().CreateObjectEx("AK74", position, ECE_PLACE_ON_SURFACE)
 
 ### Errori di Sintassi XML
 
-A single unclosed tag breaks the entire file. Always validate XML before deploying.
+Un singolo tag non chiuso rompe l'intero file. Valida sempre l'XML prima della distribuzione.
 
-### Missing Tags in cfglimitsdefinition.xml
+### Tag Mancanti in cfglimitsdefinition.xml
 
-Using a `usage` or `value` in types.xml that is not definiscid in cfglimitsdefinition.xml causes the item to silently fail to spawn. Check RPT logs for warnings.
+Usare un `usage` o `value` in types.xml che non è definito in cfglimitsdefinition.xml fa sì che l'oggetto non appaia silenziosamente. Controlla i log RPT per gli avvertimenti.
 
-### Nominal Too High
+### Nominale Troppo Alto
 
-Total nominal across all items should stay below 10,000--15,000. Excessive values degrade server performance.
+Il nominale totale di tutti gli oggetti dovrebbe restare sotto 10.000--15.000. Valori eccessivi degradano le prestazioni del server.
 
-### Lifetime Too Short
+### Durata Troppo Breve
 
-Items with very short lifetimes disappear before players find them. Use at least `3600` (1 hour) for common items, `28800` (8 hours) for weapons.
+Oggetti con durata molto breve scompaiono prima che i giocatori li trovino. Usa almeno `3600` (1 ora) per oggetti comuni, `28800` (8 ore) per le armi.
 
-### Missing Root Class
+### Classe Radice Mancante
 
-Items whose class hierarchy does not trace to a registered root class in `cfgeconomycore.xml` will never spawn, even with correct types.xml entries.
+Oggetti la cui gerarchia di classi non risale a una classe radice registrata in `cfgeconomycore.xml` non appariranno mai, anche con voci corrette in types.xml.
 
-### cfggameplay.json Not Enabled
+### cfggameplay.json Non Abilitato
 
-The file is ignored unless `enableCfgGameplayFile = 1` is set in `serverDZ.cfg`.
+Il file viene ignorato a meno che `enableCfgGameplayFile = 1` non sia impostato in `serverDZ.cfg`.
 
-### Wrong type in globals.xml
+### Tipo Sbagliato in globals.xml
 
-Using `type="0"` (integer) for a float value like `0.82` truncates it to `0`. Use `type="1"` for floats.
+Usare `type="0"` (intero) per un valore decimale come `0.82` lo tronca a `0`. Usa `type="1"` per i decimali.
 
-### Editing Vanilla Files Directly
+### Modifica Diretta dei File Vanilla
 
-Modifying vanilla types.xml works but breaks on game updates. Prefer shipping separate type files and registering them through cfgeconomycore, or use cfglimitsdefinitionuser.xml for custom tags.
+Modificare il types.xml vanilla funziona ma si rompe con gli aggiornamenti del gioco. Preferisci distribuire file di tipo separati e registrarli tramite cfgeconomycore, oppure usa cfglimitsdefinitionuser.xml per tag personalizzati.
 
 ---
 
 ## Buone Pratiche
 
-- Ship a `ServerFiles/` folder with your mod containing pre-configured `types.xml` entries so server admins can copy-paste rather than write from scratch.
-- Use `cfglimitsdefinitionuser.xml` instead of editing the vanilla `cfglimitsdefinition.xml` -- your additions survive game updates.
-- Set `count_in_hoarder="0"` for common items (food, ammo) to prevent hoarding from blocking CE respawns.
-- Always set `enableCfgGameplayFile = 1` in `serverDZ.cfg` before expecting `cfggameplay.json` changes to take effect.
-- Keep total `nominal` across all types.xml entries below 12,000 to avoid CE performance degradation on populated servers.
+- Distribuisci una cartella `ServerFiles/` con la tua mod contenente voci `types.xml` preconfigurate così gli amministratori del server possono copiare e incollare invece di scrivere da zero.
+- Usa `cfglimitsdefinitionuser.xml` invece di modificare il `cfglimitsdefinition.xml` vanilla -- le tue aggiunte sopravvivono agli aggiornamenti del gioco.
+- Imposta `count_in_hoarder="0"` per oggetti comuni (cibo, munizioni) per evitare che l'accumulo blocchi i respawn della CE.
+- Imposta sempre `enableCfgGameplayFile = 1` in `serverDZ.cfg` prima di aspettarti che le modifiche a `cfggameplay.json` abbiano effetto.
+- Mantieni il `nominal` totale di tutte le voci types.xml sotto 12.000 per evitare il degrado delle prestazioni della CE su server popolati.
 
 ---
 
 ## Teoria vs Pratica
 
-| Concetto | Teoria | Realta |
-|---------|--------|---------|
-| `nominal` is a hard target | CE spawns exactly this many items | CE approaches nominal over time but fluctuates based on player interaction, cleanup cycles, and zone distance |
-| `restock=0` means instant respawn | Items reappear immediately after despawn | The CE batch processes restocking in cycles (typically every 30-60 seconds), so there is always a delay regardless of the restock value |
-| `cfggameplay.json` controls all gameplay | All tuning goes here | Many gameplay values are hardcoded in script or config.cpp and non puo essere sovrascritto by cfggameplay.json |
-| `init.c` runs only on server start | One-time initialization | `init.c` runs every time the mission loads, including after server restarts. Persistent state is managed by the Hive, not init.c |
-| Multiple types.xml files merge cleanly | CE reads all registered files | Files must be registered in cfgeconomycore.xml via `<ce folder="custom">` directives. Simply placing extra XML files in `db/` does nothing |
+| Concetto | Teoria | Realtà |
+|----------|--------|--------|
+| `nominal` è un obiettivo fisso | La CE genera esattamente questo numero di oggetti | La CE si avvicina al nominale nel tempo ma fluttua in base all'interazione dei giocatori, ai cicli di pulizia e alla distanza delle zone |
+| `restock=0` significa respawn istantaneo | Gli oggetti riappaiono immediatamente dopo la rimozione | La CE elabora il rifornimento in cicli (tipicamente ogni 30-60 secondi), quindi c'è sempre un ritardo indipendentemente dal valore di restock |
+| `cfggameplay.json` controlla tutto il gameplay | Tutta la regolazione va qui | Molti valori di gameplay sono hardcoded negli script o in config.cpp e non possono essere sovrascritti da cfggameplay.json |
+| `init.c` viene eseguito solo all'avvio del server | Inizializzazione una tantum | `init.c` viene eseguito ogni volta che la missione si carica, incluso dopo i riavvii del server. Lo stato persistente è gestito dall'Hive, non da init.c |
+| Più file types.xml si fondono correttamente | La CE legge tutti i file registrati | I file devono essere registrati in cfgeconomycore.xml tramite direttive `<ce folder="custom">`. Semplicemente posizionare file XML aggiuntivi in `db/` non fa nulla |
 
 ---
 
-## Compatibilita e Impatto
+## Compatibilità e Impatto
 
-- **Multi-Mod:** Multiple mods can add entries to types.xml without conflict as long as classnames are unique. If two mods definisci the same classname with different nominal/lifetime values, the last-loaded entry wins.
-- **Performance:** Excessive nominal counts (15,000+) cause CE tick spikes visible as server FPS drops. Each CE cycle iterates all registered types to check spawn conditions.
+- **Multi-Mod:** Più mod possono aggiungere voci a types.xml senza conflitti purché i nomi delle classi siano unici. Se due mod definiscono lo stesso nome di classe con valori nominale/durata diversi, l'ultima voce caricata vince.
+- **Prestazioni:** Conteggi nominali eccessivi (15.000+) causano picchi nel tick della CE visibili come cali di FPS del server. Ogni ciclo della CE itera tutti i tipi registrati per verificare le condizioni di spawn.
