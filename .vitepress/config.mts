@@ -166,6 +166,10 @@ export default withMermaid(
 
     cleanUrls: true,
     lastUpdated: true,
+    ignoreDeadLinks: [
+      /LICENCE/,
+      /04-scripting-guide/,
+    ],
 
     locales: {
       en: { label: 'English', lang: 'en', link: '/en/' },

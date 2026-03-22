@@ -639,4 +639,4 @@ Development involves two testing modes. Choosing the right one for each situatio
 
 | Elozo | Fel | Kovetkezo |
 |----------|----|------|
-| [4.5 DayZ eszkozok munkamenet](05-dayz-tools.md) | [Part 4: File Formats & DayZ eszkozok](01-textures.md) | [Part 5: Config Files](../05-config-files/01-textures.md) |
+| [4.5 DayZ eszkozok munkamenet](05-dayz-tools.md) | [Part 4: File Formats & DayZ eszkozok](01-textures.md) | [Part 5: Config Files](07-workbench-guide.md) |

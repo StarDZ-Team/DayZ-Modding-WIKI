@@ -1572,7 +1572,7 @@ The layout path in `CreateWidgets()` is relative to the game's search paths. If 
 
 Now that you have a working HUD overlay, consider these progressions:
 
-1. **Save user preferences** -- Store whether the HUD is visible in a local JSON file so the toggle state persists across sessions. See [Chapter 4.5: Player Data](../04-scripting-guide/05-persistence.md).
+1. **Save user preferences** -- Store whether the HUD is visible in a local JSON file so the toggle state persists across sessions. 
 2. **Add server-side configuration** -- Let server admins enable/disable the HUD or choose which fields to show via a JSON config file.
 3. **Build an admin overlay** -- Expand the HUD to show admin-only information (server performance, entity count, restart timer) using permission checks.
 4. **Create a compass HUD** -- Use `GetGame().GetCurrentCameraDirection()` to calculate heading and display a compass bar at the top of the screen.
