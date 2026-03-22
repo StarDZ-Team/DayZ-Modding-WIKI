@@ -1,266 +1,238 @@
-# Chapter 2.6: Server vs Client Architecture
+# 第 2.6 章：服务器与客户端架构
 
-[Home](../../README.md) | [<< Previous: File Organization](05-file-organization.md) | **Server vs Client Architecture**
+[首页](../../README.md) | [<< 上一章：文件组织](05-file-organization.md) | **服务器与客户端架构**
+
+---
+
+> **摘要：**DayZ 是一个客户端-服务器游戏。你编写的每一行代码都在特定的上下文中运行——服务器、客户端或两者都有。理解这种分离对于编写安全、功能正常的模组至关重要。本章解释代码在哪里运行、如何检测你在哪一侧、如何构建多包模组，以及保持服务器和客户端代码正确分离的模式。
 
 ---
 
 ## 目录
 
-- [The Fundamental Split](#the-fundamental-split)
-- [The Three Execution Contexts](#the-three-execution-contexts)
-- [Checking Where Your Code Runs](#checking-where-your-code-runs)
-- [The mod.cpp type Field](#the-modcpp-type-field)
-- [The config.cpp type Field](#the-configcpp-type-field)
-- [Multi-Package Mod Architecture](#multi-package-mod-architecture)
-- [The Golden Rules](#the-golden-rules)
-- [Script Layer and Side Matrix](#script-layer-and-side-matrix)
-- [Preprocessor Guards](#preprocessor-guards)
-- [Common Server-Client Patterns](#common-server-client-patterns)
-- [Listen Server Gotchas](#listen-server-gotchas)
-- [Dependency Between Split Mods](#dependency-between-split-mods)
-- [Real-World Split Examples](#real-world-split-examples)
-- [Common Mistakes](#common-mistakes)
-- [Decision Flowchart](#decision-flowchart)
-- [Summary Checklist](#summary-checklist)
+- [基本分离](#基本分离)
+- [三种执行上下文](#三种执行上下文)
+- [检查代码在哪里运行](#检查代码在哪里运行)
+- [mod.cpp 的 type 字段](#modcpp-的-type-字段)
+- [config.cpp 的 type 字段](#configcpp-的-type-字段)
+- [多包模组架构](#多包模组架构)
+- [黄金法则](#黄金法则)
+- [脚本层与侧面矩阵](#脚本层与侧面矩阵)
+- [预处理器守卫](#预处理器守卫)
+- [常见的服务器-客户端模式](#常见的服务器-客户端模式)
+- [监听服务器注意事项](#监听服务器注意事项)
+- [分离模组之间的依赖](#分离模组之间的依赖)
+- [真实分离案例](#真实分离案例)
+- [常见错误](#常见错误)
+- [决策流程图](#决策流程图)
+- [总结清单](#总结清单)
 
 ---
 
-## The Fundamental Split
+## 基本分离
 
-DayZ uses a **dedicated server** model. The server and the client are separate processes running separate executables. They communicate over the network, and 引擎 handles synchronization of entities, variables, and RPCs.
+DayZ 使用**专用服务器**模型。服务器和客户端是运行不同可执行文件的独立进程。它们通过网络通信，引擎处理实体、变量和 RPC 的同步。
 
-This means your mod code runs in one of three contexts, and the rules for each are fundamentally different.
+这意味着你的模组代码在三种上下文之一中运行，每种的规则有根本不同。
 
 ```
 +------------------------------------------------------------------+
 |                                                                  |
-|   DEDICATED SERVER                                               |
-|   - Headless process (no window, no GPU)                         |
-|   - Authoritative: owns the game state                           |
-|   - Spawns entities, applies damage, saves data                  |
-|   - Has NO player, NO UI, NO keyboard input                      |
-|   - Runs: MissionServer                                          |
+|   专用服务器                                                      |
+|   - 无头进程（无窗口、无 GPU）                                     |
+|   - 权威性的：拥有游戏状态                                         |
+|   - 生成实体、施加伤害、保存数据                                    |
+|   - 没有玩家、没有 UI、没有键盘输入                                 |
+|   - 运行：MissionServer                                          |
 |                                                                  |
 +------------------------------------------------------------------+
 
           ^                                         ^
-          |          NETWORK (RPCs, sync vars)       |
+          |          网络（RPC、同步变量）              |
           v                                         v
 
 +---------------------------+     +---------------------------+
 |                           |     |                           |
-|   CLIENT 1                |     |   CLIENT 2                |
-|   - Has a window, GPU     |     |   - Has a window, GPU     |
-|   - Renders the world     |     |   - Renders the world     |
-|   - Handles player input  |     |   - Handles player input  |
-|   - Shows UI and HUD      |     |   - Shows UI and HUD      |
-|   - Runs: MissionGameplay |     |   - Runs: MissionGameplay |
+|   客户端 1                |     |   客户端 2                |
+|   - 有窗口、GPU          |     |   - 有窗口、GPU          |
+|   - 渲染世界              |     |   - 渲染世界              |
+|   - 处理玩家输入          |     |   - 处理玩家输入          |
+|   - 显示 UI 和 HUD       |     |   - 显示 UI 和 HUD       |
+|   - 运行：MissionGameplay |     |   - 运行：MissionGameplay |
 |                           |     |                           |
 +---------------------------+     +---------------------------+
 ```
 
 ---
 
-## The Three Execution Contexts
+## 三种执行上下文
 
-### 1. Dedicated Server
+### 1. 专用服务器
 
-The dedicated server is a **headless process**. It has no window, no graphics card output, no monitor, no keyboard, no mouse. It exists only to run game logic.
+专用服务器是一个**无头进程**。没有窗口、没有显卡输出、没有显示器、没有键盘、没有鼠标。它只存在于运行游戏逻辑。
 
-Key characteristics:
-- **Authoritative** -- the server's state is the truth. If the server says a player has 50 health, the player has 50 health.
-- **No player object** -- `GetGame().GetPlayer()` always returns `null` on a dedicated server. The server manages ALL players but IS none of them.
-- **No UI** -- any code that creates widgets, shows menus, or renders HUD elements will crash or silently fail.
-- **No input** -- there is no keyboard or mouse. Input-handling code is meaningless here.
-- **File system access** -- the server can read and write files to its profile directory (`$profile:`), which is where configs, player data, and logs are stored.
-- **Mission class** -- the server instantiates `MissionServer`, not `MissionGameplay`.
+关键特征：
+- **权威性的**——服务器的状态是真相。如果服务器说玩家有 50 点生命值，那玩家就有 50 点生命值。
+- **没有玩家对象**——`GetGame().GetPlayer()` 在专用服务器上始终返回 `null`。服务器管理所有玩家但本身不是任何玩家。
+- **没有 UI**——任何创建控件、显示菜单或渲染 HUD 元素的代码都会崩溃或静默失败。
+- **没有输入**——没有键盘或鼠标。输入处理代码在这里毫无意义。
+- **文件系统访问**——服务器可以读写其配置文件目录（`$profile:`）中的文件，配置、玩家数据和日志存储在那里。
+- **Mission 类**——服务器实例化 `MissionServer`，而不是 `MissionGameplay`。
 
-### 2. Client
+### 2. 客户端
 
-The client is the player's game. It has a window, renders 3D graphics, plays audio, and handles input.
+客户端是玩家的游戏。它有窗口、渲染 3D 图形、播放音频和处理输入。
 
-Key characteristics:
-- **Presentation layer** -- the client renders what the server tells it to render. It does not decide what exists in the world.
-- **Has a player** -- `GetGame().GetPlayer()` returns the local player's `PlayerBase` instance.
-- **UI and HUD** -- all widget creation, layout loading, and menu code runs here.
-- **Input** -- keyboard, mouse, and gamepad input is processed here.
-- **Limited authority** -- the client can REQUEST actions (via RPC), but the server DECIDES whether they happen.
-- **Mission class** -- the client instantiates `MissionGameplay`, not `MissionServer`.
+关键特征：
+- **表示层**——客户端渲染服务器告诉它要渲染的内容。它不决定世界中存在什么。
+- **有玩家**——`GetGame().GetPlayer()` 返回本地玩家的 `PlayerBase` 实例。
+- **UI 和 HUD**——所有控件创建、布局加载和菜单代码在这里运行。
+- **输入**——键盘、鼠标和手柄输入在这里处理。
+- **有限权限**——客户端可以请求操作（通过 RPC），但服务器决定是否执行。
+- **Mission 类**——客户端实例化 `MissionGameplay`，而不是 `MissionServer`。
 
-### 3. Listen Server (Development/Testing)
+### 3. 监听服务器（开发/测试）
 
-A listen server is both server AND client in the same process. This is what you get when you launch DayZ through the Workbench or use the `-server` launch parameter with a local game.
+监听服务器在同一进程中既是服务器又是客户端。这是你通过 Workbench 启动 DayZ 或使用 `-server` 启动参数的本地游戏时得到的。
 
-Key characteristics:
-- **Both `IsServer()` and `IsClient()` return true** -- this is the critical difference from dedicated servers.
-- **Has a player AND manages all players** -- `GetGame().GetPlayer()` returns the host player.
-- **Both `MissionServer` and `MissionGameplay` hooks run** -- your modded classes for both will execute.
-- **Used for development only** -- production servers are always dedicated.
-- **Can mask bugs** -- code that works on a listen server may break on dedicated because the listen server has access to both server and client types.
+关键特征：
+- **`IsServer()` 和 `IsClient()` 都返回 true**——这是与专用服务器的关键区别。
+- **有玩家且管理所有玩家**——`GetGame().GetPlayer()` 返回主机玩家。
+- **`MissionServer` 和 `MissionGameplay` 钩子都会运行**——你对两者的 modded 类都会执行。
+- **仅用于开发**——生产服务器始终是专用的。
+- **可能掩盖错误**——在监听服务器上运行的代码可能在专用服务器上崩溃，因为监听服务器可以访问服务器和客户端类型。
 
 ---
 
-## Checking Where Your Code Runs
+## 检查代码在哪里运行
 
-The `GetGame()` global function returns the game instance, which provides methods to detect the execution context:
+`GetGame()` 全局函数返回游戏实例，它提供检测执行上下文的方法：
 
 ```c
 // ---------------------------------------------------------------
-// Runtime context checks
+// 运行时上下文检查
 // ---------------------------------------------------------------
 
 if (GetGame().IsServer())
 {
-    // TRUE on: dedicated server, listen server
-    // FALSE on: client connected to a remote server
-    // Use for: server-side logic (spawning, damage, saving)
+    // 在以下情况为 TRUE：专用服务器、监听服务器
+    // 在以下情况为 FALSE：连接到远程服务器的客户端
+    // 用于：服务器端逻辑（生成、伤害、保存）
 }
 
 if (GetGame().IsClient())
 {
-    // TRUE on: client connected to a remote server, listen server
-    // FALSE on: dedicated server
-    // Use for: UI code, input handling, visual effects
+    // 在以下情况为 TRUE：连接到远程服务器的客户端、监听服务器
+    // 在以下情况为 FALSE：专用服务器
+    // 用于：UI 代码、输入处理、视觉效果
 }
 
 if (GetGame().IsDedicatedServer())
 {
-    // TRUE on: dedicated server ONLY
-    // FALSE on: client, listen server
-    // Use for: code that must NEVER run on a listen server
+    // 仅在专用服务器上为 TRUE
+    // 在客户端和监听服务器上为 FALSE
+    // 用于：绝不能在监听服务器上运行的代码
 }
 
 if (GetGame().IsMultiplayer())
 {
-    // TRUE on: any multiplayer session (dedicated server, remote client)
-    // FALSE on: singleplayer/offline mode
-    // Use for: disabling features in offline testing
+    // 在任何多人会话中为 TRUE（专用服务器、远程客户端）
+    // 在单人/离线模式中为 FALSE
+    // 用于：在离线测试中禁用功能
 }
 ```
 
-### Truth Table
+### 真值表
 
-| Method | Dedicated Server | Client (Remote) | Listen Server |
+| 方法 | 专用服务器 | 客户端（远程） | 监听服务器 |
 |--------|:---:|:---:|:---:|
 | `IsServer()` | true | false | true |
 | `IsClient()` | false | true | true |
 | `IsDedicatedServer()` | true | false | false |
 | `IsMultiplayer()` | true | true | false |
-| `GetPlayer()` returns | null | PlayerBase | PlayerBase |
+| `GetPlayer()` 返回 | null | PlayerBase | PlayerBase |
 
 ### 常见模式
 
 ```c
-// Guard: server-only logic
+// 守卫：仅服务器逻辑
 void SpawnLoot(vector position)
 {
     if (!GetGame().IsServer())
         return;
 
-    // Only the server creates entities
+    // 只有服务器创建实体
     EntityAI item = EntityAI.Cast(GetGame().CreateObjectEx("AK101", position, ECE_PLACE_ON_SURFACE));
 }
 
-// Guard: client-only logic
+// 守卫：仅客户端逻辑
 void ShowNotification(string text)
 {
     if (!GetGame().IsClient())
         return;
 
-    // Only the client can display UI
+    // 只有客户端可以显示 UI
     NotificationSystem.AddNotification(text, "set:dayz_gui image:icon_pin");
-}
-
-// Guard: handle both sides correctly
-void OnPlayerAction(PlayerBase player, int actionID)
-{
-    if (GetGame().IsServer())
-    {
-        // Validate and execute the action
-        ValidateAndApply(player, actionID);
-    }
-
-    if (GetGame().IsClient())
-    {
-        // Play a local sound effect
-        PlayActionSound(actionID);
-    }
 }
 ```
 
 ---
 
-## The mod.cpp type Field
+## mod.cpp 的 type 字段
 
-The `mod.cpp` file at the root of your mod folder contains a `type` field that controls WHERE the mod is loaded:
+模组文件夹根目录的 `mod.cpp` 文件包含一个 `type` 字段，控制模组在**哪里**加载：
 
-### type = "mod" (Both Sides)
+### type = "mod"（两侧）
 
 ```
 name = "My Mod";
 type = "mod";
 ```
 
-The mod is loaded on **both server and client**. The server loads it, clients download and load it. Both sides compile and execute the scripts.
+模组在**服务器和客户端两侧**加载。服务器加载它，客户端下载并加载它。两侧都编译和执行脚本。
 
-**When to use:** Most mods use this. Any mod that has shared types (entity definitions, config classes, RPC data structures) needs to be `type = "mod"` so both sides know about the same types.
+**何时使用：**大多数模组使用这个。任何有共享类型（实体定义、配置类、RPC 数据结构）的模组都需要 `type = "mod"`，这样两侧都知道相同的类型。
 
-**示例：** The StarDZ AI client mod uses `type = "mod"` because both server and client need the AI entity class definitions, RPC constants, and sync data structures:
-
-```
-// StarDZ_AI/mod.cpp
-name = "StarDZ AI";
-type = "mod";
-```
-
-### type = "servermod" (Server Only)
+### type = "servermod"（仅服务器）
 
 ```
 name = "My Mod Server";
 type = "servermod";
 ```
 
-The mod is loaded on the **server only**. Clients never see it, never download it, never know it exists. The server does not send it in the mod list.
+模组**仅在服务器上**加载。客户端永远看不到它、永远不会下载它、永远不知道它的存在。
 
-**When to use:** Server-side logic that clients should never have access to. This includes:
-- Spawn algorithms (prevents players from predicting loot)
-- AI brain logic (prevents exploit analysis)
-- Admin commands and server management
-- Database connections and external API calls
-- Anti-cheat validation logic
+**何时使用：**客户端永远不应访问的服务器端逻辑。包括：
+- 生成算法（防止玩家预测战利品）
+- AI 大脑逻辑（防止漏洞分析）
+- 管理命令和服务器管理
+- 数据库连接和外部 API 调用
+- 反作弊验证逻辑
 
-**示例：** The StarDZ AI Server mod uses `type = "servermod"` because clients should never see the AI brain, perception, combat, or spawning logic:
+### 为什么这对安全很重要
 
-```
-// StarDZ_AI_Server/mod.cpp
-name = "StarDZ AI Server";
-type = "servermod";
-```
-
-### Why This Matters for Security
-
-If your spawn logic is in a `type = "mod"` package, **every player downloads it**. They can decompile the PBO and read your spawn algorithms, loot tables, admin passwords, or anti-cheat logic. Always put sensitive server logic in a `type = "servermod"` package.
+如果你的生成逻辑在 `type = "mod"` 包中，**每个玩家都会下载它**。他们可以反编译 PBO 并阅读你的生成算法、战利品表、管理员密码或反作弊逻辑。始终将敏感的服务器逻辑放在 `type = "servermod"` 包中。
 
 ---
 
-## The config.cpp type Field
+## config.cpp 的 type 字段
 
-Inside `config.cpp` (in the `CfgMods` section), there is also a `type` field. This one controls how 引擎 treats the mod internally:
+在 `config.cpp` 中（在 `CfgMods` 部分），也有一个 `type` 字段。这个控制引擎如何在内部处理模组：
 
 ```cpp
 class CfgMods
 {
     class MyMod
     {
-        type = "mod";          // or "servermod"
+        type = "mod";          // 或 "servermod"
         // ...
     };
 };
 ```
 
-This field should match your `mod.cpp` type field. If they disagree, you get unpredictable behavior. Keep them consistent.
+这个字段应与你的 `mod.cpp` type 字段匹配。如果它们不一致，你会得到不可预测的行为。保持它们一致。
 
-The `config.cpp` also contains the `defines[]` array, which is how you enable preprocessor symbols for cross-mod detection:
+`config.cpp` 还包含 `defines[]` 数组，这是你启用跨模组检测预处理器符号的方式：
 
 ```cpp
 class CfgMods
@@ -268,241 +240,189 @@ class CfgMods
     class StarDZ_AI
     {
         type = "mod";
-        defines[] = { "STARDZ_AI" };    // Other mods can use #ifdef STARDZ_AI
-    };
-};
-
-class CfgMods
-{
-    class StarDZ_AIServer
-    {
-        type = "servermod";
-        defines[] = { "STARDZ_AI", "STARDZ_AISERVER" };  // Both defines available
+        defines[] = { "STARDZ_AI" };    // 其他模组可以使用 #ifdef STARDZ_AI
     };
 };
 ```
-
-Notice that the server mod defines both `STARDZ_AI` and `STARDZ_AISERVER`. This allows server-side code to detect whether just the client mod is present or the full server package is loaded.
 
 ---
 
-## Multi-Package Mod Architecture
+## 多包模组架构
 
-### Why Split Into Multiple Packages?
+### 为什么分成多个包？
 
-A single mod folder with `type = "mod"` ships everything to clients. For many mods, this is fine. But for mods with sensitive server logic, you need to split:
+单个 `type = "mod"` 的模组文件夹将所有内容发送给客户端。对于许多模组来说，这没问题。但对于有敏感服务器逻辑的模组，你需要分离：
 
 ```
-@MyMod/                          <-- Client package (type = "mod")
+@MyMod/                          <-- 客户端包（type = "mod"）
   mod.cpp                        <-- type = "mod"
   Addons/
-    MyMod_Scripts.pbo            <-- Shared: RPCs, config classes, entity defs
-    MyMod_Data.pbo               <-- Shared: models, textures
-    MyMod_GUI.pbo                <-- Client-only: layouts, imagesets
+    MyMod_Scripts.pbo            <-- 共享：RPC、配置类、实体定义
+    MyMod_Data.pbo               <-- 共享：模型、纹理
+    MyMod_GUI.pbo                <-- 仅客户端：布局、图像集
 
-@MyModServer/                    <-- Server package (type = "servermod")
+@MyModServer/                    <-- 服务器包（type = "servermod"）
   mod.cpp                        <-- type = "servermod"
   Addons/
-    MyModServer_Scripts.pbo      <-- Server-only: spawning, brain, admin
+    MyModServer_Scripts.pbo      <-- 仅服务器：生成、大脑、管理
 ```
 
-The server loads BOTH `@MyMod` and `@MyModServer`. Clients only load `@MyMod`.
+服务器加载 `@MyMod` 和 `@MyModServer` 两者。客户端只加载 `@MyMod`。
 
-### What Goes Where
+### 什么放在哪里
 
-**Client package** (`type = "mod"`) contains:
-- Entity class definitions (both sides need to know the class exists)
-- RPC ID constants and data structures (both sides send/receive)
-- Config classes for settings that affect client display
-- GUI layouts, imagesets, and styles
-- Client-side UI code (wrapped in `#ifndef SERVER`)
-- Models, textures, sounds
-- `stringtable.csv` for localization
+**客户端包**（`type = "mod"`）包含：
+- 实体类定义（两侧都需要知道类的存在）
+- RPC ID 常量和数据结构（两侧发送/接收）
+- 影响客户端显示的配置类
+- GUI 布局、图像集和样式
+- 客户端 UI 代码（包裹在 `#ifndef SERVER` 中）
+- 模型、纹理、声音
+- `stringtable.csv` 用于本地化
 
-**Server package** (`type = "servermod"`) contains:
-- Manager/controller classes (spawn logic, AI brains)
-- Server-side validation and anti-cheat
-- Config loading and file I/O (JSON configs, player data)
-- Admin command handlers
-- External service integration (webhooks, APIs)
-- `MissionServer` hooks
+**服务器包**（`type = "servermod"`）包含：
+- 管理器/控制器类（生成逻辑、AI 大脑）
+- 服务器端验证和反作弊
+- 配置加载和文件 I/O（JSON 配置、玩家数据）
+- 管理命令处理器
+- 外部服务集成（webhook、API）
+- `MissionServer` 钩子
 
-### The Dependency Chain
+### 依赖链
 
-The server package depends on the client package, never the other way around:
+服务器包依赖客户端包，永远不是相反：
 
 ```cpp
-// Client mod: config.cpp
+// 客户端模组：config.cpp
 class CfgPatches
 {
     class MyMod_Scripts
     {
-        requiredAddons[] = { "DZ_Scripts" };  // No dependency on server
+        requiredAddons[] = { "DZ_Scripts" };  // 不依赖服务器
     };
 };
 
-// Server mod: config.cpp
+// 服务器模组：config.cpp
 class CfgPatches
 {
     class MyModServer_Scripts
     {
-        requiredAddons[] = { "DZ_Scripts", "MyMod_Scripts" };  // Depends on client
+        requiredAddons[] = { "DZ_Scripts", "MyMod_Scripts" };  // 依赖客户端
     };
 };
 ```
 
-This ensures the client package compiles first, and the server package can reference all types defined in the client package.
-
 ---
 
-## The Golden Rules
+## 黄金法则
 
-These rules govern every decision about where code belongs:
+### 规则 1：服务器是权威的
 
-### Rule 1: Server is AUTHORITATIVE
+服务器拥有游戏状态。它决定什么存在、在哪里存在、对它发生什么。永远不要让客户端做权威性决定。
 
-The server owns the game state. It decides what exists, where it exists, and what happens to it. Never let the client make authoritative decisions.
+### 规则 2：客户端处理表现
 
-### Rule 2: Client handles PRESENTATION
+客户端渲染世界、播放声音、显示 UI 和收集输入。它不决定游戏结果。
 
-The client renders the world, plays sounds, shows UI, and collects input. It does not decide game outcomes.
+### 规则 3：RPC 是桥梁
 
-### Rule 3: RPC is the BRIDGE
+远程过程调用（RPC）是服务器和客户端通信的唯一结构化方式。客户端发送请求，服务器发送响应和状态更新。
 
-Remote Procedure Calls (RPCs) are the only structured way for server and client to communicate. The client sends requests, the server sends responses and state updates.
+### 规则 4：永远不要信任客户端
 
-### Rule 4: Never Trust the Client
+来自客户端的任何数据都可能被篡改。始终在服务器上验证。
 
-Any data coming from a client could be tampered with. Always validate on the server.
-
-### Decision Tree
+### 决策树
 
 ```mermaid
 flowchart TD
-    A[Where does this code run?] --> B{Modifies game state?}
-    B -->|Yes| C{Affects world/items/players?}
-    C -->|Yes| D[SERVER - authoritative]
-    C -->|No| E{UI or visual only?}
-    E -->|Yes| F[CLIENT]
-    E -->|No| D
-    B -->|No| G{Reads input or shows UI?}
-    G -->|Yes| F
-    G -->|No| H{Shared data class?}
-    H -->|Yes| I[3_Game - both sides]
-    H -->|No| D
+    A[这段代码在哪里运行？] --> B{修改游戏状态？}
+    B -->|是| C{影响世界/物品/玩家？}
+    C -->|是| D[服务器——权威性的]
+    C -->|否| E{仅 UI 或视觉？}
+    E -->|是| F[客户端]
+    E -->|否| D
+    B -->|否| G{读取输入或显示 UI？}
+    G -->|是| F
+    G -->|否| H{共享数据类？}
+    H -->|是| I[3_Game——两侧]
+    H -->|否| D
 ```
 
-### Responsibility Matrix
+### 职责矩阵
 
-| Task | Where | Why |
+| 任务 | 位置 | 原因 |
 |------|-------|-----|
-| Spawn entities | Server | Prevents item duplication |
-| Apply damage | Server | Prevents god mode hacks |
-| Delete entities | Server | Prevents grief exploits |
-| Save player data | Server | Persistent server-side storage |
-| Load configs | Server | Server controls game rules |
-| Validate actions | Server | Anti-cheat enforcement |
-| Check permissions | Server | Client cannot self-authorize |
-| Show UI panels | Client | Server has no display |
-| Read keyboard/mouse | Client | Server has no input devices |
-| Play sounds | Client | Server has no audio output |
-| Render effects | Client | Server has no GPU |
-| Display notifications | Client | Visual feedback for the player |
-| Send chat messages | Both | Client sends, server broadcasts |
-| Sync config to client | Both | Server sends, client stores locally |
-| Track nearby entities | Both | Server spawns, client renders |
+| 生成实体 | 服务器 | 防止物品复制 |
+| 施加伤害 | 服务器 | 防止无敌外挂 |
+| 删除实体 | 服务器 | 防止恶意利用 |
+| 保存玩家数据 | 服务器 | 持久化服务器端存储 |
+| 加载配置 | 服务器 | 服务器控制游戏规则 |
+| 验证动作 | 服务器 | 反作弊执行 |
+| 检查权限 | 服务器 | 客户端不能自我授权 |
+| 显示 UI 面板 | 客户端 | 服务器没有显示器 |
+| 读取键盘/鼠标 | 客户端 | 服务器没有输入设备 |
+| 播放声音 | 客户端 | 服务器没有音频输出 |
+| 渲染效果 | 客户端 | 服务器没有 GPU |
+| 显示通知 | 客户端 | 给玩家的视觉反馈 |
+| 发送聊天消息 | 两者 | 客户端发送，服务器广播 |
+| 同步配置到客户端 | 两者 | 服务器发送，客户端本地存储 |
 
 ---
 
-## Script Layer and Side Matrix
+## 脚本层与侧面矩阵
 
-The 5-layer hierarchy (Chapter 2.1) intersects with the server-client split. Not all layers run on all sides in the same way:
+5 层层次结构（第 2.1 章）与服务器-客户端分离交叉。
 
-### Full Matrix
-
-| 层级 | Dedicated Server | Client | Listen Server | 备注 |
+| 层 | 专用服务器 | 客户端 | 监听服务器 | 备注 |
 |-------|:---:|:---:|:---:|-------|
-| `1_Core` | Compiled | Compiled | Compiled | Identical on all sides |
-| `2_GameLib` | Compiled | Compiled | Compiled | Identical on all sides |
-| `3_Game` | Compiled | Compiled | Compiled | Shared types, configs, RPCs |
-| `4_World` | Compiled | Compiled | Compiled | Entities exist on both sides |
-| `5_Mission` (MissionServer) | Runs | Skipped | Runs | Server startup/shutdown |
-| `5_Mission` (MissionGameplay) | Skipped | Runs | Runs | Client UI/HUD init |
+| `1_Core` | 编译 | 编译 | 编译 | 所有侧面相同 |
+| `2_GameLib` | 编译 | 编译 | 编译 | 所有侧面相同 |
+| `3_Game` | 编译 | 编译 | 编译 | 共享类型、配置、RPC |
+| `4_World` | 编译 | 编译 | 编译 | 实体存在于两侧 |
+| `5_Mission`（MissionServer） | 运行 | 跳过 | 运行 | 服务器启动/关闭 |
+| `5_Mission`（MissionGameplay） | 跳过 | 运行 | 运行 | 客户端 UI/HUD 初始化 |
 
-### What This Means in Practice
+第 1 到 4 层在**所有侧面**编译和运行。代码是相同的。这就是为什么实体类定义、配置类和 RPC 常量都在 `3_Game` 或 `4_World` 中——两侧都需要它们。
 
-Layers 1 through 4 compile and run on **all sides**. The code is the same. This is why entity class definitions, config classes, and RPC constants all live in `3_Game` or `4_World` -- both sides need them.
-
-Layer 5 (`5_Mission`) is where the split becomes explicit:
-- `MissionServer` is a class that only exists on the server (and listen server). It handles server-side initialization, update loops, and cleanup.
-- `MissionGameplay` is a class that only exists on the client (and listen server). It handles client-side UI, HUD, and player-facing features.
-
-When you write `modded class MissionServer`, that code runs on the dedicated server. When you write `modded class MissionGameplay`, that code runs on the client.
-
-```c
-// Server-side mission hook -- runs on dedicated server and listen server
-modded class MissionServer
-{
-    override void OnInit()
-    {
-        super.OnInit();
-        // Initialize server-side managers
-        Print("Server starting up");
-    }
-};
-
-// Client-side mission hook -- runs on client and listen server
-modded class MissionGameplay
-{
-    override void OnInit()
-    {
-        super.OnInit();
-        // Initialize client-side UI
-        Print("Client starting up");
-    }
-};
-```
+第 5 层（`5_Mission`）是分离变得明确的地方：
+- `MissionServer` 是一个仅在服务器（和监听服务器）上存在的类。
+- `MissionGameplay` 是一个仅在客户端（和监听服务器）上存在的类。
 
 ---
 
-## Preprocessor Guards
+## 预处理器守卫
 
-Enforce Script supports preprocessor directives that let you conditionally compile code based on the execution context.
+### SERVER 定义
 
-### The SERVER Define
-
-The engine automatically defines `SERVER` when compiling for a dedicated server. This is a **compile-time** check, not a runtime check:
+引擎在为专用服务器编译时自动定义 `SERVER`。这是**编译时**检查，不是运行时检查：
 
 ```c
 #ifdef SERVER
-    // This code is ONLY compiled on the server
-    // It does not exist in the client binary at all
+    // 此代码仅在服务器上编译
+    // 客户端二进制文件中根本不存在
 #endif
 
 #ifndef SERVER
-    // This code is ONLY compiled on the client
-    // The server will not see this code
+    // 此代码仅在客户端上编译
+    // 服务器不会看到此代码
 #endif
 ```
 
-### 何时使用 Preprocessor Guards vs Runtime Checks
+### 何时使用预处理器守卫与运行时检查
 
-| 方法 | When to Use | 示例 |
+| 方法 | 何时使用 | 示例 |
 |----------|-------------|---------|
-| `#ifndef SERVER` | Wrapping entire class definitions that should only exist on client | `modded class MissionGameplay` in a shared mod |
-| `#ifdef SERVER` | Wrapping entire class definitions that should only exist on server | Server-only helper classes |
-| `GetGame().IsServer()` | Runtime branching within code that runs on both sides | Entity update logic that differs per side |
-| `GetGame().IsClient()` | Runtime branching within code that runs on both sides | Playing effects only on client |
+| `#ifndef SERVER` | 包裹应仅在客户端存在的整个类定义 | 共享模组中的 `modded class MissionGameplay` |
+| `#ifdef SERVER` | 包裹应仅在服务器存在的整个类定义 | 仅服务器的辅助类 |
+| `GetGame().IsServer()` | 在两侧都运行的代码中的运行时分支 | 每侧不同的实体更新逻辑 |
+| `GetGame().IsClient()` | 在两侧都运行的代码中的运行时分支 | 仅在客户端播放效果 |
 
-### Real 示例： Client Mission Hook in a Shared Mod
+### 真实案例：共享模组中的客户端 Mission 钩子
 
-When your client mod (`type = "mod"`) contains a `modded class MissionGameplay`, you MUST wrap it in `#ifndef SERVER`. Otherwise, the dedicated server will try to compile it and fail because `MissionGameplay` does not exist on the server:
+当你的客户端模组（`type = "mod"`）包含 `modded class MissionGameplay` 时，你**必须**用 `#ifndef SERVER` 包裹它。否则，专用服务器会尝试编译它并失败，因为 `MissionGameplay` 在服务器上不存在：
 
 ```c
-// In the shared client mod (type = "mod")
-// This file is compiled on BOTH server and client
-// Without the guard, the server would crash on the undefined MissionGameplay class
-
 #ifndef SERVER
 modded class MissionGameplay
 {
@@ -524,61 +444,28 @@ modded class MissionGameplay
 #endif
 ```
 
-### Combining Guards for Optional Dependencies
-
-You can stack preprocessor guards for fine-grained control:
-
-```c
-// Only compile if StarDZ Core is loaded AND we are on the client
-#ifdef STARDZ_CORE
-#ifndef SERVER
-modded class MissionGameplay
-{
-    override void OnInit()
-    {
-        super.OnInit();
-        // Register with Core's admin panel -- client side only
-        StarDZCore core = StarDZCore.GetInstance();
-        if (core)
-        {
-            ref StarDZModInfo info = new StarDZModInfo("MyMod", "My Mod", "1.0");
-            core.RegisterMod(info);
-        }
-    }
-};
-#endif
-#endif
-```
-
 ---
 
-## Common Server-Client Patterns
+## 常见的服务器-客户端模式
 
-### Pattern 1: Server-Side Validation with Client Feedback
+### 模式 1：服务器端验证配合客户端反馈
 
-The most fundamental pattern in multiplayer game modding. The client requests an action, the server validates it, and sends back the result.
+多人游戏模组开发中最基本的模式。客户端请求操作，服务器验证它，然后发回结果。
 
 ```c
 // ---------------------------------------------------------------
-// 3_Game: Shared RPC constants and data (both sides need these)
+// 3_Game：共享 RPC 常量和数据（两侧都需要这些）
 // ---------------------------------------------------------------
 class MyRPC
 {
-    static const int REQUEST_ACTION  = 85001;  // Client -> Server
-    static const int ACTION_RESULT   = 85002;  // Server -> Client
-}
-
-class MyActionData
-{
-    int m_ActionID;
-    bool m_Success;
-    string m_Message;
+    static const int REQUEST_ACTION  = 85001;  // 客户端 -> 服务器
+    static const int ACTION_RESULT   = 85002;  // 服务器 -> 客户端
 }
 ```
 
 ```c
 // ---------------------------------------------------------------
-// Client side: Send request, handle response
+// 客户端：发送请求，处理响应
 // ---------------------------------------------------------------
 class MyClientHandler
 {
@@ -587,33 +474,16 @@ class MyClientHandler
         if (!GetGame().IsClient())
             return;
 
-        // Send request to server
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(actionID);
         rpc.Send(null, MyRPC.REQUEST_ACTION, true);
-    }
-
-    void OnActionResult(ParamsReadContext ctx)
-    {
-        int actionID;
-        bool success;
-        string message;
-
-        ctx.Read(actionID);
-        ctx.Read(success);
-        ctx.Read(message);
-
-        if (success)
-            ShowSuccessUI(message);
-        else
-            ShowErrorUI(message);
     }
 }
 ```
 
 ```c
 // ---------------------------------------------------------------
-// Server side: Validate and respond
+// 服务器端：验证并响应
 // ---------------------------------------------------------------
 class MyServerHandler
 {
@@ -625,14 +495,14 @@ class MyServerHandler
         int actionID;
         ctx.Read(actionID);
 
-        // VALIDATE -- never trust client data
+        // 验证——永远不要信任客户端数据
         bool allowed = ValidateAction(sender, actionID);
 
-        // Execute if valid
+        // 如果有效则执行
         if (allowed)
             ExecuteAction(sender, actionID);
 
-        // Send result back to client
+        // 将结果发送回客户端
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(actionID);
         rpc.Write(allowed);
@@ -642,265 +512,65 @@ class MyServerHandler
 }
 ```
 
-### Pattern 2: Config Sync (Server to Client)
+### 模式 2：配置同步（服务器到客户端）
 
-The server owns the configuration. When a player connects, the server sends relevant settings to the client so the client can adjust its display accordingly.
+服务器拥有配置。当玩家连接时，服务器发送相关设置给客户端，以便客户端可以相应调整其显示。
 
-```c
-// ---------------------------------------------------------------
-// Server: Send config on player connect
-// ---------------------------------------------------------------
-modded class MissionServer
-{
-    void OnPlayerConnect(PlayerBase player)
-    {
-        PlayerIdentity identity = player.GetIdentity();
-        if (!identity)
-            return;
+### 模式 3：权限检查
 
-        // Send display settings to client
-        ScriptRPC rpc = new ScriptRPC();
-        rpc.Write(m_Config.m_ShowHUD);
-        rpc.Write(m_Config.m_HUDColor);
-        rpc.Write(m_Config.m_MaxDistance);
-        rpc.Send(null, MyRPC.SYNC_CONFIG, true, identity);
-    }
-}
-```
-
-```c
-// ---------------------------------------------------------------
-// Client: Receive and apply config
-// ---------------------------------------------------------------
-#ifndef SERVER
-class MyClientConfig
-{
-    bool m_ShowHUD;
-    int m_HUDColor;
-    float m_MaxDistance;
-
-    void OnConfigReceived(ParamsReadContext ctx)
-    {
-        ctx.Read(m_ShowHUD);
-        ctx.Read(m_HUDColor);
-        ctx.Read(m_MaxDistance);
-
-        // Apply to local UI
-        UpdateHUDVisibility();
-    }
-}
-#endif
-```
-
-### Pattern 3: Entity State Sync
-
-Entities that exist on both server and client often need to synchronize custom state. The server computes the state, then sends it to nearby clients via RPC.
-
-```c
-// ---------------------------------------------------------------
-// Server: Broadcast AI state to nearby players
-// ---------------------------------------------------------------
-void SyncStateToClients(SDZ_AIEntity ai)
-{
-    if (!GetGame().IsServer())
-        return;
-
-    ScriptRPC rpc = new ScriptRPC();
-    rpc.Write(ai.GetID());
-    rpc.Write(ai.GetBehaviorState());
-    rpc.Write(ai.IsInCombat());
-
-    // Send to all clients within 200m
-    rpc.Send(ai, MyRPC.SYNC_STATE, true);
-}
-```
-
-```c
-// ---------------------------------------------------------------
-// Client: Receive and display AI state
-// ---------------------------------------------------------------
-void OnStateReceived(SDZ_AIEntity ai, ParamsReadContext ctx)
-{
-    if (!GetGame().IsClient())
-        return;
-
-    int entityID, behaviorState;
-    bool inCombat;
-
-    ctx.Read(entityID);
-    ctx.Read(behaviorState);
-    ctx.Read(inCombat);
-
-    // Update client-side visual state
-    ai.SetClientBehaviorState(behaviorState);
-    ai.SetClientCombatIndicator(inCombat);
-}
-```
-
-### Pattern 4: Permission Checking
-
-Permissions are always checked on the server. The client may cache permission data for UI purposes (e.g., graying out buttons), but the server is the final authority.
-
-```c
-// ---------------------------------------------------------------
-// Server: Check permission before executing admin command
-// ---------------------------------------------------------------
-void OnAdminCommand(PlayerIdentity sender, ParamsReadContext ctx)
-{
-    if (!GetGame().IsServer())
-        return;
-
-    string command;
-    ctx.Read(command);
-
-    // Server-side permission check -- the ONLY check that matters
-    if (!HasPermission(sender.GetId(), "admin.commands." + command))
-    {
-        SendDenied(sender, "Insufficient permissions");
-        return;
-    }
-
-    ExecuteAdminCommand(command);
-}
-```
+权限始终在服务器上检查。客户端可以缓存权限数据用于 UI 目的（例如灰显按钮），但服务器是最终权威。
 
 ---
 
-## Listen Server Gotchas
+## 监听服务器注意事项
 
-The listen server is the most treacherous environment because it blurs the line between server and client. Here are the pitfalls:
+监听服务器是最危险的环境，因为它模糊了服务器和客户端之间的界限。
 
-### 1. Both IsServer() and IsClient() Are True
+### 1. IsServer() 和 IsClient() 都为 True
 
 ```c
 void MyFunction()
 {
     if (GetGame().IsServer())
     {
-        // This runs on listen server
+        // 在监听服务器上运行
         DoServerThing();
     }
 
     if (GetGame().IsClient())
     {
-        // This ALSO runs on listen server
+        // 在监听服务器上也运行
         DoClientThing();
     }
 
-    // On listen server, BOTH branches execute!
+    // 在监听服务器上，两个分支都执行！
 }
 ```
 
-**Fix:** If you need exclusive branches, use `else if` or check `IsDedicatedServer()`:
+**修复：**如果需要互斥分支，使用 `else if` 或检查 `IsDedicatedServer()`。
 
-```c
-void MyFunction()
-{
-    if (GetGame().IsDedicatedServer())
-    {
-        // Dedicated server only
-        DoServerOnlyThing();
-    }
-    else if (GetGame().IsClient())
-    {
-        // Client OR listen server
-        DoClientThing();
-    }
-}
-```
+### 2. MissionServer 和 MissionGameplay 都运行
 
-### 2. MissionServer AND MissionGameplay Both Run
+在监听服务器上，`modded class MissionServer` 和 `modded class MissionGameplay` 都执行其钩子。如果你在两者中初始化相同的管理器，你会得到两个实例。
 
-On a listen server, both `modded class MissionServer` and `modded class MissionGameplay` execute their hooks. If you initialize the same manager in both, you get two instances:
+### 3. GetGame().GetPlayer() 在监听服务器上有效
 
-```c
-// BAD: Creates two instances on listen server
-modded class MissionServer
-{
-    override void OnInit()
-    {
-        super.OnInit();
-        m_Manager = new MyManager();  // Instance 1
-    }
-}
+在专用服务器上，`GetGame().GetPlayer()` 始终返回 null。在监听服务器上，它返回主机玩家。意外依赖这一点的代码在测试时会工作，但在真实服务器上会崩溃。
 
-modded class MissionGameplay
-{
-    override void OnInit()
-    {
-        super.OnInit();
-        m_Manager = new MyManager();  // Instance 2 on listen server!
-    }
-}
-```
+### 4. 在监听服务器上测试会掩盖错误
 
-**Fix:** Use server/client specific subclasses or guard with context checks:
-
-```c
-modded class MissionServer
-{
-    override void OnInit()
-    {
-        super.OnInit();
-        m_ServerManager = new MyServerManager();  // Server-side only
-    }
-}
-
-#ifndef SERVER
-modded class MissionGameplay
-{
-    override void OnInit()
-    {
-        super.OnInit();
-        m_ClientUI = new MyClientUI();  // Client-side only
-    }
-}
-#endif
-```
-
-### 3. GetGame().GetPlayer() Works on Listen Server
-
-On a dedicated server, `GetGame().GetPlayer()` always returns null. On a listen server, it returns the host player. Code that accidentally relies on this will work during testing but crash on a real server:
-
-```c
-// BAD: Works on listen server, crashes on dedicated
-void DoServerThing()
-{
-    PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
-    // player is null on dedicated server!
-    player.SetHealth(100);  // NULL REFERENCE CRASH
-}
-
-// GOOD: Get the player through proper server-side methods
-void DoServerThing(PlayerBase player)
-{
-    if (!player)
-        return;
-
-    player.SetHealth(100);
-}
-```
-
-### 4. Testing on Listen Server Masks Bugs
-
-一个常见的陷阱: you test your mod on a listen server, everything works, you publish it, and it crashes on every dedicated server. This happens because:
-
-- Types that exist only in `MissionGameplay` are available on listen server
-- `GetPlayer()` returns a value on listen server
-- Both server and client code paths run in the same process, so missing RPCs do not show errors (the data is already local)
-
-**Always test on a dedicated server before publishing.** Listen server testing is useful for rapid iteration, but it is not a substitute for proper dedicated server testing.
+**始终在专用服务器上测试后再发布。**监听服务器测试对快速迭代很有用，但不能替代正确的专用服务器测试。
 
 ---
 
-## Dependency Between Split Mods
+## 分离模组之间的依赖
 
-### requiredAddons[] Controls Load Order
+### requiredAddons[] 控制加载顺序
 
-When you split a mod into client and server packages, the server package MUST declare the client package as a dependency:
+当你将模组分为客户端和服务器包时，服务器包**必须**将客户端包声明为依赖：
 
 ```cpp
-// Client package: config.cpp
+// 客户端包：config.cpp
 class CfgPatches
 {
     class SDZ_AI_Scripts
@@ -909,243 +579,100 @@ class CfgPatches
     };
 };
 
-// Server package: config.cpp
+// 服务器包：config.cpp
 class CfgPatches
 {
     class SDZA_Scripts
     {
         requiredAddons[] = { "DZ_Scripts", "SDZ_AI_Scripts", "SDZ_Core_Scripts" };
         //                                 ^^^^^^^^^^^^^^^^
-        //                     Server depends on client package
+        //                     服务器依赖客户端包
     };
 };
 ```
 
-This ensures:
-1. The client package compiles first
-2. The server package can reference all types from the client package
-3. Entity class definitions from the client package are available to server logic
+### defines[] 用于可选依赖检测
 
-### defines[] for Optional Dependency Detection
-
-The `defines[]` array in `CfgMods` creates preprocessor symbols that other mods can check with `#ifdef`:
-
-```cpp
-// StarDZ_AI client mod defines:
-defines[] = { "STARDZ_AI" };
-
-// StarDZ_AI server mod defines:
-defines[] = { "STARDZ_AI", "STARDZ_AISERVER" };
-```
-
-Other mods can then conditionally compile code:
+`CfgMods` 中的 `defines[]` 数组创建预处理器符号，其他模组可以用 `#ifdef` 检查：
 
 ```c
-// In another mod that optionally integrates with StarDZ AI
+// 在另一个可选集成 StarDZ AI 的模组中
 #ifdef STARDZ_AI
-    // AI mod is loaded -- enable integration features
+    // AI 模组已加载——启用集成功能
     void OnAIEntitySpawned(SDZ_AIEntity ai)
     {
-        // React to AI spawns
+        // 响应 AI 生成
     }
 #endif
 ```
 
-### Soft vs Hard Dependencies
+### 软依赖与硬依赖
 
-**Hard dependency:** Listed in `requiredAddons[]`. The engine will not load your mod if the dependency is missing. Use for mods that MUST be present.
+**硬依赖：**列在 `requiredAddons[]` 中。如果依赖缺失，引擎不会加载你的模组。
 
-```cpp
-requiredAddons[] = { "DZ_Scripts", "SDZ_Core_Scripts" };
-// If SDZ_Core_Scripts is missing, this mod will not load
-```
-
-**Soft dependency:** Detected via `#ifdef` at compile time. The mod loads regardless, but enables extra features when the dependency is present.
-
-```c
-// Soft dependency on StarDZ Core
-#ifdef STARDZ_CORE
-class SDZ_AIAdminConfig : StarDZConfigBase
-{
-    // Only exists if Core is loaded
-};
-#endif
-
-// Fallback when Core is not available
-#ifndef STARDZ_CORE
-class SDZ_AIAdminConfig
-{
-    // Standalone version without Core integration
-};
-#endif
-```
+**软依赖：**通过 `#ifdef` 在编译时检测。模组无论如何都会加载，但在依赖存在时启用额外功能。
 
 ---
 
-## Real-World Split Examples
+## 真实分离案例
 
-### Example 1: StarDZ AI (Client + Server)
-
-StarDZ AI splits into two packages with clear separation of concerns:
+### 案例 1：StarDZ AI（客户端 + 服务器）
 
 ```
-StarDZ_AI/                              <-- Development root
-  StarDZ_AI/                            <-- Client package (type = "mod")
-    mod.cpp
-    stringtable.csv
-    GUI/
-      layouts/
-        sdz_ai_interact_prompt.layout   <-- Client-only: interaction UI
-        sdz_ai_voice_bubble.layout      <-- Client-only: speech bubble
+StarDZ_AI/                              <-- 开发根目录
+  StarDZ_AI/                            <-- 客户端包（type = "mod"）
     Scripts/
-      config.cpp                        <-- defines[] = { "STARDZ_AI" }
       3_Game/StarDZ_AI/
-        SDZ_AI_Config.c                 <-- Shared config class
-        SDZ_AIConstants.c               <-- Shared constants
-        SDZ_AIRPC.c                     <-- Shared RPC IDs + data structs
+        SDZ_AI_Config.c                 <-- 共享配置类
+        SDZ_AIConstants.c               <-- 共享常量
+        SDZ_AIRPC.c                     <-- 共享 RPC ID + 数据结构
       4_World/StarDZ_AI/
-        SDZ_AIEntity.c                  <-- Entity definition (both sides)
-        SDZ_AIPlayerPatches.c           <-- Player interaction patches
+        SDZ_AIEntity.c                  <-- 实体定义（两侧）
       5_Mission/StarDZ_AI/
-        SDZ_AI_Register.c              <-- Core registration (guarded)
-        SDZ_AIClientMission.c           <-- Client UI (#ifndef SERVER)
-        SDZ_AIClientUI.c               <-- UI management
+        SDZ_AIClientMission.c           <-- 客户端 UI（#ifndef SERVER）
 
-  StarDZ_AI_Server/                     <-- Server package (type = "servermod")
-    mod.cpp
+  StarDZ_AI_Server/                     <-- 服务器包（type = "servermod"）
     Scripts/
-      config.cpp                        <-- depends on SDZ_AI_Scripts
-      3_Game/StarDZ_AIServer/
-        SDZ_AIAdminConfig.c             <-- Admin panel config bridge
-        SDZ_AIConfig.c                  <-- Server config loading
-        SDZ_AILoadout.c                 <-- Loadout definitions
       4_World/StarDZ_AIServer/
-        SDZ_AIAPI.c                     <-- Developer API
-        SDZ_AIBrain.c                   <-- AI decision making
-        SDZ_AICombat.c                  <-- Combat behavior
-        SDZ_AIEvents.c                  <-- Event handling
-        SDZ_AIGOAP.c                    <-- Goal-oriented action planning
-        SDZ_AIGroup.c                   <-- Group coordination
-        SDZ_AIInteraction.c             <-- Player interaction handling
-        SDZ_AILogger.c                  <-- Server-side logging
-        SDZ_AIManager.c                 <-- Main AI manager
-        SDZ_AIMemory.c                  <-- Memory/knowledge base
-        SDZ_AIMovement.c               <-- Navigation
-        SDZ_AINavmesh.c                <-- Pathfinding
-        SDZ_AIPerception.c             <-- Sight/hearing/awareness
-        SDZ_AISoundPropagation.c       <-- Sound detection
-        SDZ_AISpawner.c                <-- Spawn logic
-      5_Mission/StarDZ_AIServer/
-        SDZ_AIServerMission.c           <-- MissionServer hook
+        SDZ_AIBrain.c                   <-- AI 决策
+        SDZ_AICombat.c                  <-- 战斗行为
+        SDZ_AIManager.c                 <-- 主 AI 管理器
+        SDZ_AIPerception.c             <-- 视觉/听觉/感知
+        SDZ_AISpawner.c                <-- 生成逻辑
 ```
 
-Notice the pattern:
-- **Client package** has 7 script files: constants, RPCs, entity definitions, UI
-- **Server package** has 19 script files: the entire AI brain, perception, combat system
-- The bulk of the logic is server-side and invisible to players
-
-### Example 2: DayZ Expansion AI
-
-Expansion uses a different structure -- all scripts in one directory tree, but split into multiple PBOs:
-
-```
-DayZExpansion/AI/
-  Animations/config.cpp          <-- Animation overrides PBO
-  DebugWeapons/config.cpp        <-- Debug weapons PBO
-  Gear/config.cpp                <-- AI gear/clothing PBO
-  GUI/                           <-- GUI resources PBO
-    layouts/
-    config.cpp
-  Scripts/                       <-- Main scripts PBO
-    config.cpp
-    1_Core/                      <-- Engine-level AI foundations
-    3_Game/                      <-- Shared types
-    4_World/                     <-- Entity and behavior code
-    5_Mission/                   <-- Mission hooks
-    AI/                          <-- AI-specific subfolder
-    Common/                      <-- Shared across all layers
-    Data/                        <-- Data files
-    FSM/                         <-- Finite state machine definitions
-    inputs.xml                   <-- Input bindings
-  Sounds/                        <-- Audio PBO
-```
-
-Expansion keeps everything in one `type = "mod"` package but uses internal `#ifdef` guards to separate server and client code paths. This is an alternative approach -- less secure (clients can decompile everything) but simpler to manage.
-
-### Example 3: StarDZ Missions (Client + Server)
-
-```
-StarDZ_Missions/
-  StarDZ_Missions/                      <-- Client (type = "mod")
-    Scripts/
-      3_Game/StarDZ_Missions/
-        SDZ_Constants.c                 <-- Mission type enums, RPC IDs
-        SDZ_MissionsConfig.c            <-- Display settings
-        SDZ_RPC.c                       <-- RPC definitions
-      4_World/StarDZ_Missions/
-        SDZ_RadioHelper.c               <-- Radio proximity helper
-      5_Mission/StarDZ_Missions/
-        SDZ_ClientHandler.c             <-- Client UI for missions
-        SDZ_MissionsAdminModule.c       <-- Admin panel module
-
-  StarDZ_Missions_Server/              <-- Server (type = "servermod")
-    Scripts/
-      3_Game/StarDZ_MissionsServer/
-        SDZ_Config.c                    <-- Server config loader
-        SDZ_Logger.c                    <-- Server-side mission logging
-        SDZ_MissionData.c               <-- Mission data structures
-      4_World/StarDZ_MissionsServer/
-        SDZ_Instance.c                  <-- Active mission instance
-        SDZ_Spawner.c                   <-- Loot and objective spawning
-      5_Mission/StarDZ_MissionsServer/
-        SDZ_ServerMission.c             <-- MissionServer hook
-```
+注意模式：
+- **客户端包**有 7 个脚本文件：常量、RPC、实体定义、UI
+- **服务器包**有 19 个脚本文件：整个 AI 大脑、感知、战斗系统
+- 大部分逻辑在服务器端，对玩家不可见
 
 ---
 
 ## 常见错误
 
-### Mistake 1: Running Server Logic on Client
+### 错误 1：在客户端运行服务器逻辑
 
 ```c
-// WRONG: This runs on the client -- any player can spawn items!
+// 错误：这在客户端上运行——任何玩家都可以生成物品！
 void OnButtonClick()
 {
     GetGame().CreateObjectEx("M4A1", GetGame().GetPlayer().GetPosition(), ECE_PLACE_ON_SURFACE);
 }
 
-// RIGHT: Client requests, server validates and spawns
+// 正确：客户端请求，服务器验证并生成
 void OnButtonClick()
 {
-    // Client sends request
     ScriptRPC rpc = new ScriptRPC();
     rpc.Write("M4A1");
     rpc.Send(null, MyRPC.SPAWN_REQUEST, true);
 }
-
-// Server handler
-void OnSpawnRequest(PlayerIdentity sender, ParamsReadContext ctx)
-{
-    if (!GetGame().IsServer())
-        return;
-
-    // Validate: is this player an admin?
-    if (!IsAdmin(sender.GetId()))
-        return;
-
-    string className;
-    ctx.Read(className);
-
-    // Server spawns the item
-    GetGame().CreateObjectEx(className, GetPlayerPosition(sender), ECE_PLACE_ON_SURFACE);
-}
 ```
 
-### Mistake 2: UI Code in Server-Only Mod
+### 错误 2：UI 代码在仅服务器模组中
 
 ```c
-// WRONG: This is in a type = "servermod" package
-// The server has no display -- widget creation fails silently or crashes
+// 错误：这在 type = "servermod" 包中
+// 服务器没有显示器——控件创建会静默失败或崩溃
 class MyServerPanel
 {
     Widget m_Root;
@@ -1153,61 +680,48 @@ class MyServerPanel
     void Show()
     {
         m_Root = GetGame().GetWorkspace().CreateWidgets("MyMod/GUI/layouts/panel.layout");
-        // CRASH: GetWorkspace() returns null on dedicated server
+        // 崩溃：GetWorkspace() 在专用服务器上返回 null
     }
 }
 ```
 
-**Fix:** All UI code belongs in the client package (`type = "mod"`), wrapped in `#ifndef SERVER`.
+**修复：**所有 UI 代码属于客户端包（`type = "mod"`），包裹在 `#ifndef SERVER` 中。
 
-### Mistake 3: GetGame().GetPlayer() on Server
+### 错误 3：在服务器上使用 GetGame().GetPlayer()
 
 ```c
-// WRONG: GetPlayer() is ALWAYS null on dedicated server
+// 错误：GetPlayer() 在专用服务器上始终为 null
 modded class MissionServer
 {
     override void OnInit()
     {
         super.OnInit();
         PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
-        // player is null on dedicated!
-        string name = player.GetIdentity().GetName();  // NULL CRASH
+        // player 在专用服务器上为 null！
+        string name = player.GetIdentity().GetName();  // 空引用崩溃
     }
 }
 ```
 
-**Fix:** On the server, players are passed to you through events, RPCs, or iteration:
+**修复：**在服务器上，玩家通过事件、RPC 或迭代传递给你。
+
+### 错误 4：忘记监听服务器兼容性
 
 ```c
-modded class MissionServer
-{
-    override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)
-    {
-        super.InvokeOnConnect(player, identity);
-        // 'player' and 'identity' are provided by the engine
-        if (identity)
-            Print("Player connected: " + identity.GetName());
-    }
-}
-```
-
-### Mistake 4: Forgetting Listen Server Compatibility
-
-```c
-// WRONG: Assumes IsServer() and IsClient() are mutually exclusive
+// 错误：假设 IsServer() 和 IsClient() 互斥
 void OnEntityCreated(EntityAI entity)
 {
     if (GetGame().IsServer())
     {
         RegisterEntity(entity);
-        return;  // Early return skips client code
+        return;  // 提前返回跳过了客户端代码
     }
 
-    // On listen server, this never runs because IsServer() was true
+    // 在监听服务器上，这永远不会运行，因为 IsServer() 为 true
     UpdateClientDisplay(entity);
 }
 
-// RIGHT: Handle both sides independently
+// 正确：独立处理两侧
 void OnEntityCreated(EntityAI entity)
 {
     if (GetGame().IsServer())
@@ -1222,127 +736,73 @@ void OnEntityCreated(EntityAI entity)
 }
 ```
 
-### Mistake 5: Not Using #ifdef for Optional Mod Detection
+### 错误 5：将共享类型仅放在服务器包中
 
 ```c
-// WRONG: Crashes if StarDZ Core is not loaded
-class MyModInit
-{
-    void Init()
-    {
-        StarDZCore core = StarDZCore.GetInstance();  // COMPILE ERROR if Core not present
-        core.RegisterMod(info);
-    }
-}
+// 错误：RPC 数据类仅在 servermod 中定义
+// 客户端无法反序列化 RPC 因为它不知道这个类
 
-// RIGHT: Guard with preprocessor directive
-class MyModInit
-{
-    void Init()
-    {
-        #ifdef STARDZ_CORE
-        StarDZCore core = StarDZCore.GetInstance();
-        if (core)
-        {
-            ref StarDZModInfo info = new StarDZModInfo("MyMod", "My Mod", "1.0");
-            core.RegisterMod(info);
-        }
-        #endif
-    }
-}
-```
-
-### Mistake 6: Putting Shared Types Only in the Server Package
-
-```c
-// WRONG: RPC data class defined only in servermod
-// Client cannot deserialize the RPC because it does not know the class
-
-// In MyModServer (type = "servermod"):
-class MyStateData  // Client has never heard of this class
+// 在 MyModServer（type = "servermod"）中：
+class MyStateData  // 客户端从未听说过这个类
 {
     int m_State;
     float m_Value;
 }
 ```
 
-**Fix:** Shared data structures (RPC data, entity definitions, config classes) go in the client package (`type = "mod"`) so both sides have them:
-
-```c
-// In MyMod (type = "mod") -- 3_Game layer:
-class MyStateData  // Now both server and client know this class
-{
-    int m_State;
-    float m_Value;
-}
-```
-
-### Mistake 7: Hardcoded Server File Paths on Client
-
-```c
-// WRONG: Client cannot access server's profile directory
-void LoadConfig()
-{
-    string path = "$profile:MyMod/config.json";
-    // On client, $profile: points to the CLIENT's profile, not the server's
-    // The config file does not exist there
-}
-```
-
-**Fix:** The server loads configs and sends relevant data to clients via RPC. Clients never read server config files directly.
+**修复：**共享数据结构（RPC 数据、实体定义、配置类）放在客户端包（`type = "mod"`）中，这样两侧都有。
 
 ---
 
-## Decision Flowchart
+## 决策流程图
 
-Use this to determine where a piece of code belongs:
+使用此图确定一段代码属于哪里：
 
 ```
-                Does it create/destroy entities?
+                它是否创建/销毁实体？
                        /              \
-                     YES               NO
+                     是                否
                       |                 |
-              Does it show UI?     Does it show UI?
+              它是否显示 UI？     它是否显示 UI？
                 /        \           /          \
-              YES        NO        YES           NO
+              是          否        是            否
                |          |         |             |
-           ERROR!     SERVER    CLIENT        Is it a data class
-        (entities =              only         or RPC constant?
-         server,                               /          \
-         UI = client                         YES           NO
-         -- redesign)                         |             |
-                                          SHARED        Does it read/write
-                                       (client mod)     files or validate?
+           错误！      服务器    客户端        是数据类
+        （实体 =               仅            还是 RPC 常量？
+         服务器，                               /          \
+         UI = 客户端                          是            否
+         ——重新设计）                          |             |
+                                          共享          是否读/写
+                                       （客户端模组）    文件或验证？
                                                          /          \
-                                                       YES           NO
+                                                       是            否
                                                         |             |
-                                                     SERVER        SHARED
-                                                  (servermod)   (client mod,
-                                                                 guard with
-                                                                 IsServer/
-                                                                 IsClient)
+                                                     服务器        共享
+                                                  （servermod）  （客户端模组，
+                                                                 用 IsServer/
+                                                                 IsClient 守卫）
 ```
 
 ---
 
-## 总结 Checklist
+## 总结清单
 
-Before publishing a split mod, verify:
+在发布分离模组之前，验证：
 
-- [ ] Client package uses `type = "mod"` in both `mod.cpp` and `config.cpp`
-- [ ] Server package uses `type = "servermod"` in both `mod.cpp` and `config.cpp`
-- [ ] Server `config.cpp` lists client package in `requiredAddons[]`
-- [ ] All shared types (RPC data, entity classes, enums) are in the client package
-- [ ] All server logic (spawning, validation, AI brains) is in the server package
-- [ ] `MissionGameplay` modded classes are wrapped in `#ifndef SERVER`
-- [ ] No `GetGame().GetPlayer()` calls on server without null checks
-- [ ] No UI/widget code in the server package
-- [ ] Optional dependencies use `#ifdef` guards, not direct references
-- [ ] `defines[]` array matches between `mod.cpp` and `config.cpp`
-- [ ] Tested on a **dedicated server**, not just a listen server
-- [ ] Server config files are loaded server-side and synced via RPC, not read by clients
+- [ ] 客户端包在 `mod.cpp` 和 `config.cpp` 中都使用 `type = "mod"`
+- [ ] 服务器包在 `mod.cpp` 和 `config.cpp` 中都使用 `type = "servermod"`
+- [ ] 服务器 `config.cpp` 在 `requiredAddons[]` 中列出了客户端包
+- [ ] 所有共享类型（RPC 数据、实体类、枚举）在客户端包中
+- [ ] 所有服务器逻辑（生成、验证、AI 大脑）在服务器包中
+- [ ] `MissionGameplay` 的 modded 类包裹在 `#ifndef SERVER` 中
+- [ ] 服务器上没有不带空值检查的 `GetGame().GetPlayer()` 调用
+- [ ] 服务器包中没有 UI/控件代码
+- [ ] 可选依赖使用 `#ifdef` 守卫，而不是直接引用
+- [ ] `defines[]` 数组在 `mod.cpp` 和 `config.cpp` 之间匹配
+- [ ] 在**专用服务器**上测试过，不仅仅是监听服务器
+- [ ] 服务器配置文件在服务器端加载并通过 RPC 同步，而不是由客户端读取
 
 ---
 
-**Previous:** [Chapter 2.5: File Organization Best Practices](05-file-organization.md)
-**下一章:** [Part 3: GUI & Layout System](../03-gui-system/01-widget-types.md)
+**上一章：**[第 2.5 章：文件组织最佳实践](05-file-organization.md)
+**下一章：**[第三部分：GUI 与布局系统](../03-gui-system/01-widget-types.md)

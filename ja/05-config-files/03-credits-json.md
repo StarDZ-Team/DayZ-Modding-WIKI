@@ -4,30 +4,34 @@
 
 ---
 
+> **概要:** `Credits.json` ファイルは、ゲーム内のModメニューでDayZが表示するクレジット情報を定義します。チームメンバー、貢献者、謝辞を部門とセクションで整理して一覧表示します。見た目だけの機能ですが、開発チームに対するクレジット表示の標準的な方法です。
+
+---
+
 ## 目次
 
-- [Overview](#overview)
-- [File Location](#file-location)
-- [JSON Structure](#json-structure)
-- [How DayZ Displays Credits](#how-dayz-displays-credits)
-- [Using Localized Section Names](#using-localized-section-names)
-- [Templates](#templates)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+- [概要](#overview)
+- [ファイルの配置場所](#file-location)
+- [JSON構造](#json-structure)
+- [DayZでのクレジット表示方法](#how-dayz-displays-credits)
+- [ローカライズされたセクション名の使用](#using-localized-section-names)
+- [テンプレート](#templates)
+- [実際の例](#real-examples)
+- [よくある間違い](#common-mistakes)
 
 ---
 
 ## 概要
 
-When a player selects your mod in the DayZ launcher or in-game mod menu, the engine looks for a `Credits.json` file inside your mod's PBO. If found, the credits are displayed in a scrolling view organized into departments and sections --- similar to movie credits.
+プレイヤーがDayZランチャーまたはゲーム内のModメニューであなたのModを選択すると、エンジンはModのPBO内にある `Credits.json` ファイルを探します。見つかった場合、クレジットは部門とセクションに整理されたスクロール表示で表示されます --- 映画のクレジットに似ています。
 
-The file is optional. If absent, no credits section appears for your mod. But including one is good practice: it acknowledges your team's work and gives your mod a professional appearance.
+このファイルは任意です。存在しない場合、そのModのクレジットセクションは表示されません。しかし、含めることは良い慣行です：チームの作業を認め、Modにプロフェッショナルな外観を与えます。
 
 ---
 
-## File Location
+## ファイルの配置場所
 
-Place `Credits.json` inside a `Data` subfolder of your Scripts directory, or directly in the Scripts root:
+`Credits.json` をScriptsディレクトリの `Data` サブフォルダ内、またはScriptsルートに直接配置します：
 
 ```
 @MyMod/
@@ -35,17 +39,17 @@ Place `Credits.json` inside a `Data` subfolder of your Scripts directory, or dir
     MyMod_Scripts.pbo
       Scripts/
         Data/
-          Credits.json       <-- Common location (COT, Expansion, DayZ Editor)
-        Credits.json         <-- Also valid (DabsFramework, Colorful-UI)
+          Credits.json       <-- 一般的な配置場所 (COT, Expansion, DayZ Editor)
+        Credits.json         <-- こちらも有効 (DabsFramework, Colorful-UI)
 ```
 
-Both locations work. The engine scans the PBO contents for a file named `Credits.json` (case-sensitive on some platforms).
+どちらの場所でも動作します。エンジンはPBOの内容を `Credits.json` という名前のファイルでスキャンします（一部のプラットフォームでは大文字小文字が区別されます）。
 
 ---
 
-## JSON Structure
+## JSON構造
 
-The file uses a straightforward JSON structure with three levels of hierarchy:
+このファイルは3階層の分かりやすいJSON構造を使用します：
 
 ```json
 {
@@ -64,54 +68,54 @@ The file uses a straightforward JSON structure with three levels of hierarchy:
 }
 ```
 
-### Top-Level Fields
+### トップレベルフィールド
 
-| Field | Type | Required | Description |
+| フィールド | 型 | 必須 | 説明 |
 |-------|------|----------|-------------|
-| `Header` | string | No | Main title displayed at the top of the credits. If omitted, no header is shown. |
-| `Departments` | array | Yes | Array of department objects |
+| `Header` | string | いいえ | クレジットの上部に表示されるメインタイトル。省略すると、ヘッダーは表示されません。 |
+| `Departments` | array | はい | 部門オブジェクトの配列 |
 
-### Department Object
+### 部門オブジェクト
 
-| Field | Type | Required | Description |
+| フィールド | 型 | 必須 | 説明 |
 |-------|------|----------|-------------|
-| `DepartmentName` | string | Yes | Section header text. Can be empty `""` for visual grouping without a header. |
-| `Sections` | array | Yes | Array of section objects within this department |
+| `DepartmentName` | string | はい | セクションヘッダーテキスト。ヘッダーなしの視覚的グルーピングには空文字列 `""` を使用できます。 |
+| `Sections` | array | はい | この部門内のセクションオブジェクトの配列 |
 
-### Section Object
+### セクションオブジェクト
 
-Two variants exist in the wild for listing names. The engine supports both.
+名前のリスト表示には2つのバリアントが実際に使用されています。エンジンは両方をサポートします。
 
-**Variant 1: `Names` array** (used by MyFramework)
+**バリアント1: `Names` 配列** (MyMod Coreで使用)
 
-| Field | Type | Required | Description |
+| フィールド | 型 | 必須 | 説明 |
 |-------|------|----------|-------------|
-| `SectionName` | string | Yes | Sub-header within the department |
-| `Names` | array of strings | Yes | List of contributor names |
+| `SectionName` | string | はい | 部門内のサブヘッダー |
+| `Names` | 文字列の配列 | はい | 貢献者名のリスト |
 
-**Variant 2: `SectionLines` array** (used by COT, Expansion, DabsFramework)
+**バリアント2: `SectionLines` 配列** (COT, Expansion, DabsFrameworkで使用)
 
-| Field | Type | Required | Description |
+| フィールド | 型 | 必須 | 説明 |
 |-------|------|----------|-------------|
-| `SectionName` | string | Yes | Sub-header within the department |
-| `SectionLines` | array of strings | Yes | List of contributor names or text lines |
+| `SectionName` | string | はい | 部門内のサブヘッダー |
+| `SectionLines` | 文字列の配列 | はい | 貢献者名またはテキスト行のリスト |
 
-Both `Names` and `SectionLines` serve the same purpose. Use whichever you prefer --- the engine renders them identically.
+`Names` と `SectionLines` は同じ目的を果たします。お好みの方を使用してください --- エンジンは同じように描画します。
 
 ---
 
-## How DayZ Displays Credits
+## DayZでのクレジット表示方法
 
-The credits display follows this visual hierarchy:
+クレジット表示は以下の視覚的階層に従います：
 
 ```
 ╔══════════════════════════════════╗
-║         MY MOD NAME              ║  <-- Header (large, centered)
+║         MY MOD NAME              ║  <-- Header (大きく、中央揃え)
 ║                                  ║
-║     DEPARTMENT NAME              ║  <-- DepartmentName (medium, centered)
+║     DEPARTMENT NAME              ║  <-- DepartmentName (中くらい、中央揃え)
 ║                                  ║
-║     Section Name                 ║  <-- SectionName (small, centered)
-║     Person 1                     ║  <-- Names/SectionLines (list)
+║     Section Name                 ║  <-- SectionName (小さく、中央揃え)
+║     Person 1                     ║  <-- Names/SectionLines (リスト)
 ║     Person 2                     ║
 ║     Person 3                     ║
 ║                                  ║
@@ -124,14 +128,14 @@ The credits display follows this visual hierarchy:
 ╚══════════════════════════════════╝
 ```
 
-- The `Header` appears once at the top
-- Each `DepartmentName` acts as a major section divider
-- Each `SectionName` acts as a sub-heading
-- Names scroll vertically in the credits view
+- `Header` は上部に一度表示されます
+- 各 `DepartmentName` は主要なセクション区切りとして機能します
+- 各 `SectionName` はサブ見出しとして機能します
+- 名前はクレジットビューで縦にスクロールします
 
-### Empty Strings for Spacing
+### スペーシングのための空文字列
 
-Expansion uses empty `DepartmentName` and `SectionName` strings, plus whitespace-only entries in `SectionLines`, to create visual spacing:
+Expansionでは空の `DepartmentName` と `SectionName` 文字列、さらに `SectionLines` 内のスペースのみのエントリを使用して、視覚的なスペーシングを作成しています：
 
 ```json
 {
@@ -143,13 +147,13 @@ Expansion uses empty `DepartmentName` and `SectionName` strings, plus whitespace
 }
 ```
 
-This is a common trick for controlling visual layout in the credits scroll.
+これはクレジットスクロールの視覚的レイアウトを制御するための一般的なテクニックです。
 
 ---
 
-## Using Localized Section Names
+## ローカライズされたセクション名の使用
 
-Section names can reference stringtable keys using the `#` prefix, just like UI text:
+セクション名は、UIテキストと同様に `#` プレフィックスを使用してstringtableキーを参照できます：
 
 ```json
 {
@@ -158,9 +162,9 @@ Section names can reference stringtable keys using the `#` prefix, just like UI 
 }
 ```
 
-When the engine renders this, it resolves `#STR_EXPANSION_CREDITS_SCRIPTERS` to the localized text matching the player's language. This is useful if your mod supports multiple languages and you want the credits section headers to be translated.
+エンジンがこれを描画する際、`#STR_EXPANSION_CREDITS_SCRIPTERS` をプレイヤーの言語に一致するローカライズされたテキストに解決します。これは、Modが複数の言語をサポートしており、クレジットのセクションヘッダーを翻訳したい場合に便利です。
 
-Department names can also use stringtable references:
+部門名もstringtable参照を使用できます：
 
 ```json
 {
@@ -171,9 +175,9 @@ Department names can also use stringtable references:
 
 ---
 
-## Templates
+## テンプレート
 
-### Solo Developer
+### ソロ開発者
 
 ```json
 {
@@ -192,7 +196,7 @@ Department names can also use stringtable references:
 }
 ```
 
-### Small Team
+### 小規模チーム
 
 ```json
 {
@@ -223,7 +227,7 @@ Department names can also use stringtable references:
 }
 ```
 
-### Full Professional Structure
+### フルプロフェッショナル構造
 
 ```json
 {
@@ -287,20 +291,20 @@ Department names can also use stringtable references:
 
 ## 実際の例
 
-### MyFramework
+### MyMod Core
 
-A minimal but complete credits file using the `Names` variant:
+`Names` バリアントを使用した最小限ながら完全なクレジットファイルです：
 
 ```json
 {
-    "Header": "MyFramework",
+    "Header": "MyMod Core",
     "Departments": [
         {
             "DepartmentName": "Development",
             "Sections": [
                 {
                     "SectionName": "Framework",
-                    "Names": ["MyMod Team"]
+                    "Names": ["Documentation Team"]
                 }
             ]
         }
@@ -310,7 +314,7 @@ A minimal but complete credits file using the `Names` variant:
 
 ### Community Online Tools (COT)
 
-Uses the `SectionLines` variant with multiple sections and acknowledgments:
+複数のセクションと謝辞を含む `SectionLines` バリアントを使用しています：
 
 ```json
 {
@@ -351,7 +355,7 @@ Uses the `SectionLines` variant with multiple sections and acknowledgments:
 }
 ```
 
-Notable: COT omits the `Header` field entirely. The mod name comes from other metadata (config.cpp `CfgMods`).
+注目点：COTは `Header` フィールドを完全に省略しています。Mod名は他のメタデータ（config.cpp `CfgMods`）から取得されます。
 
 ### DabsFramework
 
@@ -386,32 +390,32 @@ Notable: COT omits the `Header` field entirely. The mod name comes from other me
 
 ### DayZ Expansion
 
-Expansion demonstrates the most sophisticated use of Credits.json, including:
-- Localized section names via stringtable references (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
-- Legal notices as a separate department
-- Empty department and section names for visual spacing
-- A supporters list with dozens of names
+Expansionは Credits.json の最も洗練された使用方法を示しています。以下を含みます：
+- stringtable参照によるローカライズされたセクション名（`#STR_EXPANSION_CREDITS_SCRIPTERS`）
+- 別の部門としての法的通知
+- 視覚的スペーシングのための空の部門名とセクション名
+- 多数の名前を含むサポーターリスト
 
 ---
 
 ## よくある間違い
 
-### Invalid JSON Syntax
+### 無効なJSON構文
 
-The most common issue. JSON is strict about:
-- **Trailing commas**: `["a", "b",]` is invalid JSON (the trailing comma after `"b"`)
-- **Single quotes**: Use `"double quotes"`, not `'single quotes'`
-- **Unquoted keys**: `DepartmentName` must be `"DepartmentName"`
+最も一般的な問題です。JSONは以下について厳密です：
+- **末尾のカンマ**: `["a", "b",]` は無効なJSONです（`"b"` の後の末尾のカンマ）
+- **シングルクォート**: `'single quotes'` ではなく `"double quotes"` を使用してください
+- **クォートなしのキー**: `DepartmentName` は `"DepartmentName"` でなければなりません
 
-Use a JSON validator before shipping.
+出荷前にJSONバリデータを使用してください。
 
-### Wrong File Name
+### ファイル名の間違い
 
-The file must be named exactly `Credits.json` (capital C). On case-sensitive file systems, `credits.json` or `CREDITS.JSON` will not be found.
+ファイル名は正確に `Credits.json`（大文字のC）でなければなりません。大文字小文字を区別するファイルシステムでは、`credits.json` や `CREDITS.JSON` は見つかりません。
 
-### Mixing Names and SectionLines
+### NamesとSectionLinesの混在
 
-Within a single section, use one or the other:
+1つのセクション内では、どちらか一方を使用してください：
 
 ```json
 {
@@ -421,8 +425,25 @@ Within a single section, use one or the other:
 }
 ```
 
-This is ambiguous. Pick one format and use it consistently throughout the file.
+これは曖昧です。1つの形式を選び、ファイル全体で一貫して使用してください。
 
-### Encoding Issues
+### エンコーディングの問題
 
-Save the file as UTF-8. Non-ASCII characters (accented names, CJK characters) require UTF-8 encoding to display correctly in-game.
+ファイルをUTF-8で保存してください。非ASCII文字（アクセント付きの名前、CJK文字）はゲーム内で正しく表示するためにUTF-8エンコーディングが必要です。
+
+---
+
+## ベストプラクティス
+
+- PBOにパッキングする前に、外部ツールでJSONを検証してください --- エンジンは不正なJSONに対して有用なエラーメッセージを提供しません。
+- 一貫性のために `SectionLines` バリアントを使用してください。これはCOT、Expansion、DabsFrameworkで使用されている形式です。
+- Modがサードパーティのアセット（フォント、アイコン、サウンド）を帰属表示要件付きでバンドルしている場合は、「Legal Notices」部門を含めてください。
+- `Header` フィールドを `mod.cpp` と `config.cpp` のModの `name` と一致させ、一貫したアイデンティティを維持してください。
+- 視覚的スペーシングのために空の `DepartmentName` と `SectionName` 文字列は控えめに使用してください --- 使いすぎるとクレジットが断片的に見えます。
+
+---
+
+## 互換性と影響
+
+- **マルチMod:** 各Modには独立した `Credits.json` があります。衝突のリスクはありません --- エンジンは各ModのPBOから個別にファイルを読み取ります。
+- **パフォーマンス:** クレジットはプレイヤーがModの詳細画面を開いた時にのみ読み込まれます。ファイルサイズはゲームプレイのパフォーマンスに影響しません。

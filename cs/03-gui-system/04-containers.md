@@ -1,17 +1,21 @@
-# Chapter 3.4: Container Widgets
+# Kapitola 3.4: Kontejnerové widgety
 
-[Home](../../README.md) | [<< Previous: Sizing & Positioning](03-sizing-positioning.md) | **Container Widgets** | [Next: Programmatic Widgets >>](05-programmatic-widgets.md)
+[Domů](../../README.md) | [<< Předchozí: Rozměry a pozicování](03-sizing-positioning.md) | **Kontejnerové widgety** | [Další: Programatické vytváření widgetů >>](05-programmatic-widgets.md)
 
 ---
 
-## FrameWidget -- Structural Container
+Kontejnerové widgety organizují potomkovské widgety uvnitř sebe. Zatímco `FrameWidget` je nejjednodušší (neviditelný box, ruční pozicování), DayZ poskytuje tři specializované kontejnery, které zpracovávají rozložení automaticky: `WrapSpacerWidget`, `GridSpacerWidget` a `ScrollWidget`.
 
-`FrameWidget` is the most basic container. It draws nothing on screen and does not arrange its children -- you must position each child manually.
+---
+
+## FrameWidget -- Strukturální kontejner
+
+`FrameWidget` je nejzákladnější kontejner. Na obrazovku nic nevykresluje a nerozmisťuje své potomky -- každý potomek musíte pozicovat ručně.
 
 **Kdy použít:**
-- Grouping related widgets so they can be shown/hidden together
-- Root widget of a panel or dialog
-- Any structural grouping where you handle positioning yourself
+- Seskupení souvisejících widgetů, aby mohly být zobrazeny/skryty dohromady
+- Kořenový widget panelu nebo dialogu
+- Jakékoli strukturální seskupení, kde pozicování řešíte sami
 
 ```
 FrameWidgetClass MyPanel {
@@ -44,30 +48,30 @@ FrameWidgetClass MyPanel {
 }
 ```
 
-**Key characteristics:**
-- No visual appearance (transparent)
-- Children positioned relative to the frame's bounds
-- No automatic layout -- every child needs explicit position/size
-- Lightweight -- zero rendering cost beyond its children
+**Klíčové vlastnosti:**
+- Žádný vizuální vzhled (průhledný)
+- Potomci pozicováni relativně k hranicím rámce
+- Žádné automatické rozložení -- každý potomek potřebuje explicitní pozici/velikost
+- Lehký -- nulové náklady na vykreslení nad rámec svých potomků
 
 ---
 
-## WrapSpacerWidget -- Flow Layout
+## WrapSpacerWidget -- Proudové rozložení
 
-`WrapSpacerWidget` automatically arranges its children in a flow sequence. Children are placed one after another horizontally, wrapping to the next row when they exceed the available width. This is the widget to use for dynamic lists where the number of children changes at runtime.
+`WrapSpacerWidget` automaticky rozmisťuje své potomky v proudové sekvenci. Potomci jsou umísťováni jeden za druhým horizontálně a zalamují se na další řádek, když přesáhnou dostupnou šířku. Toto je widget, který použijete pro dynamické seznamy, kde se počet potomků mění za běhu.
 
-### Layout Attributes
+### Atributy layoutu
 
 | Atribut | Hodnoty | Popis |
 |---|---|---|
-| `Padding` | integer (pixels) | Space between the spacer's edge and its children |
-| `Margin` | integer (pixels) | Space between individual children |
-| `"Size To Content H"` | `0` or `1` | Resize width to fit all children |
-| `"Size To Content V"` | `0` or `1` | Resize height to fit all children |
-| `content_halign` | `left`, `center`, `right` | Horizontal alignment of the child group |
-| `content_valign` | `top`, `center`, `bottom` | Vertical alignment of the child group |
+| `Padding` | celé číslo (pixely) | Mezera mezi hranou spaceru a jeho potomky |
+| `Margin` | celé číslo (pixely) | Mezera mezi jednotlivými potomky |
+| `"Size To Content H"` | `0` nebo `1` | Přizpůsobit šířku všem potomkům |
+| `"Size To Content V"` | `0` nebo `1` | Přizpůsobit výšku všem potomkům |
+| `content_halign` | `left`, `center`, `right` | Horizontální zarovnání skupiny potomků |
+| `content_valign` | `top`, `center`, `bottom` | Vertikální zarovnání skupiny potomků |
 
-### Basic Flow Layout
+### Základní proudové rozložení
 
 ```
 WrapSpacerWidgetClass TagList {
@@ -99,16 +103,16 @@ WrapSpacerWidgetClass TagList {
 }
 ```
 
-In this example:
-- The spacer is full parent width (`size 1`), but its height adjusts to fit children (`"Size To Content V" 1`).
-- Children are 80px, 60px, and 90px wide buttons.
-- If the available width cannot fit all three on one row, the spacer wraps them to the next row.
-- `Padding 5` adds 5px of space inside the spacer edges.
-- `Margin 3` adds 3px between each child.
+V tomto příkladu:
+- Spacer má celou šířku rodiče (`size 1`), ale jeho výška se přizpůsobí potomkům (`"Size To Content V" 1`).
+- Potomci jsou tlačítka široká 80px, 60px a 90px.
+- Pokud dostupná šířka nepojme všechna tři na jeden řádek, spacer je zalomí na další řádek.
+- `Padding 5` přidá 5px mezery uvnitř hran spaceru.
+- `Margin 3` přidá 3px mezi každého potomka.
 
-### Vertical List with WrapSpacer
+### Vertikální seznam s WrapSpacerem
 
-To create a vertical list (one item per row), make children full-width:
+Pro vytvoření vertikálního seznamu (jedna položka na řádek) nastavte potomkům plnou šířku:
 
 ```
 WrapSpacerWidgetClass ItemList {
@@ -131,38 +135,38 @@ WrapSpacerWidgetClass ItemList {
 }
 ```
 
-Each child is 100% width (`size 1` with `hexactsize 0`), so only one fits per row, creating a vertical stack.
+Každý potomek má 100% šířku (`size 1` s `hexactsize 0`), takže se na řádek vejde pouze jeden, čímž vzniká vertikální sloupec.
 
-### Dynamic Children
+### Dynamičtí potomci
 
-`WrapSpacerWidget` is ideal for programmatically added children. When you add or remove children, call `Update()` on the spacer to trigger a re-layout:
+`WrapSpacerWidget` je ideální pro programaticky přidávané potomky. Když přidáte nebo odeberete potomky, zavolejte `Update()` na spaceru pro vynucení přepočtu rozložení:
 
 ```c
 WrapSpacerWidget spacer;
 
-// Add a child from a layout file
+// Přidání potomka ze souboru layoutu
 Widget child = GetGame().GetWorkspace().CreateWidgets("MyMod/gui/layouts/ListItem.layout", spacer);
 
-// Force the spacer to recalculate
+// Vynucení přepočtu spaceru
 spacer.Update();
 ```
 
 ---
 
-## GridSpacerWidget -- Grid Layout
+## GridSpacerWidget -- Mřížkové rozložení
 
-`GridSpacerWidget` arranges children in a uniform grid. You define the number of columns and rows, and each cell gets equal space.
+`GridSpacerWidget` rozmisťuje potomky v uniformní mřížce. Definujete počet sloupců a řádků a každá buňka dostane stejný prostor.
 
-### Layout Attributes
+### Atributy layoutu
 
 | Atribut | Hodnoty | Popis |
 |---|---|---|
-| `Columns` | integer | Number of grid columns |
-| `Rows` | integer | Number of grid rows |
-| `Margin` | integer (pixels) | Space between grid cells |
-| `"Size To Content V"` | `0` or `1` | Resize height to fit content |
+| `Columns` | celé číslo | Počet sloupců mřížky |
+| `Rows` | celé číslo | Počet řádků mřížky |
+| `Margin` | celé číslo (pixely) | Mezera mezi buňkami mřížky |
+| `"Size To Content V"` | `0` nebo `1` | Přizpůsobit výšku obsahu |
 
-### Basic Grid
+### Základní mřížka
 
 ```
 GridSpacerWidgetClass InventoryGrid {
@@ -173,8 +177,8 @@ GridSpacerWidgetClass InventoryGrid {
  Rows 3
  Margin 2
  {
-  // 12 cells (4 columns x 3 rows)
-  // Children are placed in order: left-to-right, top-to-bottom
+  // 12 buněk (4 sloupce x 3 řádky)
+  // Potomci jsou umísťováni v pořadí: zleva doprava, shora dolů
   FrameWidgetClass Slot1 { }
   FrameWidgetClass Slot2 { }
   FrameWidgetClass Slot3 { }
@@ -191,9 +195,9 @@ GridSpacerWidgetClass InventoryGrid {
 }
 ```
 
-### Single-Column Grid (Vertical List)
+### Jednosloupcová mřížka (vertikální seznam)
 
-Setting `Columns 1` creates a simple vertical stack where each child gets the full width:
+Nastavení `Columns 1` vytvoří jednoduchý vertikální sloupec, kde každý potomek dostane celou šířku:
 
 ```
 GridSpacerWidgetClass SettingsList {
@@ -223,37 +227,37 @@ GridSpacerWidgetClass SettingsList {
 
 ### GridSpacer vs. WrapSpacer
 
-| Feature | GridSpacer | WrapSpacer |
+| Vlastnost | GridSpacer | WrapSpacer |
 |---|---|---|
-| Cell size | Uniform (equal) | Each child keeps its own size |
-| Layout mode | Fixed grid (columns x rows) | Flow with wrapping |
-| Best for | Inventory slots, uniform galleries | Dynamic lists, tag clouds |
-| Children sizing | Ignored (grid controls it) | Respected (child size matters) |
+| Velikost buňky | Uniformní (stejná) | Každý potomek si zachovává svou vlastní velikost |
+| Režim rozložení | Pevná mřížka (sloupce x řádky) | Proud se zalamováním |
+| Nejlepší pro | Inventářové sloty, uniformní galerie | Dynamické seznamy, oblaky štítků |
+| Rozměry potomků | Ignorovány (mřížka je řídí) | Respektovány (velikost potomka záleží) |
 
 ---
 
-## ScrollWidget -- Scrollable Viewport
+## ScrollWidget -- Posuvný viewport
 
-`ScrollWidget` wraps content that may be taller (or wider) than the visible area, providing scrollbars for navigation.
+`ScrollWidget` obaluje obsah, který může být vyšší (nebo širší) než viditelná oblast, a poskytuje posuvníky pro navigaci.
 
-### Layout Attributes
+### Atributy layoutu
 
 | Atribut | Hodnoty | Popis |
 |---|---|---|
-| `"Scrollbar V"` | `0` or `1` | Show vertical scrollbar |
-| `"Scrollbar H"` | `0` or `1` | Show horizontal scrollbar |
+| `"Scrollbar V"` | `0` nebo `1` | Zobrazit vertikální posuvník |
+| `"Scrollbar H"` | `0` nebo `1` | Zobrazit horizontální posuvník |
 
-### Script API
+### Skriptové API
 
 ```c
 ScrollWidget sw;
-sw.VScrollToPos(float pos);     // Scroll to vertical position (0 = top)
-sw.GetVScrollPos();             // Get current scroll position
-sw.GetContentHeight();          // Get total content height
-sw.VScrollStep(int step);       // Scroll by a step amount
+sw.VScrollToPos(float pos);     // Posunutí na vertikální pozici (0 = nahoře)
+sw.GetVScrollPos();             // Získání aktuální pozice posunu
+sw.GetContentHeight();          // Získání celkové výšky obsahu
+sw.VScrollStep(int step);       // Posunutí o krokovou hodnotu
 ```
 
-### Basic Scrollable List
+### Základní posuvný seznam
 
 ```
 ScrollWidgetClass ListScroll {
@@ -267,7 +271,7 @@ ScrollWidgetClass ListScroll {
    hexactsize 0
    "Size To Content V" 1
    {
-    // Many children here...
+    // Mnoho potomků zde...
     FrameWidgetClass Item1 {
      size 1 30
      hexactsize 0
@@ -278,7 +282,7 @@ ScrollWidgetClass ListScroll {
      hexactsize 0
      vexactsize 1
     }
-    // ... more items
+    // ... další položky
    }
   }
  }
@@ -287,19 +291,19 @@ ScrollWidgetClass ListScroll {
 
 ---
 
-## The ScrollWidget + WrapSpacer Pattern
+## Vzor ScrollWidget + WrapSpacer
 
-This is **the** pattern for scrollable dynamic lists in DayZ mods. It combines a fixed-height `ScrollWidget` with a `WrapSpacerWidget` that grows to fit its children.
+Toto je **ten** vzor pro posuvné dynamické seznamy v DayZ modech. Kombinuje `ScrollWidget` s pevnou výškou a `WrapSpacerWidget`, který roste, aby pojal své potomky.
 
 ```
-// Fixed-height scroll viewport
+// Posuvný viewport s pevnou výškou
 ScrollWidgetClass DialogScroll {
  size 0.97 235
  hexactsize 0
  vexactsize 1
  "Scrollbar V" 1
  {
-  // Content grows vertically to fit all children
+  // Obsah roste vertikálně, aby pojal všechny potomky
   WrapSpacerWidgetClass DialogContent {
    size 1 0
    hexactsize 0
@@ -309,15 +313,15 @@ ScrollWidgetClass DialogScroll {
 }
 ```
 
-How it works:
+Jak to funguje:
 
-1. The `ScrollWidget` has a **fixed** height (235 pixels in this example).
-2. Inside it, the `WrapSpacerWidget` has `"Size To Content V" 1`, so its height grows as children are added.
-3. When the spacer's content exceeds 235 pixels, the scrollbar appears and the user can scroll.
+1. `ScrollWidget` má **pevnou** výšku (235 pixelů v tomto příkladu).
+2. Uvnitř `WrapSpacerWidget` má `"Size To Content V" 1`, takže jeho výška roste s přidáváním potomků.
+3. Když obsah spaceru přesáhne 235 pixelů, objeví se posuvník a uživatel může posouvat.
 
-This pattern appears throughout DabsFramework, DayZ Editor, Expansion, and virtually every professional DayZ mod.
+Tento vzor se objevuje v celém DabsFrameworku, DayZ Editoru, Expansion a prakticky v každém profesionálním DayZ modu.
 
-### Adding Items Programmatically
+### Programatické přidávání položek
 
 ```c
 ScrollWidget m_Scroll;
@@ -325,15 +329,15 @@ WrapSpacerWidget m_Content;
 
 void AddItem(string text)
 {
-    // Create a new child inside the WrapSpacer
+    // Vytvoření nového potomka uvnitř WrapSpaceru
     Widget item = GetGame().GetWorkspace().CreateWidgets(
         "MyMod/gui/layouts/ListItem.layout", m_Content);
 
-    // Configure the new item
+    // Konfigurace nové položky
     TextWidget tw = TextWidget.Cast(item.FindAnyWidget("Label"));
     tw.SetText(text);
 
-    // Force layout recalculation
+    // Vynucení přepočtu rozložení
     m_Content.Update();
 }
 
@@ -344,7 +348,7 @@ void ScrollToBottom()
 
 void ClearAll()
 {
-    // Remove all children
+    // Odstranění všech potomků
     Widget child = m_Content.GetChildren();
     while (child)
     {
@@ -358,39 +362,39 @@ void ClearAll()
 
 ---
 
-## Nesting Rules
+## Pravidla vnořování
 
-Containers can be nested to create complex layouts. Some guidelines:
+Kontejnery lze vnořovat pro vytváření složitých rozložení. Některé pokyny:
 
-1. **FrameWidget inside anything** -- Always works. Use frames to group sub-sections within spacers or grids.
+1. **FrameWidget uvnitř čehokoli** -- Vždy funguje. Používejte rámce pro seskupení podsekcí uvnitř spacerů nebo mřížek.
 
-2. **WrapSpacer inside ScrollWidget** -- The standard pattern for scrollable lists. The spacer grows; the scroll clips.
+2. **WrapSpacer uvnitř ScrollWidgetu** -- Standardní vzor pro posuvné seznamy. Spacer roste; scroll ořezává.
 
-3. **GridSpacer inside WrapSpacer** -- Works. Useful for putting a fixed grid as one item in a flow layout.
+3. **GridSpacer uvnitř WrapSpaceru** -- Funguje. Užitečné pro umístění pevné mřížky jako jedné položky v proudovém rozložení.
 
-4. **ScrollWidget inside WrapSpacer** -- Possible but requires a fixed height on the scroll widget (`vexactsize 1`). Without a fixed height, the scroll widget will try to grow to fit its content (defeating the purpose of scrolling).
+4. **ScrollWidget uvnitř WrapSpaceru** -- Možné, ale vyžaduje pevnou výšku na scroll widgetu (`vexactsize 1`). Bez pevné výšky se scroll widget pokusí růst, aby pojal svůj obsah (čímž maří účel posouvání).
 
-5. **Avoid deep nesting** -- Every level of nesting adds layout computation cost. Three or four levels deep is typical for complex UIs; going beyond six levels suggests the layout should be restructured.
+5. **Vyhněte se hlubokému vnořování** -- Každá úroveň vnořování přidává výpočetní náklady na rozložení. Tři nebo čtyři úrovně hluboko jsou typické pro složitá UI; překročení šesti úrovní naznačuje, že by rozložení mělo být přestrukturováno.
 
 ---
 
-## When to Use Each Container
+## Kdy použít který kontejner
 
-| Scenario | Best Container |
+| Scénář | Nejlepší kontejner |
 |---|---|
-| Static panel with manually positioned elements | `FrameWidget` |
-| Dynamic list of varying-size items | `WrapSpacerWidget` |
-| Uniform grid (inventory, gallery) | `GridSpacerWidget` |
-| Vertical list with one item per row | `WrapSpacerWidget` (full-width children) or `GridSpacerWidget` (`Columns 1`) |
-| Content taller than available space | `ScrollWidget` wrapping a spacer |
-| Tab content area | `FrameWidget` (swap children visibility) |
-| Toolbar buttons | `WrapSpacerWidget` or `GridSpacerWidget` |
+| Statický panel s ručně pozicovanými prvky | `FrameWidget` |
+| Dynamický seznam položek s různými velikostmi | `WrapSpacerWidget` |
+| Uniformní mřížka (inventář, galerie) | `GridSpacerWidget` |
+| Vertikální seznam s jednou položkou na řádek | `WrapSpacerWidget` (potomci na celou šířku) nebo `GridSpacerWidget` (`Columns 1`) |
+| Obsah vyšší než dostupný prostor | `ScrollWidget` obalující spacer |
+| Oblast obsahu záložek | `FrameWidget` (přepínání viditelnosti potomků) |
+| Tlačítka panelu nástrojů | `WrapSpacerWidget` nebo `GridSpacerWidget` |
 
 ---
 
-## Complete Example: Scrollable Settings Panel
+## Kompletní příklad: Posuvný panel nastavení
 
-A settings panel with a title bar, scrollable content area containing grid-arranged options, and a bottom button bar:
+Panel nastavení s titulkovým pruhem, posuvnou oblastí obsahu obsahující mřížkově uspořádané volby a spodním pruhem tlačítek:
 
 ```
 FrameWidgetClass SettingsPanel {
@@ -402,7 +406,7 @@ FrameWidgetClass SettingsPanel {
  hexactsize 0
  vexactsize 0
  {
-  // Title bar
+  // Titulkový pruh
   PanelWidgetClass TitleBar {
    position 0 0
    size 1 30
@@ -411,7 +415,7 @@ FrameWidgetClass SettingsPanel {
    color 0.2 0.4 0.8 1
   }
 
-  // Scrollable settings area
+  // Posuvná oblast nastavení
   ScrollWidgetClass SettingsScroll {
    position 0 30
    size 1 0
@@ -431,7 +435,7 @@ FrameWidgetClass SettingsPanel {
    }
   }
 
-  // Button bar at bottom
+  // Pruh tlačítek dole
   FrameWidgetClass ButtonBar {
    size 1 40
    halign left_ref
@@ -447,7 +451,50 @@ FrameWidgetClass SettingsPanel {
 
 ---
 
-## Next Steps
+## Osvědčené postupy
 
-- [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Create widgets from code
-- [3.6 Event Handling](06-event-handling.md) -- Respond to clicks, changes, and other events
+- Vždy volejte `Update()` na `WrapSpacerWidget` nebo `GridSpacerWidget` po programatickém přidání nebo odebrání potomků. Bez tohoto volání spacer nepřepočítá své rozložení a potomci se mohou překrývat nebo být neviditelní.
+- Používejte `ScrollWidget` + `WrapSpacerWidget` jako standardní vzor pro jakýkoli dynamický seznam. Nastavte scroll na pevnou pixelovou výšku a vnitřní spacer na `"Size To Content V" 1`.
+- Upřednostňujte `WrapSpacerWidget` s potomky na celou šířku před `GridSpacerWidget Columns 1` pro vertikální seznamy, kde položky mají různé výšky. GridSpacer vynucuje uniformní velikosti buněk.
+- Vždy nastavte `clipchildren 1` na `ScrollWidget`. Bez toho se přetékající obsah vykresluje mimo hranice posuvného viewportu.
+- Vyhněte se vnořování více než 4-5 úrovní kontejnerů hluboko. Každá úroveň přidává výpočetní náklady na rozložení a výrazně ztěžuje ladění.
+
+---
+
+## Teorie vs. praxe
+
+> Co říká dokumentace versus jak věci skutečně fungují za běhu.
+
+| Koncept | Teorie | Realita |
+|---------|--------|---------|
+| `WrapSpacerWidget.Update()` | Rozložení se automaticky přepočítá při změně potomků | Musíte ručně volat `Update()` po `CreateWidgets()` nebo `Unlink()`. Zapomenutí je nejčastější chybou spaceru |
+| `"Size To Content V"` | Spacer roste, aby pojal potomky | Funguje pouze pokud mají potomci explicitní velikosti (pixelová výška nebo známý proporcionální rodič). Pokud jsou potomci také `Size To Content`, dostanete nulovou výšku |
+| Rozměry buněk `GridSpacerWidget` | Mřížka řídí velikost buněk uniformně | Vlastní atributy velikosti potomků jsou ignorovány -- mřížka je přepíše. Nastavení `size` na potomka mřížky nemá žádný efekt |
+| Pozice posunu `ScrollWidget` | `VScrollToPos(0)` posouvá nahoru | Po přidání potomků může být nutné odložit `VScrollToPos()` o jeden snímek (přes `CallLater`), protože výška obsahu ještě nebyla přepočítána |
+| Vnořené spacery | Spacery se mohou volně vnořovat | `WrapSpacer` uvnitř `WrapSpacer` funguje, ale `Size To Content` na obou úrovních může způsobit nekonečné smyčky rozložení, které zamrazí UI |
+
+---
+
+## Kompatibilita a dopad
+
+- **Více modů:** Kontejnerové widgety jsou per-layout a nekolidují mezi mody. Nicméně pokud dva mody vkládají potomky do stejného vanilla `ScrollWidget` (přes `modded class`), pořadí potomků je nepředvídatelné.
+- **Výkon:** `WrapSpacerWidget.Update()` přepočítá pozice všech potomků. Pro seznamy se 100+ položkami volejte `Update()` jednou po dávkových operacích, ne po každém jednotlivém přidání. GridSpacer je rychlejší pro uniformní mřížky, protože pozice buněk se počítají aritmeticky.
+- **Verze:** `WrapSpacerWidget` a `GridSpacerWidget` jsou dostupné od DayZ 1.0. Atributy `"Size To Content H/V"` byly přítomny od začátku, ale jejich chování s hluboce vnořenými rozloženími bylo stabilizováno kolem DayZ 1.10.
+
+---
+
+## Pozorováno v reálných modech
+
+| Vzor | Mod | Detail |
+|---------|-----|--------|
+| `ScrollWidget` + `WrapSpacerWidget` pro dynamické seznamy | DabsFramework, Expansion, COT | Posuvný viewport s pevnou výškou a automaticky rostoucím vnitřním spacerem -- univerzální vzor posuvného seznamu |
+| `GridSpacerWidget Columns 10` pro inventář | Vanilla DayZ | Inventářová mřížka používá GridSpacer s pevným počtem sloupců odpovídajícím rozložení slotů |
+| Sdružení potomci ve WrapSpaceru | VPP Admin Tools | Předem vytváří pool widgetů položek seznamu, zobrazuje/skrývá je místo vytváření/ničení pro vyhnutí se režii `Update()` |
+| `WrapSpacerWidget` jako kořen dialogu | COT, DayZ Editor | Kořen dialogu používá `Size To Content V/H`, takže dialog automaticky přizpůsobuje velikost kolem svého obsahu bez pevně daných rozměrů |
+
+---
+
+## Další kroky
+
+- [3.5 Programatické vytváření widgetů](05-programmatic-widgets.md) -- Vytváření widgetů z kódu
+- [3.6 Zpracování událostí](06-event-handling.md) -- Reagování na kliknutí, změny a další události
