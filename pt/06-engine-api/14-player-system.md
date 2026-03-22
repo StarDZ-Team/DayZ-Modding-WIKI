@@ -1,23 +1,23 @@
-# Chapter 6.14: Player System
+# Capítulo 6.14: Sistema do Jogador
 
-[Home](../../README.md) | [<< Previous: Input System](13-input-system.md) | **Player System** | [Next: Sound System >>](15-sound-system.md)
+[Início](../../README.md) | [<< Anterior: Sistema de Entrada](13-input-system.md) | **Sistema do Jogador** | [Próximo: Sistema de Som >>](15-sound-system.md)
 
 ---
 
 ## Introdução
 
-`PlayerBase` is the single most important class in DayZ modding. Every gameplay system --- health, hunger, bleeding, stamina, inventory, restraints, unconsciousness --- lives on the player entity or one of its manager subsystems. Whether you are writing an admin tool, a survival mechanic, or a PvP mod, you will interact with PlayerBase constantly.
+`PlayerBase` é a classe mais importante no modding de DayZ. Cada sistema de gameplay --- saúde, fome, sangramento, stamina, inventário, restrições, inconsciência --- vive na entidade do jogador ou em um de seus subsistemas gerenciadores. Seja escrevendo uma ferramenta de administração, uma mecânica de sobrevivência ou um mod PvP, você vai interagir com `PlayerBase` constantemente.
 
-This chapter is an API reference for the player class hierarchy, its identity system, health pools, state checks, equipment access, and the manager objects that drive status effects. All method signatures are taken directly from the vanilla script source.
+Este capítulo é uma referência de API para a hierarquia de classes do jogador, seu sistema de identidade, pools de saúde, verificações de estado, acesso a equipamentos e os objetos gerenciadores que conduzem os efeitos de status. Todas as assinaturas de métodos são extraídas diretamente do código-fonte vanilla dos scripts.
 
 ---
 
-## Class Hierarchy
+## Hierarquia de Classes
 
-The player entity sits at the bottom of a deep inheritance chain. Each level adds capabilities:
+A entidade do jogador fica na base de uma cadeia profunda de herança. Cada nível adiciona capacidades:
 
 ```
-Class (root of all Enforce Script classes)
+Class (raiz de todas as classes do Enforce Script)
 └── Managed
     └── IEntity                          // 1_Core/proto/enentity.c
         └── Object                       // 3_Game/entities/object.c
@@ -29,10 +29,10 @@ Class (root of all Enforce Script classes)
                                 └── DayZPlayerImplement  // 4_World/entities/dayzplayerimplement.c
                                     └── ManBase        // 4_World/entities/manbase.c
                                         └── PlayerBase // 4_World/entities/manbase/playerbase.c
-                                            └── SurvivorBase  // config-defined
+                                            └── SurvivorBase  // definido na config
 ```
 
-### Hierarchy Diagram
+### Diagrama de Hierarquia
 
 ```mermaid
 classDiagram
@@ -77,41 +77,41 @@ classDiagram
     }
 ```
 
-### What Each Level Provides
+### O Que Cada Nível Fornece
 
-| Class | Adições Principais |
-|-------|---------------|
+| Classe | Adições Chave |
+|--------|---------------|
 | **Object** | `GetPosition()`, `SetPosition()`, `GetHealth()`, `SetHealth()`, `IsAlive()`, `SetAllowDamage()` |
-| **EntityAI** | Inventory, attachments, damage zones, `EEInit()`, `EEKilled()`, `EEHitBy()`, net sync variables |
+| **EntityAI** | Inventário, anexos, zonas de dano, `EEInit()`, `EEKilled()`, `EEHitBy()`, variáveis de sync de rede |
 | **Man** | `GetIdentity()`, `GetHumanInventory()`, `GetEntityInHands()`, `IsUnconscious()` |
-| **DayZPlayer** | Instance type, command system, camera system, animation commands |
-| **DayZPlayerImplement** | Movement state checks (`IsInVehicle`, `IsSwimming`, `IsRaised`, `IsFalling`) |
-| **ManBase** | Base implementation connecting DayZPlayerImplement to PlayerBase |
-| **PlayerBase** | All gameplay systems: bleeding, stamina, modifiers, stats, actions, equipment |
+| **DayZPlayer** | Tipo de instância, sistema de comandos, sistema de câmera, comandos de animação |
+| **DayZPlayerImplement** | Verificações de estado de movimento (`IsInVehicle`, `IsSwimming`, `IsRaised`, `IsFalling`) |
+| **ManBase** | Implementação base conectando DayZPlayerImplement ao PlayerBase |
+| **PlayerBase** | Todos os sistemas de gameplay: sangramento, stamina, modificadores, stats, ações, equipamento |
 
 ---
 
-## PlayerIdentity --- Who Is the Player?
+## PlayerIdentity --- Quem É o Jogador?
 
-**File:** `3_Game/gameplay.c`
+**Arquivo:** `3_Game/gameplay.c`
 
-`PlayerIdentity` represents the real person behind a player entity. It holds network and platform identifiers. Access it from any `Man`-derived class via `GetIdentity()`.
+`PlayerIdentity` representa a pessoa real por trás de uma entidade de jogador. Ela contém identificadores de rede e plataforma. Acesse-a de qualquer classe derivada de `Man` via `GetIdentity()`.
 
-### Key Métodos
+### Métodos Chave
 
 | Método | Tipo de Retorno | Descrição |
-|--------|-------------|-------------|
-| `GetName()` | `string` | Display name (may contain special characters) |
-| `GetPlainName()` | `string` | Name without any processing |
-| `GetFullName()` | `string` | Full name of the player |
-| `GetPlainId()` | `string` | Steam64 ID (unique, persistent across sessions) |
-| `GetId()` | `string` | BattlEye GUID (hashed Steam ID --- safe for databases and logs) |
-| `GetPlayerId()` | `int` | Network peer ID (session-only, reused after disconnect) |
-| `GetPlayer()` | `Man` | The player entity this identity belongs to |
-| `GetPingAct()` | `int` | Current ping |
-| `GetPingAvg()` | `int` | Average ping |
+|--------|----------------|-----------|
+| `GetName()` | `string` | Nome de exibição (pode conter caracteres especiais) |
+| `GetPlainName()` | `string` | Nome sem qualquer processamento |
+| `GetFullName()` | `string` | Nome completo do jogador |
+| `GetPlainId()` | `string` | Steam64 ID (único, persistente entre sessões) |
+| `GetId()` | `string` | GUID do BattlEye (Steam ID hasheado --- seguro para bancos de dados e logs) |
+| `GetPlayerId()` | `int` | ID de peer de rede (apenas da sessão, reutilizado após desconexão) |
+| `GetPlayer()` | `Man` | A entidade do jogador à qual esta identidade pertence |
+| `GetPingAct()` | `int` | Ping atual |
+| `GetPingAvg()` | `int` | Ping médio |
 
-### Usage Exemplo
+### Exemplo de Uso
 
 ```c
 void LogPlayerInfo(PlayerBase player)
@@ -122,8 +122,8 @@ void LogPlayerInfo(PlayerBase player)
 
     string name    = identity.GetName();       // "PlayerNick"
     string steamId = identity.GetPlainId();    // "76561198012345678"
-    string beGuid  = identity.GetId();         // hashed BattlEye GUID
-    int peerId     = identity.GetPlayerId();   // 2 (session-only)
+    string beGuid  = identity.GetId();         // GUID hasheado do BattlEye
+    int peerId     = identity.GetPlayerId();   // 2 (apenas da sessão)
 
     Print("Player: " + name + " Steam: " + steamId + " GUID: " + beGuid);
 }
@@ -131,72 +131,72 @@ void LogPlayerInfo(PlayerBase player)
 
 ### GetPlainId() vs GetId()
 
-This is a common source of confusion:
+Esta é uma fonte comum de confusão:
 
 | Método | Valor | Caso de Uso |
-|--------|-------|----------|
-| `GetPlainId()` | Raw Steam64 ID (`"76561198012345678"`) | Linking to Steam profiles, cross-server identity |
-| `GetId()` | Hashed BattlEye GUID | Database storage, admin logs (Bohemia's recommended ID for persistence) |
+|--------|-------|-------------|
+| `GetPlainId()` | Steam64 ID bruto (`"76561198012345678"`) | Vincular a perfis Steam, identidade cross-server |
+| `GetId()` | GUID hasheado do BattlEye | Armazenamento em banco de dados, logs de admin (ID recomendado pela Bohemia para persistência) |
 
-> **Rule of thumb:** Use `GetPlainId()` when you need a human-readable identifier or cross-platform lookup. Use `GetId()` when storing data in databases or logs, as Bohemia designed it for that purpose.
+> **Regra prática:** Use `GetPlainId()` quando precisar de um identificador legível para humanos ou busca cross-platform. Use `GetId()` ao armazenar dados em bancos de dados ou logs, pois a Bohemia o projetou para esse propósito.
 
 ---
 
-## Health System
+## Sistema de Saúde
 
-Player health uses the same zone-based system as all `Object` entities, but with three separate pools that work together to determine survival.
+A saúde do jogador usa o mesmo sistema baseado em zonas de todas as entidades `Object`, mas com três pools separados que trabalham juntos para determinar a sobrevivência.
 
-### The Three Pools
+### Os Três Pools
 
-| Pool | Zone/Type | Máximo Padrão | O Que o Drena |
-|------|-----------|-------------|----------------|
-| **Health** | `("", "Health")` | 100 | Starvation, dehydration, falling, melee, explosions |
-| **Blood** | `("", "Blood")` | 5000 | Bullet wounds, bleeding, cuts |
-| **Shock** | `("", "Shock")` | 100 | Bullet impacts, melee hits, flash grenades |
+| Pool | Zona/Tipo | Máximo Padrão | O Que o Drena |
+|------|-----------|---------------|---------------|
+| **Health** | `("", "Health")` | 100 | Fome, desidratação, queda, combate corpo a corpo, explosões |
+| **Blood** | `("", "Blood")` | 5000 | Ferimentos de bala, sangramento, cortes |
+| **Shock** | `("", "Shock")` | 100 | Impactos de bala, golpes corpo a corpo, granadas de flash |
 
-When **Health** reaches 0, the player dies. When **Blood** drops too low, the player loses consciousness and eventually dies. When **Shock** drops to 0, the player goes unconscious.
+Quando **Health** chega a 0, o jogador morre. Quando **Blood** cai demais, o jogador perde a consciência e eventualmente morre. Quando **Shock** cai para 0, o jogador fica inconsciente.
 
-### Reading Health Valors
+### Lendo Valores de Saúde
 
 ```c
-// Global health pools (empty string = global zone)
+// Pools globais de saúde (string vazia = zona global)
 float health = player.GetHealth("", "Health");
 float blood  = player.GetHealth("", "Blood");
 float shock  = player.GetHealth("", "Shock");
 
-// Maximum values
+// Valores máximos
 float maxHealth = player.GetMaxHealth("", "Health");
 float maxBlood  = player.GetMaxHealth("", "Blood");
 float maxShock  = player.GetMaxHealth("", "Shock");
 
-// Normalized (0..1 range)
+// Normalizado (faixa 0..1)
 float health01 = player.GetHealth01("", "Health");
 
-// Shorthand (equivalent to GetHealth("", ""))
+// Atalho (equivalente a GetHealth("", ""))
 float hp = player.GetHealth();
 ```
 
-### Modifying Health
+### Modificando Saúde
 
-All health modification is **server-authoritative**. Only call these on the server.
+Toda modificação de saúde é **autoritativa do servidor**. Chame esses métodos apenas no servidor.
 
 ```c
-// Set absolute value
-player.SetHealth("", "Health", 100.0);    // Full health
-player.SetHealth("", "Blood", 5000.0);    // Full blood
-player.SetHealth("", "Shock", 100.0);     // Full shock
+// Definir valor absoluto
+player.SetHealth("", "Health", 100.0);    // Saúde total
+player.SetHealth("", "Blood", 5000.0);    // Sangue total
+player.SetHealth("", "Shock", 100.0);     // Choque total
 
-// Add (positive) or subtract (negative)
-player.AddHealth("", "Health", -25.0);    // Deal 25 damage
-player.AddHealth("", "Blood", 500.0);     // Restore 500 blood
+// Adicionar (positivo) ou subtrair (negativo)
+player.AddHealth("", "Health", -25.0);    // Causar 25 de dano
+player.AddHealth("", "Blood", 500.0);     // Restaurar 500 de sangue
 
-// Shorthand (sets global health)
+// Atalho (define saúde global)
 player.SetHealth(100.0);
 ```
 
-### Zone Health (Body Parts)
+### Saúde de Zona (Partes do Corpo)
 
-Players have damage zones for individual body parts. Each zone has its own "Health" property:
+Jogadores têm zonas de dano para partes individuais do corpo. Cada zona tem sua própria propriedade "Health":
 
 ```c
 float headHp     = player.GetHealth("Head", "Health");
@@ -209,22 +209,22 @@ float leftFootHp = player.GetHealth("LeftFoot", "Health");
 float rightFootHp = player.GetHealth("RightFoot", "Health");
 ```
 
-Broken legs are triggered when leg/foot zone health drops to 1 or below, which activates the `MDF_BROKEN_LEGS` modifier.
+Pernas quebradas são acionadas quando a saúde da zona perna/pé cai para 1 ou abaixo, o que ativa o modificador `MDF_BROKEN_LEGS`.
 
-### Death and Hit Events
+### Eventos de Morte e Golpe
 
-These events fire on the server and can be overridden in modded classes:
+Esses eventos disparam no servidor e podem ser sobrescritos em classes modded:
 
 ```c
-// Called when the player is killed
+// Chamado quando o jogador é morto
 override void EEKilled(Object killer)
 {
     super.EEKilled(killer);
-    // killer can be null (environment death), another player, or a zombie
+    // killer pode ser null (morte ambiental), outro jogador ou um zumbi
     Print("Player died!");
 }
 
-// Called when the player takes a hit
+// Chamado quando o jogador leva um golpe
 override void EEHitBy(TotalDamageResult damageResult, int damageType,
     EntityAI source, int component, string dmgZone,
     string ammo, vector modelPos, float speedCoef)
@@ -239,76 +239,76 @@ override void EEHitBy(TotalDamageResult damageResult, int damageType,
 
 ---
 
-## Status Effects and Stats
+## Efeitos de Status e Stats
 
-### Bleeding
+### Sangramento
 
-Bleeding is managed by `BleedingSourcesManagerServer` (server) and `BleedingSourcesManagerRemote` (client visual). Each wound is a named "bleeding source" tied to a body selection.
+O sangramento é gerenciado por `BleedingSourcesManagerServer` (servidor) e `BleedingSourcesManagerRemote` (visual no cliente). Cada ferimento é uma "fonte de sangramento" nomeada vinculada a uma seleção do corpo.
 
 ```c
-// Server only
+// Apenas servidor
 BleedingSourcesManagerServer bleedMgr = player.GetBleedingManagerServer();
 if (bleedMgr)
 {
-    // Add a bleeding source
+    // Adicionar uma fonte de sangramento
     bleedMgr.AttemptAddBleedingSourceBySelection("RightForeArmRoll");
 
-    // Remove all bleeding
+    // Remover todo sangramento
     bleedMgr.RemoveAllSources();
 }
 
-// Both sides - count of active sources
+// Ambos os lados - contagem de fontes ativas
 int sourceCount = player.GetBleedingSourceCount();
 ```
 
-### Food and Water
+### Comida e Água
 
-Food (energy) and water are stat objects, not health zones. They use a `PlayerStat<float>` wrapper.
+Comida (energia) e água são objetos de stat, não zonas de saúde. Eles usam um wrapper `PlayerStat<float>`.
 
 ```c
-// Reading values
+// Lendo valores
 float water  = player.GetStatWater().Get();
 float energy = player.GetStatEnergy().Get();
 
-// Maximum values
+// Valores máximos
 float waterMax  = player.GetStatWater().GetMax();
 float energyMax = player.GetStatEnergy().GetMax();
 
-// Setting values (server only)
+// Definindo valores (apenas servidor)
 player.GetStatWater().Set(waterMax);
 player.GetStatEnergy().Set(energyMax);
 ```
 
-Padrão maximums are defined in `PlayerConstantes`:
+Máximos padrão são definidos em `PlayerConstants`:
 
 | Stat | Constante | Padrão |
-|------|----------|---------|
-| Water max | `PlayerConstantes.SL_WATER_MAX` | 5000 |
-| Energy max | `PlayerConstantes.SL_ENERGY_MAX` | 20000 |
+|------|-----------|--------|
+| Água máx | `PlayerConstants.SL_WATER_MAX` | 5000 |
+| Energia máx | `PlayerConstants.SL_ENERGY_MAX` | 20000 |
 
-### Temperature and Heat Comfort
+### Temperatura e Conforto Térmico
 
 ```c
-// Heat comfort ranges from negative (freezing) to positive (hot)
+// Conforto térmico varia de negativo (congelando) a positivo (quente)
 float heatComfort = player.GetStatHeatComfort().Get();
 
-// Heat buffer (protection from cold)
+// Buffer de calor (proteção contra frio)
 float heatBuffer = player.GetStatHeatBuffer().Get();
 ```
 
 ### Stamina
 
-Stamina is handled by a dedicated `StaminaHandler`:
+Stamina é tratada por um `StaminaHandler` dedicado:
 
 ```c
 StaminaHandler staminaHandler = player.GetStaminaHandler();
 
-// Check if player can perform an action
+// Verificar se o jogador pode realizar uma ação
 bool canSprint = staminaHandler.HasEnoughStaminaFor(EStaminaConsumers.SPRINT);
 bool canJump   = staminaHandler.HasEnoughStaminaToStart(EStaminaConsumers.JUMP);
 ```
 
-### Other Stats
+### Outros Stats
 
 ```c
 PlayerStat<float> tremor   = player.GetStatTremor();
@@ -319,44 +319,44 @@ PlayerStat<float> stamina  = player.GetStatStamina();
 
 ---
 
-## Player State Checks
+## Verificações de Estado do Jogador
 
-DayZPlayerImplement and PlayerBase provide a comprehensive set of state queries. These are safe to call on both client and server.
+DayZPlayerImplement e PlayerBase fornecem um conjunto abrangente de consultas de estado. São seguras para chamar tanto no cliente quanto no servidor.
 
-### Movement and Stance
+### Movimento e Postura
 
 ```c
 bool inVehicle  = player.IsInVehicle();
 bool swimming   = player.IsSwimming();
-bool climbing   = player.IsClimbing();       // Vault/climb obstacle
+bool climbing   = player.IsClimbing();       // Saltar/escalar obstáculo
 bool onLadder   = player.IsClimbingLadder();
 bool falling    = player.IsFalling();
-bool raised     = player.IsRaised();         // Weapon raised
+bool raised     = player.IsRaised();         // Arma levantada
 ```
 
-### Vital States
+### Estados Vitais
 
 ```c
 bool alive       = player.IsAlive();         // Health > 0
-bool unconscious = player.IsUnconscious();   // Shock knocked out
-bool restrained  = player.IsRestrained();    // Handcuffed
+bool unconscious = player.IsUnconscious();   // Nocauteado por choque
+bool restrained  = player.IsRestrained();    // Algemado
 ```
 
-### Onde These Métodos Live
+### Onde Esses Métodos Estão
 
-| Método | Defined In | How It Works |
-|--------|-----------|--------------|
+| Método | Definido Em | Como Funciona |
+|--------|-----------|---------------|
 | `IsAlive()` | `Object` | Retorna `!IsDamageDestroyed()` |
-| `IsUnconscious()` | `PlayerBase` | Checks command type or `m_IsUnconscious` flag |
-| `IsRestrained()` | `PlayerBase` | Retorna `m_IsRestrained` (synced variable) |
-| `IsInVehicle()` | `DayZPlayerImplement` | Checks `COMMANDID_VEHICLE` or parent is `Transport` |
-| `IsSwimming()` | `DayZPlayerImplement` | Checks `COMMANDID_SWIM` |
-| `IsClimbing()` | `PlayerBase` | Checks `COMMANDID_CLIMB` |
-| `IsClimbingLadder()` | `DayZPlayerImplement` | Checks `COMMANDID_LADDER` |
-| `IsFalling()` | `PlayerBase` | Checks `COMMANDID_FALL` |
-| `IsRaised()` | `DayZPlayerImplement` | Checks `m_MovementState.IsRaised()` |
+| `IsUnconscious()` | `PlayerBase` | Verifica tipo de comando ou flag `m_IsUnconscious` |
+| `IsRestrained()` | `PlayerBase` | Retorna `m_IsRestrained` (variável sincronizada) |
+| `IsInVehicle()` | `DayZPlayerImplement` | Verifica `COMMANDID_VEHICLE` ou pai é `Transport` |
+| `IsSwimming()` | `DayZPlayerImplement` | Verifica `COMMANDID_SWIM` |
+| `IsClimbing()` | `PlayerBase` | Verifica `COMMANDID_CLIMB` |
+| `IsClimbingLadder()` | `DayZPlayerImplement` | Verifica `COMMANDID_LADDER` |
+| `IsFalling()` | `PlayerBase` | Verifica `COMMANDID_FALL` |
+| `IsRaised()` | `DayZPlayerImplement` | Verifica `m_MovementState.IsRaised()` |
 
-### Compound State Check Exemplo
+### Exemplo de Verificação de Estado Composta
 
 ```c
 bool CanPerformAction(PlayerBase player)
@@ -380,10 +380,10 @@ bool CanPerformAction(PlayerBase player)
 }
 ```
 
-This pattern mirrors how vanilla checks `CanBeRestrained()`:
+Esse padrão espelha como o vanilla verifica `CanBeRestrained()`:
 
 ```c
-// Vanilla PlayerBase.CanBeRestrained() - actual code
+// Vanilla PlayerBase.CanBeRestrained() - código real
 if (IsInVehicle() || IsRaised() || IsSwimming() || IsClimbing()
     || IsClimbingLadder() || IsRestrained()
     || !GetWeaponManager() || GetWeaponManager().IsRunning()
@@ -396,27 +396,27 @@ if (IsInVehicle() || IsRaised() || IsSwimming() || IsClimbing()
 
 ---
 
-## Equipment and Inventory
+## Equipamento e Inventário
 
-### Item in Hands
+### Item nas Mãos
 
 ```c
-// Returns ItemBase (cast of GetEntityInHands())
+// Retorna ItemBase (cast de GetEntityInHands())
 ItemBase itemInHands = player.GetItemInHands();
 
-// Check if holding a weapon
+// Verificar se está segurando uma arma
 if (itemInHands && itemInHands.IsWeapon())
 {
     Weapon_Base weapon = Weapon_Base.Cast(itemInHands);
 }
 
-// The lower-level method (returns EntityAI)
+// O método de nível inferior (retorna EntityAI)
 EntityAI entityInHands = player.GetEntityInHands();
 ```
 
-### Finding Attachments by Slot
+### Encontrando Anexos por Slot
 
-Clothing and equipment are attached to named slots on the player entity. Use `FindAttachmentBySlotName()` (defined on `EntityAI`):
+Roupas e equipamentos são anexados a slots nomeados na entidade do jogador. Use `FindAttachmentBySlotName()` (definido em `EntityAI`):
 
 ```c
 EntityAI headgear  = player.FindAttachmentBySlotName("Headgear");
@@ -433,13 +433,13 @@ EntityAI shoulder  = player.FindAttachmentBySlotName("Shoulder");
 EntityAI melee     = player.FindAttachmentBySlotName("Melee");
 ```
 
-### Inventory Access
+### Acesso ao Inventário
 
 ```c
-// Full inventory interface
+// Interface completa de inventário
 HumanInventory inventory = player.GetHumanInventory();
 
-// Iterate all attachments
+// Iterar todos os anexos
 GameInventory gi = player.GetInventory();
 for (int i = 0; i < gi.AttachmentCount(); i++)
 {
@@ -450,119 +450,119 @@ for (int i = 0; i < gi.AttachmentCount(); i++)
 
 ---
 
-## Player Açãos (Server-Side Operations)
+## Ações do Jogador (Operações do Lado do Servidor)
 
-These operations must run on the server. Calling them on the client will either have no effect or cause desync.
+Essas operações devem ser executadas no servidor. Chamá-las no cliente não terá efeito ou causará desync.
 
-### God Mode
+### Modo Deus
 
 ```c
-// Prevent all damage (defined on Object)
-player.SetAllowDamage(false);    // Enable god mode
-player.SetAllowDamage(true);     // Disable god mode
+// Prevenir todo dano (definido em Object)
+player.SetAllowDamage(false);    // Habilitar modo deus
+player.SetAllowDamage(true);     // Desabilitar modo deus
 ```
 
-### Teleport
+### Teleporte
 
 ```c
-// Teleport to coordinates
+// Teleportar para coordenadas
 vector destination = Vector(6543.0, 0, 2872.0);
 destination[1] = GetGame().SurfaceY(destination[0], destination[2]);
 player.SetPosition(destination);
 ```
 
-### Full Heal
+### Cura Completa
 
 ```c
 void HealPlayer(PlayerBase player)
 {
-    // Restore health pools
+    // Restaurar pools de saúde
     player.SetHealth("", "Health", player.GetMaxHealth("", "Health"));
     player.SetHealth("", "Blood", player.GetMaxHealth("", "Blood"));
     player.SetHealth("", "Shock", player.GetMaxHealth("", "Shock"));
 
-    // Restore food and water
+    // Restaurar comida e água
     player.GetStatWater().Set(player.GetStatWater().GetMax());
     player.GetStatEnergy().Set(player.GetStatEnergy().GetMax());
 
-    // Stop all bleeding
+    // Parar todo sangramento
     if (player.GetBleedingManagerServer())
         player.GetBleedingManagerServer().RemoveAllSources();
 
-    // Reset modifiers (disease, infection, etc.)
+    // Resetar modificadores (doença, infecção, etc.)
     player.GetModifiersManager().ResetAll();
 }
 ```
 
-### Kill
+### Matar
 
 ```c
 player.SetHealth("", "Health", 0);
 ```
 
-### Strip (Remove All Items)
+### Desvestir (Remover Todos os Itens)
 
 ```c
 player.RemoveAllItems();
 ```
 
-### Restrain / Unrestrain
+### Restringir / Desfazer Restrição
 
 ```c
-player.SetRestrained(true);    // Handcuff
-player.SetRestrained(false);   // Release
+player.SetRestrained(true);    // Algemar
+player.SetRestrained(false);   // Liberar
 ```
 
-### Disable Status Effects
+### Desabilitar Efeitos de Status
 
 ```c
-player.SetModifiers(false);    // Pause all modifiers
-player.SetModifiers(true);     // Resume modifiers
+player.SetModifiers(false);    // Pausar todos os modificadores
+player.SetModifiers(true);     // Retomar modificadores
 ```
 
 ---
 
-## Networking and Synchronization
+## Rede e Sincronização
 
-### Instance Type
+### Tipo de Instância
 
-Every player entity has an instance type that tells you whether the current machine is the server, the controlling client, or a remote observer:
+Cada entidade de jogador tem um tipo de instância que informa se a máquina atual é o servidor, o cliente controlador ou um observador remoto:
 
 ```c
 DayZPlayerInstanceType instType = player.GetInstanceType();
 
-// Possible values:
-// DayZPlayerInstanceType.INSTANCETYPE_SERVER      - Dedicated server
-// DayZPlayerInstanceType.INSTANCETYPE_CLIENT      - Controlling client
-// DayZPlayerInstanceType.INSTANCETYPE_AI_SERVER   - AI on server
-// DayZPlayerInstanceType.INSTANCETYPE_AI_REMOTE   - AI on client
-// DayZPlayerInstanceType.INSTANCETYPE_REMOTE      - Other players (remote proxy)
-// DayZPlayerInstanceType.INSTANCETYPE_AI_SINGLEPLAYER - Offline AI
+// Valores possíveis:
+// DayZPlayerInstanceType.INSTANCETYPE_SERVER      - Servidor dedicado
+// DayZPlayerInstanceType.INSTANCETYPE_CLIENT      - Cliente controlador
+// DayZPlayerInstanceType.INSTANCETYPE_AI_SERVER   - IA no servidor
+// DayZPlayerInstanceType.INSTANCETYPE_AI_REMOTE   - IA no cliente
+// DayZPlayerInstanceType.INSTANCETYPE_REMOTE      - Outros jogadores (proxy remoto)
+// DayZPlayerInstanceType.INSTANCETYPE_AI_SINGLEPLAYER - IA offline
 ```
 
-### What Syncs Automatically
+### O Que Sincroniza Automaticamente
 
-PlayerBase registers numerous variables for automatic network synchronization via `RegisterNetSyncVariável*()`. When the server modifies these variables and calls `SetSynchDirty()`, clients receive updates through `OnVariávelsSynchronized()`.
+PlayerBase registra numerosas variáveis para sincronização automática de rede via `RegisterNetSyncVariable*()`. Quando o servidor modifica essas variáveis e chama `SetSynchDirty()`, os clientes recebem atualizações através de `OnVariablesSynchronized()`.
 
-**Automatically synced variables include:**
+**Variáveis automaticamente sincronizadas incluem:**
 
-| Variável | Type | What It Represents |
-|----------|------|-------------------|
-| `m_IsUnconscious` | `bool` | Unconscious state |
-| `m_IsRestrained` | `bool` | Handcuffed state |
-| `m_IsInWater` | `bool` | In water state |
-| `m_BleedingBits` | `int` | Active bleeding source bitmask |
-| `m_ShockSimplified` | `int` | Shock level (0..63) |
-| `m_HealthLevel` | `int` | Injury animation level |
-| `m_CorpseState` | `int` | Corpse decomposition stage |
-| `m_StaminaState` | `int` | Stamina state for animations |
-| `m_LifeSpanState` | `int` | Beard growth stage |
-| `m_HasBloodTypeVisible` | `bool` | Blood type test done |
-| `m_HasHeatBuffer` | `bool` | Heat buffer active |
+| Variável | Tipo | O Que Representa |
+|----------|------|-----------------|
+| `m_IsUnconscious` | `bool` | Estado de inconsciência |
+| `m_IsRestrained` | `bool` | Estado de algemas |
+| `m_IsInWater` | `bool` | Estado na água |
+| `m_BleedingBits` | `int` | Bitmask de fontes de sangramento ativas |
+| `m_ShockSimplified` | `int` | Nível de choque (0..63) |
+| `m_HealthLevel` | `int` | Nível de animação de lesão |
+| `m_CorpseState` | `int` | Estágio de decomposição do cadáver |
+| `m_StaminaState` | `int` | Estado de stamina para animações |
+| `m_LifeSpanState` | `int` | Estágio de crescimento de barba |
+| `m_HasBloodTypeVisible` | `bool` | Teste de tipo sanguíneo feito |
+| `m_HasHeatBuffer` | `bool` | Buffer de calor ativo |
 
-### OnVariávelsSynchronized
+### OnVariablesSynchronized
 
-This is the client-side callback that fires whenever synced variables change:
+Este é o callback do lado do cliente que dispara quando variáveis sincronizadas mudam:
 
 ```c
 // Vanilla PlayerBase.OnVariablesSynchronized()
@@ -570,45 +570,45 @@ override void OnVariablesSynchronized()
 {
     super.OnVariablesSynchronized();
 
-    // Update lifespan visuals (beard, bloody hands)
+    // Atualizar visuais de tempo de vida (barba, mãos ensanguentadas)
     if (m_ModuleLifespan)
         m_ModuleLifespan.SynchLifespanVisual(this, m_LifeSpanState,
             m_HasBloodyHandsVisible, m_HasBloodTypeVisible, m_BloodType);
 
-    // Update bleeding particles on remote clients
+    // Atualizar partículas de sangramento em clientes remotos
     if (GetBleedingManagerRemote() && IsPlayerLoaded())
         GetBleedingManagerRemote().OnVariablesSynchronized(GetBleedingBits());
 
-    // Update corpse visuals
+    // Atualizar visuais do cadáver
     if (m_CorpseStateLocal != m_CorpseState)
         UpdateCorpseState();
 }
 ```
 
-### Custom Synced Variávels in Modded Classes
+### Variáveis Sincronizadas Personalizadas em Classes Modded
 
-To add your own synced variable to a `modded class PlayerBase`:
+Para adicionar sua própria variável sincronizada a uma `modded class PlayerBase`:
 
 ```c
 modded class PlayerBase
 {
-    // 1. Declare the variable
+    // 1. Declarar a variável
     private bool m_MyCustomFlag;
 
-    // 2. Register it in constructor (after super())
+    // 2. Registrá-la no construtor (após super())
     void PlayerBase()
     {
         RegisterNetSyncVariableBool("m_MyCustomFlag");
     }
 
-    // 3. Set on server and mark dirty
+    // 3. Definir no servidor e marcar como dirty
     void SetMyFlag(bool value)
     {
         m_MyCustomFlag = value;
         SetSynchDirty();
     }
 
-    // 4. Read on client in OnVariablesSynchronized
+    // 4. Ler no cliente em OnVariablesSynchronized
     override void OnVariablesSynchronized()
     {
         super.OnVariablesSynchronized();
@@ -619,58 +619,58 @@ modded class PlayerBase
 }
 ```
 
-### Identity and PlayerBase Relationship
+### Relacionamento entre Identity e PlayerBase
 
-`PlayerIdentity` and `PlayerBase` are separate objects linked by the engine:
+`PlayerIdentity` e `PlayerBase` são objetos separados vinculados pelo motor:
 
-- `PlayerBase.GetIdentity()` returns the identity (can be null during connect/disconnect)
-- `PlayerIdentity.GetPlayer()` returns the `Man` entity (cast to `PlayerBase`)
-- A player entity can briefly exist without an identity during initial connection
-- After disconnect, the identity is detached before the entity is cleaned up
+- `PlayerBase.GetIdentity()` retorna a identidade (pode ser null durante conexão/desconexão)
+- `PlayerIdentity.GetPlayer()` retorna a entidade `Man` (cast para `PlayerBase`)
+- Uma entidade de jogador pode existir brevemente sem uma identidade durante a conexão inicial
+- Após desconexão, a identidade é desvinculada antes da entidade ser limpa
 
 ---
 
-## Manager Subsystems
+## Subsistemas Gerenciadores
 
-PlayerBase owns several manager objects that handle specific gameplay systems. All are created in the PlayerBase constructor (server-side).
+PlayerBase possui vários objetos gerenciadores que lidam com sistemas específicos de gameplay. Todos são criados no construtor de PlayerBase (lado do servidor).
 
-### ModificadorsManager
+### ModifiersManager
 
-**Propósito:** Controla all status effect modifiers (disease, hunger, temperature effects, broken legs).
+**Propósito:** Controla todos os modificadores de efeito de status (doença, fome, efeitos de temperatura, pernas quebradas).
 
 ```c
 ModifiersManager modMgr = player.GetModifiersManager();
 
-// Activate a specific modifier
+// Ativar um modificador específico
 modMgr.ActivateModifier(eModifiers.MDF_BROKEN_LEGS);
 
-// Deactivate a modifier
+// Desativar um modificador
 modMgr.DeactivateModifier(eModifiers.MDF_BROKEN_LEGS);
 
-// Check if active
+// Verificar se está ativo
 bool isActive = modMgr.IsModifierActive(eModifiers.MDF_BROKEN_LEGS);
 
-// Reset all modifiers
+// Resetar todos os modificadores
 modMgr.ResetAll();
 
-// Enable/disable the entire modifier system
-modMgr.SetModifiers(false);  // Pause all
-modMgr.SetModifiers(true);   // Resume all
+// Habilitar/desabilitar todo o sistema de modificadores
+modMgr.SetModifiers(false);  // Pausar todos
+modMgr.SetModifiers(true);   // Retomar todos
 ```
 
 ### PlayerAgentPool
 
-**Propósito:** Manages disease agents (cholera, influenza, salmonella, etc.).
+**Propósito:** Gerencia agentes de doença (cólera, influenza, salmonella, etc.).
 
 ```c
 PlayerAgentPool agentPool = player.m_AgentPool;
 ```
 
-Agents are typically added through contaminated food/water and removed by the immune system or medication.
+Agentes são tipicamente adicionados através de comida/água contaminada e removidos pelo sistema imunológico ou medicação.
 
 ### BleedingSourcesManagerServer
 
-**Propósito:** Tracks individual wound locations and their bleeding rate.
+**Propósito:** Rastreia localizações individuais de ferimentos e sua taxa de sangramento.
 
 ```c
 BleedingSourcesManagerServer bleedMgr = player.GetBleedingManagerServer();
@@ -681,11 +681,11 @@ if (bleedMgr)
 }
 ```
 
-Bleeding sources are tied to model bone selections (e.g., `"RightForeArmRoll"`, `"LeftLeg"`, `"RightFoot"`, `"Head"`). On the client side, `BleedingSourcesManagerRemote` handles particle effects.
+Fontes de sangramento são vinculadas a seleções de ossos do modelo (ex.: `"RightForeArmRoll"`, `"LeftLeg"`, `"RightFoot"`, `"Head"`). No lado do cliente, `BleedingSourcesManagerRemote` cuida dos efeitos de partículas.
 
 ### StaminaHandler
 
-**Propósito:** Manages stamina pool, consumption, and recovery.
+**Propósito:** Gerencia o pool de stamina, consumo e recuperação.
 
 ```c
 StaminaHandler staminaHandler = player.GetStaminaHandler();
@@ -693,16 +693,16 @@ StaminaHandler staminaHandler = player.GetStaminaHandler();
 
 ### ShockHandler
 
-**Propósito:** Manages the shock damage pool and unconsciousness threshold.
+**Propósito:** Gerencia o pool de dano de choque e o limiar de inconsciência.
 
 ```c
-// Accessed via member variable
+// Acessado via variável membro
 ShockHandler shockHandler = player.m_ShockHandler;
 ```
 
-### AçãoManagerBase
+### ActionManagerBase
 
-**Propósito:** Manages the action system (continuous actions like eating, bandaging, crafting).
+**Propósito:** Gerencia o sistema de ações (ações contínuas como comer, fazer curativo, crafting).
 
 ```c
 ActionManagerBase actionMgr = player.GetActionManager();
@@ -713,7 +713,7 @@ if (runningAction)
 
 ### WeaponManager
 
-**Propósito:** Handles weapon operations (reload, chamber, unjam).
+**Propósito:** Lida com operações de armas (recarregar, carregar câmara, destravar).
 
 ```c
 WeaponManager weaponMgr = player.GetWeaponManager();
@@ -722,29 +722,29 @@ bool isBusy = weaponMgr.IsRunning();
 
 ### EmoteManager
 
-**Propósito:** Controla emote/gesture playback.
+**Propósito:** Controla reprodução de emotes/gestos.
 
 ```c
 EmoteManager emoteMgr = player.GetEmoteManager();
 bool locked = emoteMgr.IsControllsLocked();
 ```
 
-### Other Managers
+### Outros Gerenciadores
 
-| Manager | Member Variável | Propósito |
-|---------|----------------|---------|
-| `SintomaManager` | `m_SintomaManager` | Visual/audio symptoms (coughing, sneezing) |
-| `SoftSkillsManager` | `m_SoftSkillsManager` | Soft skill progression |
-| `Environment` | `m_Environment` | Temperature, wetness, wind effects |
-| `PlayerStomach` | `m_PlayerStomach` | Food/liquid digestion simulation |
-| `CraftingManager` | `m_CraftingManager` | Recipe-based crafting |
-| `InjuryAnimationHandler` | `m_InjuryHandler` | Limping, injury animations |
+| Gerenciador | Variável Membro | Propósito |
+|-------------|----------------|-----------|
+| `SymptomManager` | `m_SymptomManager` | Sintomas visuais/sonoros (tosse, espirros) |
+| `SoftSkillsManager` | `m_SoftSkillsManager` | Progressão de habilidades suaves |
+| `Environment` | `m_Environment` | Temperatura, umidade, efeitos de vento |
+| `PlayerStomach` | `m_PlayerStomach` | Simulação de digestão de comida/líquido |
+| `CraftingManager` | `m_CraftingManager` | Crafting baseado em receitas |
+| `InjuryAnimationHandler` | `m_InjuryHandler` | Mancar, animações de lesão |
 
 ---
 
 ## Padrões Comuns
 
-### Finding a Player by Identity
+### Encontrando um Jogador pela Identidade
 
 ```c
 PlayerBase FindPlayerByPlainId(string plainId)
@@ -763,7 +763,7 @@ PlayerBase FindPlayerByPlainId(string plainId)
 }
 ```
 
-### Iterating All Online Players
+### Iterando Todos os Jogadores Online
 
 ```c
 void DoSomethingToAllPlayers()
@@ -777,55 +777,55 @@ void DoSomethingToAllPlayers()
         if (!player || !player.IsAlive())
             continue;
 
-        // Do something with each living player
+        // Fazer algo com cada jogador vivo
         Print("Player: " + player.GetIdentity().GetName());
     }
 }
 ```
 
-### Getting Player Look Direction
+### Obtendo a Direção do Olhar do Jogador
 
 ```c
-// Simple forward direction (from Object)
+// Direção frontal simples (de Object)
 vector lookDir = player.GetDirection();
 
-// Heading vector for gameplay purposes
+// Vetor de orientação para propósitos de gameplay
 vector headingDir = MiscGameplayFunctions.GetHeadingVector(player);
 
-// Full camera-based aiming direction
+// Direção de mira completa baseada na câmera
 vector cameraPos;
 vector cameraDir;
 GetGame().GetCurrentCameraPosition(cameraPos);
 GetGame().GetCurrentCameraDirection(cameraDir);
-// Use cameraDir for raycast aiming
+// Use cameraDir para raycast de mira
 ```
 
-### Safely Getting the Local Player
+### Obtendo o Jogador Local com Segurança
 
 ```c
-// On CLIENT only - returns null on dedicated server!
+// Apenas no CLIENTE - retorna null em servidor dedicado!
 PlayerBase GetLocalPlayer()
 {
     return PlayerBase.Cast(GetGame().GetPlayer());
 }
 ```
 
-### Server-Side Player Lookup from RPC
+### Busca de Jogador do Lado do Servidor a partir de RPC
 
 ```c
-// In an RPC handler, the sender identity tells you who sent it
+// Em um handler de RPC, a identidade do remetente diz quem enviou
 void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
 {
     if (!sender)
         return;
 
-    // Find their player entity
+    // Encontrar a entidade do jogador
     Man playerMan = sender.GetPlayer();
     PlayerBase player = PlayerBase.Cast(playerMan);
     if (!player)
         return;
 
-    // Now you have both identity and entity
+    // Agora você tem tanto identidade quanto entidade
     string name = sender.GetName();
     vector pos = player.GetPosition();
 }
@@ -835,35 +835,35 @@ void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext
 
 ## Erros Comuns
 
-### 1. GetGame().GetPlayer() Retorna Null on Server
+### 1. GetGame().GetPlayer() Retorna Null no Servidor
 
-`GetGame().GetPlayer()` returns the **local** player entity. On a dedicated server, there is no local player --- it always returns `null`.
+`GetGame().GetPlayer()` retorna a entidade do jogador **local**. Em um servidor dedicado, não há jogador local --- sempre retorna `null`.
 
 ```c
-// WRONG - will crash on dedicated server
+// ERRADO - vai crashar em servidor dedicado
 PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
-player.SetHealth(100); // null pointer!
+player.SetHealth(100); // ponteiro null!
 
-// CORRECT - only use on client
+// CORRETO - usar apenas no cliente
 if (!GetGame().IsDedicatedServer())
 {
     PlayerBase localPlayer = PlayerBase.Cast(GetGame().GetPlayer());
     if (localPlayer)
     {
-        // Client-side only operations
+        // Operações apenas do lado do cliente
     }
 }
 ```
 
-### 2. PlayerIdentity Can Be Null
+### 2. PlayerIdentity Pode Ser Null
 
-During the connection handshake, a player entity can exist briefly before its identity is assigned. Always null-check.
+Durante o handshake de conexão, uma entidade de jogador pode existir brevemente antes de sua identidade ser atribuída. Sempre verifique null.
 
 ```c
-// WRONG
-string name = player.GetIdentity().GetName(); // crash if identity is null!
+// ERRADO
+string name = player.GetIdentity().GetName(); // crash se identidade for null!
 
-// CORRECT
+// CORRETO
 PlayerIdentity identity = player.GetIdentity();
 if (identity)
 {
@@ -871,82 +871,82 @@ if (identity)
 }
 ```
 
-### 3. Not Checking IsAlive() Before Operations
+### 3. Não Verificar IsAlive() Antes de Operações
 
-Dead player entities still exist in the world as corpses. Many operations are meaningless or harmful on dead players.
+Entidades de jogadores mortos ainda existem no mundo como cadáveres. Muitas operações são inúteis ou prejudiciais em jogadores mortos.
 
 ```c
-// WRONG
-player.SetHealth("", "Blood", 5000); // Healing a corpse does nothing useful
+// ERRADO
+player.SetHealth("", "Blood", 5000); // Curar um cadáver não serve para nada
 
-// CORRECT
+// CORRETO
 if (player.IsAlive())
 {
     player.SetHealth("", "Blood", 5000);
 }
 ```
 
-### 4. Modifying Health on Client
+### 4. Modificar Saúde no Cliente
 
-Health changes are **server-authoritative**. Setting health on the client will be overwritten by the next server sync, or worse, cause desync.
+Mudanças de saúde são **autoritativas do servidor**. Definir saúde no cliente será sobrescrito pela próxima sincronização do servidor, ou pior, causar desync.
 
 ```c
-// WRONG - client-side health change will desync
+// ERRADO - mudança de saúde no cliente vai causar desync
 player.SetHealth("", "Health", 100);
 
-// CORRECT - check that we are on the server
+// CORRETO - verificar que estamos no servidor
 if (GetGame().IsServer())
 {
     player.SetHealth("", "Health", 100);
 }
 ```
 
-### 5. Confusing GetPlainId() and GetId()
+### 5. Confundir GetPlainId() e GetId()
 
 ```c
-// GetPlainId() = raw Steam64 ID (human-readable, not hashed)
-// GetId()      = BattlEye GUID (hashed, safe for databases)
+// GetPlainId() = Steam64 ID bruto (legível, não hasheado)
+// GetId()      = GUID do BattlEye (hasheado, seguro para bancos de dados)
 
-// WRONG - using GetId() to look up Steam profile
+// ERRADO - usando GetId() para buscar perfil Steam
 string steamUrl = "https://steamcommunity.com/profiles/" + identity.GetId();
-// This won't work - GetId() is a hash, not a Steam64 ID!
+// Isso não funciona - GetId() é um hash, não um Steam64 ID!
 
-// CORRECT
+// CORRETO
 string steamUrl = "https://steamcommunity.com/profiles/" + identity.GetPlainId();
 ```
 
-### 6. Forgetting SetSynchDirty()
+### 6. Esquecer SetSynchDirty()
 
-After modifying a synced variable, you must call `SetSynchDirty()` to trigger network synchronization. Without it, clients will never see the change.
+Após modificar uma variável sincronizada, você deve chamar `SetSynchDirty()` para acionar a sincronização de rede. Sem isso, os clientes nunca verão a mudança.
 
 ```c
-// WRONG - clients won't see the restrain state change
+// ERRADO - clientes não verão a mudança de estado de restrição
 m_IsRestrained = true;
 
-// CORRECT - how SetRestrained() actually works
+// CORRETO - como SetRestrained() realmente funciona
 void SetRestrained(bool is_restrained)
 {
     m_IsRestrained = is_restrained;
-    SetSynchDirty();    // Tells engine to send update to clients
+    SetSynchDirty();    // Diz ao motor para enviar atualização aos clientes
 }
 ```
 
-### 7. Using IsAlive() on Base Object Type
+### 7. Usar IsAlive() no Tipo Base Object
 
-The `Object.IsAlive()` method exists, but if you have a generic `Object` reference that you suspect is a player, you must cast to `EntityAI` first. The `Object` version just checks `!IsDamageDestroyed()`, which works, but `EntityAI` adds the full damage system context.
+O método `Object.IsAlive()` existe, mas se você tem uma referência genérica `Object` que suspeita ser um jogador, deve primeiro fazer cast para `EntityAI`. A versão do `Object` apenas verifica `!IsDamageDestroyed()`, o que funciona, mas `EntityAI` adiciona o contexto completo do sistema de dano.
 
 ```c
-// When working with generic Object references
+// Quando trabalhando com referências genéricas de Object
 Object obj = GetSomeObject();
 
-// Safe approach - cast first
+// Abordagem segura - fazer cast primeiro
 EntityAI entity = EntityAI.Cast(obj);
 if (entity && entity.IsAlive())
 {
     PlayerBase player = PlayerBase.Cast(entity);
     if (player)
     {
-        // Now safely work with the living player
+        // Agora trabalhe com segurança com o jogador vivo
     }
 }
 ```
@@ -955,67 +955,67 @@ if (entity && entity.IsAlive())
 
 ## Tabela de Referência Rápida
 
-| Tarefa | Code |
-|------|------|
-| Get identity | `player.GetIdentity()` |
-| Get Steam ID | `player.GetIdentity().GetPlainId()` |
-| Get health | `player.GetHealth("", "Health")` |
-| Set health | `player.SetHealth("", "Health", value)` |
-| Get blood | `player.GetHealth("", "Blood")` |
-| Get shock | `player.GetHealth("", "Shock")` |
-| Is alive | `player.IsAlive()` |
-| Is unconscious | `player.IsUnconscious()` |
-| Is restrained | `player.IsRestrained()` |
-| Get item in hands | `player.GetItemInHands()` |
-| Get headgear | `player.FindAttachmentBySlotName("Headgear")` |
-| God mode | `player.SetAllowDamage(false)` |
-| Teleport | `player.SetPosition(vector)` |
-| Kill | `player.SetHealth("", "Health", 0)` |
-| Strip inventory | `player.RemoveAllItems()` |
-| Get all players | `GetGame().GetPlayers(array<Man>)` |
-| Get local player | `PlayerBase.Cast(GetGame().GetPlayer())` (client only!) |
-| Get water stat | `player.GetStatWater().Get()` |
-| Get energy stat | `player.GetStatEnergy().Get()` |
-| Bleeding count | `player.GetBleedingSourceCount()` |
-| Stop bleeding | `player.GetBleedingManagerServer().RemoveAllSources()` |
-| Check instance type | `player.GetInstanceType()` |
-| Restrain | `player.SetRestrained(true)` |
+| Tarefa | Código |
+|--------|--------|
+| Obter identidade | `player.GetIdentity()` |
+| Obter Steam ID | `player.GetIdentity().GetPlainId()` |
+| Obter saúde | `player.GetHealth("", "Health")` |
+| Definir saúde | `player.SetHealth("", "Health", value)` |
+| Obter sangue | `player.GetHealth("", "Blood")` |
+| Obter choque | `player.GetHealth("", "Shock")` |
+| Está vivo | `player.IsAlive()` |
+| Está inconsciente | `player.IsUnconscious()` |
+| Está restringido | `player.IsRestrained()` |
+| Obter item nas mãos | `player.GetItemInHands()` |
+| Obter capacete | `player.FindAttachmentBySlotName("Headgear")` |
+| Modo deus | `player.SetAllowDamage(false)` |
+| Teleportar | `player.SetPosition(vector)` |
+| Matar | `player.SetHealth("", "Health", 0)` |
+| Desvestir inventário | `player.RemoveAllItems()` |
+| Obter todos os jogadores | `GetGame().GetPlayers(array<Man>)` |
+| Obter jogador local | `PlayerBase.Cast(GetGame().GetPlayer())` (apenas cliente!) |
+| Obter stat de água | `player.GetStatWater().Get()` |
+| Obter stat de energia | `player.GetStatEnergy().Get()` |
+| Contagem de sangramentos | `player.GetBleedingSourceCount()` |
+| Parar sangramento | `player.GetBleedingManagerServer().RemoveAllSources()` |
+| Verificar tipo de instância | `player.GetInstanceType()` |
+| Restringir | `player.SetRestrained(true)` |
 
 ---
 
-*This chapter covers the PlayerBase API as of DayZ 1.26. Método signatures are sourced from vanilla script files in `3_Game/` and `4_World/`. For the complete entity hierarchy that PlayerBase inherits from, see [Capítulo 6.1: Entity System](01-entity-system.md).*
+*Este capítulo cobre a API do PlayerBase a partir do DayZ 1.26. Assinaturas de métodos são provenientes de arquivos de script vanilla em `3_Game/` e `4_World/`. Para a hierarquia completa de entidades da qual PlayerBase herda, veja [Capítulo 6.1: Sistema de Entidades](01-entity-system.md).*
 
 ---
 
 ## Boas Práticas
 
-- **Always null-check `GetIdentity()` before accessing player identity fields.** During the connection handshake and disconnect teardown, a `PlayerBase` entity can exist without an identity. Calling `GetIdentity().GetName()` without a null check crashes the server.
-- **Use `GetPlainId()` for Steam lookups, `GetId()` for database storage.** `GetPlainId()` returns the raw Steam64 ID suitable for profile URLs. `GetId()` returns the BattlEye GUID hash, which Bohemia recommends for persistent data keys.
-- **Guard all health modifications with `GetGame().IsServer()`.** Health, blood, shock, stats, and bleeding are server-authoritative. Client-side changes are overwritten on the next sync and cause desync artifacts.
-- **Check `IsAlive()` before performing operations on player entities.** Dead player entities persist as corpses. Healing, teleporting, or equipping a corpse wastes server resources and can cause unexpected behavior.
-- **Call `SetSynchDirty()` after modifying any `RegisterNetSyncVariável*` field.** Without this call, clients never receive the updated value. This applies to both vanilla synced variables and your custom ones.
+- **Sempre verifique null em `GetIdentity()` antes de acessar campos de identidade do jogador.** Durante o handshake de conexão e teardown de desconexão, uma entidade `PlayerBase` pode existir sem uma identidade. Chamar `GetIdentity().GetName()` sem verificação de null crasha o servidor.
+- **Use `GetPlainId()` para buscas no Steam, `GetId()` para armazenamento em banco de dados.** `GetPlainId()` retorna o Steam64 ID bruto adequado para URLs de perfil. `GetId()` retorna o hash GUID do BattlEye, que a Bohemia recomenda para chaves de dados persistentes.
+- **Proteja todas as modificações de saúde com `GetGame().IsServer()`.** Saúde, sangue, choque, stats e sangramento são autoritativos do servidor. Mudanças do lado do cliente são sobrescritas na próxima sincronização e causam artefatos de desync.
+- **Verifique `IsAlive()` antes de realizar operações em entidades de jogadores.** Entidades de jogadores mortos persistem como cadáveres. Curar, teleportar ou equipar um cadáver desperdiça recursos do servidor e pode causar comportamento inesperado.
+- **Chame `SetSynchDirty()` após modificar qualquer campo `RegisterNetSyncVariable*`.** Sem esta chamada, os clientes nunca recebem o valor atualizado. Isso se aplica tanto a variáveis sincronizadas vanilla quanto às suas personalizadas.
 
 ---
 
-## Compatibility & Impact
+## Compatibilidade e Impacto
 
-> **Mod Compatibility:** `PlayerBase` is the single most modded class in DayZ. Admin tools, survival mods, PvP systems, and UI mods all add `modded class PlayerBase` with custom fields, overrides, and synced variables.
+> **Compatibilidade de Mods:** `PlayerBase` é a classe mais modded no DayZ. Ferramentas de admin, mods de sobrevivência, sistemas PvP e mods de UI todos adicionam `modded class PlayerBase` com campos personalizados, sobrescritas e variáveis sincronizadas.
 
-- **Load Order:** Multiple `modded class PlayerBase` declarations coexist as long as each calls `super` in every override. The last-loaded mod's overrides wrap all previous ones.
-- **Modded Class Conflicts:** Common conflict points are `OnVariávelsSynchronized()` (forgetting `super` hides other mods' sync logic), `EEHitBy()` (damage modification mods overriding each other), and the constructor (net sync variable registration order must be consistent).
-- **Performance Impact:** Adding many `RegisterNetSyncVariável*` calls to PlayerBase increases per-player network traffic. Each synced variable is checked for changes every time `SetSynchDirty()` is called. Keep custom synced variables under 4-5 per mod.
-- **Server/Client:** `GetGame().GetPlayer()` returns null on dedicated servers. Use `GetGame().GetPlayers(array)` to iterate server-side players. Manager subsystems like `GetBleedingManagerServer()` return null on clients; use `GetBleedingManagerRemote()` for client-side particle effects instead.
+- **Ordem de Carregamento:** Múltiplas declarações de `modded class PlayerBase` coexistem desde que cada uma chame `super` em cada sobrescrita. As sobrescritas do último mod carregado envolvem todas as anteriores.
+- **Conflitos de Modded Class:** Pontos comuns de conflito são `OnVariablesSynchronized()` (esquecer `super` esconde a lógica de sync de outros mods), `EEHitBy()` (mods de modificação de dano sobrescrevendo uns aos outros) e o construtor (a ordem de registro de variáveis de sync de rede deve ser consistente).
+- **Impacto de Desempenho:** Adicionar muitas chamadas `RegisterNetSyncVariable*` ao PlayerBase aumenta o tráfego de rede por jogador. Cada variável sincronizada é verificada por mudanças toda vez que `SetSynchDirty()` é chamado. Mantenha variáveis sincronizadas personalizadas abaixo de 4-5 por mod.
+- **Servidor/Cliente:** `GetGame().GetPlayer()` retorna null em servidores dedicados. Use `GetGame().GetPlayers(array)` para iterar jogadores do lado do servidor. Subsistemas gerenciadores como `GetBleedingManagerServer()` retornam null nos clientes; use `GetBleedingManagerRemote()` para efeitos de partículas do lado do cliente em vez disso.
 
 ---
 
-## Observed in Real Mods
+## Observado em Mods Reais
 
-> These patterns were confirmed by studying the source code of professional DayZ mods.
+> Estes padrões foram confirmados estudando o código-fonte de mods profissionais de DayZ.
 
-| Padrão | Mod | File/Location |
-|---------|-----|---------------|
-| `modded class PlayerBase` with custom `RegisterNetSyncVariávelBool` for group membership | Expansion | Party system player sync |
-| `EEHitBy` override to track damage source for killfeed display | Dabs Framework | Hit tracking / killfeed |
-| `InvokeOnConnect` player data load from `$profile:` JSON by `GetIdentity().GetId()` | COT | Player permission loading |
-| `GetBleedingManagerServer().RemoveAllSources()` in admin heal command | VPP Admin Tools | Player management module |
-| `OnVariávelsSynchronized` override to update client-side HUD from synced stats | Expansion | Notification and status sync |
+| Padrão | Mod | Arquivo/Localização |
+|--------|-----|---------------------|
+| `modded class PlayerBase` com `RegisterNetSyncVariableBool` personalizado para pertencimento a grupo | Expansion | Sync de jogador do sistema de grupo |
+| Sobrescrita de `EEHitBy` para rastrear fonte de dano para exibição de killfeed | Dabs Framework | Rastreamento de golpe / killfeed |
+| `InvokeOnConnect` carregamento de dados do jogador de JSON em `$profile:` por `GetIdentity().GetId()` | COT | Carregamento de permissões do jogador |
+| `GetBleedingManagerServer().RemoveAllSources()` no comando de cura de admin | VPP Admin Tools | Módulo de gerenciamento de jogadores |
+| Sobrescrita de `OnVariablesSynchronized` para atualizar HUD do lado do cliente a partir de stats sincronizados | Expansion | Notificação e sync de status |
