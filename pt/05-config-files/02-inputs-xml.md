@@ -17,7 +17,7 @@
 - [Multiplas Teclas Padrão](#múltiplas-teclas-padrão)
 - [Acessando Inputs no Script](#acessando-inputs-no-script)
 - [Referência de Métodos de Input](#referência-de-métodos-de-input)
-- [Suprimindo é Desabilitando Inputs](#suprimindo-e-desabilitando-inputs)
+- [Suprimindo e Desabilitando Inputs](#suprimindo-e-desabilitando-inputs)
 - [Referência de Nomes de Teclas](#referência-de-nomes-de-teclas)
 - [Exemplos Reais](#exemplos-reais)
 - [Erros Comuns](#erros-comuns)
@@ -26,9 +26,9 @@
 
 ## Visao Geral
 
-Quando seu mod precisa que o jogador pressione uma tecla --- abrindo um menu, alternando uma funcionalidade, comandando uma unidade de IA --- você registra uma acao de input personalizada no `inputs.xml`. O motor le este arquivo na inicializacao é integra suas acoes ao sistema universal de input. Jogadores veem seus keybindings no menu Settings > Controls do jogo, agrupados sob um cabecalho que você define.
+Quando seu mod precisa que o jogador pressione uma tecla --- abrindo um menu, alternando uma funcionalidade, comandando uma unidade de IA --- você registra uma acao de input personalizada no `inputs.xml`. O motor le este arquivo na inicializacao e integra suas acoes ao sistema universal de input. Jogadores veem seus keybindings no menu Settings > Controls do jogo, agrupados sob um cabecalho que você define.
 
-Inputs personalizados são identificados por um nome de acao único (convencionalmente prefixado com `UA` para "User Action") é podem ter keybindings padrão que os jogadores podem reconfigurar a vontade.
+Inputs personalizados são identificados por um nome de acao único (convencionalmente prefixado com `UA` para "User Action") e podem ter keybindings padrão que os jogadores podem reconfigurar a vontade.
 
 ---
 
@@ -74,13 +74,13 @@ Um arquivo `inputs.xml` tem três seções, todas encapsuladas em um elemento ra
 </modded_inputs>
 ```
 
-Todas as três seções --- `<actions>`, `<sorting>` é `<preset>` --- trabalham juntas, mas servem a propósitos diferentes.
+Todas as três seções --- `<actions>`, `<sorting>` e `<preset>` --- trabalham juntas, mas servem a propósitos diferentes.
 
 ---
 
 ## Bloco Actions
 
-O bloco `<actions>` declara toda acao de input que seu mod fornece. Cada acao é um único elemento `<input>`.
+O bloco `<actions>` declara toda acao de input que seu mod fornece. Cada acao e um único elemento `<input>`.
 
 ### Sintaxe
 
@@ -97,7 +97,7 @@ O bloco `<actions>` declara toda acao de input que seu mod fornece. Cada acao é
 |----------|-------------|-----------|
 | `name` | Sim | Identificador único da acao. Convencao: prefixar com `UA` (User Action). Usado em scripts para consultar este input. |
 | `loc` | Não | Chave de stringtable para o nome de exibicao no menu de Controles. **Sem prefixo `#`** --- o sistema o adiciona. |
-| `visible` | Não | Defina como `"false"` para ocultar do menu de Controles. Padrão é `true`. |
+| `visible` | Não | Defina como `"false"` para ocultar do menu de Controles. Padrão e `true`. |
 
 ### Convencao de Nomenclatura
 
@@ -109,13 +109,13 @@ Nomes de acao devem ser globalmente únicos entre todos os mods carregados. Use 
 <input name="eAICommandMenu" loc="STR_EXPANSION_AI_COMMAND_MENU" />
 ```
 
-O prefixo `UA` é convencional mas não obrigatório. O Expansion AI usa `eAI` como prefixo, o que também funciona.
+O prefixo `UA` e convencional mas não obrigatório. O Expansion AI usa `eAI` como prefixo, o que também funciona.
 
 ---
 
 ## Bloco Sorting
 
-O bloco `<sorting>` controla como seus inputs aparecem nas configurações de Controles do jogador. Ele define um grupo nomeado (que se torna um cabecalho de seção) é lista os inputs na ordem de exibicao.
+O bloco `<sorting>` controla como seus inputs aparecem nas configurações de Controles do jogador. Ele define um grupo nomeado (que se torna um cabecalho de seção) e lista os inputs na ordem de exibicao.
 
 ### Sintaxe
 
@@ -184,7 +184,7 @@ Para exigir uma tecla modificadora (Ctrl, Shift, Alt), aninhe elementos `<btn>`:
 </input>
 ```
 
-O `<btn>` externo é o modificador; o `<btn>` interno é a tecla principal. O jogador deve segurar o modificador é então pressionar a tecla principal.
+O `<btn>` externo e o modificador; o `<btn>` interno e a tecla principal. O jogador deve segurar o modificador e então pressionar a tecla principal.
 
 ### Shift + Tecla
 
@@ -199,8 +199,8 @@ O `<btn>` externo é o modificador; o `<btn>` interno é a tecla principal. O jo
 ### Regras de Aninhamento
 
 - O `<btn>` **externo** é sempre o modificador (mantido pressionado)
-- O `<btn>` **interno** é o gatilho (pressionado enquanto o modificador é mantido)
-- Apenas um nível de aninhamento é típico; aninhamento mais profundo não é testado é não é recomendado
+- O `<btn>` **interno** e o gatilho (pressionado enquanto o modificador e mantido)
+- Apenas um nível de aninhamento e típico; aninhamento mais profundo não é testado e não é recomendado
 
 ---
 
@@ -300,11 +300,11 @@ O parâmetro `false` em `LocalPress("name", false)` indica que a verificação n
 
 Uma vez que você tem uma referência `UAInput` (de `GetUApi().GetInputByName()`), ou esta usando a classe `Input` diretamente, estes métodos detectam diferentes estados de input:
 
-| Método | Retorna | Quando é Verdadeiro |
+| Método | Retorna | Quando e Verdadeiro |
 |--------|---------|---------------------|
 | `LocalPress()` | `bool` | A tecla foi pressionada **neste frame** (gatilho único no key-down) |
 | `LocalRelease()` | `bool` | A tecla foi solta **neste frame** (gatilho único no key-up) |
-| `LocalClick()` | `bool` | A tecla foi pressionada é solta rapidamente (toque) |
+| `LocalClick()` | `bool` | A tecla foi pressionada e solta rapidamente (toque) |
 | `LocalHold()` | `bool` | A tecla foi mantida pressionada por um tempo limite |
 | `LocalDoubleClick()` | `bool` | A tecla foi tocada duas vezes rapidamente |
 | `LocalValue()` | `float` | Valor analogico atual (0.0 ou 1.0 para teclas digitais; variavel para eixos analogicos) |
@@ -350,7 +350,7 @@ if (input.LocalHold("UAExpansionGPSToggle"))
 
 ---
 
-## Suprimindo é Desabilitando Inputs
+## Suprimindo e Desabilitando Inputs
 
 ### ForceDisable
 
@@ -444,7 +444,7 @@ Nomes de tecla usados no atributo `<btn name="">` seguem uma convencao de nomenc
 
 ### DayZ Expansion AI
 
-Um inputs.xml bem estruturado com keybindings visíveis, inputs de debug ocultos é combos com modificadores:
+Um inputs.xml bem estruturado com keybindings visíveis, inputs de debug ocultos e combos com modificadores:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -527,7 +527,7 @@ Um inputs.xml mínimo para um input utilitário oculto com múltiplas teclas pad
 Observacoes principais:
 - Input oculto (`visible="false"`) com `loc` vazio --- nunca mostrado nas configurações
 - Duas teclas padrão: tanto Enter quanto Numpad Enter acionam a mesma acao
-- Sem bloco `<sorting>` --- não necessário já que o input é oculto
+- Sem bloco `<sorting>` --- não necessário já que o input e oculto
 
 ### Template Inicial Completo
 
@@ -579,7 +579,7 @@ Com uma stringtable.csv correspondente:
 <input name="UAMyAction" loc="STR_MYMOD_ACTION" />
 ```
 
-O sistema de input prepende `#` internamente. Adicioná-lo você mesmo causa um duplo prefixo é a busca falha.
+O sistema de input prepende `#` internamente. Adicioná-lo você mesmo causa um duplo prefixo e a busca falha.
 
 ### Colisao de Nomes de Acao
 

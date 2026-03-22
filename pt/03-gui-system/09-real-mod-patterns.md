@@ -74,7 +74,7 @@ class JMExampleModule: JMRenderableModuleBase
 }
 ```
 
-The module is registered in a central constructor that builds the module list:
+O módulo e registrado em um construtor central que monta a lista de módulos:
 
 ```c
 modded class JMModuleConstructor
@@ -108,7 +108,7 @@ void Show()
 }
 ```
 
-The form's `Init` binds the module reference through a protected override:
+O `Init` do formulário vincula a referência do módulo através de um override protegido:
 
 ```c
 class JMExampleForm: JMFormBase
@@ -127,7 +127,7 @@ class JMExampleForm: JMFormBase
 }
 ```
 
-**Key takeaway:** Each tool is entirely self-contained. Adding a new admin tool means creating one Module class, one Form class, one layout file, and inserting one line in the constructor. No existing code changes.
+**Ponto-chave:** Cada ferramenta é completamente autocontida. Adicionar uma nova ferramenta de admin significa criar uma classe Module, uma classe Form, um arquivo de layout e inserir uma linha no construtor. Sem alterações no código existente.
 
 ### Programmatic UI with UIAçãoManager
 
@@ -166,11 +166,11 @@ override void OnInit()
 
 Each `UIAção*` widget type has its own layout file (e.g., `UIAçãoSlider.layout`, `UIAçãoCheckbox.layout`) loaded as a prefab. The factory approach means:
 
-- Consistent sizing and spacing across all panels
-- No layout file duplication
-- New action types can be added once and used everywhere
+- Dimensionamento e espaçamento consistentes em todos os painéis
+- Sem duplicação de arquivos de layout
+- Novos tipos de ação podem ser adicionados uma vez é usados em todos os lugares
 
-### ESP Overlay (Drawing on CanvasWidget)
+### Sobreposição ESP (Desenhando no CanvasWidget)
 
 COT's ESP system draws labels, health bars, and lines directly over the 3D world using `CanvasWidget`. The key pattern is a screen-space `CanvasWidget` that covers the entire viewport, with individual ESP widget handlers positioned at projected world coordinatés:
 
@@ -206,9 +206,9 @@ class JMESPWidgetHandler: ScriptedWidgetEventHandler
 
 ESP widgets are created from prefab layouts (`esp_widget.layout`) and positioned each frame by projecting 3D positions to screen coordinatés. The canvas itself is a fullscreen overlay loaded at startup.
 
-### Confirmation Dialogs
+### Diálogos de Confirmação
 
-COT provides a callback-based confirmation system built into `JMFormBase`. Confirmations are created with named callbacks:
+O COT fornece um sistema de confirmação baseado em callbacks integrado ao `JMFormBase`. Confirmações são criadas com callbacks nomeados:
 
 ```c
 CreateConfirmation_Two(
@@ -237,15 +237,15 @@ class JMConfirmationForm: JMConfirmation
 }
 ```
 
-This allows chaining confirmations (one confirmation opens another) without hardcoding the flow.
+Isso permite encadear confirmações (uma confirmação abre outra) sem codificar o fluxo de forma rígida.
 
 ---
 
-## VPP Admin Tools UI Padrãos
+## Padrões de UI do VPP Admin Tools
 
-VPP takes a different approach from COT: it uses `UIScriptedMenu` with a toolbar HUD, draggable sub-windows, and a global dialog box system.
+O VPP adota uma abordagem diferente do COT: usa `UIScriptedMenu` com uma HUD de barra de ferramentas, sub-janelas arrastáveis e um sistema global de caixa de diálogo.
 
-### Toolbar Button Registration
+### Registro de Botões na Barra de Ferramentas
 
 `VPPAdminHud` maintains a list of button definitions. Each button maps a permission string to a display name, icon, and tooltip:
 
@@ -275,11 +275,11 @@ class VPPAdminHud extends VPPScriptedMenu
 }
 ```
 
-External mods can override `DefineButtons()` to add their own toolbar buttons, making VPP extensible without modifying its source.
+Mods externos podem sobrescrever `DefineButtons()` para adicionar seus próprios botões na barra de ferramentas, tornando o VPP extensível sem modificar seu código-fonte.
 
-### Sub-Menu Window System
+### Sistema de Sub-Janelas de Menu
 
-Each tool panel extends `AdminHudSubMenu`, which provides draggable window behavior, show/hide toggling, and window priority management:
+Cada painel de ferramenta estende `AdminHudSubMenu`, que fornece comportamento de janela arrastável, alternância de mostrar/ocultar e gerenciamento de prioridade de janela:
 
 ```c
 class AdminHudSubMenu: ScriptedWidgetEventHandler
@@ -336,7 +336,7 @@ class AdminHudSubMenu: ScriptedWidgetEventHandler
 
 **Key takeaway:** VPP builds a mini window manager inside DayZ. Each sub-menu is a draggable, resizable window with focus management. The `SetWindowPriorty()` call adjusts z-order so the clicked window comes to front.
 
-### VPPDialogBox -- Callback-based Dialog
+### VPPDialogBox -- Diálogo Baseado em Callbacks
 
 VPP's dialog system uses an enum-driven approach. The dialog shows/hides buttons based on a type enum, and routes the result through `CallFunction`:
 
@@ -422,7 +422,7 @@ class ConfirmationEventHandler extends ScriptedWidgetEventHandler
 }
 ```
 
-### PopUp with OnWidgetScriptInit
+### PopUp com OnWidgetScriptInit
 
 VPP popup forms bind to their layout via `OnWidgetScriptInit` and use `ScriptedWidgetEventHandler`:
 
@@ -474,11 +474,11 @@ class PopUpCreatePreset extends ScriptedWidgetEventHandler
 
 ---
 
-## DabsFramework UI Padrãos
+## Padrões de UI do DabsFramework
 
-DabsFramework introduces a full MVC (Model-View-Controller) architecture for DayZ UI. It is used by DayZ Editor and Expansion as their UI foundation.
+O DabsFramework introduz uma arquitetura MVC (Model-View-Controller) completa para UI do DayZ. É usado pelo DayZ Editor e Expansion como sua base de UI.
 
-### ViewController and Data Binding
+### ViewController e Vinculação de Dados
 
 The core idea: instead of manually finding widgets and setting their text, you declare properties on a controller class and bind them to widgets by name in the layout editor.
 
@@ -541,7 +541,7 @@ class ViewBinding : ScriptedViewBase
 
 **Two-way binding** means changes in the widget (user typing) propagate back to the controller property automatically.
 
-### ObservableCollection -- List Data Binding
+### ObservableCollection -- Vinculação de Dados de Lista
 
 For dynamic lists, DabsFramework provides `ObservableCollection<T>`. Insert/remove operations automatically update the bound widget (e.g., a WrapSpacer or ScrollWidget):
 
@@ -567,7 +567,7 @@ class MyController: ViewController
 
 Each `Insert()` fires a `CollectionChanged` event, which the ViewBinding intercepts to create/destroy child widgets. No manual widget management needed.
 
-### ScriptView -- Layout-from-Code
+### ScriptView -- Layout a Partir de Código
 
 `ScriptView` is the all-script alternative to `OnWidgetScriptInit`. You subclass it, override `GetLayoutFile()`, and instantiate it. The constructor loads the layout, finds the controller, and wires everything:
 
@@ -627,13 +627,13 @@ class EditorCommand: RelayCommand
 
 ---
 
-## Colorful UI Padrãos
+## Padrões de UI do Colorful UI
 
 Colorful UI replaces vanilla DayZ menus with themed versions without modifying vanilla script files. Its approach is entirely based on `modded class` overrides and a centralized color/branding system.
 
 ### 3-Camada Theme System
 
-Colors are organized in three tiers:
+As cores são organizadas em três camadas:
 
 **Camada 1 -- UIColor (base palette):** Raw color values with semantic names.
 
@@ -691,7 +691,7 @@ class SocialURL
 }
 ```
 
-### Non-Destructive Vanilla UI Modification
+### Modificação Não-Destrutiva da UI Vanilla
 
 Colorful UI replaces vanilla menus using `modded class`. Each vanilla `UIScriptedMenu` subclass is modded to load a custom layout file and apply theme colors:
 
@@ -723,7 +723,7 @@ modded class MainMenu extends UIScriptedMenu
 
 This pattern is important: Colorful UI ships entirely custom `.layout` files that mirror vanilla widget names. The `modded class` override swaps the layout path but keeps vanilla widget names so that if any vanilla code references those widget names, it still works.
 
-### Resolution-Aware Layout Variants
+### Variantes de Layout Sensíveis à Resolução
 
 Colorful UI provides separate inventory layout directories for different screen widths:
 
@@ -735,7 +735,7 @@ GUI/layouts/inventory/wide/     -- ultrawide
 
 Each directory contains the same file names (`cargo_container.layout`, `left_area.layout`, etc.) with adjusted sizing. The correct variant is selected at runtime based on screen resolution.
 
-### Configuration via Static Variables
+### Configuração via Variáveis Estáticas
 
 Server owners configure Colorful UI by editing static variable values in `Settings.c`:
 
@@ -753,11 +753,11 @@ This is the simplest possible config system: edit the script, rebuild PBO. No JS
 
 ---
 
-## Expansion UI Padrãos
+## Padrões de UI do Expansion
 
 DayZ Expansion is the largest community mod ecosystem. Its UI ranges from notification toasts to full market trading interfaces with server synchronization.
 
-### Notification System (Multiple Types)
+### Sistema de Notificações (Múltiplos Tipos)
 
 Expansion defines six notification visual types, each with its own layout:
 
@@ -820,7 +820,7 @@ class ExpansionNotificationView: ScriptView
 
 Each notification type has a separate layout file (`expansion_notification_toast.layout`, `expansion_notification_killfeed.layout`, etc.) allowing completely different visual treatments.
 
-### Market Menu (Complex Interactive Panel)
+### Menu de Mercado (Painel Interativo Complexo)
 
 The `ExpansionMarketMenu` is one of the most complex UIs in any DayZ mod. It extends `ExpansionScriptViewMenu` (which extends DabsFramework's ScriptView) and manages:
 
@@ -859,7 +859,7 @@ class ExpansionMarketMenu: ExpansionScriptViewMenu
 
 **Key takeaway:** For complex interactive UIs, Expansion combines DabsFramework's MVC with traditional widget references. The controller handles data binding for lists and text, while direct widget references handle specialized widgets like `ItemPreviewWidget` and `PlayerPreviewWidget` that need imperative control.
 
-### ExpansionScriptViewMenu -- Menu Lifecycle
+### ExpansionScriptViewMenu -- Ciclo de Vida do Menu
 
 Expansion wraps ScriptView in a menu base class that handles input locking, blur effects, and update timers:
 
@@ -896,7 +896,7 @@ This ensures every Expansion menu consistently locks player movement, shows curs
 
 ---
 
-## DayZ Editor UI Padrãos
+## Padrões de UI do DayZ Editor
 
 DayZ Editor is a full object placement tool built as a DayZ mod. It uses DabsFramework extensively and implements patterns typically found in desktop applications: toolbars, menus, property inspectors, command system with undo/redo.
 
@@ -960,7 +960,7 @@ class EditorCommandManager
 
 Commands integrate with DabsFramework's `RelayCommand` so toolbar buttons automatically grey out when `CanExecute()` returns false.
 
-### Menu Bar System
+### Sistema de Barra de Menu
 
 The Editor builds its menu bar (File, Edit, View, Editor) using an observable collection of menu items. Each menu is a `ScriptView` subclass:
 
@@ -993,7 +993,7 @@ class EditorMenu: ScriptView
 
 The `ObservableCollection` automatically creatés the visual menu items when commands are inserted.
 
-### HUD with Data-Bound Panels
+### HUD com Painéis Vinculados a Dados
 
 The editor HUD controller uses `ObservableCollection` for all list panels:
 
@@ -1016,7 +1016,7 @@ class EditorHudController: EditorControllerBase
 
 Adding an object to the scene automatically adds it to the sidebar list. Deleting removes it. No manual widget creation/destruction.
 
-### Theming via Widget Name Lists
+### Tematização via Listas de Nomes de Widgets
 
 The Editor centralizes themed widgets using a static array of widget names:
 
@@ -1033,11 +1033,11 @@ A theming pass iterates this array and applies colors from `EditorSettings`, avo
 
 ---
 
-## Common UI Architecture Padrãos
+## Padrões Comuns de Arquitetura de UI
 
 These patterns appear across multiple mods. They represent the community's consensus on how to solve recurring DayZ UI problems.
 
-### Panel Manager (Show/Hide by Name or Type)
+### Gerenciador de Painéis (Mostrar/Ocultar por Nome ou Tipo)
 
 Both VPP and COT maintain a registry of UI panels accessible by typename:
 
@@ -1065,7 +1065,7 @@ void ToggleShow()
 
 This prevents duplicate panels and provides a single point of control for visibility.
 
-### Widget Recycling for Lists
+### Reciclagem de Widgets para Listas
 
 When displaying large lists (player lists, item catalogs, object browsers), mods avoid creating/destroying widgets on every update. Instead they maintain a pool:
 
@@ -1095,7 +1095,7 @@ void UpdatePlayerList(array<PlayerInfo> players)
 
 DabsFramework's `ObservableCollection` handles this automatically, but manual implementations use this pattern.
 
-### Lazy Widget Creation
+### Criação Preguiçosa de Widgets
 
 Several mods defer widget creation until first show:
 
@@ -1116,7 +1116,7 @@ override Widget Init()
 
 This avoids loading all admin panels at startup when most will never be opened.
 
-### Event Delegation Through Handler Chains
+### Delegação de Eventos Através de Cadeias de Handlers
 
 A common pattern is a parent handler that delegatés to child handlers:
 
@@ -1138,7 +1138,7 @@ override bool OnClick(Widget w, int x, int y, int button)
 }
 ```
 
-### OnWidgetScriptInit as Universal Entry Point
+### OnWidgetScriptInit como Ponto de Entrada Universal
 
 Every mod studied uses `OnWidgetScriptInit` as the layout-to-script binding mechanism:
 
@@ -1158,11 +1158,11 @@ This is set via the `scriptclass` property in the layout file. The engine calls 
 
 ---
 
-## Anti-Padrãos to Avoid
+## Anti-Padrões a Evitar
 
 These mistakes appear in real mod code and cause performance issues or crashes.
 
-### Creating Widgets Every Frame
+### Criando Widgets a Cada Frame
 
 ```c
 // BAD: Creates new widgets on every Update call
@@ -1175,7 +1175,7 @@ override void Update(float dt)
 
 Widget creation allocatés memory and triggers layout recalculation. At 60 FPS this creatés 60 widgets per second. Always create once and update in place.
 
-### Not Cleaning Up Event Handlers
+### Não Limpar Handlers de Evento
 
 ```c
 // BAD: Insert without corresponding Remove
@@ -1192,7 +1192,7 @@ void OnInit()
 
 Every `Insert` on a `ScriptInvoker` or update queue needs a matching `Remove` in the destructor. Orphaned handlers cause calls to deleted objects and null access crashes.
 
-### Hardcoding Pixel Positions
+### Codificando Posições em Pixels de Forma Rígida
 
 ```c
 // BAD: Breaks on different resolutions
@@ -1210,7 +1210,7 @@ Frame -> Panel -> Frame -> Panel -> Frame -> TextWidget
 
 Every nesting level adds layout calculation overhead. If an intermediate widget serves no purpose (no background, no sizing constraint, no event handling), remove it. Flatten hierarchies where possible.
 
-### Ignoring Focus Management
+### Ignorando Gerenciamento de Foco
 
 ```c
 // BAD: Opens dialog but does not set focus
@@ -1230,7 +1230,7 @@ override void OnShow()
 }
 ```
 
-### Forgetting Widget Cleanup on Destruction
+### Esquecendo Limpeza de Widgets na Destruição
 
 ```c
 // BAD: Widget tree leaks when script object is destroyed
@@ -1244,7 +1244,7 @@ If you create widgets with `CreateWidgets()`, you own them. Call `Unlink()` on t
 
 ---
 
-## Resumo: Which Padrão to Use When
+## Resumo: Qual Padrão Usar Quando
 
 | Need | Recommended Padrão | Source Mod |
 |------|-------------------|------------|
@@ -1265,7 +1265,7 @@ If you create widgets with `CreateWidgets()`, you own them. Call `Unlink()` on t
 | Large list performance | Widget recycling pool (hide/show, create on demand) | Common |
 | Configuration | Static variables (client mod) or JSON via config manager | Colorful UI |
 
-### Decision Flowchart
+### Fluxograma de Decisão
 
 1. **Is it a one-off simple panel?** Use `ScriptedWidgetEventHandler` with `OnWidgetScriptInit`. Build the layout in the editor, find widgets by name.
 

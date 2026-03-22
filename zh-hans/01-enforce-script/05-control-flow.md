@@ -1,18 +1,18 @@
-# Chapter 1.5: Control Flow
+# 第 1.5 章：控制流
 
-[Home](../../README.md) | [<< Previous: Modded Classes](04-modded-classes.md) | **Control Flow** | [Next: String Operations >>](06-strings.md)
+[首页](../../README.md) | [<< 上一章：Modded 类](04-modded-classes.md) | **控制流** | [下一章：字符串操作 >>](06-strings.md)
 
 ---
 
 ## 简介
 
-Control flow determines the order in which your code executes. Enforce Script provides the familiar `if/else`, `for`, `while`, `foreach`, and `switch` constructs -- but with several important differences from C/C++ that will catch you off guard if you are not prepared. This chapter covers every control flow mechanism available, including the pitfalls unique to DayZ's scripting engine.
+控制流决定了代码的执行顺序。Enforce Script 提供了常见的 `if/else`、`for`、`while`、`foreach` 和 `switch` 结构——但与 C/C++ 相比存在几个重要差异，如果你没有做好准备，这些差异会让你措手不及。本章涵盖所有可用的控制流机制，包括 DayZ 脚本引擎特有的陷阱。
 
 ---
 
 ## if / else / else if
 
-The `if` statement evaluates a boolean expression and executes a block of code when the result is `true`. You can chain conditions with `else if` and provide a fallback with `else`.
+`if` 语句对布尔表达式求值，当结果为 `true` 时执行代码块。你可以使用 `else if` 链接条件，并使用 `else` 提供后备分支。
 
 ```c
 void CheckHealth(PlayerBase player)
@@ -21,22 +21,22 @@ void CheckHealth(PlayerBase player)
 
     if (health > 75)
     {
-        Print("Player is healthy");
+        Print("玩家状态健康");
     }
     else if (health > 25)
     {
-        Print("Player is wounded");
+        Print("玩家受伤了");
     }
     else
     {
-        Print("Player is critical");
+        Print("玩家状态危急");
     }
 }
 ```
 
 ### 空值检查
 
-In Enforce Script, object references evaluate to `false` when null. This is the standard way to guard against null access:
+在 Enforce Script 中，对象引用为 null 时求值为 `false`。这是防止空值访问的标准方法：
 
 ```c
 void ProcessItem(EntityAI item)
@@ -45,36 +45,36 @@ void ProcessItem(EntityAI item)
         return;
 
     string name = item.GetType();
-    Print("Processing: " + name);
+    Print("正在处理：" + name);
 }
 ```
 
 ### 逻辑运算符
 
-Combine conditions with `&&` (AND) and `||` (OR). Short-circuit evaluation applies: if the left side of `&&` is `false`, the right side is never evaluated.
+使用 `&&`（与）和 `||`（或）组合条件。短路求值适用：如果 `&&` 的左侧为 `false`，右侧不会被求值。
 
 ```c
 void CheckPlayerState(PlayerBase player)
 {
     if (player && player.IsAlive())
     {
-        // Safe -- player is checked for null before calling IsAlive()
-        Print("Player is alive");
+        // 安全——在调用 IsAlive() 之前已检查 player 是否为空
+        Print("玩家存活");
     }
 
     if (player.GetHealth("", "Blood") < 3000 || player.GetHealth("", "Health") < 25)
     {
-        Print("Player is in danger");
+        Print("玩家处于危险中");
     }
 }
 ```
 
-### PITFALL: Variable redeclaration in else-if blocks
+### 陷阱：else-if 代码块中的变量重复声明
 
-This is one of the most common Enforce Script errors. In most languages, variables declared inside one `if` branch are independent from variables in a sibling `else` branch. **Not in Enforce Script.** Declaring the same variable name in sibling `if`/`else if`/`else` blocks causes a **multiple declaration error** at compile time.
+这是最常见的 Enforce Script 错误之一。在大多数语言中，在一个 `if` 分支中声明的变量与同级 `else` 分支中的变量是独立的。**在 Enforce Script 中不是这样。** 在同级的 `if`/`else if`/`else` 代码块中声明同名变量会在编译时导致**重复声明错误**。
 
 ```c
-// WRONG -- Compile error!
+// 错误——编译错误！
 void BadExample(Object obj)
 {
     if (obj.IsKindOf("Car"))
@@ -84,51 +84,51 @@ void BadExample(Object obj)
     }
     else if (obj.IsKindOf("ItemBase"))
     {
-        ItemBase item = ItemBase.Cast(obj);    // OK -- different name
+        ItemBase item = ItemBase.Cast(obj);    // 没问题——不同的名称
         item.GetQuantity();
     }
     else
     {
-        string msg = "Unknown object";         // First declaration of msg
+        string msg = "未知对象";         // msg 的首次声明
         Print(msg);
     }
 }
 ```
 
-Wait -- that looks fine, right? The problem occurs when you use the **same variable name** in two branches:
+等等——这看起来没问题吧？问题出现在两个分支中使用**相同的变量名**时：
 
 ```c
-// WRONG -- Compile error: multiple declaration of 'result'
+// 错误——编译错误：'result' 的重复声明
 void ProcessObject(Object obj)
 {
     if (obj.IsKindOf("Car"))
     {
-        string result = "It's a car";
+        string result = "这是一辆车";
         Print(result);
     }
     else
     {
-        string result = "It's something else";  // ERROR! Same name as in the if block
+        string result = "这是其他东西";  // 错误！与 if 块中的同名
         Print(result);
     }
 }
 ```
 
-**The fix:** Declare the variable **before** the if statement, or use unique names per branch.
+**解决方法：** 在 if 语句**之前**声明变量，或在每个分支中使用不同的名称。
 
 ```c
-// CORRECT -- Declare before the if
+// 正确——在 if 之前声明
 void ProcessObject(Object obj)
 {
     string result;
 
     if (obj.IsKindOf("Car"))
     {
-        result = "It's a car";
+        result = "这是一辆车";
     }
     else
     {
-        result = "It's something else";
+        result = "这是其他东西";
     }
 
     Print(result);
@@ -137,12 +137,12 @@ void ProcessObject(Object obj)
 
 ---
 
-## for Loop
+## for 循环
 
-The `for` loop is identical to C-style syntax: initializer, condition, and increment.
+`for` 循环与 C 风格的语法相同：初始化器、条件和递增。
 
 ```c
-// Print numbers 0 through 9
+// 打印数字 0 到 9
 void CountToTen()
 {
     for (int i = 0; i < 10; i++)
@@ -152,7 +152,7 @@ void CountToTen()
 }
 ```
 
-### Iterating over an array with for
+### 使用 for 遍历数组
 
 ```c
 void ListInventory(PlayerBase player)
@@ -174,7 +174,7 @@ void ListInventory(PlayerBase player)
 ### 嵌套 for 循环
 
 ```c
-// Spawn a grid of objects
+// 生成一个对象网格
 void SpawnGrid(vector origin, int rows, int cols, float spacing)
 {
     for (int r = 0; r < rows; r++)
@@ -192,16 +192,16 @@ void SpawnGrid(vector origin, int rows, int cols, float spacing)
 }
 ```
 
-> **注意：** Do not redeclare the loop variable `i` if there is already a variable named `i` in the enclosing scope. Enforce Script treats this as a multiple declaration error, even in nested scopes.
+> **注意：** 如果外围作用域中已有名为 `i` 的变量，请不要重新声明循环变量 `i`。Enforce Script 将此视为重复声明错误，即使在嵌套作用域中也是如此。
 
 ---
 
-## while Loop
+## while 循环
 
-The `while` loop repeats a block as long as its condition is `true`. The condition is evaluated **before** each iteration.
+`while` 循环在条件为 `true` 时重复执行代码块。条件在每次迭代**之前**求值。
 
 ```c
-// Remove all dead zombies from a tracking list
+// 从跟踪列表中移除所有已死的僵尸
 void CleanupDeadZombies(array<DayZInfected> zombieList)
 {
     int i = 0;
@@ -211,7 +211,7 @@ void CleanupDeadZombies(array<DayZInfected> zombieList)
         if (Class.CastTo(eai, zombieList.Get(i)) && !eai.IsAlive())
         {
             zombieList.RemoveOrdered(i);
-            // Do NOT increment i -- the next element has shifted into this index
+            // 不要递增 i——下一个元素已移到当前索引位置
         }
         else
         {
@@ -221,24 +221,24 @@ void CleanupDeadZombies(array<DayZInfected> zombieList)
 }
 ```
 
-### WARNING: There is NO do...while in Enforce Script
+### 警告：Enforce Script 中没有 do...while
 
-The `do...while` keyword does not exist. The compiler will reject it. If you need a loop that always executes at least once, use the flag pattern described below.
+`do...while` 关键字不存在。编译器会拒绝它。如果你需要一个至少执行一次的循环，请使用下面描述的标志模式。
 
 ```c
-// WRONG -- This will NOT compile
+// 错误——这无法编译
 do
 {
-    // body
+    // 循环体
 }
 while (someCondition);
 ```
 
 ---
 
-## Simulating do...while with a Flag
+## 使用标志模拟 do...while
 
-The standard workaround is to use a `bool` flag that is `true` on the first iteration:
+标准的解决方法是使用一个 `bool` 标志，在第一次迭代时为 `true`：
 
 ```c
 void SimulateDoWhile()
@@ -257,21 +257,21 @@ void SimulateDoWhile()
             break;
     }
 
-    Print(string.Format("Found safe position after %1 attempts", attempts));
+    Print(string.Format("在 %1 次尝试后找到安全位置", attempts));
 }
 ```
 
-An alternative approach using `break`:
+另一种使用 `break` 的方法：
 
 ```c
 void AlternativeDoWhile()
 {
     while (true)
     {
-        // Body executes at least once
+        // 循环体至少执行一次
         DoSomething();
 
-        // Check the exit condition at the END
+        // 在末尾检查退出条件
         if (!ShouldContinue())
             break;
     }
@@ -282,7 +282,7 @@ void AlternativeDoWhile()
 
 ## foreach
 
-The `foreach` statement is the cleanest way to iterate over arrays, maps, and static arrays. It comes in two forms.
+`foreach` 语句是遍历数组、映射和静态数组最简洁的方式。它有两种形式。
 
 ### 简单 foreach（仅值）
 
@@ -291,40 +291,40 @@ void AnnounceItems(array<string> itemNames)
 {
     foreach (string name : itemNames)
     {
-        Print("Found item: " + name);
+        Print("发现物品：" + name);
     }
 }
 ```
 
 ### 带索引的 foreach
 
-When iterating over arrays, the first variable receives the index:
+遍历数组时，第一个变量接收索引：
 
 ```c
 void ListPlayers(array<Man> players)
 {
     foreach (int idx, Man player : players)
     {
-        Print(string.Format("Player #%1: %2", idx, player.GetIdentity().GetName()));
+        Print(string.Format("玩家 #%1：%2", idx, player.GetIdentity().GetName()));
     }
 }
 ```
 
-### 遍历映射的 foreach
+### foreach 遍历映射
 
-For maps, the first variable receives the key and the second receives the value:
+对于映射，第一个变量接收键，第二个接收值：
 
 ```c
 void PrintScoreboard(map<string, int> scores)
 {
     foreach (string playerName, int score : scores)
     {
-        Print(string.Format("%1: %2 kills", playerName, score));
+        Print(string.Format("%1：%2 次击杀", playerName, score));
     }
 }
 ```
 
-You can also iterate over maps with just the value:
+你也可以仅用值遍历映射：
 
 ```c
 void SumScores(map<string, int> scores)
@@ -334,11 +334,11 @@ void SumScores(map<string, int> scores)
     {
         total += score;
     }
-    Print("Total kills: " + total);
+    Print("总击杀数：" + total);
 }
 ```
 
-### 遍历静态数组的 foreach
+### foreach 遍历静态数组
 
 ```c
 void PrintStaticArray()
@@ -356,11 +356,11 @@ void PrintStaticArray()
 
 ## switch / case
 
-The `switch` statement matches a value against a list of `case` labels. It works with `int`, `string`, enum values, and constants.
+`switch` 语句将一个值与一系列 `case` 标签进行匹配。它适用于 `int`、`string`、枚举值和常量。
 
-### 重要：没有 fall-through
+### 重要：没有贯穿（fall-through）
 
-Unlike C/C++, Enforce Script `switch/case` does **NOT** fall through from one case to the next. Each `case` is independent. You can include `break` for clarity, but it is not required to prevent fall-through.
+与 C/C++ 不同，Enforce Script 的 `switch/case` **不会**从一个 case 贯穿到下一个。每个 `case` 是独立的。你可以为了清晰而包含 `break`，但它不是防止贯穿所必需的。
 
 ```c
 void HandleCommand(string command)
@@ -380,13 +380,13 @@ void HandleCommand(string command)
             break;
 
         default:
-            Print("Unknown command: " + command);
+            Print("未知命令：" + command);
             break;
     }
 }
 ```
 
-### switch 与枚举
+### 使用枚举的 switch
 
 ```c
 enum EDifficulty
@@ -419,11 +419,11 @@ void SetDifficulty(EDifficulty difficulty)
             break;
     }
 
-    Print(string.Format("Zombie multiplier: %1", zombieMultiplier));
+    Print(string.Format("僵尸倍率：%1", zombieMultiplier));
 }
 ```
 
-### switch 与整数常量
+### 使用整数常量的 switch
 
 ```c
 void DescribeWeaponSlot(int slotId)
@@ -435,36 +435,36 @@ void DescribeWeaponSlot(int slotId)
     switch (slotId)
     {
         case SLOT_SHOULDER:
-            Print("Primary weapon");
+            Print("主武器");
             break;
 
         case SLOT_MELEE:
-            Print("Melee weapon");
+            Print("近战武器");
             break;
 
         case SLOT_PISTOL:
-            Print("Sidearm");
+            Print("副武器");
             break;
 
         default:
-            Print("Unknown slot");
+            Print("未知槽位");
             break;
     }
 }
 ```
 
-> **记住：** Because there is no fall-through, you cannot stack cases to share a handler the way you would in C. Each case must have its own body.
+> **记住：** 由于没有贯穿机制，你不能像在 C 中那样堆叠 case 来共享处理程序。每个 case 必须有自己的主体。
 
 ---
 
-## break and continue
+## break 和 continue
 
 ### break
 
-`break` exits the innermost loop (or switch case) immediately.
+`break` 立即退出最内层的循环（或 switch case）。
 
 ```c
-// Find the first player within 100 meters
+// 查找 100 米内的第一个玩家
 void FindNearbyPlayer(vector origin, array<Man> players)
 {
     foreach (Man player : players)
@@ -472,8 +472,8 @@ void FindNearbyPlayer(vector origin, array<Man> players)
         float dist = vector.Distance(origin, player.GetPosition());
         if (dist < 100)
         {
-            Print("Found nearby player: " + player.GetIdentity().GetName());
-            break; // Stop searching
+            Print("找到附近的玩家：" + player.GetIdentity().GetName());
+            break; // 停止搜索
         }
     }
 }
@@ -481,30 +481,30 @@ void FindNearbyPlayer(vector origin, array<Man> players)
 
 ### continue
 
-`continue` skips the rest of the current iteration and jumps to the next one.
+`continue` 跳过当前迭代的剩余部分，直接进入下一次迭代。
 
 ```c
-// Process only alive players
+// 仅处理存活的玩家
 void HealAllPlayers(array<Man> players)
 {
     foreach (Man man : players)
     {
         PlayerBase player;
         if (!Class.CastTo(player, man))
-            continue; // Not a PlayerBase, skip
+            continue; // 不是 PlayerBase，跳过
 
         if (!player.IsAlive())
-            continue; // Dead, skip
+            continue; // 已死亡，跳过
 
         player.SetHealth("", "Health", 100);
-        Print("Healed: " + player.GetIdentity().GetName());
+        Print("已治疗：" + player.GetIdentity().GetName());
     }
 }
 ```
 
 ### 嵌套循环中的 break
 
-`break` only exits the innermost loop. To break out of nested loops, use a flag variable:
+`break` 仅退出最内层的循环。要跳出嵌套循环，请使用标志变量：
 
 ```c
 void FindItemInGrid(array<array<string>> grid, string target)
@@ -517,30 +517,96 @@ void FindItemInGrid(array<array<string>> grid, string target)
         {
             if (grid.Get(row).Get(col) == target)
             {
-                Print(string.Format("Found '%1' at [%2, %3]", target, row, col));
+                Print(string.Format("在 [%2, %3] 找到 '%1'", target, row, col));
                 found = true;
-                break; // Only exits inner loop
+                break; // 仅退出内层循环
             }
         }
 
         if (found)
-            break; // Exits outer loop
+            break; // 退出外层循环
     }
 }
 ```
 
 ---
 
+## thread 关键字
+
+Enforce Script 有一个用于异步执行的 `thread` 关键字：
+
+```c
+// 声明一个线程函数
+thread void LongOperation()
+{
+    // 异步运行
+    Sleep(5000);  // 等待 5 秒而不阻塞
+    Print("完成！");
+}
+
+// 调用它
+thread LongOperation();  // 启动而不阻塞调用者
+```
+
+**重要：** Enforce Script 中的 `thread` 与操作系统线程不同。它更像是协程——运行在同一个线程上，但可以让出/休眠而不阻塞游戏。大多数 Mod 用例建议使用 `CallLater` 代替 `thread`——它更简单、更可预测。
+
+### Thread 与 CallLater 对比
+
+| 特性 | `thread` | `CallLater` |
+|---------|----------|-------------|
+| 语法 | `thread MyFunc();` | `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(this.MyFunc, delayMs, repeat);` |
+| 可以休眠/让出 | 是（`Sleep()`） | 否（一次性触发或按间隔重复） |
+| 可取消 | 无内置取消功能 | 是（`CallQueue.Remove()`） |
+| 用例 | 带等待的顺序异步逻辑 | 延迟或重复回调 |
+
+大多数 DayZ Mod 场景中，`CallLater` 配合计时器是首选方法。仅在你确实需要带中间等待的顺序逻辑时才使用 `thread`（例如多步动画序列）。
+
+---
+
+## 最佳实践
+
+- 在函数顶部使用守卫子句（`if (!x) return;`）而非深层嵌套的 `if` 块——这使正常流程保持扁平和可读。
+- 在 `if`/`else` 块之前声明共享变量，以避免 Enforce Script 特有的同级作用域重复声明错误。
+- 简单迭代使用 `foreach`，仅在需要移除元素或访问邻居时才使用带索引的 `for`。
+- 使用 `bool first = true` 标志将 `do...while` 替换为 `while (first || condition)`——这是标准的 Enforce Script 解决方法。
+- 对于延迟或重复操作，优先使用 `CallLater` 而非 `thread`——它可取消、更简单且更可预测。
+
+---
+
+## 在真实 Mod 中的观察
+
+> 通过研究专业 DayZ Mod 源代码确认的模式。
+
+| 模式 | Mod | 详情 |
+|---------|-----|--------|
+| 循环中的守卫子句 + `continue` | COT / Expansion | 遍历玩家时总是在类型转换失败或 `!IsAlive()` 时先 `continue` 再执行工作 |
+| 字符串命令的 `switch` | VPP Admin | 聊天命令处理器使用 `switch(command)` 配合 `"!heal"`、`"!tp"` 等字符串 case |
+| 标志变量退出嵌套循环 | Expansion Market | 使用 `bool found = false` 在内层循环后检查以退出外层循环 |
+| `CallLater` 用于延迟生成 | Dabs Framework | 优先使用 `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater()` 而非 `thread` |
+
+---
+
+## 理论与实践
+
+| 概念 | 理论 | 现实 |
+|---------|--------|---------|
+| `do...while` 循环 | 大多数类 C 语言的标准 | 在 Enforce Script 中不存在；导致令人困惑的编译错误 |
+| `switch` 贯穿 | C/C++ 中没有 `break` 时 case 会贯穿 | Enforce Script 的 case 是独立的——堆叠 case 不会共享处理程序 |
+| `thread` 关键字 | 听起来像多线程 | 实际上是主线程上的协程；`Sleep()` 让出执行，不会阻塞 |
+| `if`/`else` 中的变量作用域 | 同级块应有独立作用域 | Enforce Script 将其视为共享作用域——两个块中同名变量是编译错误 |
+
+---
+
 ## 常见错误
 
-| 错误 | 问题 | 修复 |
+| 错误 | 问题 | 修复方法 |
 |---------|---------|-----|
-| Using `do...while` | Does not exist in Enforce Script | Use `while` with a `bool first = true` flag |
-| Declaring same variable in `if` and `else` blocks | Multiple declaration error | Declare the variable before the `if` |
-| Redeclaring loop variable `i` in nested scope | Multiple declaration error | Use different names (`i`, `j`, `k`) or declare outside |
-| Expecting `switch` fall-through | Cases are independent, no fall-through | Each case needs its own complete handler |
-| Modifying array while iterating with `foreach` | Undefined behavior, potential crash | Use index-based `for` loop when removing elements |
-| Infinite `while` loop without `break` | Server freeze / client hang | Always ensure the condition will eventually be `false`, or use `break` |
+| 使用 `do...while` | 在 Enforce Script 中不存在 | 使用 `while` 配合 `bool first = true` 标志 |
+| 在 `if` 和 `else` 块中声明同名变量 | 重复声明错误 | 在 `if` 之前声明变量 |
+| 在嵌套作用域中重新声明循环变量 `i` | 重复声明错误 | 使用不同名称（`i`、`j`、`k`）或在外部声明 |
+| 期望 `switch` 贯穿 | case 是独立的，没有贯穿 | 每个 case 需要自己的完整处理程序 |
+| 在 `foreach` 中修改数组 | 未定义行为，可能崩溃 | 移除元素时使用基于索引的 `for` 循环 |
+| 没有 `break` 的无限 `while` 循环 | 服务器冻结/客户端卡死 | 始终确保条件最终变为 `false`，或使用 `break` |
 
 ---
 
@@ -550,29 +616,33 @@ void FindItemInGrid(array<array<string>> grid, string target)
 // if / else if / else
 if (condition) { } else if (other) { } else { }
 
-// for loop
+// for 循环
 for (int i = 0; i < count; i++) { }
 
-// while loop
+// while 循环
 while (condition) { }
 
-// Simulate do...while
+// 模拟 do...while
 bool first = true;
-while (first || condition) { first = false; /* body */ }
+while (first || condition) { first = false; /* 循环体 */ }
 
-// foreach (value only)
+// foreach（仅值）
 foreach (Type value : collection) { }
 
-// foreach (index + value)
+// foreach（索引 + 值）
 foreach (int i, Type value : array) { }
 
-// foreach (key + value on map)
+// foreach（映射的键 + 值）
 foreach (KeyType key, ValueType val : someMap) { }
 
-// switch/case (no fall-through)
+// switch/case（无贯穿）
 switch (value) { case X: /* ... */ break; default: break; }
+
+// thread（协程风格异步）
+thread void MyFunc() { Sleep(1000); }
+thread MyFunc();  // 非阻塞调用
 ```
 
 ---
 
-[<< 1.4：Modded 类](04-modded-classes.md) | [Home](../../README.md) | [1.6：字符串操作 >>](06-strings.md)
+[<< 1.4：Modded 类](04-modded-classes.md) | [首页](../../README.md) | [1.6：字符串操作 >>](06-strings.md)

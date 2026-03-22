@@ -19,9 +19,9 @@
 
 ## Visao Geral
 
-Quando um jogador seleciona seu mod no launcher do DayZ ou no menu de mods do jogo, o motor procura um arquivo `Credits.json` dentro do PBO do seu mod. Se encontrado, os creditos são exibidos em uma visualizacao com rolagem organizada em departamentos é seções --- similar a creditos de cinema.
+Quando um jogador seleciona seu mod no launcher do DayZ ou no menu de mods do jogo, o motor procura um arquivo `Credits.json` dentro do PBO do seu mod. Se encontrado, os creditos são exibidos em uma visualizacao com rolagem organizada em departamentos e seções --- similar a creditos de cinema.
 
-O arquivo é opcional. Se ausente, nenhuma seção de creditos aparece para o seu mod. Mas inclui-lo é uma boa prática: reconhece o trabalho da sua equipe é da ao seu mod uma aparência profissional.
+O arquivo é opcional. Se ausente, nenhuma seção de creditos aparece para o seu mod. Mas inclui-lo e uma boa prática: reconhece o trabalho da sua equipe e da ao seu mod uma aparência profissional.
 
 ---
 
@@ -68,7 +68,7 @@ O arquivo usa uma estrutura JSON direta com três níveis de hierarquia:
 
 | Campo | Tipo | Obrigatorio | Descrição |
 |-------|------|-------------|-----------|
-| `Header` | string | Não | Titulo principal exibido no topo dos creditos. Se omitido, nenhum cabecalho é mostrado. |
+| `Header` | string | Não | Titulo principal exibido no topo dos creditos. Se omitido, nenhum cabecalho e mostrado. |
 | `Departments` | array | Sim | Array de objetos de departamento |
 
 ### Objeto Department
@@ -131,7 +131,7 @@ A exibicao dos creditos segue esta hierarquia visual:
 
 ### Strings Vazias para Espacamento
 
-Expansion usa strings vazias em `DepartmentName` é `SectionName`, além de entradas somente com espaco em `SectionLines`, para criar espacamento visual:
+Expansion usa strings vazias em `DepartmentName` e `SectionName`, além de entradas somente com espaco em `SectionLines`, para criar espacamento visual:
 
 ```json
 {
@@ -158,7 +158,7 @@ Nomes de seção podem referênciar chaves de stringtable usando o prefixo `#`, 
 }
 ```
 
-Quando o motor renderiza isso, ele resolve `#STR_EXPANSION_CREDITS_SCRIPTERS` para o texto localizado correspondente ao idioma do jogador. Isso é util se seu mod suporta múltiplos idiomas é você quer que os cabecalhos de seção dos creditos sejam traduzidos.
+Quando o motor renderiza isso, ele resolve `#STR_EXPANSION_CREDITS_SCRIPTERS` para o texto localizado correspondente ao idioma do jogador. Isso é util se seu mod suporta múltiplos idiomas e você quer que os cabecalhos de seção dos creditos sejam traduzidos.
 
 Nomes de departamento também podem usar referências de stringtable:
 
@@ -310,7 +310,7 @@ Um arquivo de creditos mínimo mas completo usando a variante `Names`:
 
 ### Community Online Tools (COT)
 
-Usa a variante `SectionLines` com múltiplas seções é agradecimentos:
+Usa a variante `SectionLines` com múltiplas seções e agradecimentos:
 
 ```json
 {
@@ -389,7 +389,7 @@ Notavel: COT omite o campo `Header` inteiramente. O nome do mod vem de outros me
 Expansion demonstra o uso mais sofisticado de Credits.json, incluindo:
 - Nomes de seção localizados via referências de stringtable (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
 - Avisos legais como um departamento separado
-- Nomes de departamento é seção vazios para espacamento visual
+- Nomes de departamento e seção vazios para espacamento visual
 - Uma lista de apoiadores com dezenas de nomes
 
 ---
@@ -398,8 +398,8 @@ Expansion demonstra o uso mais sofisticado de Credits.json, incluindo:
 
 ### Sintaxe JSON Invalida
 
-O problema mais comum. JSON é rigoroso sobre:
-- **Virgulas finais**: `["a", "b",]` é JSON inválido (a virgula final após `"b"`)
+O problema mais comum. JSON e rigoroso sobre:
+- **Virgulas finais**: `["a", "b",]` e JSON inválido (a virgula final após `"b"`)
 - **Aspas simples**: Use `"aspas duplas"`, não `'aspas simples'`
 - **Chaves sem aspas**: `DepartmentName` deve ser `"DepartmentName"`
 
@@ -409,7 +409,7 @@ Use um validador de JSON antes de distribuir.
 
 O arquivo deve ser nomeado exatamente `Credits.json` (C maiusculo). Em sistemas de arquivo case-sensitive, `credits.json` ou `CREDITS.JSON` não serão encontrados.
 
-### Misturando Names é SectionLines
+### Misturando Names e SectionLines
 
 Dentro de uma única seção, use um ou outro:
 
@@ -421,7 +421,7 @@ Dentro de uma única seção, use um ou outro:
 }
 ```
 
-Isso é ambiguo. Escolha um formato é use-o consistentemente ao longo do arquivo.
+Isso é ambiguo. Escolha um formato e use-o consistentemente ao longo do arquivo.
 
 ### Problemas de Codificacao
 

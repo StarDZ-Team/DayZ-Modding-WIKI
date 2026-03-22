@@ -6,7 +6,7 @@
 
 ## Introdução
 
-DayZ possui um sistema de clima totalmente dinâmico controlado através da classe `Weather`. O sistema gerencia nebulosidade, chuva, neve, neblina, vento é tempestades. O clima pode ser configurado por script (a API Weather), pelo `cfgweather.xml` na pasta da missão, ou por uma máquina de estados de clima scriptada. Este capítulo cobre a API de script para ler é controlar o clima programaticamente.
+DayZ possui um sistema de clima totalmente dinâmico controlado através da classe `Weather`. O sistema gerencia nebulosidade, chuva, neve, neblina, vento e tempestades. O clima pode ser configurado por script (a API Weather), pelo `cfgweather.xml` na pasta da missão, ou por uma máquina de estados de clima scriptada. Este capítulo cobre a API de script para ler e controlar o clima programaticamente.
 
 ---
 
@@ -16,13 +16,13 @@ DayZ possui um sistema de clima totalmente dinâmico controlado através da clas
 Weather weather = GetGame().GetWeather();
 ```
 
-O objeto `Weather` é um singleton gerenciado pela engine. Ele está sempre disponível após a inicialização do mundo do jogo.
+O objeto `Weather` e um singleton gerenciado pela engine. Ele está sempre disponível após a inicialização do mundo do jogo.
 
 ---
 
 ## Fenômenos Climáticos
 
-Cada fenômeno climático (nebulosidade, neblina, chuva, neve, magnitude do vento, direção do vento) é representado por um objeto `WeatherPhenomenon`. Você os acessa através de métodos getter em `Weather`.
+Cada fenômeno climático (nebulosidade, neblina, chuva, neve, magnitude do vento, direção do vento) e representado por um objeto `WeatherPhenomenon`. Você os acessa através de métodos getter em `Weather`.
 
 ### Obtendo Objetos de Fenômeno
 
@@ -118,7 +118,7 @@ A chuva está ligada aos níveis de nebulosidade. A engine só renderiza chuva q
 </rain>
 ```
 
-- `min` / `max`: faixa de nebulosidade onde a chuva é permitida
+- `min` / `max`: faixa de nebulosidade onde a chuva e permitida
 - `end`: segundos para a chuva parar se a nebulosidade cair abaixo do limite
 
 Em script, a chuva não aparecerá visualmente se a nebulosidade estiver muito baixa, mesmo que `GetRain().GetActual()` retorne um valor diferente de zero.
@@ -127,7 +127,7 @@ Em script, a chuva não aparecerá visualmente se a nebulosidade estiver muito b
 
 ## Vento
 
-O vento usa dois fenômenos: magnitude (velocidade em m/s) é direção (ângulo em radianos).
+O vento usa dois fenômenos: magnitude (velocidade em m/s) e direção (ângulo em radianos).
 
 ### Vetor do Vento
 
@@ -176,7 +176,7 @@ Para assumir controle manual do clima (desabilitando a máquina de estados autom
 proto native void MissionWeather(bool use);
 ```
 
-Quando `MissionWeather(true)` é chamado, a engine para as transições automáticas de clima é apenas suas chamadas `Set()` controladas por script controlam o clima.
+Quando `MissionWeather(true)` é chamado, a engine para as transições automáticas de clima e apenas suas chamadas `Set()` controladas por script controlam o clima.
 
 **Exemplo --- controle manual total no init.c:**
 
@@ -195,9 +195,9 @@ void main()
 
 ---
 
-## Data é Hora
+## Data e Hora
 
-A data é hora do jogo afetam iluminação, posição do sol é o ciclo dia/noite. Estes são controlados através do objeto `World`, não `Weather`, mas estão intimamente relacionados.
+A data e hora do jogo afetam iluminação, posição do sol e o ciclo dia/noite. Estes são controlados através do objeto `World`, não `Weather`, mas estão intimamente relacionados.
 
 ### Obtendo Data/Hora Atual
 
@@ -222,7 +222,7 @@ GetGame().GetWorld().SetDate(year, month, day, 12, 0);
 
 ### Aceleração do Tempo
 
-A aceleração do tempo é configurada no `serverDZ.cfg` via:
+A aceleração do tempo e configurada no `serverDZ.cfg` via:
 
 ```
 serverTimeAcceleration = 12;      // 12x tempo real
@@ -245,7 +245,7 @@ class WorldData
 }
 ```
 
-Sobrescreva este método em uma classe `modded` WorldData para interceptar é modificar transições de clima:
+Sobrescreva este método em uma classe `modded` WorldData para interceptar e modificar transições de clima:
 
 ```c
 modded class ChernarusPlusData

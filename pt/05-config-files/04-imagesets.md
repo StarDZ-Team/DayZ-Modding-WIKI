@@ -24,11 +24,11 @@
 
 ## Visao Geral
 
-Um atlas de textura é uma única imagem grande (típicamente no formato `.edds`) contendo muitos ícones menores organizados em uma grade ou layout livre. Um arquivo de imageset mapeia nomes legiveis por humanos para regioes retangulares dentro daquele atlas.
+Um atlas de textura e uma única imagem grande (típicamente no formato `.edds`) contendo muitos ícones menores organizados em uma grade ou layout livre. Um arquivo de imageset mapeia nomes legiveis por humanos para regioes retangulares dentro daquele atlas.
 
-Por exemplo, uma textura 1024x1024 pode conter 64 ícones de 64x64 pixels cada. O arquivo de imageset diz "o icone chamado `arrow_down` esta na posição (128, 64) é tem 64x64 pixels." Seus arquivos de layout é scripts referênciam `arrow_down` pelo nome, é o motor extrai o sub-retangulo correto do atlas no momento da renderizacao.
+Por exemplo, uma textura 1024x1024 pode conter 64 ícones de 64x64 pixels cada. O arquivo de imageset diz "o icone chamado `arrow_down` esta na posição (128, 64) e tem 64x64 pixels." Seus arquivos de layout e scripts referênciam `arrow_down` pelo nome, e o motor extrai o sub-retangulo correto do atlas no momento da renderizacao.
 
-Esta abordagem é eficiente: um único carregamento de textura na GPU serve a todos os ícones, reduzindo draw calls é overhead de memória.
+Esta abordagem e eficiente: um único carregamento de textura na GPU serve a todos os ícones, reduzindo draw calls e overhead de memória.
 
 ---
 
@@ -47,7 +47,7 @@ Uma vez registrado, qualquer widget em qualquer arquivo de layout pode referênc
 
 ## Formato ImageSet Nativo do DayZ
 
-O formato nativo usa a sintaxe baseada em classes do motor Enfusion (similar ao config.cpp). Este é o formato usado pelo jogo vanilla é pela maioria dos mods estabelecidos.
+O formato nativo usa a sintaxe baseada em classes do motor Enfusion (similar ao config.cpp). Este é o formato usado pelo jogo vanilla e pela maioria dos mods estabelecidos.
 
 ### Estrutura
 
@@ -89,7 +89,7 @@ ImageSetClass {
 
 ### Campos de Entrada de Imagem
 
-Cada imagem é um `ImageSetDefClass` dentro do bloco `Images`:
+Cada imagem e um `ImageSetDefClass` dentro do bloco `Images`:
 
 | Campo | Descrição |
 |-------|-----------|
@@ -136,7 +136,7 @@ ImageSetClass {
 
 ## Formato ImageSet XML
 
-Um formato alternativo baseado em XML existe é e usado por alguns mods. E mais simples, mas oferece menos recursos (sem suporte multi-resolução).
+Um formato alternativo baseado em XML existe e é usado por alguns mods. E mais simples, mas oferece menos recursos (sem suporte multi-resolução).
 
 ### Estrutura
 
@@ -183,7 +183,7 @@ Um formato alternativo baseado em XML existe é e usado por alguns mods. E mais 
 
 ## Registrando ImageSets no config.cpp
 
-Arquivos de ImageSet devem ser registrados no `config.cpp` do seu mod sob o bloco `CfgMods` > `class defs` > `class imageSets`. Sem este registro, o motor nunca carrega o imageset é suas referências de imagem falham silenciosamente.
+Arquivos de ImageSet devem ser registrados no `config.cpp` do seu mod sob o bloco `CfgMods` > `class defs` > `class imageSets`. Sem este registro, o motor nunca carrega o imageset e suas referências de imagem falham silenciosamente.
 
 ### Sintaxe
 
@@ -322,7 +322,7 @@ ImageWidget icon = ImageWidget.Cast(layoutRoot.FindAnyWidget("MyIcon"));
 icon.LoadImageFile(0, "set:solid image:circle");
 ```
 
-O parâmetro `0` é o índice da imagem (correspondente a `image0` nos layouts).
+O parâmetro `0` e o índice da imagem (correspondente a `image0` nos layouts).
 
 ### Multiplos Estados via Indice
 
@@ -353,13 +353,13 @@ searchBarIcon.LoadImageFile(0, "set:dayz_gui image:icon_x");
 
 ## Flags de Imagem
 
-O campo `Flags` em entradas de imageset no formato nativo controla o comportamento de repetição quando a imagem é esticada além do seu tamanho natural.
+O campo `Flags` em entradas de imageset no formato nativo controla o comportamento de repetição quando a imagem e esticada além do seu tamanho natural.
 
 | Flag | Valor | Descrição |
 |------|-------|-----------|
 | `0` | 0 | Sem repetição. A imagem estica para preencher o widget. |
-| `ISHorizontalTile` | 1 | Repete horizontalmente quando o widget é mais largo que a imagem. |
-| `ISVerticalTile` | 2 | Repete verticalmente quando o widget é mais alto que a imagem. |
+| `ISHorizontalTile` | 1 | Repete horizontalmente quando o widget e mais largo que a imagem. |
+| `ISVerticalTile` | 2 | Repete verticalmente quando o widget e mais alto que a imagem. |
 | Ambos | 3 | Repete em ambas as direcoes (`ISHorizontalTile` + `ISVerticalTile`). |
 
 ### Uso
@@ -375,7 +375,7 @@ ImageSetDefClass Gradient {
 
 Esta imagem `Gradient` tem 75x5 pixels. Quando usada em um widget mais alto que 5 pixels, ela repete verticalmente para preencher a altura, criando uma faixa de gradiente repetida.
 
-A maioria dos ícones usa `Flags 0` (sem repetição). Flags de repetição são usadas principalmente para elementos de UI como bordas, divisores é padroes repetitivos.
+A maioria dos ícones usa `Flags 0` (sem repetição). Flags de repetição são usadas principalmente para elementos de UI como bordas, divisores e padroes repetitivos.
 
 ---
 
@@ -399,7 +399,7 @@ Textures {
 - `mpix 0` --- baixa resolução (usada em configurações de baixa qualidade ou elementos de UI distantes)
 - `mpix 1` --- resolução padrão/alta (padrão)
 
-A convencao de nomenclatura `@2x` é emprestada do sistema Retina display da Apple, mas não é obrigatoria --- você pode nomear o arquivo como quiser.
+A convencao de nomenclatura `@2x` e emprestada do sistema Retina display da Apple, mas não é obrigatoria --- você pode nomear o arquivo como quiser.
 
 ### Na Pratica
 
@@ -486,7 +486,7 @@ class imageSets
 };
 ```
 
-**5. Use em Layouts é Scripts**
+**5. Use em Layouts e Scripts**
 
 ```
 ImageWidgetClass SettingsIcon {
@@ -508,7 +508,7 @@ O MyFramework (herdado do DabsFramework) demonstra um padrão poderoso: converte
 1. Ícones do Font Awesome são renderizados em um atlas de textura em um tamanho fixo de grade (64x64 por icone)
 2. Cada estilo de icone ganha seu proprio imageset: `solid`, `regular`, `light`, `thin`, `brands`
 3. Nomes de icone no imageset correspondem aos nomes do Font Awesome (ex.: `circle`, `arrow_down`, `discord`)
-4. Os imagesets são registrados no config.cpp é disponíveis para qualquer layout ou script
+4. Os imagesets são registrados no config.cpp e disponíveis para qualquer layout ou script
 
 ### Conjuntos de Ícones do MyFramework / DabsFramework
 
@@ -542,7 +542,7 @@ CollapseIcon.LoadImageFile(0, "set:regular image:square_plus");
 ### Por Que Este Padrão Funciona Bem
 
 - **Biblioteca massiva de ícones**: Milhares de ícones disponíveis sem nenhuma criacao de arte
-- **Estilo consistente**: Todos os ícones compartilham o mesmo peso visual é estilo
+- **Estilo consistente**: Todos os ícones compartilham o mesmo peso visual e estilo
 - **Multiplos pesos**: Escolha solid, regular, light ou thin para diferentes contextos visuais
 - **Ícones de marca**: Logos prontos para Discord, Steam, GitHub, etc.
 - **Nomes padrão**: Nomes de icone seguem convenções do Font Awesome, tornando a descoberta facil
@@ -621,7 +621,7 @@ image0 "set:dayz_gui_vpp image:vpp_icon_cloud"
 
 ### MyWeapons Mod
 
-Ícones de armas é acessórios empacotados em atlas grandes com tamanhos variados de icone:
+Ícones de armas e acessórios empacotados em atlas grandes com tamanhos variados de icone:
 
 ```
 ImageSetClass {
@@ -736,11 +736,11 @@ path "C:/Users/dev/icons.edds"            -- Errado: caminhos absolutos nao func
 
 ### RefSize Incompatível
 
-O `RefSize` deve corresponder as dimensoes reais em pixels da sua textura. Se você específicar `RefSize 512 512` mas sua textura é 1024x1024, todas as posicoes de icone estarao deslocadas por um fator de dois.
+O `RefSize` deve corresponder as dimensoes reais em pixels da sua textura. Se você específicar `RefSize 512 512` mas sua textura e 1024x1024, todas as posicoes de icone estarao deslocadas por um fator de dois.
 
 ### Coordenadas Pos com Offset de Um
 
-`Pos` é o canto superior esquerdo da regiao do icone. Se seus ícones estao em intervalos de 64 pixels mas você acidentalmente desloca por 1 pixel, ícones terao uma fatia fina do icone adjacente visível.
+`Pos` e o canto superior esquerdo da regiao do icone. Se seus ícones estao em intervalos de 64 pixels mas você acidentalmente desloca por 1 pixel, ícones terao uma fatia fina do icone adjacente visível.
 
 ### Usando .png ou .tga Diretamente
 

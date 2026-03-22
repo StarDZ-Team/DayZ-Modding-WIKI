@@ -6,7 +6,7 @@
 
 ## Introdução
 
-Veículos no DayZ são entidades que estendem o sistema de transporte. Carros estendem `CarScript`, barcos estendem `BoatScript`, é ambos herdam de `Transport`. Veículos possuem sistemas de fluidos, peças com vida independente, simulação de marchas é física gerenciada pela engine. Este capítulo cobre os métodos da API que você precisa para interagir com veículos em scripts.
+Veículos no DayZ são entidades que estendem o sistema de transporte. Carros estendem `CarScript`, barcos estendem `BoatScript`, e ambos herdam de `Transport`. Veículos possuem sistemas de fluidos, peças com vida independente, simulação de marchas e física gerenciada pela engine. Este capítulo cobre os métodos da API que você precisa para interagir com veículos em scripts.
 
 ---
 
@@ -33,7 +33,7 @@ EntityAI
 
 **Arquivo:** `3_Game/entities/transport.c`
 
-A base abstrata para todos os veículos. Fornece gerenciamento de assentos é acesso à tripulação.
+A base abstrata para todos os veículos. Fornece gerenciamento de assentos e acesso à tripulação.
 
 ### Gerenciamento de Tripulação
 
@@ -164,7 +164,7 @@ void OnSound(CarSoundCtrl ctrl, float oldValue);
 
 **Arquivo:** `4_World/entities/vehicles/carscript.c`
 
-A classe de carro scriptável que a maioria dos mods de veículos estende. Adiciona peças, portas, luzes é gerenciamento de som.
+A classe de carro scriptável que a maioria dos mods de veículos estende. Adiciona peças, portas, luzes e gerenciamento de som.
 
 ### Vida das Peças
 
@@ -193,7 +193,7 @@ Zonas de dano comuns para veículos:
 | `"FrontLeft"` / `"FrontRight"` | Rodas dianteiras |
 | `"RearLeft"` / `"RearRight"` | Rodas traseiras |
 | `"DriverDoor"` / `"CoDriverDoor"` | Portas dianteiras |
-| `"Hood"` / `"Trunk"` | Capô é porta-malas |
+| `"Hood"` / `"Trunk"` | Capô e porta-malas |
 
 ### Luzes
 
@@ -253,7 +253,7 @@ void SpawnReadyVehicle(vector pos)
 
 Base scriptável para entidades de barco. API similar ao CarScript mas com física baseada em hélice.
 
-### Motor é Propulsão
+### Motor e Propulsão
 
 ```c
 proto native bool  EngineIsOn();

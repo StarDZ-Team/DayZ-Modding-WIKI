@@ -1,28 +1,28 @@
-# Chapter 1.6: String Operations
+# Kapitel 1.6: String-Operationen
 
-[Home](../../README.md) | [<< Previous: Control Flow](05-control-flow.md) | **String Operations** | [Next: Math & Vectors >>](07-math-vectors.md)
+[Startseite](../../README.md) | [<< Zurück: Kontrollfluss](05-control-flow.md) | **String-Operationen** | [Weiter: Mathematik & Vektoren >>](07-math-vectors.md)
 
 ---
 
 ## Einführung
 
-Strings in Enforce Script are a **value type**, like `int` or `float`. They are passed by value and compared by value. The `string` type has a rich set of built-in methods for searching, slicing, converting, and formatting text. This chapter is a complete reference for every string operation available in DayZ scripting, with real-world examples from mod development.
+Strings in Enforce Script sind ein **Werttyp**, wie `int` oder `float`. Sie werden per Wert übergeben und per Wert verglichen. Der `string`-Typ verfügt über eine umfangreiche Menge eingebauter Methoden zum Suchen, Aufteilen, Konvertieren und Formatieren von Text. Dieses Kapitel ist eine vollständige Referenz für jede verfügbare String-Operation in DayZ-Scripting, mit praxisnahen Beispielen aus der Mod-Entwicklung.
 
 ---
 
 ## String-Grundlagen
 
 ```c
-// Declaration and initialization
-string empty;                          // "" (empty string by default)
-string greeting = "Hello, Chernarus!";
-string combined = "Player: " + "John"; // Concatenation with +
+// Deklaration und Initialisierung
+string empty;                          // "" (leerer String standardmäßig)
+string greeting = "Hallo, Chernarus!";
+string combined = "Spieler: " + "John"; // Verkettung mit +
 
-// Strings are value types -- assignment creates a copy
+// Strings sind Werttypen -- Zuweisung erstellt eine Kopie
 string original = "DayZ";
 string copy = original;
 copy = "Arma";
-Print(original); // Still "DayZ"
+Print(original); // Immer noch "DayZ"
 ```
 
 ---
@@ -31,7 +31,7 @@ Print(original); // Still "DayZ"
 
 ### Length
 
-Returns the number of characters in the string.
+Gibt die Anzahl der Zeichen im String zurück.
 
 ```c
 string s = "Hello";
@@ -43,20 +43,20 @@ int emptyLen = empty.Length(); // 0
 
 ### Substring
 
-Extracts a portion of the string. Parameters: `start` (index), `length` (number of characters).
+Extrahiert einen Teil des Strings. Parameter: `start` (Index), `length` (Anzahl der Zeichen).
 
 ```c
 string s = "Hello World";
 string word = s.Substring(6, 5);  // "World"
 string first = s.Substring(0, 5); // "Hello"
 
-// Extract from a position to the end
+// Von einer Position bis zum Ende extrahieren
 string rest = s.Substring(6, s.Length() - 6); // "World"
 ```
 
 ### IndexOf
 
-Finds the first occurrence of a substring. Returns the index, or `-1` if not found.
+Findet das erste Vorkommen eines Teilstrings. Gibt den Index zurück, oder `-1` wenn nicht gefunden.
 
 ```c
 string s = "Hello World";
@@ -66,7 +66,7 @@ int notFound = s.IndexOf("DayZ"); // -1
 
 ### IndexOfFrom
 
-Finds the first occurrence starting from a given index.
+Findet das erste Vorkommen ab einem gegebenen Index.
 
 ```c
 string s = "one-two-one-two";
@@ -76,7 +76,7 @@ int second = s.IndexOfFrom(1, "one"); // 8
 
 ### LastIndexOf
 
-Finds the last occurrence of a substring.
+Findet das letzte Vorkommen eines Teilstrings.
 
 ```c
 string path = "profiles/MyMod/Players/player.json";
@@ -85,30 +85,30 @@ int lastSlash = path.LastIndexOf("/"); // 23
 
 ### Contains
 
-Returns `true` if the string contains the given substring.
+Gibt `true` zurück, wenn der String den gegebenen Teilstring enthält.
 
 ```c
 string chatMsg = "!teleport 100 0 200";
 if (chatMsg.Contains("!teleport"))
 {
-    Print("Teleport command detected");
+    Print("Teleport-Befehl erkannt");
 }
 ```
 
 ### Replace
 
-Replaces all occurrences of a substring. **Modifies the string in place** and returns the number of replacements made.
+Ersetzt alle Vorkommen eines Teilstrings. **Ändert den String direkt** und gibt die Anzahl der vorgenommenen Ersetzungen zurück.
 
 ```c
 string s = "Hello World World";
 int count = s.Replace("World", "DayZ");
-// s is now "Hello DayZ DayZ"
-// count is 2
+// s ist jetzt "Hello DayZ DayZ"
+// count ist 2
 ```
 
 ### Split
 
-Splits a string by a delimiter and fills an array. The array should be pre-allocated.
+Teilt einen String an einem Trennzeichen und füllt ein Array. Das Array sollte vorher erstellt werden.
 
 ```c
 string csv = "AK101,M4A1,UMP45,Mosin9130";
@@ -116,7 +116,7 @@ TStringArray weapons = new TStringArray;
 csv.Split(",", weapons);
 // weapons = ["AK101", "M4A1", "UMP45", "Mosin9130"]
 
-// Split chat command by spaces
+// Chat-Befehl nach Leerzeichen aufteilen
 string chatLine = "!spawn Barrel_Green 5";
 TStringArray parts = new TStringArray;
 chatLine.Split(" ", parts);
@@ -126,9 +126,9 @@ string itemType = parts.Get(1);  // "Barrel_Green"
 int amount = parts.Get(2).ToInt(); // 5
 ```
 
-### Join (static)
+### Join (statisch)
 
-Joins an array of strings with a separator.
+Verbindet ein Array von Strings mit einem Trennzeichen.
 
 ```c
 TStringArray names = {"Alice", "Bob", "Charlie"};
@@ -136,31 +136,31 @@ string result = string.Join(", ", names);
 // result = "Alice, Bob, Charlie"
 ```
 
-### Format (static)
+### Format (statisch)
 
-Builds a string using numbered placeholders `%1` through `%9`. This is the primary way to build formatted strings in Enforce Script.
+Erstellt einen String mit nummerierten Platzhaltern `%1` bis `%9`. Dies ist die primäre Art, formatierte Strings in Enforce Script zu erstellen.
 
 ```c
 string name = "John";
 int kills = 15;
 float distance = 342.5;
 
-string msg = string.Format("Player %1 has %2 kills (best shot: %3m)", name, kills, distance);
-// msg = "Player John has 15 kills (best shot: 342.5m)"
+string msg = string.Format("Spieler %1 hat %2 Kills (bester Schuss: %3m)", name, kills, distance);
+// msg = "Spieler John hat 15 Kills (bester Schuss: 342.5m)"
 ```
 
-Placeholders are **1-indexed** (`%1` is the first argument, not `%0`). You can use up to 9 placeholders.
+Platzhalter sind **1-indiziert** (`%1` ist das erste Argument, nicht `%0`). Sie können bis zu 9 Platzhalter verwenden.
 
 ```c
-string log = string.Format("[%1] %2 :: %3", "MyMod", "INFO", "Server started");
-// log = "[MyMod] INFO :: Server started"
+string log = string.Format("[%1] %2 :: %3", "MyMod", "INFO", "Server gestartet");
+// log = "[MyMod] INFO :: Server gestartet"
 ```
 
-> **Note:** There is no `printf`-style formatting (`%d`, `%f`, `%s`). Only `%1` through `%9`.
+> **Hinweis:** Es gibt keine `printf`-Formatierung (`%d`, `%f`, `%s`). Nur `%1` bis `%9`.
 
 ### ToLower
 
-Converts the string to lowercase. **Modifies in place** -- does NOT return a new string.
+Konvertiert den String in Kleinbuchstaben. **Ändert direkt** -- gibt KEINEN neuen String zurück.
 
 ```c
 string s = "Hello WORLD";
@@ -170,7 +170,7 @@ Print(s); // "hello world"
 
 ### ToUpper
 
-Converts the string to uppercase. **Modifies in place.**
+Konvertiert den String in Großbuchstaben. **Ändert direkt.**
 
 ```c
 string s = "Hello World";
@@ -180,7 +180,7 @@ Print(s); // "HELLO WORLD"
 
 ### Trim / TrimInPlace
 
-Removes leading and trailing whitespace. **Modifies in place.**
+Entfernt führende und abschließende Leerzeichen. **Ändert direkt.**
 
 ```c
 string s = "  Hello World  ";
@@ -188,17 +188,17 @@ s.TrimInPlace();
 Print(s); // "Hello World"
 ```
 
-There is also `Trim()` which returns a new trimmed string (available in some engine versions):
+Es gibt auch `Trim()`, das einen neuen getrimmten String zurückgibt (verfügbar in einigen Engine-Versionen):
 
 ```c
 string raw = "  padded  ";
 string clean = raw.Trim();
-// clean = "padded", raw unchanged
+// clean = "padded", raw unverändert
 ```
 
 ### Get
 
-Gets a single character at an index, returned as a string.
+Holt ein einzelnes Zeichen an einem Index, zurückgegeben als String.
 
 ```c
 string s = "DayZ";
@@ -208,7 +208,7 @@ string ch2 = s.Get(3); // "Z"
 
 ### Set
 
-Sets a single character at an index.
+Setzt ein einzelnes Zeichen an einem Index.
 
 ```c
 string s = "DayZ";
@@ -218,19 +218,19 @@ Print(s); // "NayZ"
 
 ### ToInt
 
-Converts a numeric string to an integer.
+Konvertiert einen numerischen String in einen Integer.
 
 ```c
 string s = "42";
 int num = s.ToInt(); // 42
 
 string bad = "hello";
-int zero = bad.ToInt(); // 0 (non-numeric strings return 0)
+int zero = bad.ToInt(); // 0 (nicht-numerische Strings geben 0 zurück)
 ```
 
 ### ToFloat
 
-Converts a numeric string to a float.
+Konvertiert einen numerischen String in einen Float.
 
 ```c
 string s = "3.14";
@@ -239,7 +239,7 @@ float f = s.ToFloat(); // 3.14
 
 ### ToVector
 
-Converts a space-separated string of three numbers to a vector.
+Konvertiert einen durch Leerzeichen getrennten String aus drei Zahlen in einen Vektor.
 
 ```c
 string s = "100.5 0 200.3";
@@ -250,7 +250,7 @@ vector pos = s.ToVector(); // Vector(100.5, 0, 200.3)
 
 ## String-Vergleich
 
-Strings are compared by value using standard operators. Comparison is **case-sensitive** and follows lexicographic (dictionary) order.
+Strings werden per Wert mit Standardoperatoren verglichen. Der Vergleich ist **groß-/kleinschreibungsempfindlich** und folgt der lexikografischen (Wörterbuch-)Reihenfolge.
 
 ```c
 string a = "Apple";
@@ -259,13 +259,13 @@ string c = "Apple";
 
 bool equal    = (a == c);  // true
 bool notEqual = (a != b);  // true
-bool less     = (a < b);   // true  ("Apple" < "Banana" lexicographically)
+bool less     = (a < b);   // true  ("Apple" < "Banana" lexikografisch)
 bool greater  = (b > a);   // true
 ```
 
-### Case-insensitive comparison
+### Groß-/kleinschreibungsunabhängiger Vergleich
 
-There is no built-in case-insensitive comparison. Convert both strings to lowercase first:
+Es gibt keinen eingebauten groß-/kleinschreibungsunabhängigen Vergleich. Konvertieren Sie beide Strings zuerst in Kleinbuchstaben:
 
 ```c
 bool EqualsIgnoreCase(string a, string b)
@@ -282,44 +282,44 @@ bool EqualsIgnoreCase(string a, string b)
 
 ## String-Verkettung
 
-Use the `+` operator to concatenate strings. Non-string types are automatically converted.
+Verwenden Sie den `+`-Operator, um Strings zu verketten. Nicht-String-Typen werden automatisch konvertiert.
 
 ```c
 string name = "John";
 int health = 75;
 float distance = 42.5;
 
-string msg = "Player " + name + " has " + health + " HP at " + distance + "m";
-// "Player John has 75 HP at 42.5m"
+string msg = "Spieler " + name + " hat " + health + " HP bei " + distance + "m";
+// "Spieler John hat 75 HP bei 42.5m"
 ```
 
-For complex formatting, prefer `string.Format()` over concatenation -- it is more readable and avoids multiple intermediate allocations.
+Für komplexe Formatierung bevorzugen Sie `string.Format()` gegenüber Verkettung -- es ist lesbarer und vermeidet mehrere Zwischenallokationen.
 
 ```c
-// Prefer this:
-string msg = string.Format("Player %1 has %2 HP at %3m", name, health, distance);
+// Bevorzugen Sie dies:
+string msg = string.Format("Spieler %1 hat %2 HP bei %3m", name, health, distance);
 
-// Over this:
-string msg2 = "Player " + name + " has " + health + " HP at " + distance + "m";
+// Gegenüber diesem:
+string msg2 = "Spieler " + name + " hat " + health + " HP bei " + distance + "m";
 ```
 
 ---
 
 ## Praxisbeispiele
 
-### Parsing chat commands
+### Chat-Befehle parsen
 
 ```c
 void ProcessChatMessage(string sender, string message)
 {
-    // Trim whitespace
+    // Leerzeichen trimmen
     message.TrimInPlace();
 
-    // Must start with !
+    // Muss mit ! beginnen
     if (message.Length() == 0 || message.Get(0) != "!")
         return;
 
-    // Split into parts
+    // In Teile aufteilen
     TStringArray parts = new TStringArray;
     message.Split(" ", parts);
 
@@ -332,7 +332,7 @@ void ProcessChatMessage(string sender, string message)
     switch (command)
     {
         case "!heal":
-            Print(string.Format("[CMD] %1 used !heal", sender));
+            Print(string.Format("[CMD] %1 verwendet !heal", sender));
             break;
 
         case "!spawn":
@@ -343,7 +343,7 @@ void ProcessChatMessage(string sender, string message)
                 if (parts.Count() >= 3)
                     quantity = parts.Get(2).ToInt();
 
-                Print(string.Format("[CMD] %1 spawning %2 x%3", sender, itemType, quantity));
+                Print(string.Format("[CMD] %1 spawnt %2 x%3", sender, itemType, quantity));
             }
             break;
 
@@ -354,14 +354,14 @@ void ProcessChatMessage(string sender, string message)
                 float y = parts.Get(2).ToFloat();
                 float z = parts.Get(3).ToFloat();
                 vector pos = Vector(x, y, z);
-                Print(string.Format("[CMD] %1 teleporting to %2", sender, pos.ToString()));
+                Print(string.Format("[CMD] %1 teleportiert sich zu %2", sender, pos.ToString()));
             }
             break;
     }
 }
 ```
 
-### Formatting player names for display
+### Spielernamen für die Anzeige formatieren
 
 ```c
 string FormatPlayerTag(string name, string clanTag, bool isAdmin)
@@ -386,7 +386,7 @@ string FormatPlayerTag(string name, string clanTag, bool isAdmin)
 // FormatPlayerTag("Jane", "", false)   => "Jane"
 ```
 
-### Building file paths
+### Dateipfade erstellen
 
 ```c
 string BuildPlayerFilePath(string steamId)
@@ -395,7 +395,7 @@ string BuildPlayerFilePath(string steamId)
 }
 ```
 
-### Sanitizing log messages
+### Log-Nachrichten bereinigen
 
 ```c
 string SanitizeForLog(string input)
@@ -405,7 +405,7 @@ string SanitizeForLog(string input)
     safe.Replace("\r", "");
     safe.Replace("\t", " ");
 
-    // Truncate to max length
+    // Auf maximale Länge kürzen
     if (safe.Length() > 200)
     {
         safe = safe.Substring(0, 197) + "...";
@@ -415,7 +415,7 @@ string SanitizeForLog(string input)
 }
 ```
 
-### Extracting file name from a path
+### Dateinamen aus einem Pfad extrahieren
 
 ```c
 string GetFileName(string path)
@@ -436,62 +436,95 @@ string GetFileName(string path)
 
 ---
 
-## Häufige Fehler
+## Bewährte Vorgehensweisen
 
-| Mistake | Problem | Fix |
-|---------|---------|-----|
-| Expecting `ToLower()` to return a new string | `ToLower()` modifies in place, returns `void` | Copy the string first, then call `ToLower()` on the copy |
-| Expecting `ToUpper()` to return a new string | Same as above -- modifies in place | Copy first, then call `ToUpper()` on the copy |
-| Expecting `Replace()` to return a new string | `Replace()` modifies in place, returns replacement count | Copy the string first if you need the original |
-| Using `%0` in `string.Format()` | Placeholders are 1-indexed (`%1` through `%9`) | Start from `%1` |
-| Using `%d`, `%f`, `%s` format specifiers | C-style format specifiers do not work | Use `%1`, `%2`, etc. |
-| Comparing strings without normalizing case | `"Hello" != "hello"` | Call `ToLower()` on both before comparing |
-| Treating strings as reference types | Strings are value types; assigning creates a copy | This is usually fine -- just be aware that modifying a copy does not affect the original |
-| Forgetting to create the array before `Split()` | Calling `Split()` on a null array causes a crash | Always: `TStringArray parts = new TStringArray;` before `Split()` |
+- Verwenden Sie `string.Format()` mit `%1`..`%9`-Platzhaltern für alle formatierte Ausgaben -- es ist lesbarer und vermeidet Typkonvertierungsfallen der `+`-Verkettung.
+- Denken Sie daran, dass `ToLower()`, `ToUpper()` und `Replace()` den String direkt ändern -- kopieren Sie den String zuerst, wenn Sie das Original bewahren müssen.
+- Erstellen Sie immer das Zielarray mit `new TStringArray` bevor Sie `Split()` aufrufen -- ein null-Array zu übergeben verursacht einen Absturz.
+- Verwenden Sie `Contains()` für einfache Teilstring-Prüfungen und `IndexOf()` nur, wenn Sie die Position benötigen.
+- Für groß-/kleinschreibungsunabhängige Vergleiche kopieren Sie beide Strings und rufen `ToLower()` auf jedem auf, bevor Sie vergleichen -- es gibt keinen eingebauten case-insensitiven Vergleich.
 
 ---
 
-## Schnellreferenz
+## In echten Mods beobachtet
+
+> Muster bestätigt durch das Studium professionellen DayZ-Mod-Quellcodes.
+
+| Muster | Mod | Detail |
+|---------|-----|--------|
+| `Split(" ", parts)` für Chat-Befehl-Parsing | VPP / COT | Alle Chat-Befehlssysteme teilen nach Leerzeichen, dann switch auf `parts.Get(0)` |
+| `string.Format` mit `[TAG]`-Präfix | Expansion / Dabs | Log-Nachrichten verwenden immer `string.Format("[%1] %2", tag, msg)` statt Verkettung |
+| `"$profile:ModName/"`-Pfadkonvention | COT / Expansion | Dateipfade, die mit `+` erstellt werden, verwenden Schrägstriche und `$profile:`-Präfix, um Backslash-Probleme zu vermeiden |
+| `ToLower()` vor Befehlsabgleich | VPP Admin | Benutzereingabe wird vor `switch`/Vergleich in Kleinbuchstaben konvertiert, um gemischte Groß-/Kleinschreibung zu handhaben |
+
+---
+
+## Theorie vs. Praxis
+
+| Konzept | Theorie | Realität |
+|---------|--------|---------|
+| `ToLower()` / `Replace()` Rückgabewert | Erwartet einen neuen String zurückzugeben (wie C#) | Sie ändern direkt und geben `void` oder Anzahl zurück -- eine ständige Fehlerquelle |
+| `string.Format`-Platzhalter | `%d`, `%f`, `%s` wie C printf | Nur `%1` bis `%9` funktionieren; C-Stil-Bezeichner werden stillschweigend ignoriert |
+| Backslash `\\` in Strings | Standard-Escape-Zeichen | Kann DayZs CParser in JSON-Kontexten beschädigen -- bevorzugen Sie Schrägstriche für Pfade |
+
+---
+
+## Häufige Fehler
+
+| Fehler | Problem | Lösung |
+|---------|---------|-----|
+| Erwarten, dass `ToLower()` einen neuen String zurückgibt | `ToLower()` ändert direkt, gibt `void` zurück | String zuerst kopieren, dann `ToLower()` auf der Kopie aufrufen |
+| Erwarten, dass `ToUpper()` einen neuen String zurückgibt | Wie oben -- ändert direkt | Zuerst kopieren, dann `ToUpper()` auf der Kopie aufrufen |
+| Erwarten, dass `Replace()` einen neuen String zurückgibt | `Replace()` ändert direkt, gibt Ersetzungsanzahl zurück | String zuerst kopieren, wenn Sie das Original benötigen |
+| `%0` in `string.Format()` verwenden | Platzhalter sind 1-indiziert (`%1` bis `%9`) | Ab `%1` beginnen |
+| `%d`, `%f`, `%s` Format-Bezeichner verwenden | C-Stil-Format-Bezeichner funktionieren nicht | `%1`, `%2` usw. verwenden |
+| Strings ohne Normalisierung der Groß-/Kleinschreibung vergleichen | `"Hello" != "hello"` | `ToLower()` auf beiden vor dem Vergleich aufrufen |
+| Strings als Referenztypen behandeln | Strings sind Werttypen; Zuweisung erstellt eine Kopie | Das ist normalerweise in Ordnung -- beachten Sie nur, dass das Ändern einer Kopie das Original nicht beeinflusst |
+| Vergessen, das Array vor `Split()` zu erstellen | `Split()` auf einem null-Array aufzurufen verursacht einen Absturz | Immer: `TStringArray parts = new TStringArray;` vor `Split()` |
+
+---
+
+## Kurzreferenz
 
 ```c
-// Length
+// Länge
 int len = s.Length();
 
-// Search
+// Suche
 int idx = s.IndexOf("sub");
 int idx = s.IndexOfFrom(startIdx, "sub");
 int idx = s.LastIndexOf("sub");
 bool has = s.Contains("sub");
 
-// Extract
+// Extrahieren
 string sub = s.Substring(start, length);
 string ch  = s.Get(index);
 
-// Modify (in place)
+// Ändern (direkt)
 s.Set(index, "x");
 int count = s.Replace("old", "new");
 s.ToLower();
 s.ToUpper();
 s.TrimInPlace();
 
-// Split & Join
+// Teilen & Verbinden
 TStringArray parts = new TStringArray;
 s.Split(delimiter, parts);
 string joined = string.Join(sep, parts);
 
-// Format (static, %1-%9 placeholders)
-string msg = string.Format("Hello %1, you have %2 items", name, count);
+// Format (statisch, %1-%9 Platzhalter)
+string msg = string.Format("Hallo %1, du hast %2 Gegenstände", name, count);
 
-// Conversion
+// Konvertierung
 int n    = s.ToInt();
 float f  = s.ToFloat();
 vector v = s.ToVector();
 
-// Comparison (case-sensitive, lexicographic)
+// Vergleich (groß-/kleinschreibungsempfindlich, lexikografisch)
 bool eq = (a == b);
 bool lt = (a < b);
 ```
 
 ---
 
-[<< 1.5: Control Flow](05-control-flow.md) | [Startseite](../../README.md) | [1.7: Math & Vectors >>](07-math-vectors.md)
+[<< 1.5: Kontrollfluss](05-control-flow.md) | [Startseite](../../README.md) | [1.7: Mathematik & Vektoren >>](07-math-vectors.md)

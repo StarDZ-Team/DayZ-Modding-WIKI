@@ -1,37 +1,37 @@
-# Chapter 1.6: String Operations
+# 第 1.6 章：字符串操作
 
-[Home](../../README.md) | [<< Previous: Control Flow](05-control-flow.md) | **String Operations** | [Next: Math & Vectors >>](07-math-vectors.md)
+[首页](../../README.md) | [<< 上一章：控制流](05-control-flow.md) | **字符串操作** | [下一章：数学与向量 >>](07-math-vectors.md)
 
 ---
 
 ## 简介
 
-Strings in Enforce Script are a **value type**, like `int` or `float`. They are passed by value and compared by value. The `string` type has a rich set of built-in methods for searching, slicing, converting, and formatting text. This chapter is a complete reference for every string operation available in DayZ scripting, with real-world examples from mod development.
+Enforce Script 中的字符串是**值类型**，类似于 `int` 或 `float`。它们按值传递和比较。`string` 类型拥有丰富的内置方法，用于搜索、截取、转换和格式化文本。本章是 DayZ 脚本中所有字符串操作的完整参考，包含来自 Mod 开发的实际示例。
 
 ---
 
 ## 字符串基础
 
 ```c
-// Declaration and initialization
-string empty;                          // "" (empty string by default)
+// 声明和初始化
+string empty;                          // ""（默认为空字符串）
 string greeting = "Hello, Chernarus!";
-string combined = "Player: " + "John"; // Concatenation with +
+string combined = "Player: " + "John"; // 使用 + 拼接
 
-// Strings are value types -- assignment creates a copy
+// 字符串是值类型——赋值创建副本
 string original = "DayZ";
 string copy = original;
 copy = "Arma";
-Print(original); // Still "DayZ"
+Print(original); // 仍然是 "DayZ"
 ```
 
 ---
 
-## 完整字符串方法参考
+## 完整的字符串方法参考
 
 ### Length
 
-Returns the number of characters in the string.
+返回字符串中的字符数。
 
 ```c
 string s = "Hello";
@@ -43,20 +43,20 @@ int emptyLen = empty.Length(); // 0
 
 ### Substring
 
-Extracts a portion of the string. Parameters: `start` (index), `length` (number of characters).
+提取字符串的一部分。参数：`start`（起始索引）、`length`（字符数）。
 
 ```c
 string s = "Hello World";
 string word = s.Substring(6, 5);  // "World"
 string first = s.Substring(0, 5); // "Hello"
 
-// Extract from a position to the end
+// 从某个位置提取到末尾
 string rest = s.Substring(6, s.Length() - 6); // "World"
 ```
 
 ### IndexOf
 
-Finds the first occurrence of a substring. Returns the index, or `-1` if not found.
+查找子字符串的第一次出现。返回索引，如果未找到则返回 `-1`。
 
 ```c
 string s = "Hello World";
@@ -66,7 +66,7 @@ int notFound = s.IndexOf("DayZ"); // -1
 
 ### IndexOfFrom
 
-Finds the first occurrence starting from a given index.
+从给定索引开始查找第一次出现。
 
 ```c
 string s = "one-two-one-two";
@@ -76,7 +76,7 @@ int second = s.IndexOfFrom(1, "one"); // 8
 
 ### LastIndexOf
 
-Finds the last occurrence of a substring.
+查找子字符串的最后一次出现。
 
 ```c
 string path = "profiles/MyMod/Players/player.json";
@@ -85,30 +85,30 @@ int lastSlash = path.LastIndexOf("/"); // 23
 
 ### Contains
 
-Returns `true` if the string contains the given substring.
+如果字符串包含给定子字符串则返回 `true`。
 
 ```c
 string chatMsg = "!teleport 100 0 200";
 if (chatMsg.Contains("!teleport"))
 {
-    Print("Teleport command detected");
+    Print("检测到传送命令");
 }
 ```
 
 ### Replace
 
-Replaces all occurrences of a substring. **Modifies the string in place** and returns the number of replacements made.
+替换所有出现的子字符串。**就地修改字符串**并返回替换次数。
 
 ```c
 string s = "Hello World World";
 int count = s.Replace("World", "DayZ");
-// s is now "Hello DayZ DayZ"
-// count is 2
+// s 现在是 "Hello DayZ DayZ"
+// count 是 2
 ```
 
 ### Split
 
-Splits a string by a delimiter and fills an array. The array should be pre-allocated.
+按分隔符分割字符串并填充数组。数组应预先分配。
 
 ```c
 string csv = "AK101,M4A1,UMP45,Mosin9130";
@@ -116,7 +116,7 @@ TStringArray weapons = new TStringArray;
 csv.Split(",", weapons);
 // weapons = ["AK101", "M4A1", "UMP45", "Mosin9130"]
 
-// Split chat command by spaces
+// 按空格分割聊天命令
 string chatLine = "!spawn Barrel_Green 5";
 TStringArray parts = new TStringArray;
 chatLine.Split(" ", parts);
@@ -126,9 +126,9 @@ string itemType = parts.Get(1);  // "Barrel_Green"
 int amount = parts.Get(2).ToInt(); // 5
 ```
 
-### Join (static)
+### Join（静态方法）
 
-Joins an array of strings with a separator.
+使用分隔符连接字符串数组。
 
 ```c
 TStringArray names = {"Alice", "Bob", "Charlie"};
@@ -136,31 +136,31 @@ string result = string.Join(", ", names);
 // result = "Alice, Bob, Charlie"
 ```
 
-### Format (static)
+### Format（静态方法）
 
-Builds a string using numbered placeholders `%1` through `%9`. This is the primary way to build formatted strings in Enforce Script.
+使用编号占位符 `%1` 到 `%9` 构建字符串。这是 Enforce Script 中构建格式化字符串的主要方式。
 
 ```c
 string name = "John";
 int kills = 15;
 float distance = 342.5;
 
-string msg = string.Format("Player %1 has %2 kills (best shot: %3m)", name, kills, distance);
-// msg = "Player John has 15 kills (best shot: 342.5m)"
+string msg = string.Format("玩家 %1 有 %2 次击杀（最佳射击：%3米）", name, kills, distance);
+// msg = "玩家 John 有 15 次击杀（最佳射击：342.5米）"
 ```
 
-Placeholders are **1-indexed** (`%1` is the first argument, not `%0`). You can use up to 9 placeholders.
+占位符是**从 1 开始**的（`%1` 是第一个参数，不是 `%0`）。最多可使用 9 个占位符。
 
 ```c
-string log = string.Format("[%1] %2 :: %3", "MyMod", "INFO", "Server started");
-// log = "[MyMod] INFO :: Server started"
+string log = string.Format("[%1] %2 :: %3", "MyMod", "INFO", "服务器已启动");
+// log = "[MyMod] INFO :: 服务器已启动"
 ```
 
-> **注意：** There is no `printf`-style formatting (`%d`, `%f`, `%s`). Only `%1` through `%9`.
+> **注意：** 没有 `printf` 风格的格式化（`%d`、`%f`、`%s`）。只有 `%1` 到 `%9`。
 
 ### ToLower
 
-Converts the string to lowercase. **Modifies in place** -- does NOT return a new string.
+将字符串转换为小写。**就地修改** -- 不返回新字符串。
 
 ```c
 string s = "Hello WORLD";
@@ -168,9 +168,9 @@ s.ToLower();
 Print(s); // "hello world"
 ```
 
-### To上级per
+### ToUpper
 
-Converts the string to uppercase. **Modifies in place.**
+将字符串转换为大写。**就地修改。**
 
 ```c
 string s = "Hello World";
@@ -180,7 +180,7 @@ Print(s); // "HELLO WORLD"
 
 ### Trim / TrimInPlace
 
-Removes leading and trailing whitespace. **Modifies in place.**
+移除前导和尾随空白字符。**就地修改。**
 
 ```c
 string s = "  Hello World  ";
@@ -188,17 +188,17 @@ s.TrimInPlace();
 Print(s); // "Hello World"
 ```
 
-There is also `Trim()` which returns a new trimmed string (available in some engine versions):
+还有 `Trim()` 返回新的已修剪字符串（某些引擎版本中可用）：
 
 ```c
 string raw = "  padded  ";
 string clean = raw.Trim();
-// clean = "padded", raw unchanged
+// clean = "padded"，raw 不变
 ```
 
 ### Get
 
-Gets a single character at an index, returned as a string.
+获取指定索引处的单个字符，以字符串形式返回。
 
 ```c
 string s = "DayZ";
@@ -208,7 +208,7 @@ string ch2 = s.Get(3); // "Z"
 
 ### Set
 
-Sets a single character at an index.
+设置指定索引处的单个字符。
 
 ```c
 string s = "DayZ";
@@ -218,19 +218,19 @@ Print(s); // "NayZ"
 
 ### ToInt
 
-Converts a numeric string to an integer.
+将数字字符串转换为整数。
 
 ```c
 string s = "42";
 int num = s.ToInt(); // 42
 
 string bad = "hello";
-int zero = bad.ToInt(); // 0 (non-numeric strings return 0)
+int zero = bad.ToInt(); // 0（非数字字符串返回 0）
 ```
 
 ### ToFloat
 
-Converts a numeric string to a float.
+将数字字符串转换为浮点数。
 
 ```c
 string s = "3.14";
@@ -239,7 +239,7 @@ float f = s.ToFloat(); // 3.14
 
 ### ToVector
 
-Converts a space-separated string of three numbers to a vector.
+将三个空格分隔的数字字符串转换为向量。
 
 ```c
 string s = "100.5 0 200.3";
@@ -250,7 +250,7 @@ vector pos = s.ToVector(); // Vector(100.5, 0, 200.3)
 
 ## 字符串比较
 
-Strings are compared by value using standard operators. Comparison is **case-sensitive** and follows lexicographic (dictionary) order.
+字符串使用标准运算符按值比较。比较是**区分大小写**的，遵循字典（lexicographic）顺序。
 
 ```c
 string a = "Apple";
@@ -259,13 +259,13 @@ string c = "Apple";
 
 bool equal    = (a == c);  // true
 bool notEqual = (a != b);  // true
-bool less     = (a < b);   // true  ("Apple" < "Banana" lexicographically)
+bool less     = (a < b);   // true（"Apple" < "Banana" 按字典序）
 bool greater  = (b > a);   // true
 ```
 
-### Case-insensitive comparison
+### 不区分大小写的比较
 
-There is no built-in case-insensitive comparison. Convert both strings to lowercase first:
+没有内置的不区分大小写的比较方法。先将两个字符串转换为小写：
 
 ```c
 bool EqualsIgnoreCase(string a, string b)
@@ -280,46 +280,46 @@ bool EqualsIgnoreCase(string a, string b)
 
 ---
 
-## 字符串连接
+## 字符串拼接
 
-Use the `+` operator to concatenate strings. Non-string types are automatically converted.
+使用 `+` 运算符拼接字符串。非字符串类型会自动转换。
 
 ```c
 string name = "John";
 int health = 75;
 float distance = 42.5;
 
-string msg = "Player " + name + " has " + health + " HP at " + distance + "m";
-// "Player John has 75 HP at 42.5m"
+string msg = "玩家 " + name + " 有 " + health + " HP，距离 " + distance + "米";
+// "玩家 John 有 75 HP，距离 42.5米"
 ```
 
-For complex formatting, prefer `string.Format()` over concatenation -- it is more readable and avoids multiple intermediate allocations.
+对于复杂的格式化，优先使用 `string.Format()` 而非拼接——它更易读，且避免多次中间分配。
 
 ```c
-// Prefer this:
-string msg = string.Format("Player %1 has %2 HP at %3m", name, health, distance);
+// 推荐：
+string msg = string.Format("玩家 %1 有 %2 HP，距离 %3米", name, health, distance);
 
-// Over this:
-string msg2 = "Player " + name + " has " + health + " HP at " + distance + "m";
+// 不推荐：
+string msg2 = "玩家 " + name + " 有 " + health + " HP，距离 " + distance + "米";
 ```
 
 ---
 
 ## 实际示例
 
-### Parsing chat commands
+### 解析聊天命令
 
 ```c
 void ProcessChatMessage(string sender, string message)
 {
-    // Trim whitespace
+    // 修剪空白
     message.TrimInPlace();
 
-    // Must start with !
+    // 必须以 ! 开头
     if (message.Length() == 0 || message.Get(0) != "!")
         return;
 
-    // Split into parts
+    // 分割为部分
     TStringArray parts = new TStringArray;
     message.Split(" ", parts);
 
@@ -332,7 +332,7 @@ void ProcessChatMessage(string sender, string message)
     switch (command)
     {
         case "!heal":
-            Print(string.Format("[CMD] %1 used !heal", sender));
+            Print(string.Format("[CMD] %1 使用了 !heal", sender));
             break;
 
         case "!spawn":
@@ -343,7 +343,7 @@ void ProcessChatMessage(string sender, string message)
                 if (parts.Count() >= 3)
                     quantity = parts.Get(2).ToInt();
 
-                Print(string.Format("[CMD] %1 spawning %2 x%3", sender, itemType, quantity));
+                Print(string.Format("[CMD] %1 生成 %2 x%3", sender, itemType, quantity));
             }
             break;
 
@@ -354,14 +354,14 @@ void ProcessChatMessage(string sender, string message)
                 float y = parts.Get(2).ToFloat();
                 float z = parts.Get(3).ToFloat();
                 vector pos = Vector(x, y, z);
-                Print(string.Format("[CMD] %1 teleporting to %2", sender, pos.ToString()));
+                Print(string.Format("[CMD] %1 传送到 %2", sender, pos.ToString()));
             }
             break;
     }
 }
 ```
 
-### Formatting player names for display
+### 格式化玩家名称显示
 
 ```c
 string FormatPlayerTag(string name, string clanTag, bool isAdmin)
@@ -377,16 +377,16 @@ string FormatPlayerTag(string name, string clanTag, bool isAdmin)
 
     if (isAdmin)
     {
-        result = result + " (Admin)";
+        result = result + " (管理员)";
     }
 
     return result;
 }
-// FormatPlayerTag("John", "DZR", true) => "[DZR] John (Admin)"
+// FormatPlayerTag("John", "DZR", true) => "[DZR] John (管理员)"
 // FormatPlayerTag("Jane", "", false)   => "Jane"
 ```
 
-### Building file paths
+### 构建文件路径
 
 ```c
 string BuildPlayerFilePath(string steamId)
@@ -395,7 +395,7 @@ string BuildPlayerFilePath(string steamId)
 }
 ```
 
-### Sanitizing log messages
+### 清理日志消息
 
 ```c
 string SanitizeForLog(string input)
@@ -405,7 +405,7 @@ string SanitizeForLog(string input)
     safe.Replace("\r", "");
     safe.Replace("\t", " ");
 
-    // Truncate to max length
+    // 截断到最大长度
     if (safe.Length() > 200)
     {
         safe = safe.Substring(0, 197) + "...";
@@ -415,7 +415,7 @@ string SanitizeForLog(string input)
 }
 ```
 
-### Extracting file name from a path
+### 从路径中提取文件名
 
 ```c
 string GetFileName(string path)
@@ -436,62 +436,95 @@ string GetFileName(string path)
 
 ---
 
+## 最佳实践
+
+- 所有格式化输出使用 `string.Format()` 配合 `%1`..`%9` 占位符——它更易读，且避免 `+` 拼接的类型转换陷阱。
+- 记住 `ToLower()`、`ToUpper()` 和 `Replace()` 就地修改字符串——如果需要保留原始值，请先复制字符串。
+- 调用 `Split()` 前始终用 `new TStringArray` 分配目标数组——传递 null 数组会导致崩溃。
+- 简单的子字符串检查使用 `Contains()`，仅在需要位置时使用 `IndexOf()`。
+- 不区分大小写的比较需要复制两个字符串，对每个调用 `ToLower()` 后再比较——没有内置的不区分大小写比较方法。
+
+---
+
+## 在真实 Mod 中的观察
+
+> 通过研究专业 DayZ Mod 源代码确认的模式。
+
+| 模式 | Mod | 详情 |
+|---------|-----|--------|
+| `Split(" ", parts)` 用于聊天命令解析 | VPP / COT | 所有聊天命令系统按空格分割，然后对 `parts.Get(0)` 使用 switch |
+| `string.Format` 配合 `[TAG]` 前缀 | Expansion / Dabs | 日志消息始终使用 `string.Format("[%1] %2", tag, msg)` 而非拼接 |
+| `"$profile:ModName/"` 路径约定 | COT / Expansion | 用 `+` 构建的文件路径使用正斜杠和 `$profile:` 前缀以避免反斜杠问题 |
+| 命令匹配前 `ToLower()` | VPP Admin | 在 `switch`/比较前将用户输入转为小写以处理混合大小写输入 |
+
+---
+
+## 理论与实践
+
+| 概念 | 理论 | 现实 |
+|---------|--------|---------|
+| `ToLower()` / `Replace()` 的返回值 | 期望返回新字符串（类似 C#） | 它们就地修改并返回 `void` 或计数——这是 bug 的常见来源 |
+| `string.Format` 占位符 | `%d`、`%f`、`%s` 类似 C 的 printf | 只有 `%1` 到 `%9` 有效；C 风格的格式说明符会被静默忽略 |
+| 字符串中的反斜杠 `\\` | 标准转义字符 | 在 JSON 上下文中可能破坏 DayZ 的 CParser——路径优先使用正斜杠 |
+
+---
+
 ## 常见错误
 
-| 错误 | 问题 | 修复 |
+| 错误 | 问题 | 修复方法 |
 |---------|---------|-----|
-| Expecting `ToLower()` to return a new string | `ToLower()` modifies in place, returns `void` | Copy the string first, then call `ToLower()` on the copy |
-| Expecting `To上级per()` to return a new string | Same as above -- modifies in place | Copy first, then call `To上级per()` on the copy |
-| Expecting `Replace()` to return a new string | `Replace()` modifies in place, returns replacement count | Copy the string first if you need the original |
-| Using `%0` in `string.Format()` | Placeholders are 1-indexed (`%1` through `%9`) | Start from `%1` |
-| Using `%d`, `%f`, `%s` format specifiers | C-style format specifiers do not work | Use `%1`, `%2`, etc. |
-| Comparing strings without normalizing case | `"Hello" != "hello"` | Call `ToLower()` on both before comparing |
-| Treating strings as reference types | Strings are value types; assigning creates a copy | This is usually fine -- just be aware that modifying a copy does not affect the original |
-| Forgetting to create the array before `Split()` | Calling `Split()` on a null array causes a crash | Always: `TStringArray parts = new TStringArray;` before `Split()` |
+| 期望 `ToLower()` 返回新字符串 | `ToLower()` 就地修改，返回 `void` | 先复制字符串，然后在副本上调用 `ToLower()` |
+| 期望 `ToUpper()` 返回新字符串 | 同上——就地修改 | 先复制，然后在副本上调用 `ToUpper()` |
+| 期望 `Replace()` 返回新字符串 | `Replace()` 就地修改，返回替换计数 | 如需保留原始值，先复制字符串 |
+| 在 `string.Format()` 中使用 `%0` | 占位符从 1 开始（`%1` 到 `%9`） | 从 `%1` 开始 |
+| 使用 `%d`、`%f`、`%s` 格式说明符 | C 风格格式说明符不起作用 | 使用 `%1`、`%2` 等 |
+| 比较字符串时不规范化大小写 | `"Hello" != "hello"` | 比较前对两者调用 `ToLower()` |
+| 将字符串视为引用类型 | 字符串是值类型；赋值创建副本 | 这通常没问题——只需知道修改副本不影响原始值 |
+| 在 `Split()` 前忘记创建数组 | 对 null 数组调用 `Split()` 会崩溃 | 始终：`TStringArray parts = new TStringArray;` 然后再 `Split()` |
 
 ---
 
 ## 快速参考
 
 ```c
-// Length
+// 长度
 int len = s.Length();
 
-// Search
+// 搜索
 int idx = s.IndexOf("sub");
 int idx = s.IndexOfFrom(startIdx, "sub");
 int idx = s.LastIndexOf("sub");
 bool has = s.Contains("sub");
 
-// Extract
+// 提取
 string sub = s.Substring(start, length);
 string ch  = s.Get(index);
 
-// Modify (in place)
+// 修改（就地）
 s.Set(index, "x");
 int count = s.Replace("old", "new");
 s.ToLower();
 s.ToUpper();
 s.TrimInPlace();
 
-// Split & Join
+// 分割与连接
 TStringArray parts = new TStringArray;
 s.Split(delimiter, parts);
 string joined = string.Join(sep, parts);
 
-// Format (static, %1-%9 placeholders)
-string msg = string.Format("Hello %1, you have %2 items", name, count);
+// 格式化（静态，%1-%9 占位符）
+string msg = string.Format("你好 %1，你有 %2 个物品", name, count);
 
-// Conversion
+// 转换
 int n    = s.ToInt();
 float f  = s.ToFloat();
 vector v = s.ToVector();
 
-// Comparison (case-sensitive, lexicographic)
+// 比较（区分大小写，字典序）
 bool eq = (a == b);
 bool lt = (a < b);
 ```
 
 ---
 
-[<< 1.5：控制流](05-control-flow.md) | [Home](../../README.md) | [1.7：数学与向量 >>](07-math-vectors.md)
+[<< 1.5：控制流](05-control-flow.md) | [首页](../../README.md) | [1.7：数学与向量 >>](07-math-vectors.md)

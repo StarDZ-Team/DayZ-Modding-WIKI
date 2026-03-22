@@ -6,7 +6,7 @@
 
 ## Introdução
 
-O sistema de Efeitos Pós-Processamento (PPE) do DayZ controla efeitos visuais aplicados após a renderização da cena: blur, color grading, vinheta, aberração cromática, visão noturna é mais. O sistema é construído em torno de classes `PPERequester` que podem solicitar efeitos visuais específicos. Múltiplos requesters podem estar ativos simultaneamente, é a engine combina suas contribuições. Este capítulo cobre como usar o sistema PPE em mods.
+O sistema de Efeitos Pós-Processamento (PPE) do DayZ controla efeitos visuais aplicados após a renderização da cena: blur, color grading, vinheta, aberração cromática, visão noturna e mais. O sistema e construído em torno de classes `PPERequester` que podem solicitar efeitos visuais específicos. Múltiplos requesters podem estar ativos simultaneamente, e a engine combina suas contribuições. Este capítulo cobre como usar o sistema PPE em mods.
 
 ---
 
@@ -32,7 +32,7 @@ PPEManager
 
 ## PPEManager
 
-O `PPEManager` é um singleton que coordena todas as requisições PPE ativas. Raramente você interage com ele diretamente --- ao invés disso, trabalha através de subclasses de `PPERequester`.
+O `PPEManager` e um singleton que coordena todas as requisições PPE ativas. Raramente você interage com ele diretamente --- ao invés disso, trabalha através de subclasses de `PPERequester`.
 
 ```c
 // Obter a instância do manager
@@ -177,7 +177,7 @@ void StopFlashbang()
 
 ## Criando um PPE Requester Personalizado
 
-Para criar efeitos pós-processamento personalizados, estenda `PPERequester` é registre-o.
+Para criar efeitos pós-processamento personalizados, estenda `PPERequester` e registre-o.
 
 ### Passo 1: Definir o Requester
 
@@ -210,15 +210,15 @@ class MyCustomPPERequester extends PPERequester
 }
 ```
 
-### Passo 2: Registrar é Usar
+### Passo 2: Registrar e Usar
 
-O registro é tratado adicionando o requester ao banco. Na prática, a maioria dos modders usa os requesters integrados é modifica seus parâmetros ao invés de criar requesters totalmente personalizados.
+O registro e tratado adicionando o requester ao banco. Na prática, a maioria dos modders usa os requesters integrados e modifica seus parâmetros ao invés de criar requesters totalmente personalizados.
 
 ---
 
 ## Visão Noturna (NVG)
 
-A visão noturna é implementada como um efeito PPE. O requester relevante é `REQ_CAMERANV`:
+A visão noturna e implementada como um efeito PPE. O requester relevante e `REQ_CAMERANV`:
 
 ```c
 // Habilitar efeito NVG
@@ -229,7 +229,7 @@ nvgReq.Start();
 nvgReq.Stop();
 ```
 
-O NVG real no jogo é acionado pelo item NVGoggles através do seu `ComponentEnergyManager` é o método `NVGoggles.ToggleNVG()`, que internamente aciona o sistema PPE.
+O NVG real no jogo e acionado pelo item NVGoggles através do seu `ComponentEnergyManager` e o método `NVGoggles.ToggleNVG()`, que internamente aciona o sistema PPE.
 
 ---
 

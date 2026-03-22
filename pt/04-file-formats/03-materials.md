@@ -6,9 +6,9 @@
 
 ## Introdução
 
-Um matérial no DayZ é a ponte entre um modelo 3D é sua aparência visual. Enquanto texturas fornecem dados brutos de imagem, o arquivo **RVMAT** (Real Virtuality Matérial) define como essas texturas são combinadas, qual shader as interpreta é quais propriedades de superfície o motor deve simular -- brilho, transparência, auto-iluminacao é mais. Toda face em todo modelo P3D no jogo referência um arquivo RVMAT, é entender como cria-los é configura-los é essencial para qualquer mod visual.
+Um matérial no DayZ é a ponte entre um modelo 3D e sua aparência visual. Enquanto texturas fornecem dados brutos de imagem, o arquivo **RVMAT** (Real Virtuality Matérial) define como essas texturas são combinadas, qual shader as interpreta e quais propriedades de superfície o motor deve simular -- brilho, transparência, auto-iluminacao e mais. Toda face em todo modelo P3D no jogo referência um arquivo RVMAT, e entender como cria-los e configura-los é essencial para qualquer mod visual.
 
-Este capítulo cobre o formato de arquivo RVMAT, tipos de shader, configuração de estágios de textura, propriedades de matérial, o sistema de troca de matérial por nível de dano, é exemplos práticos extraidos dos DayZ-Samples.
+Este capítulo cobre o formato de arquivo RVMAT, tipos de shader, configuração de estágios de textura, propriedades de matérial, o sistema de troca de matérial por nível de dano, e exemplos práticos extraidos dos DayZ-Samples.
 
 ---
 
@@ -30,15 +30,15 @@ Este capítulo cobre o formato de arquivo RVMAT, tipos de shader, configuração
 
 ## Visao Geral do Formato RVMAT
 
-Um arquivo **RVMAT** é um arquivo de configuração baseado em texto (não binário) que define um matérial. Apesar da extensão customizada, o formato é texto puro usando a sintaxe de configuração estilo Bohemia com classes é pares chave-valor.
+Um arquivo **RVMAT** e um arquivo de configuração baseado em texto (não binário) que define um matérial. Apesar da extensão customizada, o formato e texto puro usando a sintaxe de configuração estilo Bohemia com classes e pares chave-valor.
 
 ### Características Principais
 
 - **Formato texto:** Editavel em qualquer editor de texto (Notepad++, VS Code).
 - **Vinculacao de shader:** Cada RVMAT específica qual shader de renderizacao usar.
 - **Mapeamento de textura:** Define quais arquivos de textura são atribuidos a quais entradas do shader (diffuse, normal, specular, etc.).
-- **Propriedades de superfície:** Controla intensidade specular, brilho emissivo, transparência é mais.
-- **Referênciado por modelos P3D:** Faces no LOD Resolution do Object Builder recebem um RVMAT. O motor carrega o RVMAT é todas as texturas que ele referência.
+- **Propriedades de superfície:** Controla intensidade specular, brilho emissivo, transparência e mais.
+- **Referênciado por modelos P3D:** Faces no LOD Resolution do Object Builder recebem um RVMAT. O motor carrega o RVMAT e todas as texturas que ele referência.
 - **Referênciado pelo config.cpp:** `hiddenSelectionsMaterials[]` pode sobrescrever matériais em tempo de execução.
 
 ### Convencao de Caminho
@@ -58,7 +58,7 @@ MyMod/
 
 ## Estrutura do Arquivo
 
-Um arquivo RVMAT tem uma estrutura consistente. Aqui esta um exemplo completo é anotado:
+Um arquivo RVMAT tem uma estrutura consistente. Aqui esta um exemplo completo e anotado:
 
 ```cpp
 ambient[] = {1.0, 1.0, 1.0, 1.0};        // Ambient color multiplier (RGBA)
@@ -112,7 +112,7 @@ class Stage3                               // Texture stage: Specular/Metallic m
 
 ### Propriedades de Nivel Superior
 
-Estas são declaradas antes das classes Stage é controlam o comportamento geral do matérial:
+Estas são declaradas antes das classes Stage e controlam o comportamento geral do matérial:
 
 | Propriedade | Tipo | Descrição |
 |-------------|------|-----------|
@@ -120,7 +120,7 @@ Estas são declaradas antes das classes Stage é controlam o comportamento geral
 | `diffuse[]` | float[4] | Multiplicador de cor de luz difusa. Geralmente `{1,1,1,1}`. |
 | `forcedDiffuse[]` | float[4] | Override aditivo de difuso. Geralmente `{0,0,0,0}`. |
 | `emmisive[]` | float[4] | Cor de auto-iluminacao. Valores nao-zero fazem a superfície brilhar. Nota: Bohemia usa a grafia errada `emmisive`, não `emissive`. |
-| `specular[]` | float[4] | Cor é intensidade do reflexo specular. |
+| `specular[]` | float[4] | Cor e intensidade do reflexo specular. |
 | `specularPower` | float | Nitidez dos reflexos speculares. Faixa 1-200. Maior = mais apertado, reflexao mais focada. |
 | `PixelShaderID` | string | Nome do programa de pixel shader. |
 | `VertexShaderID` | string | Nome do programa de vertex shader. |
@@ -129,16 +129,16 @@ Estas são declaradas antes das classes Stage é controlam o comportamento geral
 
 ## Tipos de Shader
 
-Os valores `PixelShaderID` é `VertexShaderID` determinam qual pipeline de renderizacao processa o matérial. Ambos geralmente devem ser configurados com o mesmo valor.
+Os valores `PixelShaderID` e `VertexShaderID` determinam qual pipeline de renderizacao processa o matérial. Ambos geralmente devem ser configurados com o mesmo valor.
 
 ### Shaders Disponíveis
 
 | Shader | Caso de Uso | Estagios de Textura Necessarios |
 |--------|-------------|--------------------------------|
 | **Super** | Superficies opacas padrão (armas, roupas, itens) | Normal, Diffuse, Specular/Metallic |
-| **Multi** | Terreno multicamada é superfícies complexas | Multiplos pares diffuse/normal |
-| **Glass** | Superficies transparentes é semi-transparentes | Diffuse com alfa |
-| **Watér** | Superficies de agua com reflexao é refracao | Texturas especiais de agua |
+| **Multi** | Terreno multicamada e superfícies complexas | Multiplos pares diffuse/normal |
+| **Glass** | Superficies transparentes e semi-transparentes | Diffuse com alfa |
+| **Watér** | Superficies de agua com reflexao e refracao | Texturas especiais de agua |
 | **Terrain** | Superficies de solo do terreno | Satélite, mascara, camadas de matérial |
 | **NormalMap** | Superficie simplificada com normal map | Normal, Diffuse |
 | **NormalMapSpecular** | Normal map com specular | Normal, Diffuse, Specular |
@@ -149,7 +149,7 @@ Os valores `PixelShaderID` é `VertexShaderID` determinam qual pipeline de rende
 
 ### Shader Super (Mais Comum)
 
-O shader **Super** é o shader padrão de renderizacao baseada em física usado para a grande maioria dos itens no DayZ. Ele espera três estágios de textura:
+O shader **Super** e o shader padrão de renderizacao baseada em física usado para a grande maioria dos itens no DayZ. Ele espera três estágios de textura:
 
 ```
 Stage1 = Normal map (_nohq)
@@ -221,7 +221,7 @@ class Stage1
 
 ### UV Transform para Repetição
 
-Para repetir uma textura (repeti-la em uma superfície), modifique os valores `aside` é `up`:
+Para repetir uma textura (repeti-la em uma superfície), modifique os valores `aside` e `up`:
 
 ```cpp
 class uvTransform
@@ -233,7 +233,7 @@ class uvTransform
 };
 ```
 
-Isso é comumente usado para matériais de terreno é superfícies de edificios onde a mesma textura de detalhe se repete.
+Isso é comumente usado para matériais de terreno e superfícies de edificios onde a mesma textura de detalhe se repete.
 
 ---
 
@@ -241,13 +241,13 @@ Isso é comumente usado para matériais de terreno é superfícies de edificios 
 
 ### Controle Specular
 
-Os valores `specular[]` é `specularPower` trabalham juntos para definir quao brilhante uma superfície aparece:
+Os valores `specular[]` e `specularPower` trabalham juntos para definir quao brilhante uma superfície aparece:
 
 | Tipo de Matérial | specular[] | specularPower | Aparencia |
 |------------------|-----------|---------------|-----------|
 | **Plastico fosco** | `{0.1, 0.1, 0.1, 1.0}` | 10 | Opaco, reflexo amplo |
 | **Metal desgastado** | `{0.3, 0.3, 0.3, 1.0}` | 40 | Brilho moderado |
-| **Metal polido** | `{0.8, 0.8, 0.8, 1.0}` | 120 | Reflexo brilhante é apertado |
+| **Metal polido** | `{0.8, 0.8, 0.8, 1.0}` | 120 | Reflexo brilhante e apertado |
 | **Cromado** | `{1.0, 1.0, 1.0, 1.0}` | 200 | Reflexao tipo espelho |
 | **Borracha** | `{0.02, 0.02, 0.02, 1.0}` | 5 | Quase sem reflexo |
 | **Superficie molhada** | `{0.6, 0.6, 0.6, 1.0}` | 80 | Liso, reflexo medio-nítido |
@@ -260,7 +260,7 @@ Para fazer uma superfície brilhar (LEDs, telas, elementos luminosos):
 emmisive[] = {0.2, 0.8, 0.2, 1.0};   // Green glow
 ```
 
-A cor emissiva é adicionada a cor final do pixel independentemente da iluminacao. Um mapa emissivo `_li` em um estágio posterior de textura pode mascara quais partes da superfície brilham.
+A cor emissiva e adicionada a cor final do pixel independentemente da iluminacao. Um mapa emissivo `_li` em um estágio posterior de textura pode mascara quais partes da superfície brilham.
 
 ### Renderizacao em Dois Lados
 
@@ -270,7 +270,7 @@ Para superfícies finas que devem ser visíveis de ambos os lados (bandeiras, fo
 renderFlags[] = {"noZWrite", "noAlpha", "twoSided"};
 ```
 
-Esta não é uma propriedade de nível superior do RVMAT, mas é configurada no config.cpp ou atraves das configurações de shader do matérial dependendo do caso de uso.
+Esta não é uma propriedade de nível superior do RVMAT, mas e configurada no config.cpp ou atraves das configurações de shader do matérial dependendo do caso de uso.
 
 ---
 
@@ -330,7 +330,7 @@ data/
   my_item_ruined.rvmat             --> my_item_ruined_co.paa (destroyed)
 ```
 
-> **Dica:** Você nem sempre precisa de texturas únicas para cada nível de dano. Uma otimizacao comum é compartilhar os normal maps é specular maps entre todos os níveis é mudar apenas a textura diffuse:
+> **Dica:** Você nem sempre precisa de texturas únicas para cada nível de dano. Uma otimizacao comum e compartilhar os normal maps e specular maps entre todos os níveis e mudar apenas a textura diffuse:
 >
 > ```
 > my_item.rvmat           --> my_item_co.paa
@@ -358,7 +358,7 @@ healthLevels[] =
 
 ## Como Matériais Referênciam Texturas
 
-A conexao entre modelos, matériais é texturas forma uma cadeia:
+A conexao entre modelos, matériais e texturas forma uma cadeia:
 
 ```
 P3D Model (Object Builder)
@@ -391,7 +391,7 @@ Full reference: MyMod\data\textures\my_item_co.paa
 
 ### Override de hiddenSelectionsMatérials
 
-O config.cpp pode sobrescrever qual matérial é aplicado a uma seleção nomeada em tempo de execução:
+O config.cpp pode sobrescrever qual matérial e aplicado a uma seleção nomeada em tempo de execução:
 
 ```cpp
 class MyItem_Green: MyItem
@@ -580,7 +580,7 @@ VertexShaderID = "Super";
 ### 2. Grafia Errada de `emmisive`
 
 **Sintoma:** Emissivo não funciona.
-**Correção:** Bohemia usa `emmisive` (m duplo, s único). Usar a grafia correta em ingles `emissive` não funciona. Essa é uma peculiaridade historica conhecida.
+**Correção:** Bohemia usa `emmisive` (m duplo, s único). Usar a grafia correta em ingles `emissive` não funciona. Essa e uma peculiaridade historica conhecida.
 
 ### 3. Incompatibilidade de Caminho de Textura
 
@@ -590,7 +590,7 @@ VertexShaderID = "Super";
 ### 4. Atribuicao de RVMAT Ausente no P3D
 
 **Sintoma:** Modelo renderiza sem matérial (cinza flat ou shader padrão).
-**Correção:** Abra o modelo no Object Builder, selecione faces é atribua o RVMAT via **Face Properties**.
+**Correção:** Abra o modelo no Object Builder, selecione faces e atribua o RVMAT via **Face Properties**.
 
 ### 5. Usando Shader Errado para Itens Transparentes
 
@@ -601,15 +601,15 @@ VertexShaderID = "Super";
 
 ## Boas Práticas
 
-1. **Comece a partir de um exemplo funcional.** Copie um RVMAT dos DayZ-Samples ou de um item vanilla é modifique. Comecar do zero convida erros de digitacao.
+1. **Comece a partir de um exemplo funcional.** Copie um RVMAT dos DayZ-Samples ou de um item vanilla e modifique. Comecar do zero convida erros de digitacao.
 
-2. **Mantenha matériais é texturas juntos.** Armazene o RVMAT no mesmo diretório `data/` que suas texturas. Isso torna a relacao obvia é simplifica o gerenciamento de caminhos.
+2. **Mantenha matériais e texturas juntos.** Armazene o RVMAT no mesmo diretório `data/` que suas texturas. Isso torna a relacao obvia e simplifica o gerenciamento de caminhos.
 
 3. **Use o shader Super a menos que tenha um motivo para não usar.** Ele lida com 95% dos casos de uso corretamente.
 
 4. **Crie matériais de dano mesmo para itens simples.** Jogadores percebem quando itens não degradam visualmente. No mínimo, use os matériais de dano padrão vanilla para os níveis de saude mais baixos.
 
-5. **Teste o specular no jogo, não apenas no Object Builder.** A iluminacao do editor é a iluminacao no jogo produzem resultados muito diferentes. O que parece perfeito no Object Builder pode ser muito brilhante ou muito opaco sob a iluminacao dinamica do DayZ.
+5. **Teste o specular no jogo, não apenas no Object Builder.** A iluminacao do editor e a iluminacao no jogo produzem resultados muito diferentes. O que parece perfeito no Object Builder pode ser muito brilhante ou muito opaco sob a iluminacao dinamica do DayZ.
 
 6. **Documente suas configurações de matérial.** Quando encontrar valores de specular/power que funcionam bem para um tipo de superfície, registre-os. Você reutilizara essas configurações em muitos itens.
 

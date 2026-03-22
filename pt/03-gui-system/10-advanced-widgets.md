@@ -8,7 +8,7 @@ This chapter covers every advanced widget type with confirmed API signatures ext
 
 ---
 
-## RichTextWidget Formatting
+## Formatação do RichTextWidget
 
 `RichTextWidget` extends `TextWidget` and supports inline markup tags within its text content. It is the primary way to display formatted text with embedded images, variable font sizes, and line breaks.
 
@@ -31,11 +31,11 @@ class RichTextWidget extends TextWidget
 
 `RichTextWidget` inherits all `TextWidget` methods -- `SetText()`, `SetTextExactSize()`, `SetOutline()`, `SetShadow()`, `SetTextFormat()`, and the rest. The key difference is that `SetText()` on a `RichTextWidget` parses inline markup tags.
 
-### Supported Inline Tags
+### Tags Inline Suportadas
 
 These tags are confirmed through vanilla DayZ usage in `news_feed.txt`, `InputUtils.c`, and multiple menu scripts.
 
-#### Inline Image
+#### Imagem Inline
 
 ```
 <image set="IMAGESET_NAME" name="IMAGE_NAME" />
@@ -66,7 +66,7 @@ Common imagesets in vanilla DayZ:
 - `xbox_buttons` -- Xbox controller button images (A, B, X, Y)
 - `playstation_buttons` -- PlayStation controller button images
 
-#### Line Break
+#### Quebra de Linha
 
 ```
 </br>
@@ -74,7 +74,7 @@ Common imagesets in vanilla DayZ:
 
 Forces a line break within the rich text content. Note the closing-tag syntax -- this is how DayZ's parser expects it.
 
-#### Font Size / Heading
+#### Tamanho de Fonte / Título
 
 ```
 <h scale="0.8">Text content here</h>
@@ -194,7 +194,7 @@ Class.CastTo(content, layoutRoot.FindAnyWidget("HtmlWidget"));
 content.LoadFile(book.ConfigGetString("file"));
 ```
 
-### RichTextWidget vs TextWidget -- Key Differences
+### RichTextWidget vs TextWidget -- Diferenças Principais
 
 | Recurso | TextWidget | RichTextWidget |
 |---------|-----------|---------------|
@@ -210,7 +210,7 @@ Use `TextWidget` for simple labels. Use `RichTextWidget` only when you need inli
 
 ---
 
-## CanvasWidget Drawing
+## Desenho com CanvasWidget
 
 `CanvasWidget` provides immediate-mode 2D drawing on screen. It has exactly two native methods:
 
@@ -979,7 +979,7 @@ The `Load()`, `Play()`, `Pause()`, and `Stop()` methods return `bool`, but this 
 
 ---
 
-## RenderTargetWidget and RTTextureWidget
+## RenderTargetWidget e RTTextureWidget
 
 These widgets enable rendering a 3D world view into a UI widget.
 
@@ -1082,7 +1082,7 @@ imgWidget.SetImageTexture(0, rtTexture);
 
 ---
 
-## Observed in Real Mods
+## Observado em Mods Reais
 
 | Mod | Widget | Usage |
 |-----|--------|-------|
@@ -1155,7 +1155,7 @@ In Enforce Script strings, backslashes must be doubled:
 
 ---
 
-## Compatibility and Impact
+## Compatibilidade e Impacto
 
 | Widget | Client-Only | Performance Cost | Mod Compatibility |
 |--------|------------|-----------------|-------------------|
