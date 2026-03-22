@@ -233,25 +233,8 @@ export default withMermaid(
         text: 'Edit this page on GitHub'
       },
 
-      // Algolia DocSearch — apply at https://docsearch.algolia.com/apply/
-      // Once approved, replace the placeholder values below with your credentials
       search: {
-        provider: 'algolia',
-        options: {
-          appId: 'YOUR_APP_ID',
-          apiKey: 'YOUR_SEARCH_API_KEY',
-          indexName: 'dayz-modding-wiki',
-          locales: {
-            '/en/': { placeholder: 'Search docs...', translations: { button: { buttonText: 'Search' } } },
-            '/pt/': { placeholder: 'Buscar...', translations: { button: { buttonText: 'Buscar' } } },
-            '/de/': { placeholder: 'Suchen...', translations: { button: { buttonText: 'Suchen' } } },
-            '/es/': { placeholder: 'Buscar...', translations: { button: { buttonText: 'Buscar' } } },
-            '/fr/': { placeholder: 'Rechercher...', translations: { button: { buttonText: 'Rechercher' } } },
-            '/ru/': { placeholder: 'Поиск...', translations: { button: { buttonText: 'Поиск' } } },
-            '/ja/': { placeholder: '検索...', translations: { button: { buttonText: '検索' } } },
-            '/zh-hans/': { placeholder: '搜索...', translations: { button: { buttonText: '搜索' } } },
-          }
-        }
+        provider: 'local',
       },
 
       footer: {
