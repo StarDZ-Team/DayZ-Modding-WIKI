@@ -1,105 +1,105 @@
-# Chapter 6.13: Input System
+# 6.13. fejezet: Input rendszer
 
-[Home](../../README.md) | [<< Previous: Action System](12-action-system.md) | **Input System** | [Next: Player System >>](14-player-system.md)
-
----
-
-## Bevezetes
-
-The DayZ input system connects hardware inputs --- keyboard, mouse, and gamepad --- to named actions that scripts can query. It operates in two layers:
-
-1. **inputs.xml** (config layer) --- declares named actions, assigns default keybindings, and organizes them into groups for the player's Controls settings menu. See [Chapter 5.2: inputs.xml](../05-config-files/02-inputs-xml.md) for full coverage.
-
-2. **UAInput API** (script layer) --- queries input state at runtime. This is what your scripts call every frame to detect presses, releases, holds, and analog values.
-
-This chapter covers the script layer: the classes, methods, and patterns you use to read and control inputs from Enforce Script.
+[Kezdőlap](../../README.md) | [<< Előző: Akció rendszer](12-action-system.md) | **Input rendszer** | [Következő: Játékos rendszer >>](14-player-system.md)
 
 ---
 
-## Core Classes
+## Bevezetés
 
-The input system is built on three main classes:
+A DayZ input rendszer hardveres bemeneteket --- billentyűzet, egér és gamepad --- köt össze nevesített akciókkal, amelyeket a szkriptek lekérdezhetnek. Két rétegben működik:
+
+1. **inputs.xml** (konfigurációs réteg) --- nevesített akciókat deklarál, alapértelmezett billentyűkötéseket rendel hozzájuk, és csoportokba szervezi őket a játékos Vezérlők beállítások menüjéhez. Részletes leírásért lásd az [5.2. fejezetet: inputs.xml](../05-config-files/02-inputs-xml.md).
+
+2. **UAInput API** (szkript réteg) --- futásidőben kérdezi le a bemenet állapotát. Ezt hívják meg a szkriptjeid minden képkockában a lenyomások, elengedések, nyomvatartások és analóg értékek érzékeléséhez.
+
+Ez a fejezet a szkript réteget tárgyalja: az osztályokat, metódusokat és mintákat, amelyeket a bemenetek olvasásához és vezérléséhez használsz az Enforce Scriptből.
+
+---
+
+## Alaposztályok
+
+Az input rendszer három fő osztályra épül:
 
 ```
-UAInputAPI         Global singleton (accessed via GetUApi())
-├── UAInput        Represents a single named input action
-└── Input          Lower-level input access (accessed via GetGame().GetInput())
+UAInputAPI         Globális singleton (GetUApi()-n keresztül érhető el)
+├── UAInput        Egyetlen nevesített input akciót képvisel
+└── Input          Alacsonyabb szintű input hozzáférés (GetGame().GetInput()-on keresztül érhető el)
 ```
 
-| Class | Source File | Cel |
+| Osztály | Forrásfájl | Cél |
 |-------|-----------|---------|
-| `UAInputAPI` | `3_Game/inputapi/uainput.c` | Global input manager. Retrieves inputs by name/ID, manages excludes, presets, and backlit. |
-| `UAInput` | `3_Game/inputapi/uainput.c` | Single input action. Provides state queries (press, hold, release) and control (disable, suppress, lock). |
-| `Input` | `3_Game/tools/input.c` | Engine-level input class. String-based state queries, device management, game focus control. |
-| `InputUtils` | `3_Game/tools/inpututils.c` | Static helper class. Button name/icon resolution for UI display. |
+| `UAInputAPI` | `3_Game/inputapi/uainput.c` | Globális input menedzser. Inputokat kér le név/ID alapján, kezeli a kizárásokat, előbeállításokat és háttérvilágítást. |
+| `UAInput` | `3_Game/inputapi/uainput.c` | Egyetlen input akció. Állapotkérdezéseket (lenyomás, tartás, elengedés) és vezérlést (letiltás, elnyomás, zárolás) biztosít. |
+| `Input` | `3_Game/tools/input.c` | Motor szintű input osztály. Szöveg-alapú állapotkérdezések, eszközkezelés, játékfókusz vezérlés. |
+| `InputUtils` | `3_Game/tools/inpututils.c` | Statikus segédosztály. Gombnév/ikon feloldás UI megjelenítéshez. |
 
 ---
 
-## Accessing the Input API
+## Az Input API elérése
 
-### UAInputAPI (Recommended)
+### UAInputAPI (ajánlott)
 
-The primary way to access inputs. `GetUApi()` is a global function that returns the `UAInputAPI` singleton:
+Az inputok elérésének elsődleges módja. A `GetUApi()` egy globális függvény, amely a `UAInputAPI` singletont adja vissza:
 
 ```c
-// Get the global input API
+// A globális input API lekérése
 UAInputAPI inputAPI = GetUApi();
 
-// Get a specific input action by its name (as defined in inputs.xml)
+// Adott input akció lekérése név alapján (ahogy az inputs.xml-ben definiálva van)
 UAInput input = inputAPI.GetInputByName("UAMyAction");
 
-// Get a specific input action by its numeric ID
+// Adott input akció lekérése numerikus ID alapján
 UAInput input = inputAPI.GetInputByID(someID);
 ```
 
-### Input Class (Alternative)
+### Input osztály (alternatíva)
 
-The `Input` class provides string-based state queries directly, without needing a `UAInput` reference first:
+Az `Input` osztály szöveg-alapú állapotkérdezéseket biztosít közvetlenül, anélkül, hogy előbb `UAInput` referenciára lenne szükség:
 
 ```c
-// Get the Input instance
+// Az Input példány lekérése
 Input input = GetGame().GetInput();
 
-// Query by action name string
+// Kérdezés akciónév szöveggel
 if (input.LocalPress("UAMyAction", false))
 {
-    // Key was just pressed
+    // A billentyű éppen le lett nyomva
 }
 ```
 
-The `bool check_focus` parameter (second argument) controls whether the check respects game focus. Pass `true` (default) to return false when the game window is unfocused. Pass `false` to always return the raw input state.
+A `bool check_focus` paraméter (második argumentum) azt vezérli, hogy az ellenőrzés figyelembe veszi-e a játék fókuszát. `true` (alapértelmezett) esetén false-t ad vissza, ha a játék ablaka nem fókuszált. `false` esetén mindig a nyers input állapotot adja vissza.
 
-### Mikor melyiket hasznald
+### Mikor melyiket használd
 
-- **`GetUApi().GetInputByName()`** --- Use when you need to query the same input multiple times, suppress/disable it, or inspect its bindings. You get a `UAInput` object you can reuse.
-- **`GetGame().GetInput().LocalPress()`** --- Use for one-off checks where you do not need to manipulate the input itself. Simpler syntax but slightly less efficient for repeated queries.
+- **`GetUApi().GetInputByName()`** --- Használd, amikor ugyanazt az inputot többször kell lekérdezned, elnyomnod/letiltanod, vagy meg kell vizsgálnod a kötéseit. Egy `UAInput` objektumot kapsz, amelyet újra felhasználhatsz.
+- **`GetGame().GetInput().LocalPress()`** --- Használd egyszeri ellenőrzésekhez, ahol nem kell manipulálnod magát az inputot. Egyszerűbb szintaxis, de ismételt lekérdezéseknél kicsit kevésbé hatékony.
 
 ---
 
-## Reading Input State --- UAInput Metoduss
+## Input állapot olvasása --- UAInput metódusok
 
-Once you have a `UAInput` reference, these methods query its current state:
+Miután van egy `UAInput` referenciád, ezek a metódusok kérdezik le az aktuális állapotát:
 
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyAction");
 
-// Frame-precise checks
-bool justPressed   = input.LocalPress();        // True on the FIRST frame the key goes down
-bool justReleased  = input.LocalRelease();       // True on the FIRST frame the key comes up
-bool holdStarted   = input.LocalHoldBegin();     // True on the first frame hold threshold is met
-bool isHeld        = input.LocalHold();          // True EVERY frame while key is held past threshold
-bool clicked       = input.LocalClick();         // True on press-and-release before hold threshold
-bool doubleClicked = input.LocalDoubleClick();   // True when a double-tap is detected
+// Képkocka-pontos ellenőrzések
+bool justPressed   = input.LocalPress();        // True az ELSŐ képkockán, amikor a gomb lenyomódik
+bool justReleased  = input.LocalRelease();       // True az ELSŐ képkockán, amikor a gomb felenged
+bool holdStarted   = input.LocalHoldBegin();     // True az első képkockán, amikor a tartási küszöb elérésekor
+bool isHeld        = input.LocalHold();          // True MINDEN képkockán, amíg a gomb a küszöbön túl tartva van
+bool clicked       = input.LocalClick();         // True nyomás-és-elengedés esetén a tartási küszöb előtt
+bool doubleClicked = input.LocalDoubleClick();   // True dupla koppintás érzékelésekor
 
-// Analog value
-float value = input.LocalValue();                // 0.0 or 1.0 for digital; 0.0-1.0 for analog axes
+// Analóg érték
+float value = input.LocalValue();                // 0.0 vagy 1.0 digitálisnál; 0.0-1.0 analóg tengelyeknél
 ```
 
 ---
 
-## Reading Input State --- Input Class Metoduss
+## Input állapot olvasása --- Input osztály metódusok
 
-The `Input` class (from `GetGame().GetInput()`) offers equivalent string-based methods:
+Az `Input` osztály (a `GetGame().GetInput()`-ból) egyenértékű szöveg-alapú metódusokat kínál:
 
 ```c
 Input input = GetGame().GetInput();
@@ -111,48 +111,48 @@ bool dblClick = input.LocalDbl("UAMyAction", false);
 float value   = input.LocalValue("UAMyAction", false);
 ```
 
-Note the slight naming difference: `LocalDoubleClick()` on `UAInput` vs `LocalDbl()` on `Input`.
+Figyelj a kis elnevezési különbségre: `LocalDoubleClick()` az `UAInput`-on vs `LocalDbl()` az `Input`-on.
 
-Both classes also provide `_ID` variants that accept integer action IDs instead of strings (e.g., `LocalPress_ID(int action)`).
+Mindkét osztály `_ID` variánsokat is biztosít, amelyek egész szám akció ID-kat fogadnak szövegek helyett (pl. `LocalPress_ID(int action)`).
 
 ---
 
-## Input Query Metoduss Reference
+## Input lekérdezés metódusok referencia
 
-### UAInput Metoduss
+### UAInput metódusok
 
-| Metodus | Visszaad | Mikor true | Hasznalati eset |
+| Metódus | Visszatérés | Mikor true | Használati eset |
 |--------|---------|-----------|----------|
-| `LocalPress()` | `bool` | First frame the key goes down | Toggle actions, one-shot triggers |
-| `LocalRelease()` | `bool` | First frame the key comes up | End continuous actions |
-| `LocalClick()` | `bool` | Key pressed and released before hold timer | Quick tap detection |
-| `LocalHoldBegin()` | `bool` | First frame hold threshold is reached | Start hold-based actions |
-| `LocalHold()` | `bool` | Every frame while held past threshold | Continuous hold actions |
-| `LocalDoubleClick()` | `bool` | Double-tap detected | Special/alternate actions |
-| `LocalErtek()` | `float` | Always (returns current value) | Mouse axes, gamepad triggers, analog input |
+| `LocalPress()` | `bool` | Az első képkockán, amikor a gomb lenyomódik | Kapcsoló akciók, egyszeri triggerek |
+| `LocalRelease()` | `bool` | Az első képkockán, amikor a gomb felenged | Folyamatos akciók befejezése |
+| `LocalClick()` | `bool` | Gomb lenyomva és elengedve a tartási időzítő előtt | Gyors koppintás érzékelés |
+| `LocalHoldBegin()` | `bool` | Az első képkockán, amikor a tartási küszöb elérésekor | Tartás-alapú akciók indítása |
+| `LocalHold()` | `bool` | Minden képkockán, amíg a küszöbön túl tartva van | Folyamatos tartási akciók |
+| `LocalDoubleClick()` | `bool` | Dupla koppintás érzékelésekor | Speciális/alternatív akciók |
+| `LocalValue()` | `float` | Mindig (aktuális értéket adja vissza) | Egér tengelyek, gamepad triggerek, analóg input |
 
-### Input Class Metoduss
+### Input osztály metódusok
 
-| Metodus | Visszaad | Signature | Equivalent UAInput Metodus |
+| Metódus | Visszatérés | Szignatúra | Egyenértékű UAInput metódus |
 |--------|---------|-----------|--------------------------|
 | `LocalPress()` | `bool` | `LocalPress(string action, bool check_focus = true)` | `UAInput.LocalPress()` |
 | `LocalRelease()` | `bool` | `LocalRelease(string action, bool check_focus = true)` | `UAInput.LocalRelease()` |
 | `LocalHold()` | `bool` | `LocalHold(string action, bool check_focus = true)` | `UAInput.LocalHold()` |
 | `LocalDbl()` | `bool` | `LocalDbl(string action, bool check_focus = true)` | `UAInput.LocalDoubleClick()` |
-| `LocalErtek()` | `float` | `LocalErtek(string action, bool check_focus = true)` | `UAInput.LocalErtek()` |
+| `LocalValue()` | `float` | `LocalValue(string action, bool check_focus = true)` | `UAInput.LocalValue()` |
 
-### Important Timing Megjegyzesek
+### Fontos időzítési megjegyzések
 
-- **`LocalPress()`** fires on exactly **one frame** --- the frame the key transitions from up to down. If you check it on any other frame, it returns false.
-- **`LocalClick()`** fires when the key is pressed and released quickly (before the hold timer kicks in). It is NOT the same as `LocalPress()`. Use `LocalPress()` for immediate key-down detection.
-- **`LocalHold()`** does NOT fire immediately. It waits for the engine's hold threshold to be met first. Use `LocalPress()` if you need instant response.
-- **`LocalHoldBegin()`** fires once when the hold threshold is first met. `LocalHold()` then fires every subsequent frame.
+- A **`LocalPress()`** pontosan **egy képkockán** aktiválódik --- azon a képkockán, amikor a gomb fentről lentre vált. Ha bármely más képkockán ellenőrzöd, false-t ad vissza.
+- A **`LocalClick()`** akkor aktiválódik, amikor a gombot lenyomják és gyorsan elengedik (a tartási időzítő aktiválása előtt). NEM ugyanaz, mint a `LocalPress()`. Használd a `LocalPress()`-t az azonnali gomb-lenyomás érzékeléshez.
+- A **`LocalHold()`** NEM aktiválódik azonnal. Megvárja, amíg a motor tartási küszöbe elérésekor. Használd a `LocalPress()`-t, ha azonnali választ szeretnél.
+- A **`LocalHoldBegin()`** egyszer aktiválódik, amikor a tartási küszöb először elérésekor. A `LocalHold()` ezután minden további képkockán aktiválódik.
 
 ---
 
-## Checking Inputs in OnUpdate
+## Inputok ellenőrzése az OnUpdate-ben
 
-The standard pattern for polling custom inputs is inside `MissionGameplay.OnUpdate()`:
+Az egyéni inputok lekérdezésének standard mintája a `MissionGameplay.OnUpdate()`-en belül van:
 
 ```c
 modded class MissionGameplay
@@ -161,12 +161,12 @@ modded class MissionGameplay
     {
         super.OnUpdate(timeslice);
 
-        // Guard: need a live player
+        // Védelem: élő játékos szükséges
         PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
         if (!player)
             return;
 
-        // Guard: no input while a menu is open
+        // Védelem: nincs input, amíg menü nyitva van
         if (GetGame().GetUIManager().GetMenu())
             return;
 
@@ -179,7 +179,7 @@ modded class MissionGameplay
 }
 ```
 
-### Using the Input Class Instead
+### Az Input osztály használata helyette
 
 ```c
 modded class MissionGameplay
@@ -198,21 +198,21 @@ modded class MissionGameplay
 }
 ```
 
-### Where Else Can You Check Inputs?
+### Hol máshol ellenőrizheted az inputokat?
 
-Inputs can technically be checked in any per-frame callback, but `MissionGameplay.OnUpdate()` is the canonical location. Other valid places include:
+Az inputokat technikailag bármely képkockánkénti callbackben ellenőrizni lehet, de a `MissionGameplay.OnUpdate()` a kanonikus helyszín. Egyéb érvényes helyek:
 
-- `PlayerBase.CommandHandler()` --- runs every frame for the local player
-- `ScriptedWidgetEventHandler.Update()` --- for UI-specific input (but prefer widget event handlers)
-- `PluginBase.OnUpdate()` --- for plugin-scoped input
+- `PlayerBase.CommandHandler()` --- minden képkockán fut a helyi játékos számára
+- `ScriptedWidgetEventHandler.Update()` --- UI-specifikus inputhoz (de előnyben részesítsd a widget eseménykezelőket)
+- `PluginBase.OnUpdate()` --- plugin hatókörű inputhoz
 
-Avoid checking inputs in server-side code, entity constructors, or one-off event handlers where frame timing is not guaranteed.
+Kerüld az inputok ellenőrzését szerver oldali kódban, entitás konstruktorokban vagy egyszeri eseménykezelőkben, ahol a képkocka időzítés nem garantált.
 
 ---
 
-## Alternative: OnKeyPress and OnKeyRelease
+## Alternatíva: OnKeyPress és OnKeyRelease
 
-For simple hardcoded key detection, `MissionBase` provides `OnKeyPress()` and `OnKeyRelease()` callbacks:
+Egyszerű beégetett billentyűérzékeléshez a `MissionBase` biztosítja az `OnKeyPress()` és `OnKeyRelease()` callbackeket:
 
 ```c
 modded class MissionGameplay
@@ -223,7 +223,7 @@ modded class MissionGameplay
 
         if (key == KeyCode.KC_F5)
         {
-            // F5 was pressed --- not rebindable!
+            // F5 le lett nyomva --- nem átköthető!
             ToggleDebugOverlay();
         }
     }
@@ -234,51 +234,51 @@ modded class MissionGameplay
 
         if (key == KeyCode.KC_F5)
         {
-            // F5 was released
+            // F5 felengedve
         }
     }
 }
 ```
 
-### UAInput vs OnKeyPress: Mikor melyiket hasznald
+### UAInput vs OnKeyPress: Mikor melyiket használd
 
-| Funkcio | UAInput (GetUApi) | OnKeyPress |
+| Jellemző | UAInput (GetUApi) | OnKeyPress |
 |---------|-------------------|------------|
-| Player can rebind | Yes | No |
-| Supports modifiers | Yes (Ctrl+Key combos via inputs.xml) | Manual checking required |
-| Gamepad support | Yes | No |
-| Appears in Controls menu | Yes | No |
-| Analog values | Yes | No |
-| Simplicity | Requires inputs.xml setup | Just check KeyCode |
-| Best for | All player-facing actions | Debug tools, hardcoded dev shortcuts |
+| A játékos átkötheti | Igen | Nem |
+| Módosítókat támogat | Igen (Ctrl+billentyű kombók inputs.xml-en keresztül) | Kézi ellenőrzés szükséges |
+| Gamepad támogatás | Igen | Nem |
+| Megjelenik a Vezérlők menüben | Igen | Nem |
+| Analóg értékek | Igen | Nem |
+| Egyszerűség | inputs.xml beállítás szükséges | Csak ellenőrizd a KeyCode-ot |
+| Legjobb ehhez | Minden játékos-felé néző akció | Debug eszközök, beégetett fejlesztői gyorsgombok |
 
-**Rule of thumb:** If a player will ever press this key, use UAInput with inputs.xml. Only use OnKeyPress for internal debug tools or prototype testing.
+**Ökölszabály:** Ha egy játékos valaha is meg fogja nyomni ezt a billentyűt, használd a UAInput-ot inputs.xml-lel. Csak belső debug eszközökhöz vagy prototípus teszteléshez használd az OnKeyPress-t.
 
 ---
 
-## KeyCode Reference
+## KeyCode referencia
 
-The `KeyCode` enum is defined in `1_Core/proto/ensystem.c`. These constants are used with `OnKeyPress()`, `OnKeyRelease()`, `KeyState()`, and `DisableKey()`.
+A `KeyCode` enum az `1_Core/proto/ensystem.c`-ben van definiálva. Ezeket a konstansokat az `OnKeyPress()`, `OnKeyRelease()`, `KeyState()` és `DisableKey()` metódusokkal használjuk.
 
-### Commonly Used Keys
+### Gyakran használt billentyűk
 
-| Kategoria | Konstansok |
+| Kategória | Konstansok |
 |----------|-----------|
 | Escape | `KC_ESCAPE` |
-| Function keys | `KC_F1` through `KC_F12` |
-| Number row | `KC_1`, `KC_2`, `KC_3`, `KC_4`, `KC_5`, `KC_6`, `KC_7`, `KC_8`, `KC_9`, `KC_0` |
-| Letters | `KC_A` through `KC_Z` (e.g., `KC_Q`, `KC_W`, `KC_E`, `KC_R`, `KC_T`) |
-| Modositos | `KC_LSHIFT`, `KC_RSHIFT`, `KC_LCONTROL`, `KC_RCONTROL`, `KC_LMENU` (left Alt), `KC_RMENU` (right Alt) |
-| Navigacio | `KC_UP`, `KC_DOWN`, `KC_LEFT`, `KC_RIGHT` |
-| Editing | `KC_SPACE`, `KC_RETURN`, `KC_TAB`, `KC_BACK` (Backspace), `KC_DELETE`, `KC_INSERT` |
-| Page control | `KC_HOME`, `KC_END`, `KC_PRIOR` (Page Up), `KC_NEXT` (Page Down) |
-| Numpad | `KC_NUMPAD0` through `KC_NUMPAD9`, `KC_NUMPADENTER`, `KC_ADD`, `KC_SUBTRACT`, `KC_MULTIPLY`, `KC_DIVIDE`, `KC_DECIMAL` |
-| Locks | `KC_CAPITAL` (Caps Lock), `KC_NUMLOCK`, `KC_SCROLL` (Scroll Lock) |
-| Punctuation | `KC_MINUS`, `KC_EQUALS`, `KC_LBRACKET`, `KC_RBRACKET`, `KC_SEMICOLON`, `KC_APOSTROPHE`, `KC_GRAVE`, `KC_BACKSLASH`, `KC_COMMA`, `KC_PERIOD`, `KC_SLASH` |
+| Funkcióbillentyűk | `KC_F1`-től `KC_F12`-ig |
+| Számsor | `KC_1`, `KC_2`, `KC_3`, `KC_4`, `KC_5`, `KC_6`, `KC_7`, `KC_8`, `KC_9`, `KC_0` |
+| Betűk | `KC_A`-tól `KC_Z`-ig (pl. `KC_Q`, `KC_W`, `KC_E`, `KC_R`, `KC_T`) |
+| Módosítók | `KC_LSHIFT`, `KC_RSHIFT`, `KC_LCONTROL`, `KC_RCONTROL`, `KC_LMENU` (bal Alt), `KC_RMENU` (jobb Alt) |
+| Navigáció | `KC_UP`, `KC_DOWN`, `KC_LEFT`, `KC_RIGHT` |
+| Szerkesztés | `KC_SPACE`, `KC_RETURN`, `KC_TAB`, `KC_BACK` (Backspace), `KC_DELETE`, `KC_INSERT` |
+| Lapozás | `KC_HOME`, `KC_END`, `KC_PRIOR` (Page Up), `KC_NEXT` (Page Down) |
+| Numpad | `KC_NUMPAD0`-tól `KC_NUMPAD9`-ig, `KC_NUMPADENTER`, `KC_ADD`, `KC_SUBTRACT`, `KC_MULTIPLY`, `KC_DIVIDE`, `KC_DECIMAL` |
+| Zárolások | `KC_CAPITAL` (Caps Lock), `KC_NUMLOCK`, `KC_SCROLL` (Scroll Lock) |
+| Írásjelek | `KC_MINUS`, `KC_EQUALS`, `KC_LBRACKET`, `KC_RBRACKET`, `KC_SEMICOLON`, `KC_APOSTROPHE`, `KC_GRAVE`, `KC_BACKSLASH`, `KC_COMMA`, `KC_PERIOD`, `KC_SLASH` |
 
-### MouseState Enum
+### MouseState enum
 
-For raw mouse button state checking (not through the UAInput system):
+Nyers egérgomb állapot ellenőrzéshez (nem a UAInput rendszeren keresztül):
 
 ```c
 enum MouseState
@@ -286,81 +286,81 @@ enum MouseState
     LEFT,
     RIGHT,
     MIDDLE,
-    X,        // Horizontal axis
-    Y,        // Vertical axis
-    WHEEL     // Scroll wheel
+    X,        // Vízszintes tengely
+    Y,        // Függőleges tengely
+    WHEEL     // Görgetőkerék
 };
 
-// Usage:
+// Használat:
 int state = GetMouseState(MouseState.LEFT);
-// Bit 15 (MB_PRESSED_MASK) is set when pressed
+// A 15. bit (MB_PRESSED_MASK) be van állítva lenyomáskor
 ```
 
-### Low-Level Key State
+### Alacsony szintű billentyűállapot
 
 ```c
-// Check raw key state (returns bitmask, bit 15 = currently pressed)
+// Nyers billentyűállapot ellenőrzése (bitmaszk, 15. bit = jelenleg lenyomva)
 int state = KeyState(KeyCode.KC_LSHIFT);
 
-// Clear the key state (prevents auto-repeat until next physical press)
+// Billentyűállapot törlése (megakadályozza az automatikus ismétlést a következő fizikai lenyomásig)
 ClearKey(KeyCode.KC_RETURN);
 
-// Disable a key for the rest of this frame
+// Billentyű letiltása az aktuális képkocka hátralévő részére
 GetGame().GetInput().DisableKey(KeyCode.KC_RETURN);
 ```
 
 ---
 
-## Suppressing and Disabling Inputs
+## Inputok elnyomása és letiltása
 
-### Suppress (Per-Input, One Frame)
+### Elnyomás (inputonként, egy képkocka)
 
-Prevents the input from firing on the next frame. Useful during transitions (closing a menu) to prevent one-frame input bleed:
+Megakadályozza, hogy az input a következő képkockán aktiválódjon. Hasznos átmenetek során (menü bezárása), hogy megakadályozza az egy képkockás input átszivárgást:
 
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyAction");
-input.Supress();  // Note: single 's' in the method name
+input.Supress();  // Megjegyzés: egy 's' a metódus nevében
 ```
 
-### Suppress All Inputs (Global, One Frame)
+### Összes input elnyomása (globális, egy képkocka)
 
-Suppresses ALL inputs for the next frame. Call this when leaving menus or transitioning between input contexts:
+Elnyomja az ÖSSZES inputot a következő képkockára. Hívd meg, amikor menüket hagysz el vagy input kontextusok között váltasz:
 
 ```c
 GetUApi().SupressNextFrame(true);
 ```
 
-This is commonly used by vanilla when closing the main menu to prevent the escape key from immediately re-opening something.
+Ezt általában a vanilla használja, amikor bezárja a főmenüt, hogy megakadályozza, hogy az Escape billentyű azonnal újra megnyisson valamit.
 
-### ForceDisable (Per-Input, Persistent)
+### ForceDisable (inputonként, tartós)
 
-Completely disables a specific input until re-enabled. The input will not fire any events while disabled:
+Teljesen letiltja az adott inputot az újra engedélyezésig. Az input nem vált ki semmilyen eseményt, amíg le van tiltva:
 
 ```c
-// Disable while menu is open
+// Letiltás, amíg a menü nyitva van
 GetUApi().GetInputByName("UAMyAction").ForceDisable(true);
 
-// Re-enable when menu closes
+// Újra engedélyezés, amikor a menü bezárul
 GetUApi().GetInputByName("UAMyAction").ForceDisable(false);
 ```
 
-### Lock / Unlock (Per-Input, Persistent)
+### Lock / Unlock (inputonként, tartós)
 
-Similar to ForceDisable but uses a different mechanism. Be cautious --- if multiple systems lock/unlock the same input, they can interfere with each other:
+Hasonló a ForceDisable-hoz, de más mechanizmust használ. Légy óvatos --- ha több rendszer zárolja/feloldja ugyanazt az inputot, zavarhatják egymást:
 
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyAction");
-input.Lock();    // Disable until Unlock() is called
-input.Unlock();  // Re-enable
+input.Lock();    // Letiltás az Unlock() hívásáig
+input.Unlock();  // Újra engedélyezés
 
-bool locked = input.IsLocked();  // Check state
+bool locked = input.IsLocked();  // Állapot ellenőrzése
 ```
 
-The engine documentation recommends using exclude groups instead of Lock/Unlock for most cases.
+A motor dokumentációja a legtöbb esetben kizárási csoportok használatát javasolja Lock/Unlock helyett.
 
-### ForceDisable All Inputs (Bulk)
+### Összes input letiltása (tömeges)
 
-When opening a full-screen UI, disable all game inputs except the ones your UI needs. This is the pattern used by COT and Expansion:
+Teljes képernyős UI megnyitásakor tiltsd le az összes játék inputot, kivéve amiket a UI-od igényel. Ez a COT és az Expansion által használt minta:
 
 ```c
 void DisableAllInputs(bool state)
@@ -368,7 +368,7 @@ void DisableAllInputs(bool state)
     TIntArray inputIDs = new TIntArray;
     GetUApi().GetActiveInputs(inputIDs);
 
-    // Inputs to keep active even while UI is open
+    // Aktívan tartandó inputok, még akkor is, amikor UI nyitva van
     TIntArray skipIDs = new TIntArray;
     skipIDs.Insert(GetUApi().GetInputByName("UAUIBack").ID());
 
@@ -384,21 +384,21 @@ void DisableAllInputs(bool state)
 }
 ```
 
-**Fontos:** Always call `GetUApi().UpdateControls()` after modifying input states in bulk.
+**Fontos:** Mindig hívd meg a `GetUApi().UpdateControls()`-t az input állapotok tömeges módosítása után.
 
-### Input Exclude Groups
+### Input kizárási csoportok
 
-The mission system provides named exclude groups defined in the engine's `specific.xml`. When activated, they disable categories of inputs:
+A mission rendszer nevesített kizárási csoportokat biztosít, amelyek a motor `specific.xml`-jében vannak definiálva. Aktiváláskor inputkategóriákat tiltanak le:
 
 ```c
-// Suppress gameplay inputs while a menu is open
+// Játékmenet inputok elnyomása, amíg menü nyitva van
 GetGame().GetMission().AddActiveInputExcludes({"menu"});
 
-// Restore inputs when closing
+// Inputok visszaállítása bezáráskor
 GetGame().GetMission().RemoveActiveInputExcludes({"menu"}, true);
 ```
 
-Metodus signatures on the `Mission` class:
+Metódus szignatúrák a `Mission` osztályon:
 
 ```c
 void AddActiveInputExcludes(array<string> excludes);
@@ -407,9 +407,9 @@ void EnableAllInputs(bool bForceSupress = false);
 bool IsInputExcludeActive(string exclude);
 ```
 
-The `bForceSupress` parameter on `RemoveActiveInputExcludes` calls `SupressKovetkezoFrame` internally to prevent input bleed when re-enabling.
+A `bForceSupress` paraméter a `RemoveActiveInputExcludes`-on belül `SupressNextFrame`-et hív, hogy megakadályozza az input átszivárgást az újra engedélyezéskor.
 
-Expansion uses its own custom exclude group registered with the engine:
+Az Expansion saját egyéni kizárási csoportot használ, amelyet a motornál regisztrált:
 
 ```c
 GetUApi().ActivateExclude("menuexpansion");
@@ -418,69 +418,69 @@ GetUApi().UpdateControls();
 
 ---
 
-## Linking inputs.xml to Script
+## Az inputs.xml és a szkript összekapcsolása
 
-The connection between the XML config layer and the script layer is the **action name string**.
+Az XML konfigurációs réteg és a szkript réteg közötti kapcsolat az **akciónév szöveg**.
 
 ```mermaid
 flowchart LR
-    A[Key Press] --> B[Engine Input Layer]
-    B --> C[inputs.xml mapping]
-    C --> D[UAInput object]
-    D --> E{Query in OnUpdate}
-    E -->|LocalPress| F[Single frame trigger]
-    E -->|LocalHold| G[Continuous while held]
-    E -->|LocalRelease| H[Single frame on release]
-    E -->|LocalValue| I[Analog 0.0-1.0]
+    A[Billentyű lenyomás] --> B[Motor input réteg]
+    B --> C[inputs.xml leképezés]
+    C --> D[UAInput objektum]
+    D --> E{Lekérdezés az OnUpdate-ben}
+    E -->|LocalPress| F[Egyetlen képkocka trigger]
+    E -->|LocalHold| G[Folyamatos tartás közben]
+    E -->|LocalRelease| H[Egyetlen képkocka elengedéskor]
+    E -->|LocalValue| I[Analóg 0.0-1.0]
 ```
 
-### The Flow
+### A folyamat
 
 ```
-inputs.xml                              Script
+inputs.xml                              Szkript
 ──────────────                          ──────────────────────────────
 <input name="UAMyModOpenMenu" />   -->  GetUApi().GetInputByName("UAMyModOpenMenu")
        │                                         │
-       │  Engine loads at startup                │  Returns UAInput object
-       │  Registers in UAInputAPI                │  with bound keys from XML
+       │  A motor indításkor betölti             │  UAInput objektumot ad vissza
+       │  Regisztrálja a UAInputAPI-ban          │  az XML-ből kötött billentyűkkel
        ▼                                         ▼
-Player sees in Settings > Controls       input.LocalPress() returns true
-and can rebind the key                   when player hits the bound key
+A játékos látja a Beállítások > Vezérlők-   input.LocalPress() true-t ad vissza,
+ben és átkötheti a billentyűt               amikor a játékos megnyomja a kötött billentyűt
 ```
 
-1. At startup, the engine reads all `inputs.xml` files from loaded mods
-2. Each `<input name="...">` is registered as a `UAInput` in the global `UAInputAPI`
-3. Alapertelmezett key bindings from `<preset>` are applied (unless the player has customized them)
-4. In script, `GetUApi().GetInputByName("UAMyModOpenMenu")` retrieves the registered input
-5. Calling `LocalPress()` etc. checks against whatever key the player has bound
+1. Indításkor a motor beolvassa az összes `inputs.xml` fájlt a betöltött modokból
+2. Minden `<input name="...">` `UAInput`-ként regisztrálódik a globális `UAInputAPI`-ban
+3. A `<preset>`-ből származó alapértelmezett billentyűkötések alkalmazódnak (hacsak a játékos nem módosította őket)
+4. A szkriptben a `GetUApi().GetInputByName("UAMyModOpenMenu")` lekéri a regisztrált inputot
+5. A `LocalPress()` stb. hívása ellenőrzi a játékos által kötött billentyűt
 
-The name string must match **exactly** (case-sensitive) between the XML and the script call.
+A név szövegnek **pontosan** egyeznie kell (kis-nagybetű érzékeny) az XML és a szkript hívás között.
 
-For complete inputs.xml syntax, see [Chapter 5.2: inputs.xml](../05-config-files/02-inputs-xml.md).
+A teljes inputs.xml szintaxisért lásd az [5.2. fejezetet: inputs.xml](../05-config-files/02-inputs-xml.md).
 
-### Runtime Registration (Advanced)
+### Futásidejű regisztráció (haladó)
 
-Inputs can also be registered at runtime from script, without an inputs.xml file:
+Az inputok futásidőben is regisztrálhatók szkriptből, inputs.xml fájl nélkül:
 
 ```c
-// Register a new group
+// Új csoport regisztrálása
 GetUApi().RegisterGroup("mymod", "My Mod");
 
-// Register a new input in that group
+// Új input regisztrálása a csoportban
 UAInput input = GetUApi().RegisterInput("UAMyModAction", "STR_MYMOD_ACTION", "mymod");
 
-// Later, if needed:
+// Később, ha szükséges:
 GetUApi().DeRegisterInput("UAMyModAction");
 GetUApi().DeRegisterGroup("mymod");
 ```
 
-This is rarely used. The inputs.xml approach is preferred because it integrates properly with the Controls settings menu and preset system.
+Ez ritkán használt. Az inputs.xml megközelítés az előnyös, mert megfelelően integrálódik a Vezérlők beállítások menüvel és az előbeállítási rendszerrel.
 
 ---
 
-## Gyakori mintak
+## Gyakori minták
 
-### Toggle Panel Open/Close
+### Panel megnyitás/bezárás kapcsoló
 
 ```c
 modded class MissionGameplay
@@ -507,24 +507,24 @@ modded class MissionGameplay
     void OpenMyPanel()
     {
         m_MyPanelOpen = true;
-        // Show UI...
+        // UI megjelenítése...
 
-        // Disable gameplay inputs while panel is open
+        // Játékmenet inputok letiltása, amíg a panel nyitva van
         GetGame().GetMission().AddActiveInputExcludes({"menu"});
     }
 
     void CloseMyPanel()
     {
         m_MyPanelOpen = false;
-        // Hide UI...
+        // UI elrejtése...
 
-        // Restore gameplay inputs
+        // Játékmenet inputok visszaállítása
         GetGame().GetMission().RemoveActiveInputExcludes({"menu"}, true);
     }
 }
 ```
 
-### Hold-to-Activate, Release-to-Deactivate
+### Tartás az aktiváláshoz, elengedés a deaktiváláshoz
 
 ```c
 override void OnUpdate(float timeslice)
@@ -545,9 +545,9 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-### Modosito + Key Combo Check
+### Módosító + billentyű kombó ellenőrzés
 
-If you defined a Ctrl+Key combo in inputs.xml, the UAInput system handles it automatically. But if you need to check modifier state manually alongside a UAInput:
+Ha Ctrl+billentyű kombót definiáltál az inputs.xml-ben, a UAInput rendszer automatikusan kezeli. De ha manuálisan kell ellenőrizned a módosító állapotot egy UAInput mellett:
 
 ```c
 override void OnUpdate(float timeslice)
@@ -557,7 +557,7 @@ override void OnUpdate(float timeslice)
     UAInput input = GetUApi().GetInputByName("UAMyModAction");
     if (input && input.LocalPress())
     {
-        // Check if Shift is held via raw KeyState
+        // Ellenőrizd, hogy a Shift lenyomva van-e nyers KeyState-en keresztül
         bool shiftHeld = (KeyState(KeyCode.KC_LSHIFT) != 0);
 
         if (shiftHeld)
@@ -568,9 +568,9 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-### Suppress Input When UI Consumes It
+### Input elnyomása, amikor a UI felhasználja
 
-When your UI handles a key press, suppress the underlying game action to prevent both from firing:
+Amikor a UI-od kezel egy billentyű lenyomást, nyomd el az alatta lévő játék akciót, hogy megakadályozd mindkettő aktiválódását:
 
 ```c
 class MyMenuHandler extends ScriptedWidgetEventHandler
@@ -581,7 +581,7 @@ class MyMenuHandler extends ScriptedWidgetEventHandler
         {
             DoConfirm();
 
-            // Suppress the game input that might share this key
+            // A játék input elnyomása, amely megoszthatja ezt a billentyűt
             GetUApi().GetInputByName("UAFire").Supress();
             return true;
         }
@@ -590,17 +590,17 @@ class MyMenuHandler extends ScriptedWidgetEventHandler
 }
 ```
 
-### Getting the Display Name of a Bound Key
+### Kötött billentyű megjelenítési nevének lekérése
 
-To show the player what key is bound to an action (for UI prompts):
+Annak megjelenítéséhez, hogy a játékos milyen billentyűt kötött egy akcióhoz (UI felszólításokhoz):
 
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyModAction");
 string keyName = InputUtils.GetButtonNameFromInput("UAMyModAction", EUAINPUT_DEVICE_KEYBOARDMOUSE);
-// Returns localized key name like "F5", "Left Ctrl", etc.
+// Lokalizált billentyűnevet ad vissza, mint "F5", "Left Ctrl" stb.
 ```
 
-For controller icons and rich-text formatting:
+Kontroller ikonokhoz és rich-text formázáshoz:
 
 ```c
 string richText = InputUtils.GetRichtextButtonIconFromInputAction(
@@ -608,58 +608,58 @@ string richText = InputUtils.GetRichtextButtonIconFromInputAction(
     "Open Menu",
     EUAINPUT_DEVICE_CONTROLLER
 );
-// Returns image tag + label for UI display
+// Kép taget + címkét ad vissza UI megjelenítéshez
 ```
 
 ---
 
-## Game Focus
+## Játékfókusz
 
-The `Input` class provides game focus management, which controls whether inputs are processed when the game window is not focused:
+Az `Input` osztály játékfókusz-kezelést biztosít, amely azt vezérli, hogy az inputok feldolgozódnak-e, amikor a játék ablaka nem fókuszált:
 
 ```c
 Input input = GetGame().GetInput();
 
-// Add to focus counter (positive = unfocused, inputs suppressed)
+// Hozzáadás a fókuszszámlálóhoz (pozitív = fókusz nélküli, inputok elnyomva)
 input.ChangeGameFocus(1);
 
-// Remove from focus counter
+// Eltávolítás a fókuszszámlálóból
 input.ChangeGameFocus(-1);
 
-// Reset focus counter to 0 (fully focused)
+// Fókuszszámláló visszaállítása 0-ra (teljes fókusz)
 input.ResetGameFocus();
 
-// Check if game currently has focus (counter == 0)
+// Ellenőrizd, hogy a játéknak jelenleg van-e fókusza (számláló == 0)
 bool hasFocus = input.HasGameFocus();
 ```
 
-This is a reference-counted system. Multiple systems can request focus changes, and inputs resume only when all of them release.
+Ez egy referenciaszámolt rendszer. Több rendszer is kérhet fókuszváltozást, és az inputok csak akkor folytatódnak, amikor mindegyik elengedte.
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-### Polling Input on the Server
+### Input lekérdezés a szerveren
 
-Inputs are **client-only**. The server has no concept of keyboard, mouse, or gamepad state. If you call `GetUApi().GetInputByName()` on the server, the result is meaningless.
+Az inputok **csak kliensnek** szólnak. A szervernek nincs fogalma a billentyűzet, egér vagy gamepad állapotáról. Ha a `GetUApi().GetInputByName()`-t hívod a szerveren, az eredmény értelmetlen.
 
 ```c
-// WRONG --- this runs on the server, inputs do not exist here
+// HIBÁS --- ez a szerveren fut, itt nem léteznek inputok
 modded class MissionServer
 {
     override void OnUpdate(float timeslice)
     {
         super.OnUpdate(timeslice);
         UAInput input = GetUApi().GetInputByName("UAMyAction");
-        if (input.LocalPress())  // Always false on server!
+        if (input.LocalPress())  // A szerveren mindig false!
         {
             DoSomething();
         }
     }
 }
 
-// CORRECT --- check input on client, send RPC to server
-modded class MissionGameplay  // Client-side mission class
+// HELYES --- ellenőrizd az inputot a kliensen, küldj RPC-t a szervernek
+modded class MissionGameplay  // Kliens oldali mission osztály
 {
     override void OnUpdate(float timeslice)
     {
@@ -667,17 +667,17 @@ modded class MissionGameplay  // Client-side mission class
         UAInput input = GetUApi().GetInputByName("UAMyAction");
         if (input && input.LocalPress())
         {
-            // Send RPC to server to perform the action
+            // RPC küldése a szervernek a művelet végrehajtásához
             GetGame().RPCSingleParam(null, MY_RPC_ID, null, true);
         }
     }
 }
 ```
 
-### Using OnKeyPress for Player-Facing Akcios
+### OnKeyPress használata játékos-felé néző akciókhoz
 
 ```c
-// WRONG --- hardcoded key, player cannot rebind
+// HIBÁS --- beégetett billentyű, a játékos nem tudja átkötn
 override void OnKeyPress(int key)
 {
     super.OnKeyPress(key);
@@ -685,7 +685,7 @@ override void OnKeyPress(int key)
         OpenMyMenu();
 }
 
-// CORRECT --- uses inputs.xml, player can rebind in Settings
+// HELYES --- inputs.xml-t használ, a játékos átkötheti a Beállításokban
 override void OnUpdate(float timeslice)
 {
     super.OnUpdate(timeslice);
@@ -695,18 +695,18 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-### Not Suppressing Input When UI Is Open
+### Input elnyomás hiánya, amikor UI nyitva van
 
-When your mod opens a UI panel, the player's WASD keys will still move the character, the mouse will still aim, and clicking will fire the weapon --- unless you disable game inputs:
+Amikor a modod megnyit egy UI panelt, a játékos WASD billentyűi továbbra is mozgatják a karaktert, az egér továbbra is céloz, és a kattintás tüzel --- hacsak nem tiltod le a játék inputokat:
 
 ```c
-// WRONG --- character walks around behind the menu
+// HIBÁS --- a karakter sétálgat a menü mögött
 void OpenMenu()
 {
     m_MenuWidget.Show(true);
 }
 
-// CORRECT --- disable movement while menu is open
+// HELYES --- mozgás letiltása, amíg a menü nyitva van
 void OpenMenu()
 {
     m_MenuWidget.Show(true);
@@ -722,21 +722,21 @@ void CloseMenu()
 }
 ```
 
-### Forgetting That LocalPress Fires Only ONE Frame
+### Annak elfelejtése, hogy a LocalPress csak EGY képkockán aktiválódik
 
-`LocalPress()` returns `true` for exactly one frame --- the frame the key transitions from released to pressed. If your code path does not execute on that exact frame, you miss the event.
+A `LocalPress()` pontosan egy képkockán ad vissza `true`-t --- azon a képkockán, amikor a billentyű felengedettből lenyomottra vált. Ha a kódútvonalad nem fut le pontosan azon a képkockán, elszalasztod az eseményt.
 
 ```c
-// WRONG --- if DoExpensiveCheck() takes time or skips frames, you miss the press
+// HIBÁS --- ha a DoExpensiveCheck() időt vesz igénybe vagy képkockákat ugrik, elszalasztod a lenyomást
 void SomeCallback()
 {
     if (GetUApi().GetInputByName("UAMyAction").LocalPress())
     {
-        // This might never fire if SomeCallback is not called every frame
+        // Ez soha nem aktiválódhat, ha a SomeCallback nem hívódik meg minden képkockán
     }
 }
 
-// CORRECT --- always check in a per-frame callback
+// HELYES --- mindig képkockánkénti callbackben ellenőrizd
 override void OnUpdate(float timeslice)
 {
     super.OnUpdate(timeslice);
@@ -747,42 +747,42 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-### Confusing LocalClick and LocalPress
+### A LocalClick és LocalPress összetévesztése
 
-`LocalClick()` is NOT the same as `LocalPress()`. `LocalClick()` fires when a key is pressed AND released quickly (before the hold threshold). `LocalPress()` fires immediately on key-down. Most mods want `LocalPress()`.
+A `LocalClick()` NEM ugyanaz, mint a `LocalPress()`. A `LocalClick()` akkor aktiválódik, amikor egy billentyűt lenyomnak ÉS gyorsan elengednek (a tartási küszöb előtt). A `LocalPress()` azonnal aktiválódik a gomb lenyomásakor. A legtöbb mod a `LocalPress()`-t akarja.
 
 ```c
-// Might not fire if player holds the key too long
-if (input.LocalClick())  // Requires quick tap
+// Nem feltétlenül aktiválódik, ha a játékos túl sokáig tartja a billentyűt
+if (input.LocalClick())  // Gyors koppintást igényel
 
-// Fires immediately on key-down, regardless of hold duration
-if (input.LocalPress())  // Usually what you want
+// Azonnal aktiválódik a gomb lenyomásakor, a tartás időtartamától függetlenül
+if (input.LocalPress())  // Általában ezt akarod
 ```
 
-### Forgetting UpdateControls After Bulk Valtozass
+### Az UpdateControls elfelejtése tömeges változtatások után
 
-When you `ForceDisable()` multiple inputs, you must call `UpdateControls()` for the changes to take effect:
+Amikor több inputon `ForceDisable()`-t hívogatsz, meg kell hívnod az `UpdateControls()`-t, hogy a változások érvénybe lépjenek:
 
 ```c
-// WRONG --- changes may not apply immediately
+// HIBÁS --- a változások nem feltétlenül lépnek azonnal érvénybe
 GetUApi().GetInputByName("UAFire").ForceDisable(true);
 GetUApi().GetInputByName("UAMoveForward").ForceDisable(true);
 
-// CORRECT --- flush the changes
+// HELYES --- változások érvényesítése
 GetUApi().GetInputByName("UAFire").ForceDisable(true);
 GetUApi().GetInputByName("UAMoveForward").ForceDisable(true);
 GetUApi().UpdateControls();
 ```
 
-### Misspelling Supress
+### A Supress elírása
 
-The engine method is `Supress()` with a single 's' (not `Suppress`). The global method `SupressKovetkezoFrame()` also uses a single 's'. This is a quirk of the engine API:
+A motor metódusa `Supress()` egy 's'-sel (nem `Suppress`). A globális metódus `SupressNextFrame()` szintén egy 's'-t használ. Ez a motor API furcsasága:
 
 ```c
-// WRONG --- will not compile
+// HIBÁS --- nem fordul le
 input.Suppress();
 
-// CORRECT --- single 's'
+// HELYES --- egy 's'
 input.Supress();
 GetUApi().SupressNextFrame(true);
 ```
@@ -792,69 +792,69 @@ GetUApi().SupressNextFrame(true);
 ## Gyors referencia
 
 ```c
-// === Getting inputs ===
+// === Inputok lekérése ===
 UAInputAPI api = GetUApi();
 UAInput input = api.GetInputByName("UAMyAction");
 Input rawInput = GetGame().GetInput();
 
-// === State queries (UAInput) ===
-input.LocalPress()        // Key just went down (one frame)
-input.LocalRelease()      // Key just came up (one frame)
-input.LocalClick()        // Quick tap detected
-input.LocalHoldBegin()    // Hold threshold just reached (one frame)
-input.LocalHold()         // Held past threshold (every frame)
-input.LocalDoubleClick()  // Double-tap detected
-input.LocalValue()        // Analog value (float)
+// === Állapotkérdezések (UAInput) ===
+input.LocalPress()        // Billentyű éppen lenyomva (egy képkocka)
+input.LocalRelease()      // Billentyű éppen felengedve (egy képkocka)
+input.LocalClick()        // Gyors koppintás érzékelve
+input.LocalHoldBegin()    // Tartási küszöb éppen elérve (egy képkocka)
+input.LocalHold()         // Küszöbön túl tartva (minden képkocka)
+input.LocalDoubleClick()  // Dupla koppintás érzékelve
+input.LocalValue()        // Analóg érték (float)
 
-// === State queries (Input, string-based) ===
+// === Állapotkérdezések (Input, szöveg-alapú) ===
 rawInput.LocalPress("UAMyAction", false)
 rawInput.LocalRelease("UAMyAction", false)
 rawInput.LocalHold("UAMyAction", false)
 rawInput.LocalDbl("UAMyAction", false)
 rawInput.LocalValue("UAMyAction", false)
 
-// === Suppressing ===
-input.Supress()                    // This input, next frame
-api.SupressNextFrame(true)         // All inputs, next frame
+// === Elnyomás ===
+input.Supress()                    // Ez az input, következő képkocka
+api.SupressNextFrame(true)         // Összes input, következő képkocka
 
-// === Disabling ===
-input.ForceDisable(true)           // Disable persistently
-input.ForceDisable(false)          // Re-enable
-input.Lock()                       // Lock (use excludes instead)
-input.Unlock()                     // Unlock
-api.UpdateControls()               // Flush changes
+// === Letiltás ===
+input.ForceDisable(true)           // Tartós letiltás
+input.ForceDisable(false)          // Újra engedélyezés
+input.Lock()                       // Zárolás (használj kizárásokat helyette)
+input.Unlock()                     // Feloldás
+api.UpdateControls()               // Változások érvényesítése
 
-// === Exclude groups ===
+// === Kizárási csoportok ===
 GetGame().GetMission().AddActiveInputExcludes({"menu"});
 GetGame().GetMission().RemoveActiveInputExcludes({"menu"}, true);
 GetGame().GetMission().EnableAllInputs(true);
 
-// === Raw key state ===
+// === Nyers billentyűállapot ===
 int state = KeyState(KeyCode.KC_LSHIFT);
 GetGame().GetInput().DisableKey(KeyCode.KC_RETURN);
 
-// === Display helpers ===
+// === Megjelenítési segédek ===
 string name = InputUtils.GetButtonNameFromInput("UAMyAction", EUAINPUT_DEVICE_KEYBOARDMOUSE);
 ```
 
 ---
 
-*This chapter covers the script-side Input System API. For the XML configuration that registers keybindings, see [Chapter 5.2: inputs.xml](../05-config-files/02-inputs-xml.md).*
+*Ez a fejezet a szkript oldali Input System API-t tárgyalja. A billentyűkötéseket regisztráló XML konfigurációért lásd az [5.2. fejezetet: inputs.xml](../05-config-files/02-inputs-xml.md).*
 
 ---
 
-## Legjobb gyakorlatok
+## Bevált gyakorlatok
 
-- **Always use `UAInput` via inputs.xml for player-facing keybindings.** This allows players to rebind keys, shows actions in the Controls menu, and supports gamepad input. Reserve `OnKeyPress` for debug shortcuts only.
-- **Call `AddActiveInputExcludes({"menu"})` when opening full-screen UI.** Without this, player movement keys (WASD), mouse aiming, and weapon firing remain active behind your menu, causing accidental actions.
-- **Check inputs only in per-frame callbacks like `OnUpdate()`.** `LocalPress()` returns true for exactly one frame. Checking it in event handlers or callbacks that do not run every frame will miss key presses.
-- **Call `GetUApi().UpdateControls()` after bulk `ForceDisable()` changes.** Without this flush call, disable/enable state changes may not take effect until the next frame, causing one-frame input bleed.
-- **Remember that `Supress()` uses a single "s".** The engine API spells it `Supress()` and `SupressKovetkezoFrame()`. Using the correct English spelling `Suppress` will not compile.
+- **Mindig használd a `UAInput`-ot inputs.xml-en keresztül a játékos-felé néző billentyűkötésekhez.** Ez lehetővé teszi a játékosoknak a billentyűk átkötését, megmutatja az akciókat a Vezérlők menüben és támogatja a gamepad inputot. Az `OnKeyPress`-t csak debug gyorsgombokhoz tartsd fenn.
+- **Hívd meg az `AddActiveInputExcludes({"menu"})`-t teljes képernyős UI megnyitásakor.** Enélkül a játékos mozgásbillentyűi (WASD), egér célzás és fegyvertüzelés aktívak maradnak a menüd mögött, véletlen műveleteket okozva.
+- **Inputokat csak képkockánkénti callbackekben ellenőrizz, mint az `OnUpdate()`.** A `LocalPress()` pontosan egy képkockán ad vissza true-t. Ha olyan eseménykezelőkben vagy callbackekben ellenőrzöd, amelyek nem futnak minden képkockán, billentyűlenyomásokat fogsz elszalasztani.
+- **Hívd meg a `GetUApi().UpdateControls()`-t tömeges `ForceDisable()` változtatások után.** E nélkül az érvényesítő hívás nélkül a letiltás/engedélyezés állapotváltozások nem feltétlenül lépnek érvénybe a következő képkockáig, egy képkockás input átszivárgást okozva.
+- **Emlékezz, hogy a `Supress()` egy "s"-t használ.** A motor API `Supress()`-nak és `SupressNextFrame()`-nek írja. A helyes angol `Suppress` írásmód nem fordul le.
 
 ---
 
-## Kompatibilitas es hatas
+## Kompatibilitás és hatás
 
-- **Multi-Mod:** Input action names are global. Two mods registering the same `UAInput` name (e.g., `"UAOpenMenu"`) will collide. Always prefix with your mod name: `"UAMyModOpenMenu"`. Input exclude groups are shared -- one mod activating `"menu"` excludes affects all mods.
-- **Performance:** Input polling is lightweight. `GetUApi().GetInputByName()` performs a hash lookup. Caching the `UAInput` reference in a member variable avoids repeated lookups but is not strictly necessary for performance.
-- **Server/Client:** Inputs exist only on the client. The server has no keyboard, mouse, or gamepad state. Always detect input on the client and send RPCs to the server for authoritative actions.
+- **Multi-Mod:** Az input akciónevek globálisak. Ha két mod ugyanazt az `UAInput` nevet regisztrálja (pl. `"UAOpenMenu"`), ütközni fognak. Mindig előtagozd a mod neveddel: `"UAMyModOpenMenu"`. Az input kizárási csoportok megosztottak --- ha egy mod aktiválja a `"menu"` kizárásokat, az minden modot érint.
+- **Teljesítmény:** Az input lekérdezés könnyűsúlyú. A `GetUApi().GetInputByName()` hash keresést végez. Az `UAInput` referencia tagváltozóban való gyorsítótárazása elkerüli az ismételt kereséseket, de nem feltétlenül szükséges a teljesítményhez.
+- **Szerver/Kliens:** Az inputok csak a kliensen léteznek. A szervernek nincs billentyűzet, egér vagy gamepad állapota. Mindig a kliensen érzékeld az inputot és küldj RPC-ket a szervernek a mérvadó műveletekhez.

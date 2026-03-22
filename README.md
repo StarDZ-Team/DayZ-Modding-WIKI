@@ -146,8 +146,7 @@ This wiki exists thanks to the incredible work of these developers and their ope
 
 <p align="center">
   <strong>Built with reverse engineering, coffee, and the DayZ modding community.</strong><br/>
-  <sub>If this wiki helped you, consider giving it a star and sharing it with fellow modders.</sub><br/>
-  <img src="https://img.shields.io/badge/DayZ-Modding_Wiki-black?style=for-the-badge&logo=steam&logoColor=white" alt="DayZ Modding Wiki" />
+  <sub>If this wiki helped you, consider giving it a star and sharing it with fellow modders.</sub>
 </p>
 
 ---

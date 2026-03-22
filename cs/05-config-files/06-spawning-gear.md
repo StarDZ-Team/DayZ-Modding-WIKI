@@ -1,88 +1,90 @@
-# Chapter 5.6: Spawning Gear Configuration
+# Kapitola 5.6: Konfigurace výbavy při spawnu
 
-[Home](../../README.md) | [<< Previous: Server Configuration Files](05-server-configs.md) | **Spawning Gear Configuration**
+[Domů](../../README.md) | [<< Předchozí: Konfigurační soubory serveru](05-server-configs.md) | **Konfigurace výbavy při spawnu**
 
 ---
+
+> **Shrnutí:** DayZ má dva doplňující se systémy, které řídí, jak hráči vstupují do světa: **body spawnu** určují, *kde* se postava objeví na mapě, a **výbava při spawnu** určuje, *jakou výbavu* nese. Tato kapitola podrobně pokrývá oba systémy včetně struktury souborů, referenční příručky polí, praktických presetů a integrace s mody.
 
 ---
 
 ## Obsah
 
-- [Prehled](#overview)
-- [The Two Systems](#the-two-systems)
-- [Spawn Gear: cfgPlayerSpawnGear.json](#spawn-gear-cfgplayerspawngearjson)
-  - [Enabling Spawn Gear Presets](#enabling-spawn-gear-presets)
-  - [Preset Structure](#preset-structure)
+- [Přehled](#overview)
+- [Dva systémy](#the-two-systems)
+- [Výbava při spawnu: cfgPlayerSpawnGear.json](#spawn-gear-cfgplayerspawngearjson)
+  - [Povolení presetů výbavy při spawnu](#enabling-spawn-gear-presets)
+  - [Struktura presetu](#preset-structure)
   - [attachmentSlotItemSets](#attachmentslotitemsets)
   - [DiscreteItemSets](#discreteitemsets)
   - [discreteUnsortedItemSets](#discreteunsorteditemsets)
-  - [ComplexChildrenTyps](#complexchildrentypes)
-  - [SimpleChildrenTyps](#simplechildrentypes)
+  - [ComplexChildrenTypes](#complexchildrentypes)
+  - [SimpleChildrenTypes](#simplechildrentypes)
   - [Attributes](#attributes)
-- [Spawn Points: cfgplayerspawnpoints.xml](#spawn-points-cfgplayerspawnpointsxml)
-  - [File Structure](#file-structure)
+- [Body spawnu: cfgplayerspawnpoints.xml](#spawn-points-cfgplayerspawnpointsxml)
+  - [Struktura souboru](#file-structure)
   - [spawn_params](#spawn_params)
   - [generator_params](#generator_params)
-  - [Spawning Groups](#spawning-groups)
-  - [Map-Specific Configs](#map-specific-configs)
-- [Practical Priklads](#practical-examples)
-  - [Vychozi Survivor Loadout](#default-survivor-loadout)
-  - [Military Spawn Kit](#military-spawn-kit)
-  - [Medical Spawn Kit](#medical-spawn-kit)
-  - [Random Gear Selection](#random-gear-selection)
-- [Integration with Mods](#integration-with-mods)
-- [Doporucene postupy](#best-practices)
-- [Caste chyby](#common-mistakes)
+  - [Skupiny spawnů](#spawning-groups)
+  - [Konfigurace specifické pro mapy](#map-specific-configs)
+- [Praktické příklady](#practical-examples)
+  - [Výchozí loadout přeživšího](#default-survivor-loadout)
+  - [Vojenský spawn kit](#military-spawn-kit)
+  - [Zdravotnický spawn kit](#medical-spawn-kit)
+  - [Náhodný výběr výbavy](#random-gear-selection)
+- [Integrace s mody](#integration-with-mods)
+- [Doporučené postupy](#best-practices)
+- [Časté chyby](#common-mistakes)
 
 ---
 
-## Prehled
+## Přehled
 
 ```mermaid
 flowchart TD
-    A[Player connects] --> B{cfgGameplay.json enabled?}
-    B -->|Yes| C[Load cfgPlayerSpawnGear.json]
-    B -->|No| D[Use StartingEquipSetup in init.c]
-    C --> E[Select preset by spawnWeight]
-    E --> F[Select characterType]
-    F --> G[Apply attachmentSlotItemSets]
-    G --> H[Apply discreteItemSets to cargo]
-    H --> I[Set item attributes - health, quantity]
-    I --> J[Player spawns with gear]
+    A[Hráč se připojí] --> B{cfgGameplay.json povolen?}
+    B -->|Ano| C[Načíst cfgPlayerSpawnGear.json]
+    B -->|Ne| D[Použít StartingEquipSetup v init.c]
+    C --> E[Vybrat preset podle spawnWeight]
+    E --> F[Vybrat characterType]
+    F --> G[Aplikovat attachmentSlotItemSets]
+    G --> H[Aplikovat discreteItemSets na náklad]
+    H --> I[Nastavit atributy předmětů - zdraví, množství]
+    I --> J[Hráč se spawne s výbavou]
     D --> J
 ```
 
-When a player spawns as a fresh character in DayZ, two questions are answered by the server:
+Když se hráč spawne jako nová postava v DayZ, server odpovídá na dvě otázky:
 
-1. **Where does the character appear?** --- Controlled by `cfgplayerspawnpoints.xml`.
-2. **What does the character carry?** --- Controlled by spawn gear preset JSON files, registered through `cfggameplay.json`.
+1. **Kde se postava objeví?** --- Řízeno souborem `cfgplayerspawnpoints.xml`.
+2. **Co postava nese?** --- Řízeno JSON soubory presetů výbavy při spawnu, registrovanými přes `cfggameplay.json`.
 
-Both systems are server-side only. Clients never see these configuration files and cannot tamper with them. The spawn gear system was introduced as an alternative to scripting loadouts in `init.c`, allowing server admins to define multiple weighted presets in JSON without writing any Enforce Script code.
+Oba systémy jsou pouze na straně serveru. Klienti tyto konfigurační soubory nikdy nevidí a nemohou s nimi manipulovat. Systém výbavy při spawnu byl zaveden jako alternativa ke skriptování loadoutů v `init.c`, umožňující správcům serverů definovat více vážených presetů v JSON bez psaní jakéhokoliv kódu v Enforce Scriptu.
 
-> **Dulezite:** The spawn gear preset system **completely overrides** the `StartingEquipSetup()` method in your mission `init.c`. If you enable spawn gear presets in `cfggameplay.json`, your scripted loadout code will be ignored. Similarly, character types defined in the presets override the character model chosen in the main menu.
+> **Důležité:** Systém presetů výbavy při spawnu **zcela přepisuje** metodu `StartingEquipSetup()` ve vašem `init.c` mise. Pokud povolíte presety výbavy při spawnu v `cfggameplay.json`, váš skriptovaný kód loadoutu bude ignorován. Stejně tak typy postav definované v presetech přepíší model postavy zvolený v hlavním menu.
 
 ---
 
-## The Two Systems
+## Dva systémy
 
-| System | File | Format | Controls |
+| Systém | Soubor | Formát | Řídí |
 |--------|------|--------|----------|
-| Spawn Points | `cfgplayerspawnpoints.xml` | XML | **Where** --- map positions, distance scoring, spawn groups |
-| Spawn Gear | Custom preset JSON files | JSON | **What** --- character model, clothing, weapons, cargo, quickbar |
+| Body spawnu | `cfgplayerspawnpoints.xml` | XML | **Kde** --- pozice na mapě, bodování vzdálenosti, skupiny spawnů |
+| Výbava při spawnu | Vlastní JSON soubory presetů | JSON | **Co** --- model postavy, oblečení, zbraně, náklad, quickbar |
 
-The two systems are independent. You can use custom spawn points with vanilla gear, custom gear with vanilla spawn points, or customize both.
+Oba systémy jsou nezávislé. Můžete používat vlastní body spawnu s vanilla výbavou, vlastní výbavu s vanilla body spawnu, nebo si přizpůsobit obojí.
 
 ---
 
-## Spawn Gear: cfgPlayerSpawnGear.json
+## Výbava při spawnu: cfgPlayerSpawnGear.json
 
-### Enabling Spawn Gear Presets
+### Povolení presetů výbavy při spawnu
 
-Spawn gear presets are **not** enabled by default. To use them, you must:
+Presety výbavy při spawnu **nejsou** povoleny ve výchozím nastavení. Pro jejich použití musíte:
 
-1. Create one or more JSON preset files in your mission folder (e.g., `mpmissions/dayzOffline.chernarusplus/`).
-2. Register them in `cfggameplay.json` under `PlayerData.spawnGearPresetFiles`.
-3. Ensure `enableCfgGameplayFile = 1` is set in `serverDZ.cfg`.
+1. Vytvořit jeden nebo více JSON souborů presetů ve složce mise (např. `mpmissions/dayzOffline.chernarusplus/`).
+2. Zaregistrovat je v `cfggameplay.json` pod `PlayerData.spawnGearPresetFiles`.
+3. Zajistit, aby v `serverDZ.cfg` bylo nastaveno `enableCfgGameplayFile = 1`.
 
 ```json
 {
@@ -97,7 +99,7 @@ Spawn gear presets are **not** enabled by default. To use them, you must:
 }
 ```
 
-Preset files can be nested in subdirectories under the mission folder:
+Soubory presetů mohou být vnořeny v podadresářích ve složce mise:
 
 ```json
 "spawnGearPresetFiles": [
@@ -107,23 +109,23 @@ Preset files can be nested in subdirectories under the mission folder:
 ]
 ```
 
-Each JSON file contains a single preset object. All registered presets are pooled together, and the server selects one based on `spawnWeight` each time a fresh character spawns.
+Každý JSON soubor obsahuje jeden objekt presetu. Všechny registrované presety jsou sdruženy dohromady a server vybírá jeden na základě `spawnWeight` pokaždé, když se spawne nová postava.
 
-### Preset Structure
+### Struktura presetu
 
-A preset is the top-level JSON object with these fields:
+Preset je JSON objekt nejvyšší úrovně s těmito poli:
 
 | Pole | Typ | Popis |
 |-------|------|-------------|
-| `name` | string | Human-readable name for the preset (any string, used for identification only) |
-| `spawnWeight` | integer | Weight for random selection. Minimum is `1`. Higher values make this preset more likely to be chosen |
-| `characterTyps` | array | Array of character type classnames (e.g., `"SurvivorM_Mirek"`). One is picked at random when this preset spawns |
-| `attachmentSlotItemSets` | array | Array of `AttachmentSlots` structures defining what the character wears (clothing, weapons on shoulders, etc.) |
-| `discreteUnsortedItemSets` | array | Array of `DiscreteUnsortedItemSets` structures defining cargo items placed into any available inventory space |
+| `name` | string | Lidsky čitelný název presetu (libovolný řetězec, pouze pro identifikaci) |
+| `spawnWeight` | integer | Váha pro náhodný výběr. Minimum je `1`. Vyšší hodnoty činí tento preset pravděpodobnějším |
+| `characterTypes` | array | Pole classnames typů postav (např. `"SurvivorM_Mirek"`). Jeden je vybrán náhodně při spawnu tohoto presetu |
+| `attachmentSlotItemSets` | array | Pole struktur `AttachmentSlots` definujících, co postava nosí (oblečení, zbraně na ramenou atd.) |
+| `discreteUnsortedItemSets` | array | Pole struktur `DiscreteUnsortedItemSets` definujících předměty nákladu umístěné do jakéhokoliv dostupného místa v inventáři |
 
-> **Poznamka:** If `characterTyps` is empty or omitted, the character model last selected in the main menu character creation screen will be used for that preset.
+> **Poznámka:** Pokud je `characterTypes` prázdné nebo vynechané, bude pro tento preset použit model postavy naposledy zvolený na obrazovce vytváření postav v hlavním menu.
 
-Minimal example:
+Minimální příklad:
 
 ```json
 {
@@ -140,16 +142,16 @@ Minimal example:
 
 ### attachmentSlotItemSets
 
-This array defines items that go into specific character attachment slots --- body, legs, feet, head, back, vest, shoulders, eyewear, etc.
+Toto pole definuje předměty, které jdou do specifických slotů příslušenství postavy --- tělo, nohy, nohy, hlava, záda, vesta, ramena, brýle atd.
 
-Each entry targets one slot:
+Každá položka cílí na jeden slot:
 
 | Pole | Typ | Popis |
 |-------|------|-------------|
-| `slotName` | string | The attachment slot name. Derived from CfgSlots. Common values: `"Body"`, `"Legs"`, `"Feet"`, `"Head"`, `"Back"`, `"Vest"`, `"Eyewear"`, `"Gloves"`, `"Hips"`, `"shoulderL"`, `"shoulderR"` |
-| `discreteItemSets` | array | Array of item variants that can fill this slot (one is chosen based on `spawnWeight`) |
+| `slotName` | string | Název slotu příslušenství. Odvozen z CfgSlots. Běžné hodnoty: `"Body"`, `"Legs"`, `"Feet"`, `"Head"`, `"Back"`, `"Vest"`, `"Eyewear"`, `"Gloves"`, `"Hips"`, `"shoulderL"`, `"shoulderR"` |
+| `discreteItemSets` | array | Pole variant předmětů, které mohou tento slot vyplnit (jeden je vybrán na základě `spawnWeight`) |
 
-> **Shoulder shortcuts:** You can use `"shoulderL"` and `"shoulderR"` as slot names. The engine automatically translates these to the correct internal CfgSlots names.
+> **Zkratky ramen:** Můžete použít `"shoulderL"` a `"shoulderR"` jako názvy slotů. Engine je automaticky přeloží na správné interní názvy CfgSlots.
 
 ```json
 {
@@ -183,19 +185,19 @@ Each entry targets one slot:
 
 ### DiscreteItemSets
 
-Each entry in `discreteItemSets` represents one possible item for that slot. The server picks one entry at random, weighted by `spawnWeight`. This structure is used inside both `attachmentSlotItemSets` (for slot-based items) and is the mechanism for random selection.
+Každá položka v `discreteItemSets` představuje jeden možný předmět pro daný slot. Server vybere jednu položku náhodně, váženě podle `spawnWeight`. Tato struktura se používá uvnitř `attachmentSlotItemSets` (pro předměty ve slotech) a je mechanismem pro náhodný výběr.
 
 | Pole | Typ | Popis |
 |-------|------|-------------|
-| `itemTyp` | string | Item classname (typename). Use `""` (empty string) to represent "nothing" --- the slot remains empty |
-| `spawnWeight` | integer | Weight for selection. Minimum `1`. Higher = more likely |
-| `attributes` | object | Health and quantity ranges for this item. See [Attributes](#attributes) |
-| `quickBarSlot` | integer | Quick bar slot assignment (0-based). Use `-1` for no quickbar assignment |
-| `complexChildrenTyps` | array | Items to spawn nested inside this item. See [ComplexChildrenTyps](#complexchildrentypes) |
-| `simpleChildrenTyps` | array | Item classnames to spawn inside this item using default or parent attributes |
-| `simpleChildrenUseVychoziAttributes` | bool | If `true`, simple children use the parent's `attributes`. If `false`, they use configuration defaults |
+| `itemType` | string | Classname předmětu (typename). Použijte `""` (prázdný řetězec) pro reprezentaci "ničeho" --- slot zůstane prázdný |
+| `spawnWeight` | integer | Váha pro výběr. Minimum `1`. Vyšší = pravděpodobnější |
+| `attributes` | object | Rozsahy zdraví a množství pro tento předmět. Viz [Attributes](#attributes) |
+| `quickBarSlot` | integer | Přiřazení slotu quickbaru (od 0). Použijte `-1` pro žádné přiřazení quickbaru |
+| `complexChildrenTypes` | array | Předměty ke spawnu vnořené uvnitř tohoto předmětu. Viz [ComplexChildrenTypes](#complexchildrentypes) |
+| `simpleChildrenTypes` | array | Classnames předmětů ke spawnu uvnitř tohoto předmětu s výchozími nebo rodičovskými atributy |
+| `simpleChildrenUseDefaultAttributes` | bool | Pokud `true`, jednoduché potomky používají `attributes` rodiče. Pokud `false`, používají konfigurační výchozí hodnoty |
 
-**Empty item trick:** To make a slot have a 50/50 chance of being empty or filled, use an empty `itemTyp`:
+**Trik s prázdným předmětem:** Pro 50/50 šanci, že bude slot prázdný nebo vyplněný, použijte prázdný `itemType`:
 
 ```json
 {
@@ -220,18 +222,18 @@ Each entry in `discreteItemSets` represents one possible item for that slot. The
 
 ### discreteUnsortedItemSets
 
-This top-level array defines items that go into the character's **cargo** --- any available inventory space across all attached clothing and containers. Unlike `attachmentSlotItemSets`, these items are not placed into a specific slot; the engine finds room automatically.
+Toto pole nejvyšší úrovně definuje předměty, které jdou do **nákladu** postavy --- jakékoliv dostupné místo v inventáři ve veškerém připojeném oblečení a kontejnerech. Na rozdíl od `attachmentSlotItemSets` tyto předměty nejsou umísťovány do specifického slotu; engine automaticky najde místo.
 
-Each entry represents one cargo variant, and the server selects one based on `spawnWeight`.
+Každá položka představuje jednu variantu nákladu a server ji vybírá na základě `spawnWeight`.
 
 | Pole | Typ | Popis |
 |-------|------|-------------|
-| `name` | string | Human-readable name (for identification only) |
-| `spawnWeight` | integer | Weight for selection. Minimum `1` |
-| `attributes` | object | Vychozi health/quantity ranges. Used by children when `simpleChildrenUseVychoziAttributes` is `true` |
-| `complexChildrenTyps` | array | Items to spawn into cargo, each with their own attributes and nesting |
-| `simpleChildrenTyps` | array | Item classnames to spawn into cargo |
-| `simpleChildrenUseVychoziAttributes` | bool | If `true`, simple children use this structure's `attributes`. If `false`, they use configuration defaults |
+| `name` | string | Lidsky čitelný název (pouze pro identifikaci) |
+| `spawnWeight` | integer | Váha pro výběr. Minimum `1` |
+| `attributes` | object | Výchozí rozsahy zdraví/množství. Používány potomky, když je `simpleChildrenUseDefaultAttributes` `true` |
+| `complexChildrenTypes` | array | Předměty ke spawnu do nákladu, každý s vlastními atributy a vnořením |
+| `simpleChildrenTypes` | array | Classnames předmětů ke spawnu do nákladu |
+| `simpleChildrenUseDefaultAttributes` | bool | Pokud `true`, jednoduché potomky používají `attributes` této struktury. Pokud `false`, používají konfigurační výchozí hodnoty |
 
 ```json
 {
@@ -263,19 +265,19 @@ Each entry represents one cargo variant, and the server selects one based on `sp
 }
 ```
 
-### ComplexChildrenTyps
+### ComplexChildrenTypes
 
-Complex children are items spawned **inside** a parent item with full control over their attributes, quickbar assignment, and their own nested children. The primary use case is spawning items with contents --- for example, a weapon with attachments, or a cooking pot with food inside.
+Komplexní potomci jsou předměty spawnované **uvnitř** rodičovského předmětu s plnou kontrolou nad jejich atributy, přiřazením quickbaru a vlastními vnořenými potomky. Hlavní případ použití je spawning předmětů s obsahem --- například zbraň s příslušenstvím nebo hrnec s jídlem uvnitř.
 
 | Pole | Typ | Popis |
 |-------|------|-------------|
-| `itemTyp` | string | Item classname |
-| `attributes` | object | Health/quantity ranges for this specific item |
-| `quickBarSlot` | integer | Quick bar slot assignment. `-1` = don't assign |
-| `simpleChildrenUseVychoziAttributes` | bool | Whether simple children inherit these attributes |
-| `simpleChildrenTyps` | array | Item classnames to spawn inside this item |
+| `itemType` | string | Classname předmětu |
+| `attributes` | object | Rozsahy zdraví/množství pro tento konkrétní předmět |
+| `quickBarSlot` | integer | Přiřazení slotu quickbaru. `-1` = nepřiřazovat |
+| `simpleChildrenUseDefaultAttributes` | bool | Zda jednoduché potomky dědí tyto atributy |
+| `simpleChildrenTypes` | array | Classnames předmětů ke spawnu uvnitř tohoto předmětu |
 
-Priklad --- a weapon with attachments and magazine:
+Příklad --- zbraň s příslušenstvím a zásobníkem:
 
 ```json
 {
@@ -327,31 +329,31 @@ Priklad --- a weapon with attachments and magazine:
 }
 ```
 
-In this example, the AKM spawns with a buttstock, optic (with battery inside), and a loaded magazine as complex children, plus a handguard and bayonet as simple children. The simple children use configuration defaults because `simpleChildrenUseVychoziAttributes` is `false`.
+V tomto příkladu se AKM spawne s pažbou, optikou (s baterií uvnitř) a nabitým zásobníkem jako komplexní potomci, plus předpažbí a bajonet jako jednoduché potomky. Jednoduché potomky používají konfigurační výchozí hodnoty, protože `simpleChildrenUseDefaultAttributes` je `false`.
 
-### SimpleChildrenTyps
+### SimpleChildrenTypes
 
-Simple children are a shorthand for spawning items inside a parent without specifying individual attributes. They are an array of item classnames (strings).
+Jednoduché potomky jsou zkratkou pro spawning předmětů uvnitř rodiče bez specifikace individuálních atributů. Jsou to pole classnames předmětů (řetězce).
 
-Their attributes are determined by the `simpleChildrenUseVychoziAttributes` flag:
+Jejich atributy jsou určeny příznakem `simpleChildrenUseDefaultAttributes`:
 
-- **`true`** --- Items use the `attributes` defined on the parent structure.
-- **`false`** --- Items use the engine's configuration defaults (typically full health and quantity).
+- **`true`** --- Předměty používají `attributes` definované na rodičovské struktuře.
+- **`false`** --- Předměty používají konfigurační výchozí hodnoty enginu (typicky plné zdraví a množství).
 
-Simple children cannot have their own nested children or quickbar assignments. For those capabilities, use `complexChildrenTyps` instead.
+Jednoduché potomky nemohou mít vlastní vnořené potomky ani přiřazení quickbaru. Pro tyto schopnosti použijte místo toho `complexChildrenTypes`.
 
 ### Attributes
 
-Attributes control the condition and quantity of spawned items. All values are floating point between `0.0` and `1.0`:
+Atributy řídí stav a množství spawnovaných předmětů. Všechny hodnoty jsou čísla s plovoucí desetinnou čárkou mezi `0.0` a `1.0`:
 
 | Pole | Typ | Popis |
 |-------|------|-------------|
-| `healthMin` | float | Minimum health percentage. `1.0` = pristine, `0.0` = ruined |
-| `healthMax` | float | Maximum health percentage. A random value between min and max is applied |
-| `quantityMin` | float | Minimum quantity percentage. For magazines: fill level. For food: remaining bites |
-| `quantityMax` | float | Maximum quantity percentage |
+| `healthMin` | float | Minimální procento zdraví. `1.0` = nedotčený, `0.0` = zničený |
+| `healthMax` | float | Maximální procento zdraví. Náhodná hodnota mezi min a max je aplikována |
+| `quantityMin` | float | Minimální procento množství. Pro zásobníky: úroveň naplnění. Pro jídlo: zbývající kousky |
+| `quantityMax` | float | Maximální procento množství |
 
-When both min and max are specified, the engine picks a random value in that range. This creates natural variation --- for example, health between `0.45` and `0.65` means items spawn in worn to damaged condition.
+Když jsou specifikovány jak min, tak max, engine vybere náhodnou hodnotu v daném rozsahu. To vytváří přirozenou variaci --- například zdraví mezi `0.45` a `0.65` znamená, že se předměty spawnou v opotřebeném až poškozeném stavu.
 
 ```json
 "attributes": {
@@ -364,21 +366,21 @@ When both min and max are specified, the engine picks a random value in that ran
 
 ---
 
-## Spawn Points: cfgplayerspawnpoints.xml
+## Body spawnu: cfgplayerspawnpoints.xml
 
-This XML file defines where players appear on the map. It is located in the mission folder (e.g., `mpmissions/dayzOffline.chernarusplus/cfgplayerspawnpoints.xml`).
+Tento XML soubor definuje, kde se hráči objeví na mapě. Nachází se ve složce mise (např. `mpmissions/dayzOffline.chernarusplus/cfgplayerspawnpoints.xml`).
 
-### File Structure
+### Struktura souboru
 
-The root element contains up to three sections:
+Kořenový element obsahuje až tři sekce:
 
-| Section | Ucel |
+| Sekce | Účel |
 |---------|---------|
-| `<fresh>` | **Required.** Spawn points for newly created characters |
-| `<hop>` | Spawn points for players hopping from another server on the same map (official servers only) |
-| `<travel>` | Spawn points for players traveling from a different map (official servers only) |
+| `<fresh>` | **Povinná.** Body spawnu pro nově vytvořené postavy |
+| `<hop>` | Body spawnu pro hráče přeskakující z jiného serveru na stejné mapě (pouze oficiální servery) |
+| `<travel>` | Body spawnu pro hráče cestující z jiné mapy (pouze oficiální servery) |
 
-Each section contains the same three sub-elements: `<spawn_params>`, `<generator_params>`, and `<generator_posbubbles>`.
+Každá sekce obsahuje stejné tři podelementy: `<spawn_params>`, `<generator_params>` a `<generator_posbubbles>`.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -403,7 +405,7 @@ Each section contains the same three sub-elements: `<spawn_params>`, `<generator
 
 ### spawn_params
 
-Runtime parameters that score candidate spawn points against nearby entities. Points below `min_dist` are invalidated. Points between `min_dist` and `max_dist` are preferred over points beyond `max_dist`.
+Parametry za běhu, které hodnotí kandidátní body spawnu vzhledem k blízkým entitám. Body pod `min_dist` jsou zneplatněny. Body mezi `min_dist` a `max_dist` jsou preferovány před body za `max_dist`.
 
 ```xml
 <spawn_params>
@@ -418,20 +420,20 @@ Runtime parameters that score candidate spawn points against nearby entities. Po
 
 | Parametr | Popis |
 |-----------|-------------|
-| `min_dist_infected` | Minimum meters from infected. Points closer than this are penalized |
-| `max_dist_infected` | Maximum scoring distance from infected |
-| `min_dist_player` | Minimum meters from other players. Keeps fresh spawns from appearing on top of existing players |
-| `max_dist_player` | Maximum scoring distance from other players |
-| `min_dist_static` | Minimum meters from buildings/objects |
-| `max_dist_static` | Maximum scoring distance from buildings/objects |
+| `min_dist_infected` | Minimální metry od infikovaných. Body blíže než toto jsou penalizovány |
+| `max_dist_infected` | Maximální bodovací vzdálenost od infikovaných |
+| `min_dist_player` | Minimální metry od ostatních hráčů. Zabraňuje, aby se čerstvé spawny objevily na existujících hráčích |
+| `max_dist_player` | Maximální bodovací vzdálenost od ostatních hráčů |
+| `min_dist_static` | Minimální metry od budov/objektů |
+| `max_dist_static` | Maximální bodovací vzdálenost od budov/objektů |
 
-The Sakhal map also adds `min_dist_trigger` and `max_dist_trigger` parameters with a 6x weight multiplier for trigger zone distances.
+Mapa Sakhal také přidává parametry `min_dist_trigger` a `max_dist_trigger` se 6x násobkem váhy pro vzdálenosti triggerových zón.
 
-**Scoring logic:** The engine calculates a score for each candidate point. Distance `0` to `min_dist` scores `-1` (nearly invalidated). Distance `min_dist` to midpoint scores up to `1.1`. Distance midpoint to `max_dist` scores down from `1.1` to `0.1`. Beyond `max_dist` scores `0`. Higher total score = more likely spawn location.
+**Logika bodování:** Engine vypočítá skóre pro každý kandidátní bod. Vzdálenost `0` až `min_dist` hodnotí `-1` (téměř zneplatněno). Vzdálenost `min_dist` až střed hodnotí až `1.1`. Vzdálenost střed až `max_dist` klesá z `1.1` na `0.1`. Za `max_dist` hodnotí `0`. Vyšší celkové skóre = pravděpodobnější místo spawnu.
 
 ### generator_params
 
-Controls how the grid of candidate spawn points is generated around each position bubble:
+Řídí, jak se generuje mřížka kandidátních bodů spawnu kolem každé pozice:
 
 ```xml
 <generator_params>
@@ -447,21 +449,21 @@ Controls how the grid of candidate spawn points is generated around each positio
 
 | Parametr | Popis |
 |-----------|-------------|
-| `grid_density` | Sample frequency. `4` means a 4x4 grid of candidate points. Higher = more candidates, more CPU cost. Must be at least `1`. When `0`, only the center point is used |
-| `grid_width` | Total width of the sampling rectangle in meters |
-| `grid_height` | Total height of the sampling rectangle in meters |
-| `min_dist_static` | Minimum distance from buildings for a valid candidate |
-| `max_dist_static` | Maximum distance from buildings used for scoring |
-| `min_steepness` | Minimum terrain slope in degrees. Points on steeper terrain are discarded |
-| `max_steepness` | Maximum terrain slope in degrees |
+| `grid_density` | Frekvence vzorkování. `4` znamená mřížku 4x4 kandidátních bodů. Vyšší = více kandidátů, vyšší náklady na CPU. Musí být alespoň `1`. Při `0` se použije pouze středový bod |
+| `grid_width` | Celková šířka vzorkovacího obdélníku v metrech |
+| `grid_height` | Celková výška vzorkovacího obdélníku v metrech |
+| `min_dist_static` | Minimální vzdálenost od budov pro platný kandidátní bod |
+| `max_dist_static` | Maximální vzdálenost od budov použitá pro bodování |
+| `min_steepness` | Minimální sklon terénu ve stupních. Body na strmějším terénu jsou vyřazeny |
+| `max_steepness` | Maximální sklon terénu ve stupních |
 
-Around every `<pos>` defined in `generator_posbubbles`, the engine creates a rectangle of `grid_width` x `grid_height` meters, samples it at `grid_density` frequency, and discards points that overlap with objects, water, or exceed slope limits.
+Kolem každé `<pos>` definované v `generator_posbubbles` engine vytvoří obdélník o rozměrech `grid_width` x `grid_height` metrů, vzorkuje ho s frekvencí `grid_density` a vyřadí body, které se překrývají s objekty, vodou nebo překračují limity sklonu.
 
-### Spawning Groups
+### Skupiny spawnů
 
-Groups allow you to cluster spawn points and rotate through them over time. This prevents all players from always spawning at the same locations.
+Skupiny umožňují seskupit body spawnu a rotovat je v průběhu času. To zabraňuje tomu, aby se všichni hráči vždy spawnovali na stejných místech.
 
-Groups are enabled through `<group_params>` inside each section:
+Skupiny se povolují přes `<group_params>` uvnitř každé sekce:
 
 ```xml
 <group_params>
@@ -474,12 +476,12 @@ Groups are enabled through `<group_params>` inside each section:
 
 | Parametr | Popis |
 |-----------|-------------|
-| `enablegroups` | `true` to enable group rotation, `false` for a flat list of points |
-| `groups_as_regular` | When `enablegroups` is `false`, treat group points as regular spawn points instead of ignoring them. Vychozi: `true` |
-| `lifetime` | Seconds a group stays active before rotating to another. Use `-1` to disable the timer |
-| `counter` | Number of spawns that reset the lifetime. Each player spawning in the group resets the timer. Use `-1` to disable the counter |
+| `enablegroups` | `true` pro povolení rotace skupin, `false` pro plochý seznam bodů |
+| `groups_as_regular` | Když je `enablegroups` `false`, zacházet s body skupin jako s běžnými body spawnu místo jejich ignorování. Výchozí: `true` |
+| `lifetime` | Sekundy, po které skupina zůstává aktivní před rotací na jinou. Použijte `-1` pro vypnutí časovače |
+| `counter` | Počet spawnů, které resetují životnost. Každý hráč spawnující se ve skupině resetuje časovač. Použijte `-1` pro vypnutí počítadla |
 
-Positions are organized into named groups within `<generator_posbubbles>`:
+Pozice jsou organizovány do pojmenovaných skupin uvnitř `<generator_posbubbles>`:
 
 ```xml
 <generator_posbubbles>
@@ -495,7 +497,7 @@ Positions are organized into named groups within `<generator_posbubbles>`:
 </generator_posbubbles>
 ```
 
-Individual groups can override global lifetime and counter values:
+Jednotlivé skupiny mohou přepsat globální hodnoty lifetime a counter:
 
 ```xml
 <group name="Tents" lifetime="300" counter="25">
@@ -503,7 +505,7 @@ Individual groups can override global lifetime and counter values:
 </group>
 ```
 
-**Without groups**, positions are listed directly under `<generator_posbubbles>`:
+**Bez skupin** se pozice uvádějí přímo pod `<generator_posbubbles>`:
 
 ```xml
 <generator_posbubbles>
@@ -513,27 +515,27 @@ Individual groups can override global lifetime and counter values:
 </generator_posbubbles>
 ```
 
-> **Position format:** The `x` and `z` attributes use DayZ world coordinates. `x` is east-west, `z` is north-south. The `y` (height) coordinate is not specified --- the engine places the point on the terrain surface. You can find coordinates using the in-game debug monitor or the DayZ Editor mod.
+> **Formát pozic:** Atributy `x` a `z` používají souřadnice světa DayZ. `x` je východ-západ, `z` je sever-jih. Souřadnice `y` (výška) se neuvádí --- engine umístí bod na povrch terénu. Souřadnice můžete zjistit pomocí herního debug monitoru nebo modu DayZ Editor.
 
-### Map-Specific Configs
+### Konfigurace specifické pro mapy
 
-Each map has its own `cfgplayerspawnpoints.xml` in its mission folder:
+Každá mapa má svůj vlastní `cfgplayerspawnpoints.xml` ve složce mise:
 
-| Map | Mission Folder | Poznamky |
+| Mapa | Složka mise | Poznámky |
 |-----|----------------|-------|
-| Chernarus | `dayzOffline.chernarusplus/` | Coastal spawns: Cherno, Elektro, Kamyshovo, Berezino, Svetlojarsk |
-| Livonia | `dayzOffline.enoch/` | Spread across map with different group names |
-| Sakhal | `dayzOffline.sakhal/` | Added `min_dist_trigger`/`max_dist_trigger` params, more detailed comments |
+| Chernarus | `dayzOffline.chernarusplus/` | Pobřežní spawny: Cherno, Elektro, Kamyshovo, Berezino, Svetlojarsk |
+| Livonia | `dayzOffline.enoch/` | Rozprostřeny po mapě s různými názvy skupin |
+| Sakhal | `dayzOffline.sakhal/` | Přidány parametry `min_dist_trigger`/`max_dist_trigger`, podrobnější komentáře |
 
-When creating a custom map or modifying spawn locations, always work from the vanilla file as a starting point and adjust positions to match your map's geography.
+Při vytváření vlastní mapy nebo úpravě míst spawnu vždy začněte od vanilla souboru a upravte pozice tak, aby odpovídaly geografii vaší mapy.
 
 ---
 
-## Practical Priklads
+## Praktické příklady
 
-### Vychozi Survivor Loadout
+### Výchozí loadout přeživšího
 
-The vanilla preset gives fresh spawns a random t-shirt, canvas pants, athletic shoes, plus cargo containing a bandage, chemlight (random color), and a fruit (random between pear, plum, or apple). All items spawn in worn-to-damaged condition.
+Vanilla preset dává čerstvým spawnům náhodné tričko, plátěné kalhoty, sportovní boty, plus náklad obsahující obvaz, chemlight (náhodná barva) a ovoce (náhodně hruška, švestka nebo jablko). Všechny předměty se spawnují v opotřebeném až poškozeném stavu.
 
 ```json
 {
@@ -655,9 +657,9 @@ The vanilla preset gives fresh spawns a random t-shirt, canvas pants, athletic s
 }
 ```
 
-### Military Spawn Kit
+### Vojenský spawn kit
 
-A heavily equipped preset with an AKM (with attachments), plate carrier, gorka uniform, backpack with extra magazines, and unsorted cargo including a sidearm and food. This uses multiple `spawnWeight` values to create rarity tiers for weapon variants.
+Těžce vybavený preset s AKM (s příslušenstvím), plate carrierem, gorka uniformou, batohem s extra zásobníky a nesetříděným nákladem včetně pistole a jídla. Tento preset používá různé hodnoty `spawnWeight` pro vytvoření úrovní vzácnosti variant zbraní.
 
 ```json
 {
@@ -843,15 +845,15 @@ A heavily equipped preset with an AKM (with attachments), plate carrier, gorka u
 }
 ```
 
-Key points about this example:
+Klíčové body tohoto příkladu:
 
-- **Two weapon variants** for the same shoulder slot: the `spawnWeight: 3` variant (plastic furniture, PSO1 optic) spawns 3x more often than the `spawnWeight: 1` variant (wood furniture, no optic).
-- **Nested children**: the PSO1Optic has `simpleChildrenTyps: ["Battery9V"]` so the optic spawns with a battery inside.
-- **Backpack contents**: the blue backpack gets a drum magazine while the orange one gets two standard magazines.
+- **Dvě varianty zbraní** pro stejný slot ramene: varianta s `spawnWeight: 3` (plastové díly, optika PSO1) se spawnuje 3x častěji než varianta s `spawnWeight: 1` (dřevěné díly, bez optiky).
+- **Vnořené potomky**: PSO1Optic má `simpleChildrenTypes: ["Battery9V"]`, takže se optika spawnuje s baterií uvnitř.
+- **Obsah batohu**: modrý batoh dostane bubnový zásobník, zatímco oranžový dostane dva standardní zásobníky.
 
-### Medical Spawn Kit
+### Zdravotnický spawn kit
 
-A medic-themed preset with scrubs, first aid kit containing medical supplies, and a melee weapon for defense.
+Preset s tématem zdravotníka se scrubs, lékárničkou obsahující zdravotnické zásoby a zbraní na blízko pro obranu.
 
 ```json
 {
@@ -994,13 +996,13 @@ A medic-themed preset with scrubs, first aid kit containing medical supplies, an
 }
 ```
 
-Note how `characterTyps` is omitted --- this preset uses whatever character the player selected in the main menu. Two cargo variants offer different first aid kit contents (blood bag vs. antibiotics), selected by `spawnWeight`.
+Všimněte si, že `characterTypes` je vynecháno --- tento preset používá postavu, kterou si hráč vybral v hlavním menu. Dvě varianty nákladu nabízejí různý obsah lékárničky (krevní vak vs. antibiotika), vybrané podle `spawnWeight`.
 
-### Random Gear Selection
+### Náhodný výběr výbavy
 
-You can create randomized loadouts by using multiple presets with different weights, and within each preset using multiple `discreteItemSets` per slot:
+Můžete vytvářet náhodné loadouty pomocí více presetů s různými váhami, a v rámci každého presetu používáním více `discreteItemSets` na slot:
 
-**File: `cfggameplay.json`**
+**Soubor: `cfggameplay.json`**
 
 ```json
 "spawnGearPresetFiles": [
@@ -1010,31 +1012,31 @@ You can create randomized loadouts by using multiple presets with different weig
 ]
 ```
 
-**Probability calculation example:**
+**Příklad výpočtu pravděpodobnosti:**
 
-| Preset File | spawnWeight | Chance |
+| Soubor presetu | spawnWeight | Šance |
 |-------------|------------|--------|
-| `common_survivor.json` | 5 | 5/8 = 62.5% |
-| `uncommon_hunter.json` | 2 | 2/8 = 25.0% |
-| `rare_military.json` | 1 | 1/8 = 12.5% |
+| `common_survivor.json` | 5 | 5/8 = 62,5 % |
+| `uncommon_hunter.json` | 2 | 2/8 = 25,0 % |
+| `rare_military.json` | 1 | 1/8 = 12,5 % |
 
-Within each preset, each slot also has its own randomization. If the Body slot has three t-shirt options with `spawnWeight: 1` each, each has a 33% chance. A shirt with `spawnWeight: 3` in a pool with two `spawnWeight: 1` items would have a 60% chance (3/5).
+V rámci každého presetu má každý slot také svou vlastní randomizaci. Pokud má slot Body tři varianty triček s `spawnWeight: 1` každý, každý má 33% šanci. Tričko s `spawnWeight: 3` v poolu se dvěma předměty `spawnWeight: 1` by mělo 60% šanci (3/5).
 
 ---
 
-## Integration with Mods
+## Integrace s mody
 
-### Using the JSON Preset System from Mods
+### Použití systému JSON presetů z modů
 
-The spawn gear preset system is designed for mission-level configuration. Mods that want to provide custom loadouts should:
+Systém presetů výbavy při spawnu je navržen pro konfiguraci na úrovni mise. Mody, které chtějí poskytovat vlastní loadouty, by měly:
 
-1. **Ship a template JSON** file with the mod's documentation, not embedded in the PBO.
-2. **Document the classnames** so server admins can add mod items to their own preset files.
-3. Let server admins register the preset file through their `cfggameplay.json`.
+1. **Dodávat šablonový JSON** soubor s dokumentací modu, nikoliv vložený v PBO.
+2. **Dokumentovat classnames**, aby správci serverů mohli přidávat předměty modů do svých vlastních souborů presetů.
+3. Nechat správce serverů zaregistrovat soubor presetu přes jejich `cfggameplay.json`.
 
-### Overriding with init.c
+### Přepsání pomocí init.c
 
-If you need programmatic control over spawning (e.g., role selection, database-driven loadouts, or conditional gear based on player state), override `StartingEquipSetup()` in `init.c` instead:
+Pokud potřebujete programatickou kontrolu nad spawningem (např. výběr role, loadouty řízené databází, nebo podmíněná výbava na základě stavu hráče), přepište `StartingEquipSetup()` v `init.c` místo toho:
 
 ```c
 override void StartingEquipSetup(PlayerBase player, bool clothesChosen)
@@ -1061,11 +1063,11 @@ override void StartingEquipSetup(PlayerBase player, bool clothesChosen)
 }
 ```
 
-> **Remember:** If `spawnGearPresetFiles` is configured in `cfggameplay.json`, the JSON presets take priority and `StartingEquipSetup()` will not be called.
+> **Pamatujte:** Pokud je `spawnGearPresetFiles` nakonfigurováno v `cfggameplay.json`, JSON presety mají prioritu a `StartingEquipSetup()` nebude voláno.
 
-### Mod Items in Presets
+### Předměty modů v presetech
 
-Modded items work identically to vanilla items in preset files. Use the item's classname as defined in the mod's `config.cpp`:
+Předměty z modů fungují identicky jako vanilla předměty v souborech presetů. Použijte classname předmětu tak, jak je definováno v `config.cpp` modu:
 
 ```json
 {
@@ -1084,76 +1086,76 @@ Modded items work identically to vanilla items in preset files. Use the item's c
 }
 ```
 
-If the mod is not loaded on the server, items with unknown classnames will silently fail to spawn. The rest of the preset still applies.
+Pokud mod není na serveru načten, předměty s neznámými classnames se tiše nespawní. Zbytek presetu se stále aplikuje.
 
 ---
 
-## Doporucene postupy
+## Doporučené postupy
 
-1. **Start from vanilla.** Copy the vanilla preset from the official documentation as your base and modify it, rather than writing from scratch.
+1. **Začněte od vanilla.** Zkopírujte vanilla preset z oficiální dokumentace jako základ a upravujte ho, místo psaní od nuly.
 
-2. **Use multiple preset files.** Separate presets by theme (survivor, military, medic) in individual JSON files. This makes maintenance easier than a single monolithic file.
+2. **Používejte více souborů presetů.** Oddělte presety podle tématu (přeživší, vojenský, zdravotník) do jednotlivých JSON souborů. To usnadňuje údržbu oproti jednomu monolitickému souboru.
 
-3. **Test incrementally.** Add one preset at a time and verify in-game. A JSON syntax error in any preset file will cause all presets to fail silently.
+3. **Testujte postupně.** Přidávejte jeden preset najednou a ověřujte ve hře. Chyba syntaxe JSON v jakémkoliv souboru presetu způsobí tiché selhání všech presetů.
 
-4. **Use weighted probabilities deliberately.** Plan your spawn weight distribution on paper. With 5 presets, a `spawnWeight: 10` on one will dominate all others.
+4. **Používejte vážené pravděpodobnosti záměrně.** Naplánujte si rozdělení spawn weight na papíře. S 5 presety bude `spawnWeight: 10` na jednom dominovat nad všemi ostatními.
 
-5. **Validate JSON syntax.** Use a JSON validator before deploying. The DayZ engine does not provide helpful error messages for malformed JSON --- it simply ignores the file.
+5. **Ověřujte syntaxi JSON.** Použijte validátor JSON před nasazením. Engine DayZ neposkytuje užitečné chybové zprávy pro chybný JSON --- soubor jednoduše ignoruje.
 
-6. **Assign quickbar slots intentionally.** Quickbar slots are 0-indexed. Assigning multiple items to the same slot will overwrite. Use `-1` for items that should not be on the quickbar.
+6. **Přiřazujte sloty quickbaru záměrně.** Sloty quickbaru jsou indexovány od 0. Přiřazení více předmětů do stejného slotu přepíše předchozí. Použijte `-1` pro předměty, které by neměly být na quickbaru.
 
-7. **Keep spawn points away from water.** The generator discards points in water, but points very close to the shoreline can place players in awkward positions. Move position bubbles a few meters inland.
+7. **Udržujte body spawnu mimo vodu.** Generátor vyřazuje body ve vodě, ale body velmi blízko pobřeží mohou umístit hráče v nevhodných pozicích. Posuňte pozice o pár metrů do vnitrozemí.
 
-8. **Use groups for coastal maps.** Spawning groups on Chernarus spread fresh spawns across the coast, preventing overcrowding at popular locations like Elektro.
+8. **Používejte skupiny pro pobřežní mapy.** Skupiny spawnů na Chernarusu rozloží čerstvé spawny podél pobřeží, čímž se zabrání přeplnění na oblíbených místech jako je Elektro.
 
-9. **Match clothing and cargo capacity.** Unsorted cargo items can only spawn if the player has inventory space. If you define too many cargo items but only give the player a t-shirt (small inventory), excess items will not spawn.
+9. **Slaďte oblečení a kapacitu nákladu.** Nesetříděné předměty nákladu se mohou spawnout pouze tehdy, pokud má hráč místo v inventáři. Pokud definujete příliš mnoho předmětů nákladu, ale hráči dáte pouze tričko (malý inventář), přebytečné předměty se nespawní.
 
 ---
 
-## Caste chyby
+## Časté chyby
 
-| Chyba | Dusledek | Oprava |
+| Chyba | Důsledek | Řešení |
 |---------|-------------|-----|
-| Forgetting `enableCfgGameplayFile = 1` in `serverDZ.cfg` | `cfggameplay.json` is not loaded, presets are ignored | Add the flag and restart the server |
-| Invalid JSON syntax (trailing comma, missing bracket) | All presets in that file silently fail | Validate JSON with an external tool before deploying |
-| Using `spawnGearPresetFiles` without removing `StartingEquipSetup()` code | The scripted loadout is silently overridden by the JSON preset. The init.c code runs but its items are replaced | This is expected behavior, not a bug. Remove or comment out the init.c loadout code to avoid confusion |
-| Setting `spawnWeight: 0` | Hodnota below minimum. Behavior is undefined | Always use `spawnWeight: 1` or higher |
-| Referencing a classname that does not exist | That specific item silently fails to spawn, but the rest of the preset works | Double-check classnames against the mod's `config.cpp` or types.xml |
-| Assigning an item to a slot it cannot occupy | Item does not spawn. No error logged | Verify the item's `inventorySlot[]` in config.cpp matches the `slotName` |
-| Spawning too many cargo items for available inventory space | Excess items are silently dropped (not spawned) | Ensure clothing has enough capacity, or reduce the number of cargo items |
-| Using `characterTyps` classnames that do not exist | Character creation fails, player may spawn as default model | Use only valid survivor classnames from CfgVehicles |
-| Placing spawn points in water or on steep cliffs | Points are discarded, reducing available spawns. If too many are invalid, players may fail to spawn | Test coordinates in-game with the debug monitor |
-| Mixing up `x`/`z` coordinates in spawn points | Players spawn at wrong map locations | `x` = east-west, `z` = north-south. There is no `y` (vertical) in spawn point definitions |
+| Zapomenutí `enableCfgGameplayFile = 1` v `serverDZ.cfg` | `cfggameplay.json` není načten, presety jsou ignorovány | Přidejte příznak a restartujte server |
+| Neplatná syntaxe JSON (čárka na konci, chybějící závorka) | Všechny presety v daném souboru tiše selžou | Ověřte JSON externím nástrojem před nasazením |
+| Použití `spawnGearPresetFiles` bez odstranění kódu `StartingEquipSetup()` | Skriptovaný loadout je tiše přepsán JSON presetem. Kód init.c se spustí, ale jeho předměty jsou nahrazeny | Toto je očekávané chování, nikoliv chyba. Odstraňte nebo zakomentujte kód loadoutu v init.c, abyste předešli zmatkům |
+| Nastavení `spawnWeight: 0` | Hodnota pod minimem. Chování je nedefinované | Vždy používejte `spawnWeight: 1` nebo vyšší |
+| Odkazování na classname, který neexistuje | Konkrétní předmět se tiše nespawní, ale zbytek presetu funguje | Zkontrolujte classnames oproti `config.cpp` modu nebo types.xml |
+| Přiřazení předmětu do slotu, který nemůže obsadit | Předmět se nespawní. Žádná chyba v logu | Ověřte, že `inventorySlot[]` předmětu v config.cpp odpovídá `slotName` |
+| Spawning příliš mnoha předmětů nákladu pro dostupný prostor inventáře | Přebytečné předměty jsou tiše zahozeny (nespawněny) | Zajistěte, aby oblečení mělo dostatečnou kapacitu, nebo snižte počet předmětů nákladu |
+| Použití classnames `characterTypes`, které neexistují | Vytvoření postavy selže, hráč se může spawnout jako výchozí model | Používejte pouze platné classnames přeživších z CfgVehicles |
+| Umístění bodů spawnu ve vodě nebo na strmých útesech | Body jsou vyřazeny, čímž se snižuje počet dostupných spawnů. Pokud je příliš mnoho neplatných, hráči se nemusejí moci spawnout | Testujte souřadnice ve hře s debug monitorem |
+| Záměna souřadnic `x`/`z` v bodech spawnu | Hráči se spawnují na špatných místech mapy | `x` = východ-západ, `z` = sever-jih. V definicích bodů spawnu není `y` (výška) |
 
 ---
 
-## Data Flow Shrnuti
+## Shrnutí datového toku
 
 ```
 serverDZ.cfg
   └─ enableCfgGameplayFile = 1
        └─ cfggameplay.json
             └─ PlayerData.spawnGearPresetFiles: ["preset1.json", "preset2.json"]
-                 ├─ preset1.json  (spawnWeight: 3)  ── 75% chance
-                 └─ preset2.json  (spawnWeight: 1)  ── 25% chance
-                      ├─ characterTypes[]         → random character model
-                      ├─ attachmentSlotItemSets[] → slot-based equipment
-                      │    └─ discreteItemSets[]  → weighted random per slot
-                      │         ├─ complexChildrenTypes[] → nested items with attributes
-                      │         └─ simpleChildrenTypes[]  → nested items, simple
-                      └─ discreteUnsortedItemSets[] → cargo items
+                 ├─ preset1.json  (spawnWeight: 3)  ── 75% šance
+                 └─ preset2.json  (spawnWeight: 1)  ── 25% šance
+                      ├─ characterTypes[]         → náhodný model postavy
+                      ├─ attachmentSlotItemSets[] → výbava podle slotů
+                      │    └─ discreteItemSets[]  → vážený náhodný výběr na slot
+                      │         ├─ complexChildrenTypes[] → vnořené předměty s atributy
+                      │         └─ simpleChildrenTypes[]  → vnořené předměty, jednoduché
+                      └─ discreteUnsortedItemSets[] → předměty nákladu
                            ├─ complexChildrenTypes[]
                            └─ simpleChildrenTypes[]
 
 cfgplayerspawnpoints.xml
-  ├─ <fresh>   → new characters (required)
-  ├─ <hop>     → server hoppers (official only)
-  └─ <travel>  → map travelers (official only)
-       ├─ spawn_params   → scoring vs infected/players/buildings
-       ├─ generator_params → grid density, size, slope limits
-       └─ generator_posbubbles → positions (optionally in named groups)
+  ├─ <fresh>   → nové postavy (povinné)
+  ├─ <hop>     → přeskoky serverů (pouze oficiální)
+  └─ <travel>  → cestovatelé map (pouze oficiální)
+       ├─ spawn_params   → bodování vs infikovaní/hráči/budovy
+       ├─ generator_params → hustota mřížky, velikost, limity sklonu
+       └─ generator_posbubbles → pozice (volitelně v pojmenovaných skupinách)
 ```
 
 ---
 
-[Domu](../../README.md) | [<< Predchozi: Server Configuration Files](05-server-configs.md) | **Spawning Gear Configuration**
+[Domů](../../README.md) | [<< Předchozí: Konfigurační soubory serveru](05-server-configs.md) | **Konfigurace výbavy při spawnu**

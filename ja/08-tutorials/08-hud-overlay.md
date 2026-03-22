@@ -1,30 +1,34 @@
-# Chapter 8.8: Building a HUD Overlay
+# チャプター 8.8: HUDオーバーレイの構築
 
-[Home](../../README.md) | [<< Previous: Publishing to the Steam Workshop](07-publishing-workshop.md) | **Building a HUD Overlay** | [Next: Professional Mod Template >>](09-professional-template.md)
+[ホーム](../../README.md) | [<< 前へ: Steam Workshopへの公開](07-publishing-workshop.md) | **HUDオーバーレイの構築** | [次へ: プロフェッショナルModテンプレート >>](09-professional-template.md)
+
+---
+
+> **概要:** このチュートリアルでは、画面の右上隅にサーバー情報を表示するカスタムHUDオーバーレイの構築方法を解説します。レイアウトファイルの作成、コントローラークラスの記述、ミッションライフサイクルへのフック、RPC経由でのサーバーからのデータ要求、トグルキーバインドの追加、フェードアニメーションとスマートな表示/非表示による仕上げを行います。最終的に、サーバー名、プレイヤー数、現在のゲーム内時間を表示する控えめなServer Info HUDと、DayZにおけるHUDオーバーレイの仕組みについての確かな理解が得られます。
 
 ---
 
 ## 目次
 
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Mod Structure](#mod-structure)
-- [Step 1: Create the Layout File](#step-1-create-the-layout-file)
-- [Step 2: Create the HUD Controller Class](#step-2-create-the-hud-controller-class)
-- [Step 3: Hook into MissionGameplay](#step-3-hook-into-missiongameplay)
-- [Step 4: Request Data from Server](#step-4-request-data-from-server)
-- [Step 5: Add Toggle with Keybind](#step-5-add-toggle-with-keybind)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Extending the HUD](#extending-the-hud)
-- [Common Mistakes](#common-mistakes)
-- [Next Steps](#next-steps)
+- [構築するもの](#構築するもの)
+- [前提条件](#前提条件)
+- [Mod構造](#mod構造)
+- [ステップ1: レイアウトファイルの作成](#ステップ1-レイアウトファイルの作成)
+- [ステップ2: HUDコントローラークラスの作成](#ステップ2-hudコントローラークラスの作成)
+- [ステップ3: MissionGameplayへのフック](#ステップ3-missiongameplayへのフック)
+- [ステップ4: サーバーからのデータ要求](#ステップ4-サーバーからのデータ要求)
+- [ステップ5: キーバインドによるトグルの追加](#ステップ5-キーバインドによるトグルの追加)
+- [ステップ6: 仕上げ](#ステップ6-仕上げ)
+- [完全なコードリファレンス](#完全なコードリファレンス)
+- [HUDの拡張](#hudの拡張)
+- [よくある間違い](#よくある間違い)
+- [次のステップ](#次のステップ)
 
 ---
 
-## What We Are Building
+## 構築するもの
 
-A small, semi-transparent panel anchored to the top-right corner of the screen that displays three lines of information:
+画面の右上隅に固定された、半透明の小さなパネルで、3行の情報を表示します：
 
 ```
   Aurora Survival [Official]
@@ -32,25 +36,25 @@ A small, semi-transparent panel anchored to the top-right corner of the screen t
   Time: 14:35
 ```
 
-The panel sits below the status indicators and above the quickbar. It updates once per second (not 毎フレーム), fades in when shown and fades out when hidden, and automatically hides when the inventory or pause menu is open. The player can toggle it on and off with a configurable key (default: **F7**).
+パネルはステータスインジケーターの下、クイックバーの上に配置されます。毎フレームではなく1秒に1回更新され、表示時にフェードイン、非表示時にフェードアウトし、インベントリやポーズメニューが開いているときは自動的に非表示になります。プレイヤーは設定可能なキー（デフォルト: **F7**）でオン/オフを切り替えることができます。
 
-### Expected Result
+### 期待される結果
 
-When loaded, you will see a dark semi-transparent rectangle in the top-right area of the screen. White text shows the server name on the first line, the current player count on the second line, and the in-game world time on the third line. Pressing F7 smoothly fades it out; pressing F7 again fades it back in.
+ロード後、画面の右上領域に暗い半透明の矩形が表示されます。白いテキストで1行目にサーバー名、2行目に現在のプレイヤー数、3行目にゲーム内ワールド時間が表示されます。F7を押すとスムーズにフェードアウトし、もう一度F7を押すとフェードインします。
 
 ---
 
 ## 前提条件
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Basic understanding of Enforce Script syntax
-- Familiarity with DayZ's client-server model (the HUD runs on the client; player count comes from the server)
+- 動作するMod構造（先に [チャプター 8.1](01-first-mod.md) を完了してください）
+- Enforce Scriptの基本的な構文の理解
+- DayZのクライアント-サーバーモデルへの理解（HUDはクライアントで動作し、プレイヤー数はサーバーから取得します）
 
 ---
 
-## Mod Structure
+## Mod構造
 
-Create the following directory tree:
+以下のディレクトリツリーを作成します：
 
 ```
 ServerInfoHUD/
@@ -74,13 +78,13 @@ ServerInfoHUD/
             ServerInfoHUD.layout
 ```
 
-The `3_Game` layer defines constants (our RPC ID). The `4_World` layer handles the server-side response. The `5_Mission` layer contains the HUD class and the mission hook. The layout file defines the widget tree.
+`3_Game` レイヤーは定数（RPC ID）を定義します。`4_World` レイヤーはサーバーサイドのレスポンスを処理します。`5_Mission` レイヤーにはHUDクラスとミッションフックが含まれます。レイアウトファイルはウィジェットツリーを定義します。
 
 ---
 
-## Step 1: Create the Layout File
+## ステップ1: レイアウトファイルの作成
 
-Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system uses a coordinate model where each widget has a position and size expressed as proportional values (0.0 to 1.0 of the parent) plus pixel offsets.
+レイアウトファイル（`.layout`）はXMLでウィジェット階層を定義します。DayZのGUIシステムは、各ウィジェットの位置とサイズを親に対する比率値（0.0から1.0）とピクセルオフセットで表現する座標モデルを使用します。
 
 ### `GUI/layouts/ServerInfoHUD.layout`
 
@@ -88,7 +92,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 <?xml version="1.0" encoding="UTF-8"?>
 <layoutset>
   <children>
-    <!-- Root frame: covers the full screen, does not consume input -->
+    <!-- ルートフレーム: 全画面をカバーし、入力を消費しない -->
     <Widget name="ServerInfoRoot" type="FrameWidgetClass">
       <Attribute name="position" value="0 0" />
       <Attribute name="size" value="1 1" />
@@ -99,7 +103,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
       <Attribute name="hexactsize" value="0" />
       <Attribute name="vexactsize" value="0" />
       <children>
-        <!-- Background panel: top-right corner -->
+        <!-- 背景パネル: 右上隅 -->
         <Widget name="ServerInfoPanel" type="ImageWidgetClass">
           <Attribute name="position" value="1 0" />
           <Attribute name="size" value="220 70" />
@@ -111,7 +115,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
           <Attribute name="vexactsize" value="1" />
           <Attribute name="color" value="0 0 0 0.55" />
           <children>
-            <!-- Server name text -->
+            <!-- サーバー名テキスト -->
             <Widget name="ServerNameText" type="TextWidgetClass">
               <Attribute name="position" value="8 6" />
               <Attribute name="size" value="204 20" />
@@ -126,7 +130,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- Player count text -->
+            <!-- プレイヤー数テキスト -->
             <Widget name="PlayerCountText" type="TextWidgetClass">
               <Attribute name="position" value="8 28" />
               <Attribute name="size" value="204 18" />
@@ -141,7 +145,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- In-game time text -->
+            <!-- ゲーム内時間テキスト -->
             <Widget name="TimeText" type="TextWidgetClass">
               <Attribute name="position" value="8 48" />
               <Attribute name="size" value="204 18" />
@@ -164,25 +168,25 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 </layoutset>
 ```
 
-### Key Layout Concepts
+### レイアウトの主要な概念
 
-| Attribute | 意味 |
+| 属性 | 意味 |
 |-----------|---------|
-| `halign="2"` | Horizontal alignment: **right**. The widget anchors to the right edge of its parent. |
-| `valign="0"` | Vertical alignment: **top**. |
-| `hexactpos="0"` + `vexactpos="1"` | Horizontal position is proportional (1.0 = right edge), vertical position is in pixels. |
-| `hexactsize="1"` + `vexactsize="1"` | Width and height are in pixels (220 x 70). |
-| `color="0 0 0 0.55"` | RGBA as floats. Black at 55% opacity for the background panel. |
+| `halign="2"` | 水平方向の配置: **右**。ウィジェットは親の右端に固定されます。 |
+| `valign="0"` | 垂直方向の配置: **上**。 |
+| `hexactpos="0"` + `vexactpos="1"` | 水平位置は比率（1.0 = 右端）、垂直位置はピクセルです。 |
+| `hexactsize="1"` + `vexactsize="1"` | 幅と高さはピクセル単位（220 x 70）です。 |
+| `color="0 0 0 0.55"` | 浮動小数点としてのRGBA。背景パネルは55%の不透明度の黒です。 |
 
-The `ServerInfoPanel` is positioned at proportional X=1.0 (right edge) with `halign="2"` (right-aligned), so the panel's right edge touches the right side of the screen. The Y position is 0 pixels from the top. This places our HUD in the top-right corner.
+`ServerInfoPanel` は比率X=1.0（右端）と `halign="2"`（右揃え）で配置されているため、パネルの右端が画面の右側に接します。Y位置は上端から0ピクセルです。これによりHUDが右上隅に配置されます。
 
-**Why pixel sizes for the panel?** Proportional sizing would make the panel scale with resolution, but for small info widgets you want a fixed pixel footprint so the text stays readable at all resolutions.
+**なぜパネルにピクセルサイズを使用するのか？** 比率サイズにするとパネルが解像度に応じてスケーリングされますが、小さな情報ウィジェットでは、すべての解像度でテキストが読みやすくなるよう固定ピクセルサイズが望ましいです。
 
 ---
 
-## Step 2: Create the HUD Controller Class
+## ステップ2: HUDコントローラークラスの作成
 
-The controller class loads the layout, finds widgets by name, and exposes methods to update the displayed text. It extends `ScriptedWidgetEventHandler` so it can receive widget events if needed later.
+コントローラークラスはレイアウトを読み込み、名前でウィジェットを検索し、表示テキストを更新するメソッドを公開します。後でウィジェットイベントを受信できるよう、`ScriptedWidgetEventHandler` を継承します。
 
 ### `Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
@@ -198,7 +202,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
     protected bool m_IsVisible;
     protected float m_UpdateTimer;
 
-    // How often to refresh displayed data (seconds)
+    // 表示データの更新頻度（秒）
     static const float UPDATE_INTERVAL = 1.0;
 
     void ServerInfoHUD()
@@ -212,7 +216,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         Destroy();
     }
 
-    // Create and show the HUD
+    // HUDを作成して表示する
     void Init()
     {
         if (m_Root)
@@ -242,11 +246,11 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_Root.Show(true);
         m_IsVisible = true;
 
-        // Request initial data from server
+        // サーバーから初期データを要求する
         RequestServerInfo();
     }
 
-    // Remove all widgets
+    // すべてのウィジェットを削除する
     void Destroy()
     {
         if (m_Root)
@@ -256,7 +260,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Called every frame from MissionGameplay.OnUpdate
+    // MissionGameplay.OnUpdateから毎フレーム呼び出される
     void Update(float timeslice)
     {
         if (!m_Root)
@@ -275,7 +279,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Update the in-game time display (client-side, no RPC needed)
+    // ゲーム内時間表示を更新する（クライアントサイド、RPCは不要）
     protected void RefreshTime()
     {
         if (!m_TimeText)
@@ -296,12 +300,12 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_TimeText.SetText("Time: " + hourStr + ":" + minStr);
     }
 
-    // Send RPC to server asking for player count and server name
+    // プレイヤー数とサーバー名を要求するRPCをサーバーに送信する
     protected void RequestServerInfo()
     {
         if (!GetGame().IsMultiplayer())
         {
-            // Offline mode: just show local info
+            // オフラインモード: ローカル情報のみ表示
             SetServerName("Offline Mode");
             SetPlayerCount(1, 1);
             return;
@@ -315,7 +319,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         rpc.Send(player, SIH_RPC_REQUEST_INFO, true, NULL);
     }
 
-    // --- Setters called when data arrives ---
+    // --- データ到着時に呼び出されるセッター ---
 
     void SetServerName(string name)
     {
@@ -333,7 +337,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Toggle visibility
+    // 表示/非表示を切り替える
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -342,7 +346,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
             m_Root.Show(m_IsVisible);
     }
 
-    // Hide when menus are open
+    // メニューが開いているときに非表示にする
     void SetMenuState(bool menuOpen)
     {
         if (!m_Root)
@@ -370,18 +374,18 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 ```
 
-### Important Details
+### 重要な詳細
 
-1. **`CreateWidgets` path**: The path is relative to the mod root. Since we pack the `GUI/` folder inside the PBO, エンジン resolves `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` using the mod prefix.
-2. **`FindAnyWidget`**: Searches the widget tree recursively by name. Always check for NULL after casting.
-3. **`Widget.Unlink()`**: Properly removes the widget and all its children from the UI tree. Always call this in cleanup.
-4. **Timer accumulator pattern**: We add `timeslice` each frame and act only when the accumulated time exceeds `UPDATE_INTERVAL`. This prevents doing work every single frame.
+1. **`CreateWidgets` のパス**: パスはModルートからの相対パスです。`GUI/` フォルダをPBO内にパッキングするため、エンジンはModプレフィックスを使用して `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` を解決します。
+2. **`FindAnyWidget`**: ウィジェットツリーを名前で再帰的に検索します。キャスト後は必ずNULLチェックを行ってください。
+3. **`Widget.Unlink()`**: ウィジェットとそのすべての子をUIツリーから適切に削除します。クリーンアップ時には必ずこれを呼び出してください。
+4. **タイマー蓄積パターン**: 各フレームで `timeslice` を加算し、蓄積された時間が `UPDATE_INTERVAL` を超えた場合にのみ動作します。これにより、毎フレームでの処理が防止されます。
 
 ---
 
-## Step 3: Hook into MissionGameplay
+## ステップ3: MissionGameplayへのフック
 
-The `MissionGameplay` class is the mission controller on the client side. We use `modded class` to inject our HUD into its lifecycle without replacing the vanilla file.
+`MissionGameplay` クラスはクライアントサイドのミッションコントローラーです。`modded class` を使用して、バニラファイルを置き換えることなくHUDをライフサイクルに注入します。
 
 ### `Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
@@ -394,14 +398,14 @@ modded class MissionGameplay
     {
         super.OnInit();
 
-        // Create the HUD overlay
+        // HUDオーバーレイを作成する
         m_ServerInfoHUD = new ServerInfoHUD();
         m_ServerInfoHUD.Init();
     }
 
     override void OnMissionFinish()
     {
-        // Clean up BEFORE calling super
+        // superを呼ぶ前にクリーンアップする
         if (m_ServerInfoHUD)
         {
             m_ServerInfoHUD.Destroy();
@@ -418,7 +422,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Hide HUD when inventory or any menu is open
+        // インベントリやメニューが開いているときはHUDを非表示にする
         UIManager uiMgr = GetGame().GetUIManager();
         bool menuOpen = false;
 
@@ -431,10 +435,10 @@ modded class MissionGameplay
 
         m_ServerInfoHUD.SetMenuState(menuOpen);
 
-        // Update HUD data (throttled internally)
+        // HUDデータを更新する（内部でスロットリングされる）
         m_ServerInfoHUD.Update(timeslice);
 
-        // Check toggle key
+        // トグルキーを確認する
         Input input = GetGame().GetInput();
         if (input)
         {
@@ -445,7 +449,7 @@ modded class MissionGameplay
         }
     }
 
-    // Accessor so the RPC handler can reach the HUD
+    // RPCハンドラーがHUDにアクセスできるようにするアクセサ
     ServerInfoHUD GetServerInfoHUD()
     {
         return m_ServerInfoHUD;
@@ -453,41 +457,41 @@ modded class MissionGameplay
 };
 ```
 
-### Why This Pattern Works
+### このパターンが機能する理由
 
-- **`OnInit`** runs once when the player enters gameplay. We create and initialize the HUD here.
-- **`OnUpdate`** runs 毎フレーム. We pass `timeslice` to the HUD, which internally throttles to once per second. We also check for the toggle key press and menu visibility here.
-- **`OnMissionFinish`** runs when the player disconnects or the mission ends. We destroy our widgets here to prevent メモリリークs.
+- **`OnInit`** はプレイヤーがゲームプレイに入ったときに一度だけ実行されます。ここでHUDを作成して初期化します。
+- **`OnUpdate`** は毎フレーム実行されます。`timeslice` をHUDに渡し、HUD内部で1秒に1回にスロットリングされます。ここでトグルキーの押下とメニューの表示状態も確認します。
+- **`OnMissionFinish`** はプレイヤーが切断したときやミッションが終了したときに実行されます。メモリリークを防ぐためにここでウィジェットを破棄します。
 
-### Critical Rule: Always Clean Up
+### 重要なルール: 必ずクリーンアップすること
 
-If you forget to destroy your widgets in `OnMissionFinish`, the widget root will leak into the next session. After a few server hops, the player ends up with stacked ghost widgets consuming memory. Always pair `Init()` with `Destroy()`.
+`OnMissionFinish` でウィジェットを破棄し忘れると、ウィジェットルートが次のセッションにリークします。数回のサーバー移動の後、プレイヤーはメモリを消費する積み重なったゴーストウィジェットを抱えることになります。必ず `Init()` と `Destroy()` をペアにしてください。
 
 ---
 
-## Step 4: Request Data from Server
+## ステップ4: サーバーからのデータ要求
 
-The player count is only known on the server. We need a simple RPC (Remote Procedure Call) round-trip: the client sends a request, the server reads the data and sends it back.
+プレイヤー数はサーバーでのみ把握されています。シンプルなRPC（Remote Procedure Call）の往復が必要です：クライアントがリクエストを送信し、サーバーがデータを読み取って返送します。
 
-### Step 4a: Define the RPC ID
+### ステップ4a: RPC IDの定義
 
-RPC IDs 一意でなければなりません across all mods. We define ours in the `3_Game` layer so both client and server code can reference it.
+RPC IDはすべてのMod間で一意でなければなりません。クライアントとサーバーの両方のコードが参照できるよう、`3_Game` レイヤーで定義します。
 
 ### `Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for the Server Info HUD.
-// Using high numbers to avoid conflicts with vanilla and other mods.
+// Server Info HUDのRPC ID。
+// バニラや他のModとの衝突を避けるため大きな数値を使用する。
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-**Why `3_Game`?** Constants and enums belong in the lowest layer that both client and server can access. The `3_Game` layer loads before `4_World` and `5_Mission`, so both sides can see these values.
+**なぜ `3_Game` なのか？** 定数と列挙型は、クライアントとサーバーの両方がアクセスできる最も低いレイヤーに属します。`3_Game` レイヤーは `4_World` と `5_Mission` の前にロードされるため、両側からこれらの値を参照できます。
 
-### Step 4b: Server-Side Handler
+### ステップ4b: サーバーサイドハンドラー
 
-The server listens for `SIH_RPC_REQUEST_INFO`, gathers the data, and responds with `SIH_RPC_RESPONSE_INFO`.
+サーバーは `SIH_RPC_REQUEST_INFO` を監視し、データを収集して `SIH_RPC_RESPONSE_INFO` で応答します。
 
 ### `Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
@@ -516,22 +520,22 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Gather server info
+        // サーバー情報を収集する
         string serverName = "";
         GetGame().GetHostName(serverName);
 
         int playerCount = 0;
         int maxPlayers = 0;
 
-        // Get the player list
+        // プレイヤーリストを取得する
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         playerCount = players.Count();
 
-        // Max players from server config
+        // サーバー設定から最大プレイヤー数を取得する
         maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send response back to the requesting client
+        // リクエスト元のクライアントにレスポンスを返送する
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -541,13 +545,13 @@ modded class PlayerBase
 };
 ```
 
-### Step 4c: Client-Side RPC Receiver
+### ステップ4c: クライアントサイドRPCレシーバー
 
-The client receives the response and updates the HUD.
+クライアントがレスポンスを受信してHUDを更新します。
 
-Add this to the same `ServerInfoHUD.c` file (at the bottom, outside the class), or create a separate file in `5_Mission/ServerInfoHUD/`:
+同じ `ServerInfoHUD.c` ファイルに追加するか（末尾、クラスの外側）、`5_Mission/ServerInfoHUD/` に別ファイルを作成します。
 
-Add the following **below** the `ServerInfoHUD` class in `ServerInfoHUD.c`:
+`ServerInfoHUD.c` の `ServerInfoHUD` クラスの**下**に以下を追加します：
 
 ```c
 modded class PlayerBase
@@ -582,7 +586,7 @@ modded class PlayerBase
         if (!ctx.Read(maxPlayers))
             return;
 
-        // Access the HUD through MissionGameplay
+        // MissionGameplayを通じてHUDにアクセスする
         MissionGameplay mission = MissionGameplay.Cast(
             GetGame().GetMission()
         );
@@ -600,29 +604,29 @@ modded class PlayerBase
 };
 ```
 
-### How the RPC Flow Works
+### RPCフローの仕組み
 
 ```
-CLIENT                           SERVER
+クライアント                      サーバー
   |                                |
   |--- SIH_RPC_REQUEST_INFO ----->|
-  |                                | reads serverName, playerCount, maxPlayers
+  |                                | serverName, playerCount, maxPlayersを読み取る
   |<-- SIH_RPC_RESPONSE_INFO ----|
   |                                |
-  | updates HUD text              |
+  | HUDテキストを更新              |
 ```
 
-The client sends the request once per second (throttled by the update timer). The server responds with three values packed into the RPC context. The client reads them in the same order they were written.
+クライアントは1秒に1回リクエストを送信します（更新タイマーによるスロットリング）。サーバーはRPCコンテキストにパッキングされた3つの値で応答します。クライアントは書き込まれた順序と同じ順序でそれらを読み取ります。
 
-**Important:** `rpc.Write()` and `ctx.Read()` must use the same types in the same order. If the server writes a `string` then two `int` values, the client must read a `string` then two `int` values.
+**重要:** `rpc.Write()` と `ctx.Read()` は同じ型を同じ順序で使用する必要があります。サーバーが `string` を1つ、次に `int` 値を2つ書き込む場合、クライアントも `string` を1つ、次に `int` 値を2つ読み取る必要があります。
 
 ---
 
-## Step 5: Add Toggle with Keybind
+## ステップ5: キーバインドによるトグルの追加
 
-### Step 5a: Define the Input in `inputs.xml`
+### ステップ5a: `inputs.xml` での入力の定義
 
-DayZ uses `inputs.xml` to register custom key actions. The file must be placed in `Scripts/data/inputs.xml` and referenced from `config.cpp`.
+DayZは `inputs.xml` を使用してカスタムキーアクションを登録します。ファイルは `Scripts/data/inputs.xml` に配置し、`config.cpp` から参照する必要があります。
 
 ### `Scripts/data/inputs.xml`
 
@@ -642,14 +646,14 @@ DayZ uses `inputs.xml` to register custom key actions. The file must be placed i
 </modded_inputs>
 ```
 
-| Element | 目的 |
+| 要素 | 目的 |
 |---------|---------|
-| `<actions>` | Declares the input action by name. `loc` is the display string shown in the keybinding options menu. |
-| `<preset>` | Assigns the default key. `kF7` maps to the F7 key. |
+| `<actions>` | 入力アクションを名前で宣言します。`loc` はキーバインド設定メニューに表示される表示文字列です。 |
+| `<preset>` | デフォルトキーを割り当てます。`kF7` はF7キーに対応します。 |
 
-### Step 5b: Reference `inputs.xml` in `config.cpp`
+### ステップ5b: `config.cpp` での `inputs.xml` の参照
 
-Your `config.cpp` must tell エンジン where to find the inputs file. Add an `inputs` entry inside the `defs` block:
+`config.cpp` で入力ファイルの場所をエンジンに伝える必要があります。`defs` ブロック内に `inputs` エントリを追加します：
 
 ```cpp
 class defs
@@ -680,9 +684,9 @@ class defs
 };
 ```
 
-### Step 5c: Read the Key Press
+### ステップ5c: キー押下の読み取り
 
-We already handle this in the `MissionGameplay` hook from Step 3:
+ステップ3の `MissionGameplay` フックで既にこれを処理しています：
 
 ```c
 if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
@@ -691,22 +695,22 @@ if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
 }
 ```
 
-`GetUApi()` returns the input API singleton. `GetInputByName` looks up our registered action. `LocalPress()` returns `true` for exactly one frame when the key is pressed down.
+`GetUApi()` は入力APIシングルトンを返します。`GetInputByName` で登録済みのアクションを検索します。`LocalPress()` はキーが押下されたちょうど1フレームだけ `true` を返します。
 
-### Key Name Reference
+### キー名リファレンス
 
-Common key names for `<btn>`:
+`<btn>` の一般的なキー名：
 
-| Key Name | Key |
+| キー名 | キー |
 |----------|-----|
-| `kF1` through `kF12` | Function keys |
-| `kH`, `kI`, etc. | Letter keys |
-| `kNumpad0` through `kNumpad9` | Numpad |
-| `kLControl` | Left Control |
-| `kLShift` | Left Shift |
-| `kLAlt` | Left Alt |
+| `kF1` から `kF12` | ファンクションキー |
+| `kH`、`kI` など | アルファベットキー |
+| `kNumpad0` から `kNumpad9` | テンキー |
+| `kLControl` | 左Control |
+| `kLShift` | 左Shift |
+| `kLAlt` | 左Alt |
 
-Modifier combos use nesting:
+修飾キーの組み合わせはネストを使用します：
 
 ```xml
 <input name="UAServerInfoToggle">
@@ -716,20 +720,20 @@ Modifier combos use nesting:
 </input>
 ```
 
-This means "hold Left Control and press H."
+これは「左Controlを押しながらHを押す」という意味です。
 
 ---
 
-## Step 6: Polish
+## ステップ6: 仕上げ
 
-### 6a: Fade In/Out Animation
+### 6a: フェードイン/フェードアウトアニメーション
 
-DayZ provides `WidgetFadeTimer` for smooth alpha transitions. Update the `ServerInfoHUD` class to use it:
+DayZはスムーズなアルファ遷移のために `WidgetFadeTimer` を提供しています。`ServerInfoHUD` クラスを更新してこれを使用します：
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
 {
-    // ... existing fields ...
+    // ... 既存のフィールド ...
 
     protected ref WidgetFadeTimer m_FadeTimer;
 
@@ -740,7 +744,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_FadeTimer = new WidgetFadeTimer();
     }
 
-    // Replace the ToggleVisibility method:
+    // ToggleVisibilityメソッドを置き換える:
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -759,15 +763,15 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // ... rest of class ...
+    // ... クラスの残りの部分 ...
 };
 ```
 
-`FadeIn(widget, duration)` animates the widget's alpha from 0 to 1 over the given duration in seconds. `FadeOut` goes from 1 to 0 and hides the widget when done.
+`FadeIn(widget, duration)` は指定された秒数でウィジェットのアルファを0から1にアニメーションします。`FadeOut` は1から0にアニメーションし、完了時にウィジェットを非表示にします。
 
-### 6b: Background Panel with Alpha
+### 6b: アルファ付き背景パネル
 
-We already set this in the layout (`color="0 0 0 0.55"`), giving a dark overlay at 55% opacity. If you want to adjust the alpha at runtime:
+レイアウトで既にこれを設定しています（`color="0 0 0 0.55"`）。55%の不透明度のダークオーバーレイです。実行時にアルファを調整したい場合は：
 
 ```c
 void SetBackgroundAlpha(float alpha)
@@ -783,20 +787,20 @@ void SetBackgroundAlpha(float alpha)
 }
 ```
 
-The `ARGB()` function takes integer values 0-255 for alpha, red, green, and blue.
+`ARGB()` 関数はアルファ、赤、緑、青に対して0-255の整数値を受け取ります。
 
-### 6c: Font and Color Choices
+### 6c: フォントとカラーの選択
 
-DayZ ships several fonts you can reference in layouts:
+DayZにはレイアウトで参照できるいくつかのフォントが同梱されています：
 
-| Font Path | Style |
+| フォントパス | スタイル |
 |-----------|-------|
-| `gui/fonts/MetronBook` | Clean sans-serif (used in vanilla HUD) |
-| `gui/fonts/MetronMedium` | Bolder version of MetronBook |
-| `gui/fonts/Metron` | Thinnest variant |
-| `gui/fonts/luxuriousscript` | Decorative script (avoid for HUD) |
+| `gui/fonts/MetronBook` | クリーンなサンセリフ（バニラHUDで使用） |
+| `gui/fonts/MetronMedium` | MetronBookのより太いバージョン |
+| `gui/fonts/Metron` | 最も細いバリアント |
+| `gui/fonts/luxuriousscript` | 装飾的なスクリプト体（HUDには不向き） |
 
-To change text color at runtime:
+実行時にテキストカラーを変更するには：
 
 ```c
 void SetTextColor(TextWidget widget, int r, int g, int b, int a)
@@ -806,12 +810,12 @@ void SetTextColor(TextWidget widget, int r, int g, int b, int a)
 }
 ```
 
-### 6d: Respecting Other UI
+### 6d: 他のUIとの共存
 
-Our `MissionHook.c` already detects when a menu is open and calls `SetMenuState(true)`. Here is a more thorough approach that checks the inventory specifically:
+`MissionHook.c` は既にメニューが開いていることを検出して `SetMenuState(true)` を呼び出します。インベントリを特に確認するより徹底したアプローチは以下のとおりです：
 
 ```c
-// In the OnUpdate override of modded MissionGameplay:
+// modded MissionGameplayのOnUpdateオーバーライド内:
 bool menuOpen = false;
 
 UIManager uiMgr = GetGame().GetUIManager();
@@ -822,22 +826,22 @@ if (uiMgr)
         menuOpen = true;
 }
 
-// Also check if inventory is open
+// インベントリが開いているかも確認する
 if (uiMgr && uiMgr.FindMenu(MENU_INVENTORY))
     menuOpen = true;
 
 m_ServerInfoHUD.SetMenuState(menuOpen);
 ```
 
-This ensures your HUD hides behind the inventory screen, the pause menu, the options screen, and any other scripted menu.
+これにより、HUDはインベントリ画面、ポーズメニュー、オプション画面、その他のスクリプテッドメニューの背後に隠れます。
 
 ---
 
-## Complete Code Reference
+## 完全なコードリファレンス
 
-Below is every file in the mod, in its final form with all polish applied.
+以下はMod内のすべてのファイルの最終形です。すべての仕上げが適用されています。
 
-### File 1: `ServerInfoHUD/mod.cpp`
+### ファイル1: `ServerInfoHUD/mod.cpp`
 
 ```cpp
 name = "Server Info HUD";
@@ -846,7 +850,7 @@ version = "1.0";
 overview = "Displays server name, player count, and in-game time.";
 ```
 
-### File 2: `ServerInfoHUD/Scripts/config.cpp`
+### ファイル2: `ServerInfoHUD/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -905,7 +909,7 @@ class CfgMods
 };
 ```
 
-### File 3: `ServerInfoHUD/Scripts/data/inputs.xml`
+### ファイル3: `ServerInfoHUD/Scripts/data/inputs.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -923,17 +927,17 @@ class CfgMods
 </modded_inputs>
 ```
 
-### File 4: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
+### ファイル4: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for Server Info HUD.
-// Use high numbers to avoid collisions with vanilla ERPCs and other mods.
+// Server Info HUDのRPC ID。
+// バニラERPCや他のModとの衝突を避けるため大きな数値を使用する。
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-### File 5: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
+### ファイル5: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
 ```c
 modded class PlayerBase
@@ -946,7 +950,7 @@ modded class PlayerBase
     {
         super.OnRPC(sender, rpc_type, ctx);
 
-        // Only the server handles this RPC
+        // このRPCはサーバーのみが処理する
         if (!GetGame().IsServer())
             return;
 
@@ -961,19 +965,19 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Get server name
+        // サーバー名を取得する
         string serverName = "";
         GetGame().GetHostName(serverName);
 
-        // Count players
+        // プレイヤーを数える
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         int playerCount = players.Count();
 
-        // Get max player slots
+        // 最大プレイヤースロット数を取得する
         int maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send the data back to the requesting client
+        // リクエスト元のクライアントにデータを返送する
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -983,7 +987,7 @@ modded class PlayerBase
 };
 ```
 
-### File 6: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
+### ファイル6: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
@@ -1166,7 +1170,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 
 // -----------------------------------------------
-// Client-side RPC receiver
+// クライアントサイドRPCレシーバー
 // -----------------------------------------------
 modded class PlayerBase
 {
@@ -1216,7 +1220,7 @@ modded class PlayerBase
 };
 ```
 
-### File 7: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
+### ファイル7: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
 ```c
 modded class MissionGameplay
@@ -1249,7 +1253,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Detect open menus
+        // 開いているメニューを検出する
         bool menuOpen = false;
         UIManager uiMgr = GetGame().GetUIManager();
         if (uiMgr)
@@ -1262,7 +1266,7 @@ modded class MissionGameplay
         m_ServerInfoHUD.SetMenuState(menuOpen);
         m_ServerInfoHUD.Update(timeslice);
 
-        // Toggle key
+        // トグルキー
         if (GetUApi().GetInputByName(
             "UAServerInfoToggle"
         ).LocalPress())
@@ -1278,7 +1282,7 @@ modded class MissionGameplay
 };
 ```
 
-### File 8: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
+### ファイル8: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1351,16 +1355,16 @@ modded class MissionGameplay
 
 ---
 
-## Extending the HUD
+## HUDの拡張
 
-Once you have the basic HUD working, here are natural extensions.
+基本的なHUDが動作するようになったら、以下は自然な拡張です。
 
-### Adding FPS Display
+### FPS表示の追加
 
-FPS can be read client-side without any RPC:
+FPSはRPCなしでクライアントサイドで読み取ることができます：
 
 ```c
-// Add a TextWidget m_FPSText field and find it in Init()
+// TextWidget m_FPSTextフィールドを追加し、Init()で検索する
 
 protected void RefreshFPS()
 {
@@ -1372,7 +1376,7 @@ protected void RefreshFPS()
 }
 ```
 
-Call `RefreshFPS()` alongside `RefreshTime()` in the update method. 注意： `GetDeltaT()` returns the time of the current frame, so the FPS value will fluctuate. For a smoother display, average over several frames:
+updateメソッドで `RefreshTime()` と一緒に `RefreshFPS()` を呼び出します。`GetDeltaT()` は現在のフレームの時間を返すため、FPS値は変動します。よりスムーズな表示のために、複数フレームにわたって平均化します：
 
 ```c
 protected float m_FPSAccum;
@@ -1389,13 +1393,13 @@ protected void RefreshFPS()
     float avgFPS = m_FPSFrames / m_FPSAccum;
     m_FPSText.SetText("FPS: " + Math.Round(avgFPS).ToString());
 
-    // Reset every second (when main timer fires)
+    // メインタイマーが発火するたびにリセットする（毎秒）
     m_FPSAccum = 0;
     m_FPSFrames = 0;
 }
 ```
 
-### Adding Player Position
+### プレイヤー位置の追加
 
 ```c
 protected void RefreshPosition()
@@ -1414,9 +1418,9 @@ protected void RefreshPosition()
 }
 ```
 
-### Multiple HUD Panels
+### 複数のHUDパネル
 
-For multiple panels (compass, status, minimap), create a parent manager class that holds an array of HUD elements:
+複数のパネル（コンパス、ステータス、ミニマップ）の場合、HUD要素の配列を保持する親マネージャークラスを作成します：
 
 ```c
 class HUDManager
@@ -1446,9 +1450,9 @@ class HUDManager
 };
 ```
 
-### Draggable HUD Elements
+### ドラッグ可能なHUD要素
 
-Making a widget draggable requires handling mouse events via `ScriptedWidgetEventHandler`:
+ウィジェットをドラッグ可能にするには、`ScriptedWidgetEventHandler` を介してマウスイベントを処理する必要があります：
 
 ```c
 class DraggableHUD : ScriptedWidgetEventHandler
@@ -1491,30 +1495,30 @@ class DraggableHUD : ScriptedWidgetEventHandler
 };
 ```
 
-注意： for dragging to work, the widget must have `SetHandler(this)` called on it so the event handler receives events. Also, the cursor must be visible, which limits draggable HUDs to situations where a menu or edit mode is active.
+注意: ドラッグを機能させるには、イベントハンドラーがイベントを受信できるよう、ウィジェットに `SetHandler(this)` を呼び出す必要があります。また、カーソルが表示されている必要があるため、ドラッグ可能なHUDはメニューや編集モードがアクティブな状況に限定されます。
 
 ---
 
 ## よくある間違い
 
-### 1. Updating Every Frame Instead of Throttled
+### 1. スロットリングせず毎フレーム更新する
 
-**Wrong:**
+**間違い:**
 
 ```c
 override void OnUpdate(float timeslice)
 {
     super.OnUpdate(timeslice);
-    m_ServerInfoHUD.RefreshTime();      // Runs 60+ times per second!
-    m_ServerInfoHUD.RequestServerInfo(); // Sends 60+ RPCs per second!
+    m_ServerInfoHUD.RefreshTime();      // 毎秒60回以上実行される！
+    m_ServerInfoHUD.RequestServerInfo(); // 毎秒60回以上のRPCを送信！
 }
 ```
 
-**Right:** Use a timer accumulator (as shown in the tutorial) so expensive operations run at most once per second. HUD text that changes 毎フレーム (like an FPS counter) is fine to update per-frame, but RPC requests must be throttled.
+**正しい方法:** チュートリアルで示したようにタイマー蓄積を使用して、高コストの操作を最大でも1秒に1回に制限します。毎フレーム変わるHUDテキスト（FPSカウンターなど）はフレームごとの更新で問題ありませんが、RPCリクエストは必ずスロットリングする必要があります。
 
-### 2. Not Cleaning Up in OnMissionFinish
+### 2. OnMissionFinishでクリーンアップしない
 
-**Wrong:**
+**間違い:**
 
 ```c
 modded class MissionGameplay
@@ -1526,67 +1530,67 @@ modded class MissionGameplay
         super.OnInit();
         m_HUD = new ServerInfoHUD();
         m_HUD.Init();
-        // No cleanup anywhere -- widget leaks on disconnect!
+        // クリーンアップなし -- 切断時にウィジェットがリークする！
     }
 };
 ```
 
-**Right:** Always destroy widgets and null references in `OnMissionFinish()`. The destructor (`~ServerInfoHUD`) is a safety net, but do not rely on it -- `OnMissionFinish` is the correct place for explicit cleanup.
+**正しい方法:** 必ず `OnMissionFinish()` でウィジェットを破棄し参照をnullにしてください。デストラクタ（`~ServerInfoHUD`）はセーフティネットですが、それに頼らないでください -- `OnMissionFinish` が明示的なクリーンアップの正しい場所です。
 
-### 3. HUD Behind Other UI Elements
+### 3. HUDが他のUI要素の背後に表示される
 
-Widgets created later render on top of widgets created earlier. If your HUD appears behind vanilla UI, it was created too early. Solutions:
+後で作成されたウィジェットは、先に作成されたウィジェットの上にレンダリングされます。HUDがバニラUIの背後に表示される場合、作成タイミングが早すぎます。解決策：
 
-- Create the HUD later in the initialization sequence (e.g., on the first `OnUpdate` call rather than in `OnInit`).
-- Use `m_Root.SetSort(100)` to force a higher sort order, pushing your widget above others.
+- HUDを初期化シーケンスの後半で作成する（例: `OnInit` ではなく最初の `OnUpdate` 呼び出し時）。
+- `m_Root.SetSort(100)` を使用してソート順序を強制的に高くし、ウィジェットを他の要素の上に押し上げる。
 
-### 4. Requesting Data Too Frequently (RPC Spam)
+### 4. データの過剰な要求（RPCスパム）
 
-Sending an RPC 毎フレーム creates 60+ network packets per second per connected player. On a 60-player server, that is 3,600 packets per second of unnecessary traffic. Always throttle RPC requests. Once per second is reasonable for non-critical info. For data that rarely changes (like server name), you could request it only once at init and cache it.
+毎フレームRPCを送信すると、接続されたプレイヤーごとに毎秒60以上のネットワークパケットが作成されます。60人のサーバーでは、毎秒3,600パケットの不要なトラフィックになります。RPCリクエストは必ずスロットリングしてください。重要でない情報には1秒に1回が妥当です。滅多に変わらないデータ（サーバー名など）は、初期化時に一度だけリクエストしてキャッシュすることもできます。
 
-### 5. Forgetting the `super` Call
+### 5. `super` 呼び出しの忘れ
 
 ```c
-// WRONG: breaks vanilla HUD functionality
+// 間違い: バニラHUDの機能が壊れる
 override void OnInit()
 {
     m_HUD = new ServerInfoHUD();
     m_HUD.Init();
-    // Missing super.OnInit()! Vanilla HUD will not initialize.
+    // super.OnInit()がない！バニラHUDが初期化されない。
 }
 ```
 
-Always call `super.OnInit()` (and `super.OnUpdate()`, `super.OnMissionFinish()`) first. Omitting the super call breaks the vanilla implementation and every other mod that hooks the same method.
+必ず `super.OnInit()`（および `super.OnUpdate()`、`super.OnMissionFinish()`）を最初に呼び出してください。super呼び出しを省略すると、バニラの実装と同じメソッドをフックしている他のすべてのModが壊れます。
 
-### 6. Using Wrong Script Layer
+### 6. 間違ったスクリプトレイヤーの使用
 
-If you try to reference `MissionGameplay` from `4_World`, you will get an "Undefined type" error because `5_Mission` types are not visible to `4_World`. The RPC constants go in `3_Game`, the server handler goes in `4_World` (modding `PlayerBase` which lives there), and the HUD class and mission hook go in `5_Mission`.
+`4_World` から `MissionGameplay` を参照しようとすると、`5_Mission` の型が `4_World` からは見えないため「Undefined type」エラーが発生します。RPC定数は `3_Game` に、サーバーハンドラーは `4_World` に（そこに存在する `PlayerBase` をmodする）、HUDクラスとミッションフックは `5_Mission` に配置します。
 
-### 7. Hardcoded Layout Path
+### 7. ハードコードされたレイアウトパス
 
-The layout path in `CreateWidgets()` is relative to the game's search paths. If your PBO prefix does not match the path string, the layout will not load and `CreateWidgets` returns NULL. Always check for NULL after `CreateWidgets` and log an error if it fails.
+`CreateWidgets()` のレイアウトパスはゲームの検索パスに対する相対パスです。PBOプレフィックスがパス文字列と一致しない場合、レイアウトはロードされず `CreateWidgets` はNULLを返します。`CreateWidgets` の後は必ずNULLチェックを行い、失敗した場合はエラーをログに記録してください。
 
 ---
 
 ## 次のステップ
 
-Now that you have a working HUD overlay, consider these progressions:
+HUDオーバーレイが動作するようになったら、以下の発展を検討してください：
 
-1. **Save user preferences** -- Store whether the HUD is visible in a local JSON file so the toggle state persists across sessions. [第 4.5: Player Data](../04-scripting-guide/05-persistence.md).
-2. **Add server-side configuration** -- Let server admins enable/disable the HUD or choose which fields to show via a JSON config file.
-3. **Build an admin overlay** -- Expand the HUD to show admin-only information (server performance, entity count, restart timer) using permission checks.
-4. **Create a compass HUD** -- Use `GetGame().GetCurrentCameraDirection()` to calculate heading and display a compass bar at the top of the screen.
-5. **Study existing mods** -- Look at DayZ Expansion's quest HUD and Colorful UI's overlay system for production-quality HUD implementations.
+1. **ユーザー設定の保存** -- HUDが表示されているかどうかをローカルJSONファイルに保存し、トグル状態がセッション間で持続するようにします。
+2. **サーバーサイド設定の追加** -- サーバー管理者がJSON設定ファイルを通じてHUDの有効/無効や表示するフィールドを選択できるようにします。
+3. **管理者オーバーレイの構築** -- HUDを拡張して、権限チェックを使用した管理者専用情報（サーバーパフォーマンス、エンティティ数、再起動タイマー）を表示します。
+4. **コンパスHUDの作成** -- `GetGame().GetCurrentCameraDirection()` を使用して方角を計算し、画面上部にコンパスバーを表示します。
+5. **既存のModを研究する** -- DayZ Expansionのクエストストから HUDやColorful UIのオーバーレイシステムを参考にして、プロダクション品質のHUD実装を学びます。
 
 ---
 
 ## ベストプラクティス
 
-- **Throttle `OnUpdate` to 1-second intervals minimum.** Use a timer accumulator to avoid running expensive operations (RPC requests, text formatting) 60+ times per second. Only per-frame visuals like FPS counters should update 毎フレーム.
-- **Hide the HUD when inventory or any menu is open.** Check `GetGame().GetUIManager().GetMenu()` on each update and suppress your overlay. Overlapping UI elements confuse players and block interaction.
-- **Always clean up widgets in `OnMissionFinish`.** Leaked widget roots persist across server hops, stacking ghost panels that consume memory and eventually cause visual glitches.
-- **Use `SetSort()` to control render order.** If your HUD appears behind vanilla elements, call `m_Root.SetSort(100)` to push it above. Without explicit sort order, creation timing determines layering.
-- **Cache server data that rarely changes.** The server name does not change during a session. Request it once at init and cache it locally instead of re-requesting it every second.
+- **`OnUpdate` を最低1秒間隔にスロットリングしてください。** タイマー蓄積を使用して、高コストの操作（RPCリクエスト、テキストフォーマット）が毎秒60回以上実行されることを避けます。FPSカウンターのようなフレームごとの視覚要素のみ毎フレーム更新してください。
+- **インベントリやメニューが開いているときはHUDを非表示にしてください。** 各更新で `GetGame().GetUIManager().GetMenu()` をチェックしてオーバーレイを抑制します。重複するUI要素はプレイヤーを混乱させ、インタラクションをブロックします。
+- **必ず `OnMissionFinish` でウィジェットをクリーンアップしてください。** リークしたウィジェットルートはサーバー移動後も持続し、メモリを消費するゴーストパネルが積み重なり、最終的に視覚的な不具合を引き起こします。
+- **`SetSort()` でレンダリング順序を制御してください。** HUDがバニラ要素の背後に表示される場合、`m_Root.SetSort(100)` を呼び出して上に押し上げます。明示的なソート順序がない場合、作成タイミングがレイヤリングを決定します。
+- **滅多に変わらないサーバーデータをキャッシュしてください。** サーバー名はセッション中に変わりません。毎秒再リクエストするのではなく、初期化時に一度だけリクエストしてローカルにキャッシュしてください。
 
 ---
 
@@ -1594,20 +1598,20 @@ Now that you have a working HUD overlay, consider these progressions:
 
 | 概念 | 理論 | 現実 |
 |---------|--------|---------|
-| `OnUpdate(float timeslice)` | Called once per frame with the frame delta time | On a 144 FPS client, this fires 144 times per second. Sending an RPC each call creates 144 network packets/second per player. Always accumulate `timeslice` and act only when the sum exceeds your interval. |
-| `CreateWidgets()` layout path | Loads the layout from the path you provide | The path is relative to the PBO prefix, not the file system. If your PBO prefix does not match the path string, `CreateWidgets` silently returns NULL with no error in the log. |
-| `WidgetFadeTimer` | Smoothly animates widget opacity | `FadeOut` hides the widget after the animation completes, but `FadeIn` does NOT call `Show(true)` first. You must manually show the widget before calling `FadeIn`, or nothing appears. |
-| `GetUApi().GetInputByName()` | Returns the input action for your custom keybind | If `inputs.xml` is not referenced in `config.cpp` under `class inputs`, the action name is unknown and `GetInputByName` returns null, causing a crash on `.LocalPress()`. |
+| `OnUpdate(float timeslice)` | フレームのデルタ時間とともに毎フレーム呼び出される | 144 FPSのクライアントでは、毎秒144回発火します。各呼び出しでRPCを送信すると、プレイヤーごとに毎秒144のネットワークパケットが作成されます。必ず `timeslice` を蓄積し、合計がインターバルを超えた場合にのみ動作してください。 |
+| `CreateWidgets()` のレイアウトパス | 指定したパスからレイアウトを読み込む | パスはファイルシステムではなくPBOプレフィックスに対する相対パスです。PBOプレフィックスがパス文字列と一致しない場合、`CreateWidgets` はログにエラーを出さずにNULLを返します。 |
+| `WidgetFadeTimer` | ウィジェットの不透明度をスムーズにアニメーションする | `FadeOut` はアニメーション完了後にウィジェットを非表示にしますが、`FadeIn` は最初に `Show(true)` を呼び出しません。`FadeIn` を呼ぶ前に手動でウィジェットを表示する必要があり、そうしないと何も表示されません。 |
+| `GetUApi().GetInputByName()` | カスタムキーバインドの入力アクションを返す | `inputs.xml` が `config.cpp` の `class inputs` で参照されていない場合、アクション名は不明となり `GetInputByName` はnullを返し、`.LocalPress()` でクラッシュします。 |
 
 ---
 
-## What You Learned
+## 学んだこと
 
-In this tutorial you learned:
-- How to create a HUD layout with anchored, semi-transparent panels
-- How to build a controller class that throttles updates to a fixed interval
-- How to hook into `MissionGameplay` for HUD lifecycle management (init, update, cleanup)
-- How to request server data via RPC and display it on the client
-- How to register a custom keybind via `inputs.xml` and toggle HUD visibility with fade animations
+このチュートリアルで学んだことは以下のとおりです：
+- 固定された半透明パネルを持つHUDレイアウトの作成方法
+- 固定間隔に更新をスロットリングするコントローラークラスの構築方法
+- HUDライフサイクル管理（初期化、更新、クリーンアップ）のための `MissionGameplay` へのフック方法
+- RPC経由でサーバーデータを要求しクライアントに表示する方法
+- `inputs.xml` によるカスタムキーバインドの登録とフェードアニメーションによるHUD表示/非表示の切り替え方法
 
-**Previous:** [Chapter 8.7: Publishing to Steam Workshop](07-publishing-workshop.md)
+**前へ:** [チャプター 8.7: Steam Workshopへの公開](07-publishing-workshop.md)
