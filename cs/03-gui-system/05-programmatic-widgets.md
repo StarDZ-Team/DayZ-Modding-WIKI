@@ -1,32 +1,36 @@
-# Chapter 3.5: Programmatic Widget Creation
+# Kapitola 3.5: Programatické vytváření widgetů
 
-[Home](../../README.md) | [<< Previous: Container Widgets](04-containers.md) | **Programmatic Widget Creation** | [Next: Event Handling >>](06-event-handling.md)
-
----
-
-## Two Approaches
-
-DayZ provides two ways to create widgets in code:
-
-1. **`CreateWidgets()`** -- Load a `.layout` file and instantiate its widget tree
-2. **`CreateWidget()`** -- Create a single widget with explicit parameters
-
-Both methods are called on the `WorkspaceWidget` obtained from `GetGame().GetWorkspace()`.
+[Domů](../../README.md) | [<< Předchozí: Kontejnerové widgety](04-containers.md) | **Programatické vytváření widgetů** | [Další: Zpracování událostí >>](06-event-handling.md)
 
 ---
 
-## CreateWidgets() -- From Layout Files
+Zatímco `.layout` soubory jsou standardním způsobem definování struktury UI, můžete widgety také vytvářet a konfigurovat zcela z kódu. To je užitečné pro dynamická UI, procedurálně generované prvky a situace, kdy rozložení není známo v době kompilace.
 
-The most common approach. Loads a `.layout` file and creates the entire widget tree, attaching it to a parent widget.
+---
+
+## Dva přístupy
+
+DayZ poskytuje dva způsoby vytváření widgetů v kódu:
+
+1. **`CreateWidgets()`** -- Načte `.layout` soubor a vytvoří instanci jeho stromu widgetů
+2. **`CreateWidget()`** -- Vytvoří jeden widget s explicitními parametry
+
+Obě metody se volají na `WorkspaceWidget` získaném z `GetGame().GetWorkspace()`.
+
+---
+
+## CreateWidgets() -- Ze souborů layoutu
+
+Nejběžnější přístup. Načte `.layout` soubor a vytvoří celý strom widgetů, připojí ho k rodičovskému widgetu.
 
 ```c
 Widget root = GetGame().GetWorkspace().CreateWidgets(
-    "MyMod/gui/layouts/MyPanel.layout",   // Path to layout file
-    parentWidget                            // Parent widget (or null for root)
+    "MyMod/gui/layouts/MyPanel.layout",   // Cesta k souboru layoutu
+    parentWidget                            // Rodičovský widget (nebo null pro kořen)
 );
 ```
 
-The returned `Widget` is the root widget from the layout file. You can then find child widgets by name:
+Vrácený `Widget` je kořenový widget ze souboru layoutu. Poté můžete najít potomkovské widgety podle názvu:
 
 ```c
 TextWidget title = TextWidget.Cast(root.FindAnyWidget("TitleText"));
@@ -35,9 +39,9 @@ title.SetText("Hello World");
 ButtonWidget closeBtn = ButtonWidget.Cast(root.FindAnyWidget("CloseButton"));
 ```
 
-### Creating Multiple Instances
+### Vytváření více instancí
 
-A common pattern is creating multiple instances of a layout template (e.g., list items):
+Běžný vzor je vytváření více instancí šablony layoutu (např. položek seznamu):
 
 ```c
 void PopulateList(WrapSpacerWidget container, array<string> items)
@@ -51,45 +55,45 @@ void PopulateList(WrapSpacerWidget container, array<string> items)
         label.SetText(item);
     }
 
-    container.Update();  // Force layout recalculation
+    container.Update();  // Vynucení přepočtu rozložení
 }
 ```
 
 ---
 
-## CreateWidget() -- Programmatic Creation
+## CreateWidget() -- Programatické vytváření
 
-Creates a single widget with explicit type, position, size, flags, and parent.
+Vytvoří jeden widget s explicitním typem, pozicí, velikostí, příznaky a rodičem.
 
 ```c
 Widget w = GetGame().GetWorkspace().CreateWidget(
-    FrameWidgetTypeID,      // Widget type ID constant
-    0,                       // X position
-    0,                       // Y position
-    100,                     // Width
-    100,                     // Height
+    FrameWidgetTypeID,      // Konstanta ID typu widgetu
+    0,                       // Pozice X
+    0,                       // Pozice Y
+    100,                     // Šířka
+    100,                     // Výška
     WidgetFlags.VISIBLE | WidgetFlags.EXACTSIZE | WidgetFlags.EXACTPOS,
-    -1,                      // Color (ARGB integer, -1 = white/default)
-    0,                       // Sort order (priority)
-    parentWidget             // Parent widget
+    -1,                      // Barva (ARGB celé číslo, -1 = bílá/výchozí)
+    0,                       // Pořadí řazení (priorita)
+    parentWidget             // Rodičovský widget
 );
 ```
 
-### Parameters
+### Parametry
 
-| Parameter | Type | Description |
+| Parametr | Typ | Popis |
 |---|---|---|
-| typeID | int | Widget type constant (e.g., `FrameWidgetTypeID`, `TextWidgetTypeID`) |
-| x | float | X position (proportional or pixel based on flags) |
-| y | float | Y position |
-| width | float | Widget width |
-| height | float | Widget height |
-| flags | int | Bitwise OR of `WidgetFlags` constants |
-| color | int | ARGB color integer (-1 for default/white) |
-| sort | int | Z-order (higher renders on top) |
-| parent | Widget | Parent widget to attach to |
+| typeID | int | Konstanta typu widgetu (např. `FrameWidgetTypeID`, `TextWidgetTypeID`) |
+| x | float | Pozice X (proporcionální nebo pixelová podle příznaků) |
+| y | float | Pozice Y |
+| width | float | Šířka widgetu |
+| height | float | Výška widgetu |
+| flags | int | Bitový OR konstant `WidgetFlags` |
+| color | int | Barva ARGB celé číslo (-1 pro výchozí/bílou) |
+| sort | int | Z-pořadí (vyšší se vykresluje navrch) |
+| parent | Widget | Rodičovský widget pro připojení |
 
-### Widget Type IDs
+### ID typů widgetů
 
 ```c
 FrameWidgetTypeID
@@ -119,107 +123,107 @@ WorkspaceWidgetTypeID
 
 ## WidgetFlags
 
-Flags control widget behavior when created programmatically. Combine them with bitwise OR (`|`).
+Příznaky řídí chování widgetu při programatickém vytváření. Kombinujte je bitovým OR (`|`).
 
-| Flag | Effect |
+| Příznak | Efekt |
 |---|---|
-| `WidgetFlags.VISIBLE` | Widget starts visible |
-| `WidgetFlags.IGNOREPOINTER` | Widget does not receive mouse events |
-| `WidgetFlags.DRAGGABLE` | Widget can be dragged |
-| `WidgetFlags.EXACTSIZE` | Size values are in pixels (not proportional) |
-| `WidgetFlags.EXACTPOS` | Position values are in pixels (not proportional) |
-| `WidgetFlags.SOURCEALPHA` | Use source alpha channel |
-| `WidgetFlags.BLEND` | Enable alpha blending |
-| `WidgetFlags.FLIPU` | Flip texture horizontally |
-| `WidgetFlags.FLIPV` | Flip texture vertically |
+| `WidgetFlags.VISIBLE` | Widget je na začátku viditelný |
+| `WidgetFlags.IGNOREPOINTER` | Widget nepřijímá události myši |
+| `WidgetFlags.DRAGGABLE` | Widget lze přetáhnout |
+| `WidgetFlags.EXACTSIZE` | Hodnoty velikosti jsou v pixelech (ne proporcionální) |
+| `WidgetFlags.EXACTPOS` | Hodnoty pozice jsou v pixelech (ne proporcionální) |
+| `WidgetFlags.SOURCEALPHA` | Použít zdrojový alfa kanál |
+| `WidgetFlags.BLEND` | Povolit alfa prolínání |
+| `WidgetFlags.FLIPU` | Převrátit texturu horizontálně |
+| `WidgetFlags.FLIPV` | Převrátit texturu vertikálně |
 
-Common flag combinations:
+Běžné kombinace příznaků:
 
 ```c
-// Visible, pixel-sized, pixel-positioned, alpha-blended
+// Viditelný, pixelová velikost, pixelová pozice, alfa prolínání
 int FLAGS_EXACT = WidgetFlags.VISIBLE | WidgetFlags.EXACTSIZE | WidgetFlags.EXACTPOS | WidgetFlags.SOURCEALPHA | WidgetFlags.BLEND;
 
-// Visible, proportional, non-interactive
+// Viditelný, proporcionální, neinteraktivní
 int FLAGS_OVERLAY = WidgetFlags.VISIBLE | WidgetFlags.IGNOREPOINTER | WidgetFlags.SOURCEALPHA | WidgetFlags.BLEND;
 ```
 
-After creation, you can modify flags dynamically:
+Po vytvoření můžete příznaky dynamicky měnit:
 
 ```c
-widget.SetFlags(WidgetFlags.VISIBLE);          // Add a flag
-widget.ClearFlags(WidgetFlags.IGNOREPOINTER);  // Remove a flag
-int flags = widget.GetFlags();                  // Read current flags
+widget.SetFlags(WidgetFlags.VISIBLE);          // Přidání příznaku
+widget.ClearFlags(WidgetFlags.IGNOREPOINTER);  // Odebrání příznaku
+int flags = widget.GetFlags();                  // Čtení aktuálních příznaků
 ```
 
 ---
 
-## Setting Properties After Creation
+## Nastavení vlastností po vytvoření
 
-After creating a widget with `CreateWidget()`, you need to configure it. The widget is returned as the base `Widget` type, so you must cast to the specific type.
+Po vytvoření widgetu pomocí `CreateWidget()` ho potřebujete nakonfigurovat. Widget je vrácen jako základní typ `Widget`, takže musíte přetypovat na specifický typ.
 
-### Setting Name
+### Nastavení názvu
 
 ```c
 Widget w = GetGame().GetWorkspace().CreateWidget(TextWidgetTypeID, ...);
 w.SetName("MyTextWidget");
 ```
 
-Names are important for `FindAnyWidget()` lookups and debugging.
+Názvy jsou důležité pro vyhledávání `FindAnyWidget()` a ladění.
 
-### Setting Text
+### Nastavení textu
 
 ```c
 TextWidget tw = TextWidget.Cast(w);
 tw.SetText("Hello World");
-tw.SetTextExactSize(16);           // Font size in pixels
-tw.SetOutline(1, ARGB(255, 0, 0, 0));  // 1px black outline
+tw.SetTextExactSize(16);           // Velikost písma v pixelech
+tw.SetOutline(1, ARGB(255, 0, 0, 0));  // 1px černý obrys
 ```
 
-### Setting Color
+### Nastavení barvy
 
-Colors in DayZ use ARGB format (Alpha, Red, Green, Blue), packed into a single 32-bit integer:
+Barvy v DayZ používají formát ARGB (Alfa, Červená, Zelená, Modrá), zabalený do jednoho 32-bitového celého čísla:
 
 ```c
-// Using the ARGB helper function (0-255 per channel)
-int red    = ARGB(255, 255, 0, 0);       // Opaque red
-int green  = ARGB(255, 0, 255, 0);       // Opaque green
-int blue   = ARGB(200, 0, 0, 255);       // Semi-transparent blue
-int black  = ARGB(255, 0, 0, 0);         // Opaque black
-int white  = ARGB(255, 255, 255, 255);   // Opaque white  (same as -1)
+// Použití pomocné funkce ARGB (0-255 na kanál)
+int red    = ARGB(255, 255, 0, 0);       // Neprůhledná červená
+int green  = ARGB(255, 0, 255, 0);       // Neprůhledná zelená
+int blue   = ARGB(200, 0, 0, 255);       // Poloprůhledná modrá
+int black  = ARGB(255, 0, 0, 0);         // Neprůhledná černá
+int white  = ARGB(255, 255, 255, 255);   // Neprůhledná bílá (stejné jako -1)
 
-// Using the float version (0.0-1.0 per channel)
+// Použití float verze (0.0-1.0 na kanál)
 int color = ARGBF(1.0, 0.5, 0.25, 0.1);
 
-// Decompose a color back to floats
+// Rozložení barvy zpět na floaty
 float a, r, g, b;
 InverseARGBF(color, a, r, g, b);
 
-// Apply to any widget
+// Aplikace na jakýkoli widget
 widget.SetColor(ARGB(255, 100, 150, 200));
-widget.SetAlpha(0.5);  // Override just the alpha
+widget.SetAlpha(0.5);  // Přepsání pouze alfy
 ```
 
-The hexadecimal format `0xAARRGGBB` is also common:
+Hexadecimální formát `0xAARRGGBB` je také běžný:
 
 ```c
 int color = 0xFF4B77BE;   // A=255, R=75, G=119, B=190
 widget.SetColor(color);
 ```
 
-### Setting an Event Handler
+### Nastavení obsluhy událostí
 
 ```c
-widget.SetHandler(myEventHandler);  // ScriptedWidgetEventHandler instance
+widget.SetHandler(myEventHandler);  // Instance ScriptedWidgetEventHandler
 ```
 
-### Setting User Data
+### Nastavení uživatelských dat
 
-Attach arbitrary data to a widget for later retrieval:
+Připojení libovolných dat k widgetu pro pozdější získání:
 
 ```c
-widget.SetUserData(myDataObject);  // Must inherit from Managed
+widget.SetUserData(myDataObject);  // Musí dědit z Managed
 
-// Later retrieve it:
+// Pozdější získání:
 Managed data;
 widget.GetUserData(data);
 MyDataClass myData = MyDataClass.Cast(data);
@@ -227,28 +231,28 @@ MyDataClass myData = MyDataClass.Cast(data);
 
 ---
 
-## Widget Cleanup
+## Úklid widgetů
 
-Widgets that are no longer needed must be properly cleaned up to avoid memory leaks.
+Widgety, které již nejsou potřeba, musí být řádně vyčištěny, aby nedocházelo k únikům paměti.
 
 ### Unlink()
 
-Removes a widget from its parent and destroys it (and all its children):
+Odstraní widget od jeho rodiče a zničí ho (a všechny jeho potomky):
 
 ```c
 widget.Unlink();
 ```
 
-After calling `Unlink()`, the widget reference becomes invalid. Set it to `null`:
+Po zavolání `Unlink()` se reference na widget stane neplatnou. Nastavte ji na `null`:
 
 ```c
 widget.Unlink();
 widget = null;
 ```
 
-### Odstraňování All Children
+### Odstranění všech potomků
 
-To clear a container widget of all its children:
+Pro vyčištění kontejnerového widgetu od všech jeho potomků:
 
 ```c
 void ClearChildren(Widget parent)
@@ -263,11 +267,11 @@ void ClearChildren(Widget parent)
 }
 ```
 
-**Important:** You must get `GetSibling()` **before** calling `Unlink()`, because unlinking invalidates the widget's sibling chain.
+**Důležité:** Musíte získat `GetSibling()` **před** zavoláním `Unlink()`, protože odpojení zneplatní řetězec sourozenců widgetu.
 
-### Null Checks
+### Kontroly null
 
-Always null-check widgets before using them. `FindAnyWidget()` returns `null` if the widget is not found, and cast operations return `null` if the type does not match:
+Vždy kontrolujte widgety na null před jejich použitím. `FindAnyWidget()` vrací `null`, pokud widget není nalezen, a operace přetypování vrací `null`, pokud typ neodpovídá:
 
 ```c
 TextWidget tw = TextWidget.Cast(root.FindAnyWidget("MaybeExists"));
@@ -279,34 +283,34 @@ if (tw)
 
 ---
 
-## Widget Hierarchy Navigation
+## Navigace hierarchií widgetů
 
-Navigate the widget tree from code:
+Navigace stromem widgetů z kódu:
 
 ```c
-Widget parent = widget.GetParent();           // Parent widget
-Widget firstChild = widget.GetChildren();     // First child
-Widget nextSibling = widget.GetSibling();     // Next sibling
-Widget found = widget.FindAnyWidget("Name");  // Recursive search by name
+Widget parent = widget.GetParent();           // Rodičovský widget
+Widget firstChild = widget.GetChildren();     // První potomek
+Widget nextSibling = widget.GetSibling();     // Další sourozenec
+Widget found = widget.FindAnyWidget("Name");  // Rekurzivní vyhledávání podle názvu
 
-string name = widget.GetName();               // Widget name
-string typeName = widget.GetTypeName();       // e.g., "TextWidget"
+string name = widget.GetName();               // Název widgetu
+string typeName = widget.GetTypeName();       // např. "TextWidget"
 ```
 
-To iterate all children:
+Pro iteraci všech potomků:
 
 ```c
 Widget child = parent.GetChildren();
 while (child)
 {
-    // Process child
+    // Zpracování potomka
     Print("Child: " + child.GetName());
 
     child = child.GetSibling();
 }
 ```
 
-To iterate all descendants recursively:
+Pro rekurzivní iteraci všech potomků:
 
 ```c
 void WalkWidgets(Widget w, int depth = 0)
@@ -324,9 +328,9 @@ void WalkWidgets(Widget w, int depth = 0)
 
 ---
 
-## Complete Example: Creating a Dialog in Code
+## Kompletní příklad: Vytvoření dialogu v kódu
 
-Here is a complete example that creates a simple information dialog entirely in code, without any layout file:
+Zde je kompletní příklad, který vytváří jednoduchý informační dialog zcela v kódu, bez jakéhokoli souboru layoutu:
 
 ```c
 class SimpleCodeDialog : ScriptedWidgetEventHandler
@@ -345,31 +349,31 @@ class SimpleCodeDialog : ScriptedWidgetEventHandler
 
         WorkspaceWidget workspace = GetGame().GetWorkspace();
 
-        // Root frame: 400x200 pixels, centered on screen
+        // Kořenový rámec: 400x200 pixelů, vycentrovaný na obrazovce
         m_Root = workspace.CreateWidget(
             FrameWidgetTypeID, 0, 0, 400, 200, FLAGS_EXACT,
             ARGB(230, 30, 30, 30), 100, null);
 
-        // Center it manually
+        // Ruční centrování
         int sw, sh;
         GetScreenSize(sw, sh);
         m_Root.SetScreenPos((sw - 400) / 2, (sh - 200) / 2);
 
-        // Title text: full width, 30px tall, at top
+        // Text titulku: celá šířka, 30px vysoký, nahoře
         Widget titleW = workspace.CreateWidget(
             TextWidgetTypeID, 0, 0, 400, 30, FLAGS_EXACT,
             ARGB(255, 100, 160, 220), 0, m_Root);
         m_Title = TextWidget.Cast(titleW);
         m_Title.SetText(title);
 
-        // Message text: below title, fills remaining space
+        // Text zprávy: pod titulkem, vyplní zbývající prostor
         Widget msgW = workspace.CreateWidget(
             TextWidgetTypeID, 10, 40, 380, 110, FLAGS_EXACT,
             ARGB(255, 200, 200, 200), 0, m_Root);
         m_Message = TextWidget.Cast(msgW);
         m_Message.SetText(message);
 
-        // Close button: 80x30 pixels, bottom-right area
+        // Tlačítko zavřít: 80x30 pixelů, oblast vpravo dole
         Widget btnW = workspace.CreateWidget(
             ButtonWidgetTypeID, 310, 160, 80, 30, FLAGS_EXACT,
             ARGB(255, 80, 130, 200), 0, m_Root);
@@ -403,28 +407,136 @@ class SimpleCodeDialog : ScriptedWidgetEventHandler
     }
 }
 
-// Usage:
+// Použití:
 SimpleCodeDialog dialog = new SimpleCodeDialog("Alert", "Server restart in 5 minutes.");
 ```
 
 ---
 
-## Layout Files vs. Programmatic: When to Use Each
+## Sdružování widgetů (pooling)
 
-| Situation | Recommendation |
-|---|---|
-| Static UI structure | Layout file (`.layout`) |
-| Complex widget trees | Layout file |
-| Dynamic number of items | `CreateWidgets()` from a template layout |
-| Simple runtime elements (debug text, markers) | `CreateWidget()` |
-| Rapid prototyping | `CreateWidget()` |
-| Production mod UI | Layout file + code configuration |
+Vytváření a ničení widgetů každý snímek způsobuje problémy s výkonem. Místo toho udržujte pool znovupoužitelných widgetů:
 
-In practice, most mods use **layout files** for the structure and **code** for populating data, showing/hiding elements, and handling events. Purely programmatic UIs are rare outside of debug tools.
+```c
+class WidgetPool
+{
+    protected ref array<Widget> m_Pool;
+    protected ref array<Widget> m_Active;
+    protected Widget m_Parent;
+    protected string m_LayoutPath;
+
+    void WidgetPool(Widget parent, string layoutPath, int initialSize = 10)
+    {
+        m_Pool = new array<Widget>();
+        m_Active = new array<Widget>();
+        m_Parent = parent;
+        m_LayoutPath = layoutPath;
+
+        // Předběžné vytvoření widgetů
+        for (int i = 0; i < initialSize; i++)
+        {
+            Widget w = GetGame().GetWorkspace().CreateWidgets(m_LayoutPath, m_Parent);
+            w.Show(false);
+            m_Pool.Insert(w);
+        }
+    }
+
+    Widget Acquire()
+    {
+        Widget w;
+        if (m_Pool.Count() > 0)
+        {
+            w = m_Pool[m_Pool.Count() - 1];
+            m_Pool.Remove(m_Pool.Count() - 1);
+        }
+        else
+        {
+            w = GetGame().GetWorkspace().CreateWidgets(m_LayoutPath, m_Parent);
+        }
+        w.Show(true);
+        m_Active.Insert(w);
+        return w;
+    }
+
+    void Release(Widget w)
+    {
+        w.Show(false);
+        int idx = m_Active.Find(w);
+        if (idx >= 0)
+            m_Active.Remove(idx);
+        m_Pool.Insert(w);
+    }
+
+    void ReleaseAll()
+    {
+        foreach (Widget w : m_Active)
+        {
+            w.Show(false);
+            m_Pool.Insert(w);
+        }
+        m_Active.Clear();
+    }
+}
+```
+
+**Kdy použít sdružování:**
+- Seznamy, které se často aktualizují (killfeed, chat, seznam hráčů)
+- Mřížky s dynamickým obsahem (inventář, tržiště)
+- Jakékoli UI, které vytváří/ničí 10+ widgetů za sekundu
+
+**Kdy NEPOUŽÍVAT sdružování:**
+- Statické panely vytvořené jednou
+- Dialogy zobrazované/skrývané (stačí použít Show/Hide)
 
 ---
 
-## Next Steps
+## Soubory layoutu vs. programatické vytváření: Kdy použít co
 
-- [3.6 Event Handling](06-event-handling.md) -- Handle clicks, changes, and mouse events
-- [3.7 Styles, Fonts & Images](07-styles-fonts.md) -- Visual styling and image resources
+| Situace | Doporučení |
+|---|---|
+| Statická struktura UI | Soubor layoutu (`.layout`) |
+| Složité stromy widgetů | Soubor layoutu |
+| Dynamický počet položek | `CreateWidgets()` ze šablony layoutu |
+| Jednoduché runtime prvky (ladící text, značky) | `CreateWidget()` |
+| Rychlé prototypování | `CreateWidget()` |
+| Produkční UI modu | Soubor layoutu + konfigurace kódem |
+
+V praxi většina modů používá **soubory layoutu** pro strukturu a **kód** pro naplnění daty, zobrazování/skrývání prvků a zpracování událostí. Čistě programatická UI jsou vzácná mimo ladící nástroje.
+
+---
+
+## Další kroky
+
+- [3.6 Zpracování událostí](06-event-handling.md) -- Zpracování kliknutí, změn a událostí myši
+- [3.7 Styly, písma a obrázky](07-styles-fonts.md) -- Vizuální stylování a obrazové zdroje
+
+---
+
+## Teorie vs. praxe
+
+| Koncept | Teorie | Realita |
+|---------|--------|---------|
+| `CreateWidget()` vytvoří jakýkoli typ widgetu | Všechna TypeID fungují s `CreateWidget()` | `ScrollWidget` a `WrapSpacerWidget` vytvořené programaticky často potřebují ruční nastavení příznaků (`EXACTSIZE`, rozměry), které soubory layoutu řeší automaticky |
+| `Unlink()` uvolní veškerou paměť | Widget a potomci jsou zničeni | Reference držené ve skriptových proměnných se stávají visícími. Vždy nastavte reference widgetů na `null` po `Unlink()`, jinak riskujete pády |
+| `SetHandler()` směruje všechny události | Jeden handler přijímá všechny události widgetu | Handler přijímá události pouze pro widgety, na kterých bylo zavoláno `SetHandler(this)`. Potomci nedědí handler od svého rodiče |
+| `CreateWidgets()` z layoutu je okamžité | Layout se načítá synchronně | Velké layouty s mnoha vnořenými widgety způsobují výkyv snímku. Přednačtěte layouty během načítacích obrazovek, ne během hraní |
+| Proporcionální rozměry (0.0-1.0) se škálují k rodiči | Hodnoty jsou relativní k rozměrům rodiče | Bez příznaku `EXACTSIZE` jsou i hodnoty `CreateWidget()` jako `100` zpracovány jako proporcionální (rozsah 0-1), což způsobí, že widgety vyplní celého rodiče |
+
+---
+
+## Kompatibilita a dopad
+
+- **Více modů:** Programaticky vytvořené widgety jsou soukromé pro vytvářející mod. Na rozdíl od `modded class` nehrozí riziko kolize, pokud dva mody nepřipojí widgety ke stejnému vanilla rodičovskému widgetu podle názvu.
+- **Výkon:** Každé volání `CreateWidgets()` parsuje soubor layoutu z disku. Kešujte kořenový widget a zobrazujte/skrývejte ho, místo aby se layout znovu vytvářel pokaždé, když se UI otevře.
+
+---
+
+## Pozorováno v reálných modech
+
+| Vzor | Mod | Detail |
+|---------|-----|--------|
+| Šablona layoutu + naplnění kódem | COT, Expansion | Načte `.layout` šablonu řádku přes `CreateWidgets()` pro každou položku seznamu, poté naplní přes `FindAnyWidget()` |
+| Sdružování widgetů pro killfeed | Colorful UI | Předem vytvoří 20 widgetů záznamů feedu, zobrazuje/skrývá je místo vytváření a ničení |
+| Čistě kódové dialogy | Ladící/admin nástroje | Jednoduché upozorňovací dialogy postavené zcela pomocí `CreateWidget()` pro vyhnutí se distribuci extra `.layout` souborů |
+| `SetHandler(this)` na každém interaktivním potomkovi | VPP Admin Tools | Iteruje všechna tlačítka po načtení layoutu a volá `SetHandler()` na každém individuálně |
+| Vzor `Unlink()` + null | DabsFramework | Metoda `Close()` každého dialogu konzistentně volá `m_Root.Unlink(); m_Root = null;` |

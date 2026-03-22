@@ -1,32 +1,36 @@
-# Chapter 3.5: Programmatic Widget Creation
+# 3.5. fejezet: Programozott widget létrehozás
 
-[Home](../../README.md) | [<< Previous: Container Widgets](04-containers.md) | **Programmatic Widget Creation** | [Next: Event Handling >>](06-event-handling.md)
-
----
-
-## Two Approaches
-
-DayZ provides two ways to create widgets in code:
-
-1. **`CreateWidgets()`** -- Load a `.layout` file and instantiate its widget tree
-2. **`CreateWidget()`** -- Create a single widget with explicit parameters
-
-Both methods are called on the `WorkspaceWidget` obtained from `GetGame().GetWorkspace()`.
+[Kezdőlap](../../README.md) | [<< Előző: Konténer widgetek](04-containers.md) | **Programozott widget létrehozás** | [Következő: Események kezelése >>](06-event-handling.md)
 
 ---
 
-## CreateWidgets() -- From Layout Files
+Bár a `.layout` fájlok a szabványos módja az UI struktúra definiálásának, widgeteket teljes egészében kódból is létrehozhatsz és konfigurálhatsz. Ez hasznos dinamikus UI-khoz, procedurálisan generált elemekhez, és olyan helyzetekhez, ahol az elrendezés fordítási időben nem ismert.
 
-The most common approach. Loads a `.layout` file and creates the entire widget tree, attaching it to a parent widget.
+---
+
+## Két megközelítés
+
+A DayZ két módot kínál widgetek kódból történő létrehozásához:
+
+1. **`CreateWidgets()`** -- `.layout` fájl betöltése és widget fa példányosítása
+2. **`CreateWidget()`** -- Egyetlen widget létrehozása explicit paraméterekkel
+
+Mindkét metódust a `GetGame().GetWorkspace()` által kapott `WorkspaceWidget`-en hívjuk meg.
+
+---
+
+## CreateWidgets() -- Layout fájlokból
+
+A leggyakoribb megközelítés. Betölti a `.layout` fájlt és létrehozza a teljes widget fát, csatolva egy szülő widgethez.
 
 ```c
 Widget root = GetGame().GetWorkspace().CreateWidgets(
-    "MyMod/gui/layouts/MyPanel.layout",   // Path to layout file
-    parentWidget                            // Parent widget (or null for root)
+    "MyMod/gui/layouts/MyPanel.layout",   // A layout fájl elérési útja
+    parentWidget                            // Szülő widget (vagy null a gyökérhez)
 );
 ```
 
-The returned `Widget` is the root widget from the layout file. You can then find child widgets by name:
+A visszaadott `Widget` a layout fájl gyökér widgetje. Ezután név szerint kereshetsz gyermek widgeteket:
 
 ```c
 TextWidget title = TextWidget.Cast(root.FindAnyWidget("TitleText"));
@@ -35,9 +39,9 @@ title.SetText("Hello World");
 ButtonWidget closeBtn = ButtonWidget.Cast(root.FindAnyWidget("CloseButton"));
 ```
 
-### Creating Multiple Instances
+### Több példány létrehozása
 
-A common pattern is creating multiple instances of a layout template (e.g., list items):
+Gyakori minta egy layout sablon több példányának létrehozása (pl. lista elemek):
 
 ```c
 void PopulateList(WrapSpacerWidget container, array<string> items)
@@ -51,45 +55,45 @@ void PopulateList(WrapSpacerWidget container, array<string> items)
         label.SetText(item);
     }
 
-    container.Update();  // Force layout recalculation
+    container.Update();  // Elrendezés újraszámolásának kényszerítése
 }
 ```
 
 ---
 
-## CreateWidget() -- Programmatic Creation
+## CreateWidget() -- Programozott létrehozás
 
-Creates a single widget with explicit type, position, size, flags, and parent.
+Egyetlen widgetet hoz létre explicit típussal, pozícióval, mérettel, jelzőkkel és szülővel.
 
 ```c
 Widget w = GetGame().GetWorkspace().CreateWidget(
-    FrameWidgetTypeID,      // Widget type ID constant
-    0,                       // X position
-    0,                       // Y position
-    100,                     // Width
-    100,                     // Height
+    FrameWidgetTypeID,      // Widget típus azonosító konstans
+    0,                       // X pozíció
+    0,                       // Y pozíció
+    100,                     // Szélesség
+    100,                     // Magasság
     WidgetFlags.VISIBLE | WidgetFlags.EXACTSIZE | WidgetFlags.EXACTPOS,
-    -1,                      // Color (ARGB integer, -1 = white/default)
-    0,                       // Sort order (priority)
-    parentWidget             // Parent widget
+    -1,                      // Szín (ARGB egész, -1 = fehér/alapértelmezett)
+    0,                       // Rendezési sorrend (prioritás)
+    parentWidget             // Szülő widget
 );
 ```
 
-### Parameters
+### Paraméterek
 
-| Parameter | Tipus | Leiras |
+| Paraméter | Típus | Leírás |
 |---|---|---|
-| typeID | int | Widget type constant (e.g., `FrameWidgetTypeID`, `TextWidgetTypeID`) |
-| x | float | X position (proportional or pixel based on flags) |
-| y | float | Y position |
-| width | float | Widget width |
-| height | float | Widget height |
-| flags | int | Bitwise OR of `WidgetFlags` constants |
-| color | int | ARGB color integer (-1 for default/white) |
-| sort | int | Z-order (higher renders on top) |
-| parent | Widget | Parent widget to attach to |
+| typeID | int | Widget típus konstans (pl. `FrameWidgetTypeID`, `TextWidgetTypeID`) |
+| x | float | X pozíció (arányos vagy pixel a jelzők alapján) |
+| y | float | Y pozíció |
+| width | float | Widget szélesség |
+| height | float | Widget magasság |
+| flags | int | `WidgetFlags` konstansok bitenkénti VAGY kapcsolata |
+| color | int | ARGB szín egész (-1 alapértelmezett/fehér) |
+| sort | int | Z-sorrend (magasabb felülre renderelődik) |
+| parent | Widget | Szülő widget a csatoláshoz |
 
-### Widget Type IDs
+### Widget típus azonosítók
 
 ```c
 FrameWidgetTypeID
@@ -119,107 +123,107 @@ WorkspaceWidgetTypeID
 
 ## WidgetFlags
 
-Flags control widget behavior when created programmatically. Combine them with bitwise OR (`|`).
+A jelzők szabályozzák a widget viselkedését programozott létrehozáskor. Kombinálhatók bitenkénti VAGY (`|`) operátorral.
 
-| Flag | Hatas |
+| Jelző | Hatás |
 |---|---|
-| `WidgetFlags.VISIBLE` | Widget starts visible |
-| `WidgetFlags.IGNOREPOINTER` | Widget does not receive mouse events |
-| `WidgetFlags.DRAGGABLE` | Widget can be dragged |
-| `WidgetFlags.EXACTSIZE` | Size values are in pixels (not proportional) |
-| `WidgetFlags.EXACTPOS` | Position values are in pixels (not proportional) |
-| `WidgetFlags.SOURCEALPHA` | Use source alpha channel |
-| `WidgetFlags.BLEND` | Enable alpha blending |
-| `WidgetFlags.FLIPU` | Flip texture horizontally |
-| `WidgetFlags.FLIPV` | Flip texture vertically |
+| `WidgetFlags.VISIBLE` | A widget láthatóan indul |
+| `WidgetFlags.IGNOREPOINTER` | A widget nem fogad egér eseményeket |
+| `WidgetFlags.DRAGGABLE` | A widget húzható |
+| `WidgetFlags.EXACTSIZE` | A méretértékek pixelben vannak (nem arányos) |
+| `WidgetFlags.EXACTPOS` | A pozícióértékek pixelben vannak (nem arányos) |
+| `WidgetFlags.SOURCEALPHA` | Forrás alfa csatorna használata |
+| `WidgetFlags.BLEND` | Alfa keverés engedélyezése |
+| `WidgetFlags.FLIPU` | Textúra vízszintes tükrözése |
+| `WidgetFlags.FLIPV` | Textúra függőleges tükrözése |
 
-Common flag combinations:
+Gyakori jelző kombinációk:
 
 ```c
-// Visible, pixel-sized, pixel-positioned, alpha-blended
+// Látható, pixel-méretezésű, pixel-pozíciójú, alfa-kevert
 int FLAGS_EXACT = WidgetFlags.VISIBLE | WidgetFlags.EXACTSIZE | WidgetFlags.EXACTPOS | WidgetFlags.SOURCEALPHA | WidgetFlags.BLEND;
 
-// Visible, proportional, non-interactive
+// Látható, arányos, nem interaktív
 int FLAGS_OVERLAY = WidgetFlags.VISIBLE | WidgetFlags.IGNOREPOINTER | WidgetFlags.SOURCEALPHA | WidgetFlags.BLEND;
 ```
 
-After creation, you can modify flags dynamically:
+Létrehozás után dinamikusan módosíthatók a jelzők:
 
 ```c
-widget.SetFlags(WidgetFlags.VISIBLE);          // Add a flag
-widget.ClearFlags(WidgetFlags.IGNOREPOINTER);  // Remove a flag
-int flags = widget.GetFlags();                  // Read current flags
+widget.SetFlags(WidgetFlags.VISIBLE);          // Jelző hozzáadása
+widget.ClearFlags(WidgetFlags.IGNOREPOINTER);  // Jelző eltávolítása
+int flags = widget.GetFlags();                  // Aktuális jelzők olvasása
 ```
 
 ---
 
-## Setting Properties After Creation
+## Tulajdonságok beállítása létrehozás után
 
-After creating a widget with `CreateWidget()`, you need to configure it. The widget is returned as the base `Widget` type, so you must cast to the specific type.
+Miután a `CreateWidget()` hívással létrehoztál egy widgetet, konfigurálnod kell. A widget az alap `Widget` típusként tér vissza, ezért a specifikus típusra kell konvertálnod.
 
-### Setting Name
+### Név beállítása
 
 ```c
 Widget w = GetGame().GetWorkspace().CreateWidget(TextWidgetTypeID, ...);
 w.SetName("MyTextWidget");
 ```
 
-Names are important for `FindAnyWidget()` lookups and debugging.
+A nevek fontosak a `FindAnyWidget()` keresésekhez és a hibakereséshez.
 
-### Setting Text
+### Szöveg beállítása
 
 ```c
 TextWidget tw = TextWidget.Cast(w);
 tw.SetText("Hello World");
-tw.SetTextExactSize(16);           // Font size in pixels
-tw.SetOutline(1, ARGB(255, 0, 0, 0));  // 1px black outline
+tw.SetTextExactSize(16);           // Betűméret pixelben
+tw.SetOutline(1, ARGB(255, 0, 0, 0));  // 1px fekete körvonal
 ```
 
-### Setting Color
+### Szín beállítása
 
-Colors in DayZ use ARGB format (Alpha, Red, Green, Blue), packed into a single 32-bit integer:
+A DayZ-ben a színek ARGB formátumot használnak (Alfa, Piros, Zöld, Kék), egyetlen 32-bites egész számba csomagolva:
 
 ```c
-// Using the ARGB helper function (0-255 per channel)
-int red    = ARGB(255, 255, 0, 0);       // Opaque red
-int green  = ARGB(255, 0, 255, 0);       // Opaque green
-int blue   = ARGB(200, 0, 0, 255);       // Semi-transparent blue
-int black  = ARGB(255, 0, 0, 0);         // Opaque black
-int white  = ARGB(255, 255, 255, 255);   // Opaque white  (same as -1)
+// Az ARGB segédfüggvény használata (0-255 csatornánként)
+int red    = ARGB(255, 255, 0, 0);       // Átlátszatlan piros
+int green  = ARGB(255, 0, 255, 0);       // Átlátszatlan zöld
+int blue   = ARGB(200, 0, 0, 255);       // Félig átlátszó kék
+int black  = ARGB(255, 0, 0, 0);         // Átlátszatlan fekete
+int white  = ARGB(255, 255, 255, 255);   // Átlátszatlan fehér (ugyanaz mint -1)
 
-// Using the float version (0.0-1.0 per channel)
+// A float verzió használata (0.0-1.0 csatornánként)
 int color = ARGBF(1.0, 0.5, 0.25, 0.1);
 
-// Decompose a color back to floats
+// Szín visszabontása float értékekre
 float a, r, g, b;
 InverseARGBF(color, a, r, g, b);
 
-// Apply to any widget
+// Alkalmazás bármilyen widgetre
 widget.SetColor(ARGB(255, 100, 150, 200));
-widget.SetAlpha(0.5);  // Override just the alpha
+widget.SetAlpha(0.5);  // Csak az alfa felülírása
 ```
 
-The hexadecimal format `0xAARRGGBB` is also common:
+A hexadecimális `0xAARRGGBB` formátum is gyakori:
 
 ```c
 int color = 0xFF4B77BE;   // A=255, R=75, G=119, B=190
 widget.SetColor(color);
 ```
 
-### Setting an Event Handler
+### Eseménykezelő beállítása
 
 ```c
-widget.SetHandler(myEventHandler);  // ScriptedWidgetEventHandler instance
+widget.SetHandler(myEventHandler);  // ScriptedWidgetEventHandler példány
 ```
 
-### Setting User Data
+### Felhasználói adat beállítása
 
-Attach arbitrary data to a widget for later retrieval:
+Tetszőleges adat csatolása egy widgethez későbbi lekérdezéshez:
 
 ```c
-widget.SetUserData(myDataObject);  // Must inherit from Managed
+widget.SetUserData(myDataObject);  // Managed osztályból kell öröklődnie
 
-// Later retrieve it:
+// Később lekérdezés:
 Managed data;
 widget.GetUserData(data);
 MyDataClass myData = MyDataClass.Cast(data);
@@ -227,28 +231,28 @@ MyDataClass myData = MyDataClass.Cast(data);
 
 ---
 
-## Widget Cleanup
+## Widget takarítás
 
-Widgets that are no longer needed must be properly cleaned up to avoid memory leaks.
+A már nem szükséges widgeteket megfelelően takarítani kell a memóriaszivárgás elkerülése érdekében.
 
 ### Unlink()
 
-Removes a widget from its parent and destroys it (and all its children):
+Eltávolít egy widgetet a szülőjéből és megsemmisíti (az összes gyermekével együtt):
 
 ```c
 widget.Unlink();
 ```
 
-After calling `Unlink()`, the widget reference becomes invalid. Set it to `null`:
+Az `Unlink()` hívása után a widget referencia érvénytelenné válik. Állítsd `null`-ra:
 
 ```c
 widget.Unlink();
 widget = null;
 ```
 
-### Removing All Children
+### Összes gyermek eltávolítása
 
-To clear a container widget of all its children:
+Egy konténer widget összes gyermekének törlése:
 
 ```c
 void ClearChildren(Widget parent)
@@ -263,11 +267,11 @@ void ClearChildren(Widget parent)
 }
 ```
 
-**Fontos:** You must get `GetSibling()` **before** calling `Unlink()`, because unlinking invalidates the widget's sibling chain.
+**Fontos:** A `GetSibling()` metódust az `Unlink()` hívása **előtt** kell meghívnod, mert a leválasztás érvényteleníti a widget testvérláncolatát.
 
-### Null Checks
+### Null ellenőrzések
 
-Always null-check widgets before using them. `FindAnyWidget()` returns `null` if the widget is not found, and cast operations return `null` if the type does not match:
+Mindig ellenőrizd a null értéket a widgetek használata előtt. A `FindAnyWidget()` `null`-t ad vissza, ha a widget nem található, és a típuskonverziós műveletek `null`-t adnak vissza, ha a típus nem egyezik:
 
 ```c
 TextWidget tw = TextWidget.Cast(root.FindAnyWidget("MaybeExists"));
@@ -279,34 +283,34 @@ if (tw)
 
 ---
 
-## Widget Hierarchy Navigation
+## Widget hierarchia navigáció
 
-Navigate the widget tree from code:
+A widget fa navigálása kódból:
 
 ```c
-Widget parent = widget.GetParent();           // Parent widget
-Widget firstChild = widget.GetChildren();     // First child
-Widget nextSibling = widget.GetSibling();     // Next sibling
-Widget found = widget.FindAnyWidget("Name");  // Recursive search by name
+Widget parent = widget.GetParent();           // Szülő widget
+Widget firstChild = widget.GetChildren();     // Első gyermek
+Widget nextSibling = widget.GetSibling();     // Következő testvér
+Widget found = widget.FindAnyWidget("Name");  // Rekurzív keresés név alapján
 
-string name = widget.GetName();               // Widget name
-string typeName = widget.GetTypeName();       // e.g., "TextWidget"
+string name = widget.GetName();               // Widget neve
+string typeName = widget.GetTypeName();       // Pl. "TextWidget"
 ```
 
-To iterate all children:
+Összes gyermek bejárása:
 
 ```c
 Widget child = parent.GetChildren();
 while (child)
 {
-    // Process child
+    // Gyermek feldolgozása
     Print("Child: " + child.GetName());
 
     child = child.GetSibling();
 }
 ```
 
-To iterate all descendants recursively:
+Összes leszármazott rekurzív bejárása:
 
 ```c
 void WalkWidgets(Widget w, int depth = 0)
@@ -324,9 +328,9 @@ void WalkWidgets(Widget w, int depth = 0)
 
 ---
 
-## Complete Example: Creating a Dialog in Code
+## Teljes példa: Párbeszédablak létrehozása kódban
 
-Here is a complete example that creates a simple information dialog entirely in code, without any layout file:
+Íme egy teljes példa, amely teljesen kódból hoz létre egy egyszerű információs párbeszédablakot, layout fájl nélkül:
 
 ```c
 class SimpleCodeDialog : ScriptedWidgetEventHandler
@@ -345,31 +349,31 @@ class SimpleCodeDialog : ScriptedWidgetEventHandler
 
         WorkspaceWidget workspace = GetGame().GetWorkspace();
 
-        // Root frame: 400x200 pixels, centered on screen
+        // Gyökér keret: 400x200 pixel, képernyő közepén
         m_Root = workspace.CreateWidget(
             FrameWidgetTypeID, 0, 0, 400, 200, FLAGS_EXACT,
             ARGB(230, 30, 30, 30), 100, null);
 
-        // Center it manually
+        // Manuális középre igazítás
         int sw, sh;
         GetScreenSize(sw, sh);
         m_Root.SetScreenPos((sw - 400) / 2, (sh - 200) / 2);
 
-        // Title text: full width, 30px tall, at top
+        // Cím szöveg: teljes szélesség, 30px magas, felül
         Widget titleW = workspace.CreateWidget(
             TextWidgetTypeID, 0, 0, 400, 30, FLAGS_EXACT,
             ARGB(255, 100, 160, 220), 0, m_Root);
         m_Title = TextWidget.Cast(titleW);
         m_Title.SetText(title);
 
-        // Message text: below title, fills remaining space
+        // Üzenet szöveg: a cím alatt, kitölti a maradék teret
         Widget msgW = workspace.CreateWidget(
             TextWidgetTypeID, 10, 40, 380, 110, FLAGS_EXACT,
             ARGB(255, 200, 200, 200), 0, m_Root);
         m_Message = TextWidget.Cast(msgW);
         m_Message.SetText(message);
 
-        // Close button: 80x30 pixels, bottom-right area
+        // Bezárás gomb: 80x30 pixel, jobb alsó terület
         Widget btnW = workspace.CreateWidget(
             ButtonWidgetTypeID, 310, 160, 80, 30, FLAGS_EXACT,
             ARGB(255, 80, 130, 200), 0, m_Root);
@@ -403,28 +407,28 @@ class SimpleCodeDialog : ScriptedWidgetEventHandler
     }
 }
 
-// Usage:
+// Használat:
 SimpleCodeDialog dialog = new SimpleCodeDialog("Alert", "Server restart in 5 minutes.");
 ```
 
 ---
 
-## Layout Files vs. Programmatic: When to Use Each
+## Layout fájlok vs. programozott: Mikor melyiket használjuk
 
-| Helyzet | Ajanlott |
+| Helyzet | Ajánlás |
 |---|---|
-| Static UI structure | Layout file (`.layout`) |
-| Complex widget trees | Layout file |
-| Dynamic number of items | `CreateWidgets()` from a template layout |
-| Simple runtime elements (debug text, markers) | `CreateWidget()` |
-| Rapid prototyping | `CreateWidget()` |
-| Production mod UI | Layout file + code configuration |
+| Statikus UI struktúra | Layout fájl (`.layout`) |
+| Összetett widget fák | Layout fájl |
+| Dinamikus számú elem | `CreateWidgets()` sablon layoutból |
+| Egyszerű futásidejű elemek (debug szöveg, jelölők) | `CreateWidget()` |
+| Gyors prototípus készítés | `CreateWidget()` |
+| Éles mod UI | Layout fájl + kód konfiguráció |
 
-In practice, most mods use **layout files** for the structure and **code** for populating data, showing/hiding elements, and handling events. Purely programmatic UIs are rare outside of debug tools.
+A gyakorlatban a legtöbb mod **layout fájlokat** használ a struktúrához és **kódot** az adatok feltöltéséhez, elemek megjelenítéséhez/elrejtéséhez és események kezeléséhez. A tisztán programozott UI-k ritkák a hibakeresési eszközökön kívül.
 
 ---
 
-## Kovetkezo lepesek
+## Következő lépések
 
-- [3.6 Esemenyek kezelese](06-event-handling.md) -- Handle clicks, changes, and mouse events
-- [3.7 Stilusok, betutipusok es kepek](07-styles-fonts.md) -- Visual styling and image resources
+- [3.6 Események kezelése](06-event-handling.md) -- Kattintások, változások és egér események kezelése
+- [3.7 Stílusok, betűtípusok és képek](07-styles-fonts.md) -- Vizuális stílusok és kép erőforrások

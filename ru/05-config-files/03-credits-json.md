@@ -1,35 +1,37 @@
-# Chapter 5.3: Credits.json
+# Глава 5.3: Credits.json
 
-[Home](../../README.md) | [<< Previous: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Next: ImageSet Format >>](04-imagesets.md)
+[Главная](../../README.md) | [<< Назад: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Далее: Формат ImageSet >>](04-imagesets.md)
+
+---
+
+> **Краткое описание:** Файл `Credits.json` определяет титры, которые DayZ отображает для вашего мода в игровом меню модов. В нём перечислены участники команды, контрибьюторы и благодарности, организованные по отделам и секциям. Хотя это чисто косметический файл, он является стандартным способом отдать должное вашей команде разработчиков.
 
 ---
 
 ## Содержание
 
-
-- [Overview](#overview)
-- [File Location](#file-location)
-- [JSON Structure](#json-structure)
-- [How DayZ Displays Credits](#how-dayz-displays-credits)
-- [Using Localized Section Names](#using-localized-section-names)
-- [Templates](#templates)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+- [Обзор](#обзор)
+- [Расположение файла](#расположение-файла)
+- [Структура JSON](#структура-json)
+- [Как DayZ отображает титры](#как-dayz-отображает-титры)
+- [Использование локализованных названий секций](#использование-локализованных-названий-секций)
+- [Шаблоны](#шаблоны)
+- [Реальные примеры](#реальные-примеры)
+- [Распространённые ошибки](#распространённые-ошибки)
 
 ---
 
 ## Обзор
 
+Когда игрок выбирает ваш мод в лаунчере DayZ или во внутриигровом меню модов, движок ищет файл `Credits.json` внутри PBO вашего мода. Если файл найден, титры отображаются в прокручиваемом виде, организованном по отделам и секциям --- аналогично титрам в кинофильмах.
 
-When a player selects your mod in the DayZ launcher or in-game mod menu, the engine looks for a `Credits.json` file inside your mod's PBO. If found, the credits are displayed in a scrolling view organized into departments and sections --- similar to movie credits.
-
-The file is optional. If absent, no credits section appears for your mod. But including one is good practice: it acknowledges your team's work and gives your mod a professional appearance.
+Файл необязателен. Если он отсутствует, раздел титров для вашего мода не отображается. Однако его включение является хорошей практикой: это признание работы вашей команды и придание моду профессионального вида.
 
 ---
 
-## File Location
+## Расположение файла
 
-Place `Credits.json` inside a `Data` subfolder of your Scripts directory, or directly in the Scripts root:
+Поместите `Credits.json` в подпапку `Data` вашей директории Scripts или непосредственно в корень Scripts:
 
 ```
 @MyMod/
@@ -37,17 +39,17 @@ Place `Credits.json` inside a `Data` subfolder of your Scripts directory, or dir
     MyMod_Scripts.pbo
       Scripts/
         Data/
-          Credits.json       <-- Common location (COT, Expansion, DayZ Editor)
-        Credits.json         <-- Also valid (DabsFramework, Colorful-UI)
+          Credits.json       <-- Типичное расположение (COT, Expansion, DayZ Editor)
+        Credits.json         <-- Тоже допустимо (DabsFramework, Colorful-UI)
 ```
 
-Both locations work. The engine scans the PBO contents for a file named `Credits.json` (case-sensitive on some platforms).
+Оба расположения работают. Движок сканирует содержимое PBO в поисках файла с именем `Credits.json` (регистр важен на некоторых платформах).
 
 ---
 
-## JSON Structure
+## Структура JSON
 
-The file uses a straightforward JSON structure with three levels of hierarchy:
+Файл использует простую JSON-структуру с тремя уровнями иерархии:
 
 ```json
 {
@@ -66,54 +68,54 @@ The file uses a straightforward JSON structure with three levels of hierarchy:
 }
 ```
 
-### Top-Level Fields
+### Поля верхнего уровня
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `Header` | string | No | Main title displayed at the top of the credits. If omitted, no header is shown. |
-| `Departments` | array | Yes | Array of department objects |
+| Поле | Тип | Обязательное | Описание |
+|------|------|----------|-------------|
+| `Header` | string | Нет | Основной заголовок, отображаемый вверху титров. Если опущен, заголовок не показывается. |
+| `Departments` | array | Да | Массив объектов отделов |
 
-### Department Object
+### Объект отдела
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `DepartmentName` | string | Yes | Section header text. Can be empty `""` for visual grouping without a header. |
-| `Sections` | array | Yes | Array of section objects within this department |
+| Поле | Тип | Обязательное | Описание |
+|------|------|----------|-------------|
+| `DepartmentName` | string | Да | Текст заголовка секции. Может быть пустым `""` для визуальной группировки без заголовка. |
+| `Sections` | array | Да | Массив объектов секций внутри этого отдела |
 
-### Section Object
+### Объект секции
 
-Two variants exist in the wild for listing names. The engine supports both.
+В реальных модах существуют два варианта перечисления имён. Движок поддерживает оба.
 
-**Variant 1: `Names` array** (used by MyFramework)
+**Вариант 1: массив `Names`** (используется MyMod Core)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `SectionName` | string | Yes | Sub-header within the department |
-| `Names` | array of strings | Yes | List of contributor names |
+| Поле | Тип | Обязательное | Описание |
+|------|------|----------|-------------|
+| `SectionName` | string | Да | Подзаголовок внутри отдела |
+| `Names` | array of strings | Да | Список имён контрибьюторов |
 
-**Variant 2: `SectionLines` array** (used by COT, Expansion, DabsFramework)
+**Вариант 2: массив `SectionLines`** (используется COT, Expansion, DabsFramework)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `SectionName` | string | Yes | Sub-header within the department |
-| `SectionLines` | array of strings | Yes | List of contributor names or text lines |
+| Поле | Тип | Обязательное | Описание |
+|------|------|----------|-------------|
+| `SectionName` | string | Да | Подзаголовок внутри отдела |
+| `SectionLines` | array of strings | Да | Список имён контрибьюторов или текстовых строк |
 
-Both `Names` and `SectionLines` serve the same purpose. Use whichever you prefer ----  engine renders them identically.
+И `Names`, и `SectionLines` выполняют одну и ту же функцию. Используйте тот, который предпочитаете --- движок отображает их одинаково.
 
 ---
 
-## How DayZ Displays Credits
+## Как DayZ отображает титры
 
-The credits display follows this visual hierarchy:
+Визуальная иерархия титров:
 
 ```
 ╔══════════════════════════════════╗
-║         MY MOD NAME              ║  <-- Header (large, centered)
+║         MY MOD NAME              ║  <-- Header (крупный, по центру)
 ║                                  ║
-║     DEPARTMENT NAME              ║  <-- DepartmentName (medium, centered)
+║     DEPARTMENT NAME              ║  <-- DepartmentName (средний, по центру)
 ║                                  ║
-║     Section Name                 ║  <-- SectionName (small, centered)
-║     Person 1                     ║  <-- Names/SectionLines (list)
+║     Section Name                 ║  <-- SectionName (мелкий, по центру)
+║     Person 1                     ║  <-- Names/SectionLines (список)
 ║     Person 2                     ║
 ║     Person 3                     ║
 ║                                  ║
@@ -126,14 +128,14 @@ The credits display follows this visual hierarchy:
 ╚══════════════════════════════════╝
 ```
 
-- The `Header` appears once at the top
-- Each `DepartmentName` acts as a major section divider
-- Each `SectionName` acts as a sub-heading
-- Names scroll vertically in the credits view
+- `Header` отображается один раз вверху
+- Каждый `DepartmentName` выступает в роли основного разделителя секций
+- Каждый `SectionName` выступает в роли подзаголовка
+- Имена прокручиваются вертикально в виде титров
 
-### Empty Strings for Spacing
+### Пустые строки для отступов
 
-Expansion uses empty `DepartmentName` and `SectionName` strings, plus whitespace-only entries in `SectionLines`, to create visual spacing:
+Expansion использует пустые строки `DepartmentName` и `SectionName`, а также записи только из пробелов в `SectionLines` для создания визуальных отступов:
 
 ```json
 {
@@ -145,13 +147,13 @@ Expansion uses empty `DepartmentName` and `SectionName` strings, plus whitespace
 }
 ```
 
-This is a common trick for controlling visual layout in the credits scroll.
+Это распространённый приём для управления визуальной разметкой в прокрутке титров.
 
 ---
 
-## Using Localized Section Names
+## Использование локализованных названий секций
 
-Section names can reference stringtable keys using the `#` prefix, just like UI text:
+Названия секций могут ссылаться на ключи stringtable с помощью префикса `#`, аналогично тексту UI:
 
 ```json
 {
@@ -160,9 +162,9 @@ Section names can reference stringtable keys using the `#` prefix, just like UI 
 }
 ```
 
-When the engine renders this, it resolves `#STR_EXPANSION_CREDITS_SCRIPTERS` to the localized text matching the player's language. This is useful if your mod supports multiple languages and you want the credits section headers to be translated.
+Когда движок отображает это, он разрешает `#STR_EXPANSION_CREDITS_SCRIPTERS` в локализованный текст, соответствующий языку игрока. Это полезно, если ваш мод поддерживает несколько языков и вы хотите, чтобы заголовки секций титров были переведены.
 
-Department names can also use stringtable references:
+Названия отделов также могут использовать ссылки на stringtable:
 
 ```json
 {
@@ -173,9 +175,9 @@ Department names can also use stringtable references:
 
 ---
 
-## Templates
+## Шаблоны
 
-### Solo Developer
+### Соло-разработчик
 
 ```json
 {
@@ -194,7 +196,7 @@ Department names can also use stringtable references:
 }
 ```
 
-### Small Team
+### Небольшая команда
 
 ```json
 {
@@ -225,7 +227,7 @@ Department names can also use stringtable references:
 }
 ```
 
-### Full Professional Structure
+### Полная профессиональная структура
 
 ```json
 {
@@ -289,21 +291,20 @@ Department names can also use stringtable references:
 
 ## Реальные примеры
 
+### MyMod Core
 
-### MyFramework
-
-A minimal but complete credits file using the `Names` variant:
+Минимальный, но полный файл титров, использующий вариант `Names`:
 
 ```json
 {
-    "Header": "MyFramework",
+    "Header": "MyMod Core",
     "Departments": [
         {
             "DepartmentName": "Development",
             "Sections": [
                 {
                     "SectionName": "Framework",
-                    "Names": ["MyMod Team"]
+                    "Names": ["Documentation Team"]
                 }
             ]
         }
@@ -313,7 +314,7 @@ A minimal but complete credits file using the `Names` variant:
 
 ### Community Online Tools (COT)
 
-Uses the `SectionLines` variant with multiple sections and acknowledgments:
+Использует вариант `SectionLines` с несколькими секциями и благодарностями:
 
 ```json
 {
@@ -354,7 +355,7 @@ Uses the `SectionLines` variant with multiple sections and acknowledgments:
 }
 ```
 
-Notable: COT omits the `Header` field entirely. The mod name comes from other metadata (config.cpp `CfgMods`).
+Примечание: COT полностью опускает поле `Header`. Название мода берётся из других метаданных (config.cpp `CfgMods`).
 
 ### DabsFramework
 
@@ -389,33 +390,32 @@ Notable: COT omits the `Header` field entirely. The mod name comes from other me
 
 ### DayZ Expansion
 
-Expansion demonstrates the most sophisticated use of Credits.json, including:
-- Localized section names via stringtable references (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
-- Legal notices as a separate department
-- Empty department and section names for visual spacing
-- A supporters list with dozens of names
+Expansion демонстрирует наиболее продвинутое использование Credits.json, включая:
+- Локализованные названия секций через ссылки на stringtable (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
+- Юридические уведомления в отдельном отделе
+- Пустые названия отделов и секций для визуальных отступов
+- Список спонсоров с десятками имён
 
 ---
 
 ## Распространённые ошибки
 
+### Недопустимый синтаксис JSON
 
-### Недействительная JSON Syntax
+Самая частая проблема. JSON строг в отношении:
+- **Завершающие запятые**: `["a", "b",]` --- это недопустимый JSON (завершающая запятая после `"b"`)
+- **Одинарные кавычки**: используйте `"двойные кавычки"`, а не `'одинарные кавычки'`
+- **Ключи без кавычек**: `DepartmentName` должен быть `"DepartmentName"`
 
-The most common issue. JSON is strict about:
-- **Trailing commas**: `["a", "b",]` is invalid JSON (the trailing comma after `"b"`)
-- **Single quotes**: Use `"double quotes"`, not `'single quotes'`
-- **Unquoted keys**: `DepartmentName` must be `"DepartmentName"`
+Используйте валидатор JSON перед публикацией.
 
-Use a JSON validator before shipping.
+### Неправильное имя файла
 
-### Wrong File Name
+Файл должен называться именно `Credits.json` (заглавная C). На файловых системах с учётом регистра `credits.json` или `CREDITS.JSON` не будут найдены.
 
-The file must be named exactly `Credits.json` (capital C). On case-sensitive file systems, `credits.json` or `CREDITS.JSON` will not be found.
+### Смешивание Names и SectionLines
 
-### Mixing Names and SectionLines
-
-Within a single section, use one or the other:
+В рамках одной секции используйте что-то одно:
 
 ```json
 {
@@ -425,8 +425,25 @@ Within a single section, use one or the other:
 }
 ```
 
-This is ambiguous. Pick one format and use it consistently throughout the file.
+Это неоднозначно. Выберите один формат и используйте его последовательно по всему файлу.
 
-### Encoding Issues
+### Проблемы с кодировкой
 
-Сохранить the file as UTF-8. Non-ASCII characters (accented names, CJK characters) require UTF-8 encoding to display correctly in-game.
+Сохраняйте файл в UTF-8. Символы не из ASCII (имена с акцентами, CJK-символы) требуют кодировки UTF-8 для корректного отображения в игре.
+
+---
+
+## Лучшие практики
+
+- Проверяйте ваш JSON внешним инструментом перед упаковкой в PBO --- движок не выдаёт полезных сообщений об ошибках для некорректного JSON.
+- Используйте вариант `SectionLines` для единообразия, поскольку это формат, используемый COT, Expansion и DabsFramework.
+- Включайте отдел "Legal Notices", если ваш мод содержит сторонние ассеты (шрифты, иконки, звуки) с требованиями указания авторства.
+- Значение поля `Header` должно совпадать с `name` вашего мода в `mod.cpp` и `config.cpp` для единообразной идентификации.
+- Используйте пустые строки `DepartmentName` и `SectionName` умеренно для визуальных отступов --- чрезмерное использование делает титры фрагментированными.
+
+---
+
+## Совместимость и влияние
+
+- **Мульти-мод:** Каждый мод имеет собственный независимый `Credits.json`. Риск конфликтов отсутствует --- движок читает файл из PBO каждого мода отдельно.
+- **Производительность:** Титры загружаются только когда игрок открывает экран деталей мода. Размер файла не влияет на игровую производительность.

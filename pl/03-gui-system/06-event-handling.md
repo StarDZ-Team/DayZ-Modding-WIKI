@@ -1,16 +1,20 @@
-# Chapter 3.6: Event Handling
+# Rozdział 3.6: Obsługa zdarzeń
 
-[Home](../../README.md) | [<< Previous: Programmatic Widget Creation](05-programmatic-widgets.md) | **Event Handling** | [Next: Styles, Fonts & Images >>](07-styles-fonts.md)
+[Strona główna](../../README.md) | [<< Poprzedni: Programowe tworzenie widgetów](05-programmatic-widgets.md) | **Obsługa zdarzeń** | [Dalej: Style, czcionki i obrazy >>](07-styles-fonts.md)
+
+---
+
+Widgety generują zdarzenia, gdy użytkownik z nimi wchodzi w interakcję -- klikanie przycisków, wpisywanie tekstu w pola edycji, ruszanie myszą, przeciąganie elementów. Ten rozdział opisuje, jak odbierać i obsługiwać te zdarzenia.
 
 ---
 
 ## ScriptedWidgetEventHandler
 
-The `ScriptedWidgetEventHandler` class is the foundation of all widget event handling in DayZ. It provides override methods for every possible widget event.
+Klasa `ScriptedWidgetEventHandler` jest fundamentem całej obsługi zdarzeń widgetów w DayZ. Udostępnia metody do nadpisywania dla każdego możliwego zdarzenia widgetu.
 
-To receive events from a widget, create a class that extends `ScriptedWidgetEventHandler`, override the event methods you care about, and attach the handler to the widget with `SetHandler()`.
+Aby odbierać zdarzenia od widgetu, utwórz klasę rozszerzającą `ScriptedWidgetEventHandler`, nadpisz metody zdarzeń, które Cię interesują, i dołącz handler do widgetu za pomocą `SetHandler()`.
 
-### Complete Event Method List
+### Kompletna lista metod zdarzeń
 
 ```c
 class ScriptedWidgetEventHandler
@@ -64,20 +68,20 @@ class ScriptedWidgetEventHandler
 }
 ```
 
-### Return Value: Consumed vs. Pass-Through
+### Wartość zwracana: Konsumpcja vs. przepuszczanie
 
-Every event handler returns a `bool`:
+Każdy handler zdarzenia zwraca `bool`:
 
-- **`return true;`** -- The event is **consumed**. No other handler will receive it. The event stops propagating up the widget hierarchy.
-- **`return false;`** -- The event is **passed through** to the parent widget's handler (if any).
+- **`return true;`** -- Zdarzenie jest **skonsumowane**. Żaden inny handler go nie otrzyma. Zdarzenie przestaje się propagować w górę hierarchii widgetów.
+- **`return false;`** -- Zdarzenie jest **przepuszczone** do handlera widgetu rodzica (jeśli istnieje).
 
-This is critical for building layered UIs. For example, a button click handler should return `true` to prevent the click from also triggering a panel behind it.
+Jest to krytyczne dla budowania warstwowych interfejsów. Na przykład handler kliknięcia przycisku powinien zwrócić `true`, aby zapobiec propagacji kliknięcia do panelu za nim.
 
 ---
 
-## Rejestrowanie handlerow za pomoca SetHandler()
+## Rejestrowanie handlerów za pomocą SetHandler()
 
-The simplest way to handle events is to call `SetHandler()` on a widget:
+Najprostszy sposób obsługi zdarzeń to wywołanie `SetHandler()` na widgecie:
 
 ```c
 class MyPanel : ScriptedWidgetEventHandler
@@ -118,11 +122,11 @@ class MyPanel : ScriptedWidgetEventHandler
 }
 ```
 
-A single handler instance can be registered on multiple widgets. Inside the event method, compare `w` (the widget that generated the event) against your cached references to determine which widget was interacted with.
+Jedna instancja handlera może być zarejestrowana na wielu widgetach. Wewnątrz metody zdarzenia porównuj `w` (widget, który wygenerował zdarzenie) z zapisanymi referencjami, aby określić, z którym widgetem nastąpiła interakcja.
 
 ---
 
-## Szczegoly najczestszych zdarzen
+## Szczegóły najczęstszych zdarzeń
 
 ### OnClick
 
@@ -130,11 +134,11 @@ A single handler instance can be registered on multiple widgets. Inside the even
 bool OnClick(Widget w, int x, int y, int button)
 ```
 
-Fired when a `ButtonWidget` is clicked (mouse released over the widget).
+Emitowane, gdy `ButtonWidget` jest kliknięty (mysz zwolniona nad widgetem).
 
-- `w` -- The clicked widget
-- `x, y` -- Mouse cursor position (screen pixels)
-- `button` -- Mouse button index: `0` = left, `1` = right, `2` = middle
+- `w` -- Kliknięty widget
+- `x, y` -- Pozycja kursora myszy (piksele ekranowe)
+- `button` -- Indeks przycisku myszy: `0` = lewy, `1` = prawy, `2` = środkowy
 
 ```c
 override bool OnClick(Widget w, int x, int y, int button)
@@ -156,10 +160,10 @@ override bool OnClick(Widget w, int x, int y, int button)
 bool OnChange(Widget w, int x, int y, bool finished)
 ```
 
-Fired by `SliderWidget`, `CheckBoxWidget`, `EditBoxWidget`, and other value-based widgets when their value changes.
+Emitowane przez `SliderWidget`, `CheckBoxWidget`, `EditBoxWidget` i inne widgety oparte na wartościach, gdy ich wartość się zmienia.
 
-- `w` -- The widget whose value changed
-- `finished` -- For sliders: `true` when the user releases the slider handle. For edit boxes: `true` when Enter is pressed.
+- `w` -- Widget, którego wartość się zmieniła
+- `finished` -- Dla suwaków: `true`, gdy użytkownik zwolni uchwyt suwaka. Dla pól edycji: `true`, gdy naciśnięto Enter.
 
 ```c
 override bool OnChange(Widget w, int x, int y, bool finished)
@@ -214,9 +218,9 @@ bool OnMouseEnter(Widget w, int x, int y)
 bool OnMouseLeave(Widget w, Widget enterW, int x, int y)
 ```
 
-Fired when the mouse cursor enters or leaves a widget's bounds. The `enterW` parameter in `OnMouseLeave` is the widget the cursor moved to.
+Emitowane, gdy kursor myszy wchodzi do lub opuszcza granice widgetu. Parametr `enterW` w `OnMouseLeave` jest widgetem, do którego kursor się przeniósł.
 
-Common use: hover effects.
+Typowe zastosowanie: efekty najechania.
 
 ```c
 override bool OnMouseEnter(Widget w, int x, int y)
@@ -247,7 +251,7 @@ bool OnFocus(Widget w, int x, int y)
 bool OnFocusLost(Widget w, int x, int y)
 ```
 
-Fired when a widget gains or loses keyboard focus. Important for edit boxes and other text input widgets.
+Emitowane, gdy widget zyskuje lub traci fokus klawiatury. Ważne dla pól edycji i innych widgetów wprowadzania tekstu.
 
 ```c
 override bool OnFocus(Widget w, int x, int y)
@@ -277,7 +281,7 @@ override bool OnFocusLost(Widget w, int x, int y)
 bool OnMouseWheel(Widget w, int x, int y, int wheel)
 ```
 
-Fired when the mouse wheel scrolls over a widget. `wheel` is positive for scroll up, negative for scroll down.
+Emitowane, gdy kółko myszy jest przewijane nad widgetem. `wheel` jest dodatnie dla przewijania w górę, ujemne dla przewijania w dół.
 
 ### OnKeyDown / OnKeyUp / OnKeyPress
 
@@ -287,7 +291,7 @@ bool OnKeyUp(Widget w, int x, int y, int key)
 bool OnKeyPress(Widget w, int x, int y, int key)
 ```
 
-Keyboard events. The `key` parameter corresponds to `KeyCode` constants (e.g., `KeyCode.KC_ESCAPE`, `KeyCode.KC_RETURN`).
+Zdarzenia klawiatury. Parametr `key` odpowiada stałym `KeyCode` (np. `KeyCode.KC_ESCAPE`, `KeyCode.KC_RETURN`).
 
 ### OnDrag / OnDrop / OnDropReceived
 
@@ -297,11 +301,11 @@ bool OnDrop(Widget w, int x, int y, Widget receiver)
 bool OnDropReceived(Widget w, int x, int y, Widget receiver)
 ```
 
-Drag and drop events. The widget must have `draggable 1` in its layout (or `WidgetFlags.DRAGGABLE` set in code).
+Zdarzenia przeciągnij i upuść. Widget musi mieć `draggable 1` w swoim layoucie (lub ustawioną flagę `WidgetFlags.DRAGGABLE` w kodzie).
 
-- `OnDrag` -- User started dragging widget `w`
-- `OnDrop` -- Widget `w` was dropped; `receiver` is the widget underneath
-- `OnDropReceived` -- Widget `w` received a drop; `receiver` is the dropped widget
+- `OnDrag` -- Użytkownik zaczął przeciągać widget `w`
+- `OnDrop` -- Widget `w` został upuszczony; `receiver` to widget pod spodem
+- `OnDropReceived` -- Widget `w` otrzymał upuszczony element; `receiver` to upuszczony widget
 
 ### OnItemSelected
 
@@ -310,13 +314,13 @@ bool OnItemSelected(Widget w, int x, int y, int row, int column,
                      int oldRow, int oldColumn)
 ```
 
-Fired by `TextListboxWidget` when a row is selected.
+Emitowane przez `TextListboxWidget`, gdy wiersz jest wybrany.
 
 ---
 
-## Vanilla WidgetEventHandler (Callback Registration)
+## Waniliowy WidgetEventHandler (rejestracja callbacków)
 
-DayZ's vanilla code uses an alternative pattern: `WidgetEventHandler`, a singleton that routes events to named callback functions. This is commonly used in vanilla menus.
+Waniliowy kod DayZ używa alternatywnego wzorca: `WidgetEventHandler`, singletona, który przekierowuje zdarzenia do nazwanych funkcji callback. Jest to powszechnie używane w waniliowych menu.
 
 ```c
 WidgetEventHandler handler = WidgetEventHandler.GetInstance();
@@ -342,7 +346,7 @@ handler.RegisterOnChildRemove(myWidget, this, "OnChildRemoved");
 handler.UnregisterWidget(myWidget);
 ```
 
-The callback function signatures must match the event type:
+Sygnatury funkcji callback muszą odpowiadać typowi zdarzenia:
 
 ```c
 void OnMyButtonClick(Widget w, int x, int y, int button)
@@ -363,21 +367,21 @@ void OnHoverEnd(Widget w, Widget enterW, int x, int y)
 
 ### SetHandler() vs. WidgetEventHandler
 
-| Aspect | SetHandler() | WidgetEventHandler |
+| Aspekt | SetHandler() | WidgetEventHandler |
 |---|---|---|
-| Pattern | Override virtual methods | Register named callbacks |
-| Handler per widget | One handler per widget | Multiple callbacks per event |
-| Used by | DabsFramework, Expansion, custom mods | Vanilla DayZ menus |
-| Flexibility | Must handle all events in one class | Can register different targets for different events |
-| Cleanup | Implicit when handler is destroyed | Must call `UnregisterWidget()` |
+| Wzorzec | Nadpisywanie metod wirtualnych | Rejestracja nazwanych callbacków |
+| Handler na widget | Jeden handler na widget | Wiele callbacków na zdarzenie |
+| Używany przez | DabsFramework, Expansion, niestandardowe mody | Waniliowe menu DayZ |
+| Elastyczność | Wszystkie zdarzenia muszą być obsługiwane w jednej klasie | Można rejestrować różne cele dla różnych zdarzeń |
+| Czyszczenie | Niejawne po zniszczeniu handlera | Wymaga wywołania `UnregisterWidget()` |
 
-For new mods, `SetHandler()` with `ScriptedWidgetEventHandler` is the recommended approach.
+Dla nowych modów `SetHandler()` z `ScriptedWidgetEventHandler` jest zalecanym podejściem.
 
 ---
 
-## Complete Example: Interactive Button Panel
+## Kompletny przykład: Interaktywny panel przycisków
 
-A panel with three buttons that change color on hover and perform actions on click:
+Panel z trzema przyciskami, które zmieniają kolor przy najechaniu i wykonują akcje po kliknięciu:
 
 ```c
 class InteractivePanel : ScriptedWidgetEventHandler
@@ -471,21 +475,21 @@ class InteractivePanel : ScriptedWidgetEventHandler
 
 ---
 
-## Event Handling Best Practices
+## Dobre praktyki obsługi zdarzeń
 
-1. **Always return `true` when you handle an event** -- Otherwise the event propagates to parent widgets and may trigger unintended behavior.
+1. **Zawsze zwracaj `true`, gdy obsługujesz zdarzenie** -- W przeciwnym razie zdarzenie propaguje się do widgetów nadrzędnych i może wywołać niezamierzone zachowanie.
 
-2. **Return `false` for events you do not handle** -- This allows parent widgets to process the event.
+2. **Zwracaj `false` dla zdarzeń, których nie obsługujesz** -- Pozwala to widgetom nadrzędnym przetworzyć zdarzenie.
 
-3. **Cache widget references** -- Do not call `FindAnyWidget()` inside event handlers. Look up widgets once in the constructor and store references.
+3. **Cachuj referencje widgetów** -- Nie wywołuj `FindAnyWidget()` wewnątrz handlerów zdarzeń. Wyszukaj widgety raz w konstruktorze i przechowuj referencje.
 
-4. **Null-check widgets in events** -- The widget `w` is usually valid, but defensive coding prevents crashes.
+4. **Sprawdzaj null widgetów w zdarzeniach** -- Widget `w` jest zazwyczaj poprawny, ale defensywne kodowanie zapobiega awariom.
 
-5. **Clean up handlers** -- When destroying a panel, unlink the root widget. If using `WidgetEventHandler`, call `UnregisterWidget()`.
+5. **Czyść handlery** -- Przy niszczeniu panelu odłącz korzeń widgetu. Jeśli używasz `WidgetEventHandler`, wywołaj `UnregisterWidget()`.
 
-6. **Use `finished` parameter wisely** -- For sliders, only apply expensive operations when `finished` is `true` (user released the handle). Use non-finished events for previewing.
+6. **Używaj parametru `finished` mądrze** -- Dla suwaków wykonuj kosztowne operacje tylko gdy `finished` jest `true` (użytkownik zwolnił uchwyt). Używaj zdarzeń bez finished do podglądu.
 
-7. **Defer heavy work** -- If an event handler needs to do expensive computation, use `CallLater` to defer it:
+7. **Odraczaj ciężką pracę** -- Jeśli handler zdarzenia musi wykonać kosztowne obliczenia, użyj `CallLater` do odroczenia:
 
 ```c
 override bool OnClick(Widget w, int x, int y, int button)
@@ -501,7 +505,40 @@ override bool OnClick(Widget w, int x, int y, int button)
 
 ---
 
-## Nastepne kroki
+## Teoria a praktyka
 
-- [3.7 Styles, Fonts & Images](07-styles-fonts.md) -- Visual styling with styles, fonts, and imageset references
-- [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Creating widgets that generate events
+> Czego mówi dokumentacja w porównaniu z tym, jak rzeczy faktycznie działają w trakcie pracy.
+
+| Koncepcja | Teoria | Rzeczywistość |
+|---------|--------|---------|
+| `OnClick` emitowane na dowolnym widgecie | Dowolny widget może odbierać zdarzenia kliknięcia | Tylko `ButtonWidget` niezawodnie emituje `OnClick`. Dla innych typów widgetów użyj `OnMouseButtonDown` / `OnMouseButtonUp` |
+| `SetHandler()` zastępuje handler | Ustawienie nowego handlera zastępuje stary | Poprawne, ale stary handler nie jest powiadamiany. Jeśli przechowywał zasoby, wyciekną. Zawsze czyść przed zastąpieniem handlerów |
+| Parametr `finished` `OnChange` | `true`, gdy użytkownik kończy interakcję | Dla `EditBoxWidget`, `finished` jest `true` tylko po naciśnięciu Enter -- tabulacja lub kliknięcie gdzie indziej NIE ustawia `finished` na `true` |
+| Propagacja wartości zwracanej zdarzenia | `return false` przekazuje zdarzenie do rodzica | Zdarzenia propagują się w górę drzewa widgetów, nie do widgetów rodzeństwa. `return false` z dziecka trafia do jego rodzica, nigdy do sąsiedniego widgetu |
+| Nazwy callbacków `WidgetEventHandler` | Dowolna nazwa funkcji działa | Funkcja musi istnieć na obiekcie docelowym w momencie rejestracji. Jeśli nazwa funkcji jest błędnie napisana, rejestracja cicho się udaje, ale callback nigdy się nie uruchomi |
+
+---
+
+## Kompatybilność i wpływ
+
+- **Multi-Mod:** `SetHandler()` pozwala na tylko jeden handler na widget. Jeśli mod A i mod B oba wywołują `SetHandler()` na tym samym waniliowym widgecie (przez `modded class`), ostatni wygrywa, a drugi cicho przestaje odbierać zdarzenia. Użyj `WidgetEventHandler.RegisterOnClick()` dla addytywnej kompatybilności multi-mod.
+- **Wydajność:** Handlery zdarzeń uruchamiają się na głównym wątku gry. Wolny handler `OnClick` (np. I/O plików lub złożone obliczenia) powoduje widoczne zacinanie klatek. Odraczaj ciężką pracę za pomocą `GetGame().GetCallQueue(CALL_CATEGORY_GUI).CallLater()`.
+- **Wersja:** API `ScriptedWidgetEventHandler` jest stabilne od DayZ 1.0. Callbacki singletona `WidgetEventHandler` to waniliowe wzorce obecne od wczesnych wersji Enforce Script i pozostają niezmienione.
+
+---
+
+## Zaobserwowane w prawdziwych modach
+
+| Wzorzec | Mod | Szczegóły |
+|---------|-----|--------|
+| Jeden handler dla całego panelu | COT, VPP Admin Tools | Jedna podklasa `ScriptedWidgetEventHandler` obsługuje wszystkie przyciski w panelu, rozdzielając przez porównywanie `w` z zapisanymi referencjami widgetów |
+| `WidgetEventHandler.RegisterOnClick` dla modularnych przycisków | Expansion Market | Każdy dynamicznie tworzony przycisk kupna/sprzedaży rejestruje swój własny callback, umożliwiając funkcje handlera per-element |
+| `OnMouseEnter` / `OnMouseLeave` dla tooltipów przy najechaniu | DayZ Editor | Zdarzenia najechania uruchamiają widgety tooltipów, które podążają za pozycją kursora przez `GetMousePos()` |
+| Odroczenie `CallLater` w `OnClick` | DabsFramework | Ciężkie operacje (zapis konfiguracji, wysyłanie RPC) są odraczane o 0ms przez `CallLater`, aby uniknąć blokowania wątku UI podczas zdarzenia |
+
+---
+
+## Następne kroki
+
+- [3.7 Style, czcionki i obrazy](07-styles-fonts.md) -- Stylowanie wizualne ze stylami, czcionkami i referencjami imagesetów
+- [3.5 Programowe tworzenie widgetów](05-programmatic-widgets.md) -- Tworzenie widgetów generujących zdarzenia
