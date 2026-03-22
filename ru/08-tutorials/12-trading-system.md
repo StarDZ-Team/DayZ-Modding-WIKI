@@ -4,14 +4,14 @@
 
 ---
 
-## Содержание
+## Table of Contents
 
 - [What We Are Building](#what-we-are-building)
-- [Шаг 1: Data Model (3_Game)](#step-1-data-model-3_game)
-- [Шаг 2: RPC Constants (3_Game)](#step-2-rpc-constants-3_game)
-- [Шаг 3: Server-Side Shop Manager (4_World)](#step-3-server-side-shop-manager-4_world)
-- [Шаг 4: Client-Side Shop UI (5_Mission)](#step-4-client-side-shop-ui-5_mission)
-- [Шаг 5: Layout File](#step-5-layout-file)
+- [Step 1: Data Model (3_Game)](#step-1-data-model-3_game)
+- [Step 2: RPC Constants (3_Game)](#step-2-rpc-constants-3_game)
+- [Step 3: Server-Side Shop Manager (4_World)](#step-3-server-side-shop-manager-4_world)
+- [Step 4: Client-Side Shop UI (5_Mission)](#step-4-client-side-shop-ui-5_mission)
+- [Step 5: Layout File](#step-5-layout-file)
 - [Step 6: Mission Hook and Keybind](#step-6-mission-hook-and-keybind)
 - [Step 7: Currency Item](#step-7-currency-item)
 - [Step 8: Shop Config JSON](#step-8-shop-config-json)
@@ -24,7 +24,7 @@
 
 ## What We Are Building
 
-Players press F6 to open a shop menu, browse items by category (Weapons, Food, Medical), and buy/sell using a currency item. The server validates every transaction ---  client never decides prices or spawns items.
+Players press F6 to open a shop menu, browse items by category (Weapons, Food, Medical), and buy/sell using a currency item. The server validates every transaction -- the client never decides prices or spawns items.
 
 ```mermaid
 sequenceDiagram
@@ -71,7 +71,7 @@ ShopDemo/
 
 ---
 
-## Шаг 1: Data Model (3_Game)
+## Step 1: Data Model (3_Game)
 
 ### `Scripts/3_Game/ShopDemo/ShopDemoData.c`
 
@@ -104,7 +104,7 @@ Keep `SellPrice < BuyPrice` always to prevent infinite money loops.
 
 ---
 
-## Шаг 2: RPC Constants (3_Game)
+## Step 2: RPC Constants (3_Game)
 
 ### `Scripts/3_Game/ShopDemo/ShopDemoRPC.c`
 
@@ -121,7 +121,7 @@ class ShopDemoRPC
 
 ---
 
-## Шаг 3: Server-Side Shop Manager (4_World)
+## Step 3: Server-Side Shop Manager (4_World)
 
 ### `Scripts/4_World/ShopDemo/ShopDemoManager.c`
 
@@ -361,7 +361,7 @@ modded class MissionServer
 
 ---
 
-## Шаг 4: Client-Side Shop UI (5_Mission)
+## Step 4: Client-Side Shop UI (5_Mission)
 
 ### `Scripts/5_Mission/ShopDemo/ShopDemoMenu.c`
 
@@ -531,7 +531,7 @@ class ShopDemoMenu extends ScriptedWidgetEventHandler
 
 ---
 
-## Шаг 5: Layout File
+## Step 5: Layout File
 
 ### `GUI/layouts/shop_menu.layout`
 
@@ -623,7 +623,7 @@ For released mods, use `inputs.xml` so players can remap the key:
 
 ## Step 7: Currency Item
 
-You can use any existing item -- set `CurrencyClassName` to `"Rag"` in the JSON and rags become money. For a custom coin, см. [Chapter 8.2: Custom Item](02-custom-item.md).
+You can use any existing item -- set `CurrencyClassName` to `"Rag"` in the JSON and rags become money. For a custom coin, see [Chapter 8.2: Custom Item](02-custom-item.md).
 
 ---
 
@@ -672,7 +672,7 @@ Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edi
 
 ---
 
-## Лучшие практики
+## Best Practices
 
 - **Server is the single source of truth.** Client is a display terminal.
 - **Use `DeleteSafe()` not `Delete()`.** Handles network sync and locked slots.
@@ -680,9 +680,9 @@ Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edi
 - **Always call `super` in overrides.** Breaking the chain breaks other mods.
 - **Clean up dynamic widgets.** Every `CreateWidget` needs `Unlink` on close.
 
-## Теория и практика
+## Theory vs Practice
 
-| Концепция | Теория | Реальность |
+| Concept | Theory | Reality |
 |---------|--------|---------|
 | `JsonFileLoader.LoadFile()` | Loads cleanly | Trailing commas cause silent failures. Validate JSON externally. |
 | String RPC serialization | Simple | 500+ items may hit size limits. Paginate for large shops. |
@@ -699,7 +699,7 @@ Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edi
 - Full buy/sell transaction flow with server-only authority
 - Security principles for multiplayer economy systems
 
-## Типичные ошибки
+## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|

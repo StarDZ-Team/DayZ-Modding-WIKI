@@ -1,115 +1,119 @@
-# Chapter 8.13: The Diagnostic Menu (Diag Menu)
+# Capitolo 8.13: Il Menu Diagnostico (Diag Menu)
 
-[Home](../../README.md) | [<< Previous: Building a Trading System](12-trading-system.md) | **The Diagnostic Menu**
+[Home](../../README.md) | [<< Precedente: Costruire un Sistema di Scambio](12-trading-system.md) | **Il Menu Diagnostico**
+
+---
+
+> **Riepilogo:** Il Diag Menu è lo strumento diagnostico integrato di DayZ, disponibile solo tramite l'eseguibile DayZDiag. Fornisce contatori FPS, profilazione degli script, debug del rendering, telecamera libera, visualizzazione della fisica, controllo del meteo, strumenti dell'Economia Centrale, debug della navigazione IA e diagnostica audio. Questo capitolo documenta ogni categoria del menu, opzione e scorciatoia da tastiera basandosi sulla documentazione ufficiale di Bohemia Interactive.
 
 ---
 
 ## Indice
 
-- [What is the Diag Menu?](#what-is-the-diag-menu)
-- [How to Access](#how-to-access)
-- [Navigation Controls](#navigation-controls)
-- [Quick-Access Keyboard Shortcuts](#quick-access-keyboard-shortcuts)
-- [Menu Categories Overview](#menu-categories-overview)
+- [Cos'è il Diag Menu?](#cosè-il-diag-menu)
+- [Come Accedere](#come-accedere)
+- [Controlli di Navigazione](#controlli-di-navigazione)
+- [Scorciatoie da Tastiera Rapide](#scorciatoie-da-tastiera-rapide)
+- [Panoramica delle Categorie del Menu](#panoramica-delle-categorie-del-menu)
 - [Statistics](#statistics)
 - [Enfusion Renderer](#enfusion-renderer)
-- [Enfusion World (Physics)](#enfusion-world-physics)
+- [Enfusion World (Fisica)](#enfusion-world-fisica)
 - [DayZ Render](#dayz-render)
 - [Game](#game)
 - [AI](#ai)
 - [Sounds](#sounds)
-- [Useful Features for Modders](#useful-features-for-modders)
-- [When to Use the Diag Menu](#when-to-use-the-diag-menu)
-- [Common Mistakes](#common-mistakes)
-- [Next Steps](#next-steps)
+- [Funzionalità Utili per i Modder](#funzionalità-utili-per-i-modder)
+- [Quando Usare il Diag Menu](#quando-usare-il-diag-menu)
+- [Errori Comuni](#errori-comuni)
+- [Prossimi Passi](#prossimi-passi)
 
 ---
 
-## What is the Diag Menu?
+## Cos'è il Diag Menu?
 
-The Diag Menu is a hierarchical debug menu built into the DayZ diagnostic executable. It lists options used to debug game scripting and assets across seven major categories: Statistics, Enfusion Renderer, Enfusion World, DayZ Render, Game, AI, and Sounds.
+Il Diag Menu è un menu di debug gerarchico integrato nell'eseguibile diagnostico di DayZ. Elenca opzioni utilizzate per il debug degli script di gioco e degli asset attraverso sette categorie principali: Statistics, Enfusion Renderer, Enfusion World, DayZ Render, Game, AI e Sounds.
 
-The Diag Menu is **not available** in the retail DayZ executable (`DayZ_x64.exe`). You must use `DayZDiag_x64.exe` -- the diagnostic build that ships alongside the retail version in your DayZ installation or DayZ Server directories.
+Il Diag Menu **non è disponibile** nell'eseguibile retail di DayZ (`DayZ_x64.exe`). Devi usare `DayZDiag_x64.exe` -- la build diagnostica che viene distribuita insieme alla versione retail nella tua installazione di DayZ o nelle directory del Server DayZ.
 
 ---
 
-## How to Access
+## Come Accedere
 
-### Requirements
+### Requisiti
 
-- **DayZDiag_x64.exe** -- The diagnostic executable. Found in your DayZ installation folder alongside the regular `DayZ_x64.exe`.
-- You must be running the game (not sitting in a loading screen). The menu is available in any 3D viewport.
+- **DayZDiag_x64.exe** -- L'eseguibile diagnostico. Si trova nella cartella di installazione di DayZ accanto al normale `DayZ_x64.exe`.
+- Devi essere in esecuzione nel gioco (non in una schermata di caricamento). Il menu è disponibile in qualsiasi viewport 3D.
 
-### Opening the Menu
+### Aprire il Menu
 
-Press **Win + Alt** to open the Diag Menu.
+Premi **Win + Alt** per aprire il Diag Menu.
 
-An alternative shortcut is **Ctrl + Win**, but this conflicts with a Windows 11 system shortcut and is not recommended on that platform.
+Una scorciatoia alternativa è **Ctrl + Win**, ma questa è in conflitto con una scorciatoia di sistema di Windows 11 e non è raccomandata su quella piattaforma.
 
-### Enabling Mouse Cursor
+### Abilitare il Cursore del Mouse
 
-Some Diag Menu options require you to interact with the screen using your mouse. The mouse cursor can be toggled by pressing:
+Alcune opzioni del Diag Menu richiedono di interagire con lo schermo usando il mouse. Il cursore del mouse può essere attivato premendo:
 
 **LCtrl + Numpad 9**
 
-This key binding is registered through script (`PluginKeyBinding`).
+Questa combinazione di tasti è registrata tramite script (`PluginKeyBinding`).
 
 ---
 
-## Navigazione Controls
+## Controlli di Navigazione
 
-Once the Diag Menu is open:
+Una volta che il Diag Menu è aperto:
 
-| Key | Azione |
+| Tasto | Azione |
 |-----|--------|
-| **Up / Down arrow** | Navigate between menu items |
-| **Right arrow** | Enter a sub-menu, or cycle through option values |
-| **Left arrow** | Cycle option values in reverse direction |
-| **Backspace** | Leave the current sub-menu (go back one level) |
+| **Freccia Su / Giù** | Navigare tra le voci del menu |
+| **Freccia Destra** | Entrare in un sottomenu, o scorrere i valori delle opzioni |
+| **Freccia Sinistra** | Scorrere i valori delle opzioni in direzione inversa |
+| **Backspace** | Uscire dal sottomenu corrente (tornare indietro di un livello) |
 
-When options show multiple values, they are listed in the order they appear in the menu. The first option is typically the default.
+Quando le opzioni mostrano valori multipli, sono elencati nell'ordine in cui appaiono nel menu. La prima opzione è tipicamente quella predefinita.
 
 ---
 
-## Quick-Access Keyboard Shortcuts
+## Scorciatoie da Tastiera Rapide
 
-These shortcuts work at any time while running DayZDiag, without needing to open the menu:
+Queste scorciatoie funzionano in qualsiasi momento mentre si esegue DayZDiag, senza bisogno di aprire il menu:
 
-| Scorciatoia | Function |
+| Scorciatoia | Funzione |
 |----------|----------|
-| **LCtrl + Numpad 1** | Toggle FPS counter |
-| **LCtrl + Numpad 9** | Toggle mouse cursor on screen |
-| **RCtrl + RAlt + W** | Cycle render debug mode |
-| **LCtrl + LAlt + P** | Toggle postprocess effects |
-| **LAlt + Numpad 6** | Toggle physics body visualization |
-| **Page Up** | Free Camera: toggle player movement |
-| **Page Down** | Free Camera: freeze/unfreeze camera |
-| **Insert** | Teleport player to cursor position (while in free camera) |
-| **Home** | Toggle free camera / disable and teleport player to cursor |
-| **Numpad /** | Toggle free camera (without teleport) |
-| **End** | Disable free camera (return to player camera) |
+| **LCtrl + Numpad 1** | Attiva/disattiva il contatore FPS |
+| **LCtrl + Numpad 9** | Attiva/disattiva il cursore del mouse sullo schermo |
+| **RCtrl + RAlt + W** | Cicla la modalità debug del rendering |
+| **LCtrl + LAlt + P** | Attiva/disattiva gli effetti di post-elaborazione |
+| **LAlt + Numpad 6** | Attiva/disattiva la visualizzazione dei corpi fisici |
+| **Page Up** | Telecamera Libera: attiva/disattiva il movimento del giocatore |
+| **Page Down** | Telecamera Libera: blocca/sblocca la telecamera |
+| **Insert** | Teletrasporta il giocatore alla posizione del cursore (nella telecamera libera) |
+| **Home** | Attiva/disattiva la telecamera libera / disattiva e teletrasporta il giocatore al cursore |
+| **Numpad /** | Attiva/disattiva la telecamera libera (senza teletrasporto) |
+| **End** | Disattiva la telecamera libera (ritorna alla telecamera del giocatore) |
 
-> **Nota:** Any mention of "Cheat Inputs" in the official documentation refers to inputs hardcoded on the C++ side, not accessible through script.
+> **Nota:** Qualsiasi menzione di "Cheat Inputs" nella documentazione ufficiale si riferisce a input hardcoded sul lato C++, non accessibili tramite script.
 
 ---
 
-## Menu Categories Overview
+## Panoramica delle Categorie del Menu
 
-The Diag Menu contains seven top-level categories:
+Il Diag Menu contiene sette categorie di primo livello:
 
-1. **Statistics** -- FPS counter and script profiler
-2. **Enfusion Renderer** -- Lighting, shadows, materials, occlusion, postprocess, terrain, widgets
-3. **Enfusion World** -- Physics engine (Bullet) visualization and debug
-4. **DayZ Render** -- Sky rendering, geometry diagnostics
-5. **Game** -- Weather, free camera, vehicles, combat, Central Economy, surface sounds
-6. **AI** -- Navigation mesh, pathfinding, AI agent behavior
-7. **Sounds** -- Playing samples debug, sound system info
+1. **Statistics** -- Contatore FPS e profilatore script
+2. **Enfusion Renderer** -- Illuminazione, ombre, materiali, occlusione, post-elaborazione, terreno, widget
+3. **Enfusion World** -- Visualizzazione e debug del motore fisico (Bullet)
+4. **DayZ Render** -- Rendering del cielo, diagnostica della geometria
+5. **Game** -- Meteo, telecamera libera, veicoli, combattimento, Economia Centrale, suoni di superficie
+6. **AI** -- Mesh di navigazione, pathfinding, comportamento degli agenti IA
+7. **Sounds** -- Debug dei campioni in riproduzione, informazioni sul sistema audio
 
 ---
 
 ## Statistics
 
-### Menu Structure
+### Struttura del Menu
 
 ```
 Statistics
@@ -127,78 +131,78 @@ Statistics
 
 ### FPS
 
-Enables the FPS counter in the top-left corner of the screen.
+Abilita il contatore FPS nell'angolo in alto a sinistra dello schermo.
 
-The FPS value is calculated from the time between the last 10 frames, so it reflects a short rolling average rather than an instantaneous reading.
+Il valore FPS è calcolato dal tempo tra gli ultimi 10 frame, quindi riflette una breve media mobile piuttosto che una lettura istantanea.
 
 ### Script Profiler UI
 
-Turns on the on-screen Script Profiler, which displays real-time performance data for script execution.
+Attiva il Profilatore Script a schermo, che visualizza dati di performance in tempo reale per l'esecuzione degli script.
 
-The profiler shows six data sections:
+Il profilatore mostra sei sezioni di dati:
 
-| Section | What It Shows |
+| Sezione | Cosa Mostra |
 |---------|---------------|
-| **Time per class** | Total time of all function calls belonging to a class (top 20) |
-| **Time per function** | Total time of all calls to a specific function (top 20) |
-| **Class allocations** | Number of allocations of a class (top 20) |
-| **Count per function** | Number of times a function was called (top 20) |
-| **Class count** | Number of live instances of a class (top 40) |
-| **Stats and settings** | Current profiler configuration and frame counters |
+| **Time per class** | Tempo totale di tutte le chiamate di funzione appartenenti a una classe (top 20) |
+| **Time per function** | Tempo totale di tutte le chiamate a una funzione specifica (top 20) |
+| **Class allocations** | Numero di allocazioni di una classe (top 20) |
+| **Count per function** | Numero di volte che una funzione è stata chiamata (top 20) |
+| **Class count** | Numero di istanze vive di una classe (top 40) |
+| **Stats and settings** | Configurazione corrente del profilatore e contatori frame |
 
-The Stats and settings panel shows:
+Il pannello Stats and settings mostra:
 
 | Campo | Significato |
 |-------|---------|
-| UI enabled (DIAG) | Whether the script profiler UI is active |
-| Profiling enabled (SCRP) | Whether profiling runs even when UI is not active |
-| Profiling enabled (SCRC) | Whether profiling is actually occurring |
-| Flags | Current data gathering flags |
-| Modulo | Currently profiled module |
-| Interval | Current update interval |
-| Time Resolution | Current time resolution |
-| Average | Whether values displayed are averages |
-| Game Frame | Total frames passed |
-| Session Frame | Total frames in this profiling session |
-| Total Frames | Total frames across all profiling sessions |
-| Profiled Sess Frms | Frames profiled in this session |
-| Profiled Frames | Frames profiled across all sessions |
+| UI enabled (DIAG) | Se l'interfaccia del profilatore script è attiva |
+| Profiling enabled (SCRP) | Se la profilazione viene eseguita anche quando l'interfaccia non è attiva |
+| Profiling enabled (SCRC) | Se la profilazione sta effettivamente avvenendo |
+| Flags | Flag correnti di raccolta dati |
+| Module | Modulo attualmente profilato |
+| Interval | Intervallo di aggiornamento corrente |
+| Time Resolution | Risoluzione temporale corrente |
+| Average | Se i valori mostrati sono medie |
+| Game Frame | Frame totali trascorsi |
+| Session Frame | Frame totali in questa sessione di profilazione |
+| Total Frames | Frame totali in tutte le sessioni di profilazione |
+| Profiled Sess Frms | Frame profilati in questa sessione |
+| Profiled Frames | Frame profilati in tutte le sessioni |
 
-> **Important:** The Script Profiler only profiles script code. Proto (engine-bound) methods are not measured as separate entries, but their execution time is included in the total time of the script method that calls them.
+> **Importante:** Il Profilatore Script profila solo il codice script. I metodi Proto (collegati al motore) non vengono misurati come voci separate, ma il loro tempo di esecuzione è incluso nel tempo totale del metodo script che li chiama.
 
-> **Important:** The EnProfiler API and the script profiler itself are only available on the diagnostic executable.
+> **Importante:** L'API EnProfiler e lo stesso profilatore script sono disponibili solo nell'eseguibile diagnostico.
 
-### Script Profiler Settings
+### Impostazioni del Profilatore Script
 
-These settings control how profiling data is gathered. They can also be adjusted programmatically through the `EnProfiler` API (documented in `EnProfiler.c`).
+Queste impostazioni controllano come vengono raccolti i dati di profilazione. Possono essere regolate anche programmaticamente tramite l'API `EnProfiler` (documentata in `EnProfiler.c`).
 
 #### Always Enabled
 
-Profiling data gathering is not enabled per impostazione predefinita. This toggle shows whether it is currently active.
+La raccolta dati di profilazione non è abilitata per impostazione predefinita. Questo toggle mostra se è attualmente attiva.
 
-To enable profiling at startup, use the launch parameter `-profile`.
+Per abilitare la profilazione all'avvio, usa il parametro di lancio `-profile`.
 
-The Script Profiler UI ignores this setting -- it always forces profiling while the UI is visible. When the UI is turned off, profiling stops again (unless "Always enabled" is set to true).
+L'interfaccia del Profilatore Script ignora questa impostazione -- forza sempre la profilazione mentre l'interfaccia è visibile. Quando l'interfaccia viene disattivata, la profilazione si ferma di nuovo (a meno che "Always enabled" sia impostato su true).
 
 #### Flag
 
-Controls how data is gathered. Four combinations are available:
+Controlla come vengono raccolti i dati. Sono disponibili quattro combinazioni:
 
-| Flag Combination | Scope | Data Lifetime |
+| Combinazione Flag | Ambito | Durata dei Dati |
 |-----------------|-------|---------------|
-| `SPF_RESET \| SPF_RECURSIVE` | Selected module + children | Per frame (reset each frame) |
-| `SPF_RECURSIVE` | Selected module + children | Accumulated across frames |
-| `SPF_RESET` | Selected module only | Per frame (reset each frame) |
-| `SPF_NONE` | Selected module only | Accumulated across frames |
+| `SPF_RESET \| SPF_RECURSIVE` | Modulo selezionato + figli | Per frame (reset ogni frame) |
+| `SPF_RECURSIVE` | Modulo selezionato + figli | Accumulato tra i frame |
+| `SPF_RESET` | Solo modulo selezionato | Per frame (reset ogni frame) |
+| `SPF_NONE` | Solo modulo selezionato | Accumulato tra i frame |
 
-- **SPF_RECURSIVE**: Enables profiling of child modules (recursively)
-- **SPF_RESET**: Clears data at the end of each frame
+- **SPF_RECURSIVE**: Abilita la profilazione dei moduli figli (ricorsivamente)
+- **SPF_RESET**: Cancella i dati alla fine di ogni frame
 
 #### Module
 
-Selects which script module to profile:
+Seleziona quale modulo script profilare:
 
-| Option | Script Layer |
+| Opzione | Livello Script |
 |--------|-------------|
 | CORE | 1_Core |
 | GAMELIB | 2_GameLib |
@@ -209,43 +213,43 @@ Selects which script module to profile:
 
 #### Update Interval
 
-The number of frames to wait before updating the sorted data display. This also delays the reset caused by `SPF_RESET`.
+Il numero di frame da attendere prima di aggiornare la visualizzazione dei dati ordinati. Questo ritarda anche il reset causato da `SPF_RESET`.
 
-Available values: 0, 5, 10, 20, 30, 50, 60, 120, 144
+Valori disponibili: 0, 5, 10, 20, 30, 50, 60, 120, 144
 
 #### Average
 
-Enable or disable the displaying of average valori.
+Abilita o disabilita la visualizzazione dei valori medi.
 
-- With `SPF_RESET` and no interval: values are the raw per-frame value
-- Without `SPF_RESET`: divides accumulated value by session frame count
-- With an interval set: divides by the interval
+- Con `SPF_RESET` e nessun intervallo: i valori sono il valore grezzo per-frame
+- Senza `SPF_RESET`: divide il valore accumulato per il conteggio dei frame della sessione
+- Con un intervallo impostato: divide per l'intervallo
 
-Class count is never averaged -- it always shows the current instance count. Allocations will show the average number of times an instance was created.
+Il conteggio delle classi non viene mai mediato -- mostra sempre il conteggio delle istanze correnti. Le allocazioni mostreranno il numero medio di volte che un'istanza è stata creata.
 
 #### Time Resolution
 
-Sets the time unit for display. The value represents the denominator (nth of a second):
+Imposta l'unità di tempo per la visualizzazione. Il valore rappresenta il denominatore (ennesimo di secondo):
 
-| Valore | Unit |
+| Valore | Unità |
 |-------|------|
-| 1 | Seconds |
-| 1000 | Milliseconds |
-| 1000000 | Microseconds |
+| 1 | Secondi |
+| 1000 | Millisecondi |
+| 1000000 | Microsecondi |
 
-Available values: 1, 10, 100, 1000, 10000, 100000, 1000000
+Valori disponibili: 1, 10, 100, 1000, 10000, 100000, 1000000
 
 #### (UI) Scale
 
-Adjusts the visual scale of the on-screen profiler display for different screen sizes and resolutions.
+Regola la scala visiva della visualizzazione del profilatore a schermo per diverse dimensioni e risoluzioni dello schermo.
 
-Range: 0.5 to 1.5 (default: 1.0, step: 0.05)
+Intervallo: 0.5 a 1.5 (predefinito: 1.0, passo: 0.05)
 
 ---
 
 ## Enfusion Renderer
 
-### Menu Structure
+### Struttura del Menu
 
 ```
 Enfusion Renderer
@@ -279,43 +283,43 @@ Enfusion Renderer
 
 ### Lights
 
-Toggles actual light sources (such as `PersonalLight` or in-game items like flashlights). This does not affect environment lighting -- use the Lighting sub-menu for that.
+Attiva/disattiva le sorgenti luminose effettive (come `PersonalLight` o oggetti in-game come le torce). Questo non influenza l'illuminazione ambientale -- usa il sottomenu Lighting per quello.
 
-### Lighting Sub-Menu
+### Sottomenu Lighting
 
-Each toggle controls a specific lighting component:
+Ogni toggle controlla un componente di illuminazione specifico:
 
-| Option | Effect When Disabled |
+| Opzione | Effetto Quando Disabilitato |
 |--------|---------------------|
-| **Ambient lighting** | Removes the general ambient light in the scene |
-| **Ground lighting** | Removes light reflected from the ground (visible on roofs, character underarms) |
-| **Directional lighting** | Removes main directional (sun/moon) light. Also disables bidirectional lighting |
-| **Bidirectional lighting** | Removes bidirectional light component |
-| **Specular lighting** | Removes specular highlights (visible on shiny surfaces like cupboards, cars) |
-| **Reflection** | Removes reflection lighting (visible on metallic/glossy surfaces) |
-| **Emission lighting** | Removes emission (self-illumination) from materials |
+| **Ambient lighting** | Rimuove la luce ambientale generale nella scena |
+| **Ground lighting** | Rimuove la luce riflessa dal terreno (visibile su tetti, ascelle del personaggio) |
+| **Directional lighting** | Rimuove la luce direzionale principale (sole/luna). Disabilita anche l'illuminazione bidirezionale |
+| **Bidirectional lighting** | Rimuove il componente di luce bidirezionale |
+| **Specular lighting** | Rimuove i riflessi speculari (visibili su superfici lucide come credenze, auto) |
+| **Reflection** | Rimuove l'illuminazione da riflessione (visibile su superfici metalliche/lucide) |
+| **Emission lighting** | Rimuove l'emissione (auto-illuminazione) dai materiali |
 
-These toggles are useful for isolating specific lighting contributions when debugging visual issues in custom models or scenes.
+Questi toggle sono utili per isolare contributi specifici di illuminazione durante il debug di problemi visivi in modelli personalizzati o scene.
 
 ### Shadows
 
-Enables or disables shadow rendering. Disabling also removes the culling of rain inside objects (rain will fall through roofs).
+Abilita o disabilita il rendering delle ombre. Disabilitare rimuove anche il culling della pioggia all'interno degli oggetti (la pioggia cadrà attraverso i tetti).
 
 ### Terrain Shadows
 
-Controls how terrain shadows are generated.
+Controlla come vengono generate le ombre del terreno.
 
-Options: `on (slice)`, `on (full)`, `no update`, `disabled`
+Opzioni: `on (slice)`, `on (full)`, `no update`, `disabled`
 
 ### Render Debug Mode
 
-Switches between render visualization modes to inspect mesh geometry in-game.
+Passa tra le modalità di visualizzazione del rendering per ispezionare la geometria dei mesh in-game.
 
-Options: `normal`, `wire`, `wire only`, `overdraw`, `overdrawZ`
+Opzioni: `normal`, `wire`, `wire only`, `overdraw`, `overdrawZ`
 
-Different materials display in different wireframe colors:
+Materiali diversi vengono visualizzati con colori wireframe diversi:
 
-| Material | Color (RGB) |
+| Materiale | Colore (RGB) |
 |----------|-------------|
 | TreeTrunk | 179, 126, 55 |
 | TreeCrown | 143, 227, 94 |
@@ -332,42 +336,42 @@ Different materials display in different wireframe colors:
 
 ### Occluders
 
-A set of toggles for the occlusion culling system:
+Un insieme di toggle per il sistema di occlusion culling:
 
-| Option | Effect |
+| Opzione | Effetto |
 |--------|--------|
-| **Occluders** | Enable/disable object occlusion |
-| **Occlude entities** | Enable/disable entity occlusion |
-| **Occlude proxies** | Enable/disable proxy occlusion |
-| **Show occluder volumes** | Takes a snapshot and draws debug shapes visualizing occlusion volumes |
-| **Show active occluders** | Shows currently active occluders with debug shapes |
-| **Show occluded** | Visualizes occluded objects with debug shapes |
+| **Occluders** | Abilita/disabilita l'occlusione degli oggetti |
+| **Occlude entities** | Abilita/disabilita l'occlusione delle entità |
+| **Occlude proxies** | Abilita/disabilita l'occlusione dei proxy |
+| **Show occluder volumes** | Cattura un'istantanea e disegna forme di debug che visualizzano i volumi di occlusione |
+| **Show active occluders** | Mostra gli occluder attualmente attivi con forme di debug |
+| **Show occluded** | Visualizza gli oggetti occlusi con forme di debug |
 
 ### Widgets
 
-Enable or disable the rendering of all UI widgets. Useful for taking clean screenshots or isolating rendering issues.
+Abilita o disabilita il rendering di tutti i widget UI. Utile per catturare screenshot puliti o isolare problemi di rendering.
 
 ### Postprocess
 
-Enable or disable post-processing effects (bloom, color correction, vignette, etc.).
+Abilita o disabilita gli effetti di post-elaborazione (bloom, correzione colore, vignettatura, ecc.).
 
 ### Terrain
 
-Enable or disable terrain rendering entirely.
+Abilita o disabilita il rendering del terreno interamente.
 
-### Materials Sub-Menu
+### Sottomenu Materials
 
-Toggle the rendering of specific material types. Most are self-explanatory. Notable entries:
+Attiva/disattiva il rendering di tipi di materiali specifici. La maggior parte si spiega da sé. Voci notevoli:
 
-- **Super** -- An overarching toggle that covers every material related to the "super" shader
-- **Old Terrain** -- Covers both Terrain and Terrain Simple materials
-- **Water** -- Covers every material related to water (ocean, shore, rivers)
+- **Super** -- Un toggle generale che copre ogni materiale relativo allo shader "super"
+- **Old Terrain** -- Copre sia i materiali Terrain che Terrain Simple
+- **Water** -- Copre ogni materiale relativo all'acqua (oceano, riva, fiumi)
 
 ---
 
-## Enfusion World (Physics)
+## Enfusion World (Fisica)
 
-### Menu Structure
+### Struttura del Menu
 
 ```
 Enfusion World
@@ -386,38 +390,38 @@ Enfusion World
   Show bodies                      [LAlt + Numpad 6]
 ```
 
-> **Nota:** "Bullet" here refers to the Bullet physics engine, not ammunition.
+> **Nota:** "Bullet" qui si riferisce al motore fisico Bullet, non alle munizioni.
 
 ### Show Bullet
 
-Turns on the debug visualization for the Bullet physics engine.
+Attiva la visualizzazione di debug per il motore fisico Bullet.
 
-### Bullet Sub-Menu
+### Sottomenu Bullet
 
-| Option | Descrizione |
+| Opzione | Descrizione |
 |--------|-------------|
-| **Draw Char Ctrl** | Visualize the player character controller. Depends on "Draw Bullet shape" |
-| **Draw Simple Char Ctrl** | Visualize the AI character controller. Depends on "Draw Bullet shape" |
-| **Max. Collider Distance** | Maximum distance from player to visualize colliders (values: 0, 1, 2, 5, 10, 20, 50, 100, 200, 500). Default is 0 |
-| **Draw Bullet shape** | Visualize physics collider shapes |
-| **Draw Bullet wireframe** | Show colliders as wireframe only. Depends on "Draw Bullet shape" |
-| **Draw Bullet shape AABB** | Show axis-aligned bounding boxes of colliders |
-| **Draw obj center of mass** | Show object centers of mass |
-| **Draw Bullet contacts** | Visualize colliders making contact |
-| **Force sleep Bullet** | Force all physics bodies to sleep |
-| **Show stats** | Show debug stats (options: disabled, basic, all). Stats remain visible for 10 seconds after disabling |
+| **Draw Char Ctrl** | Visualizza il controller del personaggio giocatore. Dipende da "Draw Bullet shape" |
+| **Draw Simple Char Ctrl** | Visualizza il controller del personaggio IA. Dipende da "Draw Bullet shape" |
+| **Max. Collider Distance** | Distanza massima dal giocatore per visualizzare i collider (valori: 0, 1, 2, 5, 10, 20, 50, 100, 200, 500). Predefinito 0 |
+| **Draw Bullet shape** | Visualizza le forme dei collider fisici |
+| **Draw Bullet wireframe** | Mostra i collider solo in wireframe. Dipende da "Draw Bullet shape" |
+| **Draw Bullet shape AABB** | Mostra le bounding box allineate agli assi dei collider |
+| **Draw obj center of mass** | Mostra i centri di massa degli oggetti |
+| **Draw Bullet contacts** | Visualizza i collider in contatto |
+| **Force sleep Bullet** | Forza tutti i corpi fisici a dormire |
+| **Show stats** | Mostra statistiche di debug (opzioni: disabled, basic, all). Le statistiche rimangono visibili per 10 secondi dopo la disabilitazione |
 
-> **Warning:** Max. Collider Distance is 0 per impostazione predefinita because this visualization is expensive. Setting it to a large distance will cause significant performance degradation.
+> **Attenzione:** Max. Collider Distance è 0 per impostazione predefinita perché questa visualizzazione è costosa. Impostarlo a una grande distanza causerà una significativa degradazione delle prestazioni.
 
 ### Show Bodies
 
-Visualize Bullet physics bodies. Options: `disabled`, `only`, `all`
+Visualizza i corpi fisici Bullet. Opzioni: `disabled`, `only`, `all`
 
 ---
 
 ## DayZ Render
 
-### Menu Structure
+### Struttura del Menu
 
 ```
 DayZ Render
@@ -439,38 +443,38 @@ DayZ Render
       diagnostic mode
 ```
 
-### Sky Sub-Menu
+### Sottomenu Sky
 
-Toggle individual sky rendering components:
+Attiva/disattiva i singoli componenti del rendering del cielo:
 
-| Option | What It Controls |
+| Opzione | Cosa Controlla |
 |--------|-----------------|
-| **Space** | The background texture behind the stars |
-| **Stars** | Star rendering |
-| **Sun** | Sun and its halo effect (not god rays) |
-| **Moon** | Moon and its halo effect (not god rays) |
-| **Atmosphere** | The atmosphere texture in the sky |
-| **Far (Clouds)** | Upper/distant clouds. These do not affect light shafts (less dense) |
-| **Near (Clouds)** | Lower/closer clouds. These are denser and act as occlusion for light shafts |
-| **Physical (Clouds)** | Deprecated object-based clouds. Removed from Chernarus and Livonia in DayZ 1.23 |
-| **Horizon** | Horizon rendering. The horizon will prevent light shafts |
-| **God Rays** | Light shaft post-process effect |
+| **Space** | La texture di sfondo dietro le stelle |
+| **Stars** | Rendering delle stelle |
+| **Sun** | Sole e il suo effetto alone (non i god rays) |
+| **Moon** | Luna e il suo effetto alone (non i god rays) |
+| **Atmosphere** | La texture dell'atmosfera nel cielo |
+| **Far (Clouds)** | Nuvole superiori/distanti. Non influenzano i raggi di luce (meno dense) |
+| **Near (Clouds)** | Nuvole inferiori/più vicine. Sono più dense e fungono da occlusione per i raggi di luce |
+| **Physical (Clouds)** | Nuvole deprecate basate su oggetti. Rimosse da Chernarus e Livonia in DayZ 1.23 |
+| **Horizon** | Rendering dell'orizzonte. L'orizzonte impedirà i raggi di luce |
+| **God Rays** | Effetto post-elaborazione dei raggi di luce |
 
 ### Geometry Diagnostic
 
-Enables debug shape drawing to visualize how an object's geometry looks in-game.
+Abilita il disegno di forme di debug per visualizzare come appare la geometria di un oggetto in-game.
 
-Geometry types: `normal`, `roadway`, `geometry`, `viewGeometry`, `fireGeometry`, `paths`, `memory`, `wreck`
+Tipi di geometria: `normal`, `roadway`, `geometry`, `viewGeometry`, `fireGeometry`, `paths`, `memory`, `wreck`
 
-Drawing modes: `solid+wire`, `Zsolid+wire`, `wire`, `ZWire`, `geom only`
+Modalità di disegno: `solid+wire`, `Zsolid+wire`, `wire`, `ZWire`, `geom only`
 
-This is extremely useful for modders creating custom models -- you can verify that your fire geometry, view geometry, and memory points are correctly configured without leaving the game.
+Questo è estremamente utile per i modder che creano modelli personalizzati -- puoi verificare che la fire geometry, view geometry e i memory points siano configurati correttamente senza uscire dal gioco.
 
 ---
 
 ## Game
 
-### Menu Structure
+### Struttura del Menu
 
 ```
 Game
@@ -545,25 +549,25 @@ Game
 
 ### Weather & Environment
 
-Debug functionality for the weather system.
+Funzionalità di debug per il sistema meteo.
 
 #### Display
 
-Enables the weather debug visualization. This shows an on-screen debug of fog/view distance and opens a separate real-time window with detailed weather data.
+Abilita la visualizzazione di debug del meteo. Mostra un debug a schermo della nebbia/distanza visiva e apre una finestra separata in tempo reale con dati meteo dettagliati.
 
-To enable the separate window while running as a server, use the launch parameter `-debugweather`.
+Per abilitare la finestra separata durante l'esecuzione come server, usa il parametro di lancio `-debugweather`.
 
-Window settings are stored in profiles as `weather_client_imgui.ini` / `weather_client_imgui.bin` (or `weather_server_*` for servers).
+Le impostazioni della finestra sono memorizzate nei profili come `weather_client_imgui.ini` / `weather_client_imgui.bin` (o `weather_server_*` per i server).
 
 #### Force Fog at Camera
 
-Forces the fog height to match the player camera height. Has priority over the Height bias setting.
+Forza l'altezza della nebbia a corrispondere all'altezza della telecamera del giocatore. Ha priorità sull'impostazione Height bias.
 
-#### Sovrascrivi Fog
+#### Override Fog
 
-Enables overriding fog values with manual settings:
+Abilita la sovrascrittura dei valori della nebbia con impostazioni manuali:
 
-| Parametro | Range | Step |
+| Parametro | Intervallo | Passo |
 |-----------|-------|------|
 | Distance density | 0 -- 1 | 0.01 |
 | Height density | 0 -- 1 | 0.01 |
@@ -572,190 +576,190 @@ Enables overriding fog values with manual settings:
 
 ### Free Camera
 
-The free camera detaches the view from the player character and allows flying through the world. This is one of the most useful debug tools for modders.
+La telecamera libera stacca la visuale dal personaggio giocatore e permette di volare attraverso il mondo. Questo è uno degli strumenti di debug più utili per i modder.
 
-#### Free Camera Controls
+#### Controlli della Free Camera
 
-| Key | Origin | Function |
+| Tasto | Origine | Funzione |
 |-----|--------|----------|
-| **W / A / S / D** | Inputs (xml) | Move forward / left / backward / right |
-| **Q** | Inputs (xml) | Move up |
-| **Z** | Inputs (xml) | Move down |
-| **Mouse** | Inputs (xml) | Look around |
-| **Mouse wheel up** | Inputs (C++) | Increase speed |
-| **Mouse wheel down** | Inputs (C++) | Decrease speed |
-| **Spacebar** | Cheat Inputs (C++) | Toggle on-screen debug of targeted object |
-| **Ctrl / Shift** | Cheat Inputs (C++) | Current speed x 10 |
-| **Alt** | Cheat Inputs (C++) | Current speed / 10 |
-| **End** | Cheat Inputs (C++) | Disable free camera (return to player) |
-| **Enter** | Cheat Inputs (C++) | Link camera to target object |
-| **Page Up** | Cheat Inputs (C++) | Toggle player movement while in free camera |
-| **Page Down** | Cheat Inputs (C++) | Freeze/unfreeze camera position |
-| **Insert** | PluginKeyBinding (Script) | Teleport player to cursor position |
-| **Home** | PluginKeyBinding (Script) | Toggle free camera / disable and teleport to cursor |
-| **Numpad /** | PluginKeyBinding (Script) | Toggle free camera (no teleport) |
+| **W / A / S / D** | Inputs (xml) | Muovi avanti / sinistra / indietro / destra |
+| **Q** | Inputs (xml) | Muovi su |
+| **Z** | Inputs (xml) | Muovi giù |
+| **Mouse** | Inputs (xml) | Guardati intorno |
+| **Rotella mouse su** | Inputs (C++) | Aumenta velocità |
+| **Rotella mouse giù** | Inputs (C++) | Diminuisci velocità |
+| **Barra spaziatrice** | Cheat Inputs (C++) | Attiva/disattiva il debug a schermo dell'oggetto puntato |
+| **Ctrl / Shift** | Cheat Inputs (C++) | Velocità corrente x 10 |
+| **Alt** | Cheat Inputs (C++) | Velocità corrente / 10 |
+| **End** | Cheat Inputs (C++) | Disattiva la telecamera libera (ritorna al giocatore) |
+| **Enter** | Cheat Inputs (C++) | Collega la telecamera all'oggetto puntato |
+| **Page Up** | Cheat Inputs (C++) | Attiva/disattiva il movimento del giocatore nella telecamera libera |
+| **Page Down** | Cheat Inputs (C++) | Blocca/sblocca la posizione della telecamera |
+| **Insert** | PluginKeyBinding (Script) | Teletrasporta il giocatore alla posizione del cursore |
+| **Home** | PluginKeyBinding (Script) | Attiva/disattiva la telecamera libera / disattiva e teletrasporta al cursore |
+| **Numpad /** | PluginKeyBinding (Script) | Attiva/disattiva la telecamera libera (senza teletrasporto) |
 
-#### Free Camera Options
+#### Opzioni della Free Camera
 
-| Option | Descrizione |
+| Opzione | Descrizione |
 |--------|-------------|
-| **FrCam Player Move** | Enable/disable player inputs (WASD) moving the player while in free camera |
-| **FrCam NoClip** | Enable/disable the camera passing through terrain |
-| **FrCam Freeze** | Enable/disable inputs moving the camera |
+| **FrCam Player Move** | Abilita/disabilita gli input del giocatore (WASD) che muovono il giocatore nella telecamera libera |
+| **FrCam NoClip** | Abilita/disabilita il passaggio della telecamera attraverso il terreno |
+| **FrCam Freeze** | Abilita/disabilita gli input che muovono la telecamera |
 
 ### Vehicles
 
-Extended debug functionality for vehicles. These only work while the player is inside a vehicle.
+Funzionalità di debug estese per i veicoli. Funzionano solo quando il giocatore è all'interno di un veicolo.
 
-- **Audio** -- Opens a separate window to tweak sound settings in real time. Includes visualization of audio controllers.
-- **Simulation** -- Opens a separate window with car simulation debug: tweaking physics parameters and visualization.
+- **Audio** -- Apre una finestra separata per regolare le impostazioni audio in tempo reale. Include la visualizzazione dei controller audio.
+- **Simulation** -- Apre una finestra separata con il debug della simulazione auto: regolazione dei parametri fisici e visualizzazione.
 
 ### Combat
 
-Debug tools for combat, shooting, and hitpoints:
+Strumenti di debug per il combattimento, gli spari e gli hitpoint:
 
-| Option | Descrizione |
+| Opzione | Descrizione |
 |--------|-------------|
-| **DECombat** | Shows on-screen text with distances to cars, AI, and players |
-| **DEShots** | Projectile debug sub-menu (see below) |
-| **DEHitpoints** | Displays the DamageSystem of the player and the object they are looking at |
-| **DEExplosions** | Shows explosion penetration data. Numbers show slowdown valori. Red cross = stopped. Green cross = penetrated |
+| **DECombat** | Mostra testo a schermo con le distanze da auto, IA e giocatori |
+| **DEShots** | Sottomenu di debug dei proiettili (vedi sotto) |
+| **DEHitpoints** | Visualizza il DamageSystem del giocatore e dell'oggetto che sta guardando |
+| **DEExplosions** | Mostra i dati di penetrazione delle esplosioni. I numeri mostrano i valori di rallentamento. Croce rossa = fermato. Croce verde = penetrato |
 
-**DEShots sub-menu:**
+**Sottomenu DEShots:**
 
-| Option | Descrizione |
+| Opzione | Descrizione |
 |--------|-------------|
-| Clear vis. | Clear any existing shot visualization |
-| Vis. trajectory | Trace the path of a shot, showing exit points and stop point |
-| Always Deflect | Forces all client-fired shots to deflect |
+| Clear vis. | Cancella qualsiasi visualizzazione di sparo esistente |
+| Vis. trajectory | Traccia il percorso di uno sparo, mostrando i punti di uscita e il punto di arresto |
+| Always Deflect | Forza tutti gli spari dal client a deflettere |
 
 ### Legacy/Obsolete
 
-- **DEAmbient** -- Displays variables influencing ambient sounds
-- **DELight** -- Displays stats regarding the current lighting environment
+- **DEAmbient** -- Visualizza variabili che influenzano i suoni ambientali
+- **DELight** -- Visualizza statistiche riguardanti l'ambiente di illuminazione corrente
 
 ### DESurfaceSound
 
-Displays the surface type the player is standing on and the attenuation type.
+Visualizza il tipo di superficie su cui il giocatore è in piedi e il tipo di attenuazione.
 
 ### Central Economy
 
-A comprehensive set of debugging tools for the Central Economy (CE) system.
+Un insieme completo di strumenti di debugging per il sistema dell'Economia Centrale (CE).
 
-> **Important:** Most CE debug options only work in single-player client with CE enabled. Only "Building Stats" works in a multiplayer environment or when CE is turned off.
+> **Importante:** La maggior parte delle opzioni di debug CE funziona solo in client single-player con CE abilitata. Solo "Building Stats" funziona in un ambiente multigiocatore o quando la CE è disattivata.
 
-> **Nota:** Many of these functions are also available through the `CEApi` in script (`CentralEconomy.c`).
+> **Nota:** Molte di queste funzioni sono disponibili anche tramite `CEApi` negli script (`CentralEconomy.c`).
 
 #### Loot Spawn Edit
 
-Tools for creating and editing loot spawn points on objects. Free camera must be enabled to use the Edit Volume tool.
+Strumenti per creare e modificare i punti di spawn del loot sugli oggetti. La telecamera libera deve essere abilitata per usare lo strumento Edit Volume.
 
-| Option | Descrizione | Script Equivalent |
+| Opzione | Descrizione | Equivalente Script |
 |--------|-------------|-------------------|
-| **Spawn Volume Vis** | Visualize loot spawn points. Options: Off, Adaptive, Volume, Occupied | `GetCEApi().LootSetSpawnVolumeVisualisation()` |
-| **Setup Vis** | Show CE setup properties on screen with color-coded containers | `GetCEApi().LootToggleSpawnSetup()` |
-| **Edit Volume** | Interactive loot point editor (requires free camera) | `GetCEApi().LootToggleVolumeEditing()` |
-| **Re-Trace Group Points** | Re-trace loot points to fix hovering issues | `GetCEApi().LootRetraceGroupPoints()` |
-| **Spawn Candy** | Spawn loot in all spawn points of selected group | -- |
-| **Spawn Rotation Test** | Test rotation flags at cursor position | -- |
-| **Placement Test** | Visualize placement with sphere cylinder | -- |
-| **Export Group** | Export selected group to `storage/export/mapGroup_CLASSNAME.xml` | `GetCEApi().LootExportGroup()` |
-| **Export All Groups** | Export all groups to `storage/export/mapgroupproto.xml` | `GetCEApi().LootExportAllGroups()` |
-| **Export Map** | Generate `storage/export/mapgrouppos.xml` | `GetCEApi().LootExportMap()` |
-| **Export Clusters** | Generate `storage/export/mapgroupcluster.xml` | `GetCEApi().ExportClusterData()` |
-| **Export Economy [csv]** | Export economy to `storage/log/economy.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.Economy)` |
-| **Export Respawn Queue [csv]** | Export respawn queue to `storage/log/respawn_queue.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.RespawnQueue)` |
+| **Spawn Volume Vis** | Visualizza i punti di spawn del loot. Opzioni: Off, Adaptive, Volume, Occupied | `GetCEApi().LootSetSpawnVolumeVisualisation()` |
+| **Setup Vis** | Mostra le proprietà di setup CE a schermo con contenitori codificati per colore | `GetCEApi().LootToggleSpawnSetup()` |
+| **Edit Volume** | Editor interattivo dei punti loot (richiede telecamera libera) | `GetCEApi().LootToggleVolumeEditing()` |
+| **Re-Trace Group Points** | Ritraccia i punti loot per risolvere problemi di sospensione | `GetCEApi().LootRetraceGroupPoints()` |
+| **Spawn Candy** | Genera loot in tutti i punti di spawn del gruppo selezionato | -- |
+| **Spawn Rotation Test** | Testa i flag di rotazione alla posizione del cursore | -- |
+| **Placement Test** | Visualizza il posizionamento con un cilindro sferico | -- |
+| **Export Group** | Esporta il gruppo selezionato in `storage/export/mapGroup_CLASSNAME.xml` | `GetCEApi().LootExportGroup()` |
+| **Export All Groups** | Esporta tutti i gruppi in `storage/export/mapgroupproto.xml` | `GetCEApi().LootExportAllGroups()` |
+| **Export Map** | Genera `storage/export/mapgrouppos.xml` | `GetCEApi().LootExportMap()` |
+| **Export Clusters** | Genera `storage/export/mapgroupcluster.xml` | `GetCEApi().ExportClusterData()` |
+| **Export Economy [csv]** | Esporta l'economia in `storage/log/economy.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.Economy)` |
+| **Export Respawn Queue [csv]** | Esporta la coda di respawn in `storage/log/respawn_queue.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.RespawnQueue)` |
 
-**Edit Volume key bindings:**
+**Combinazioni di tasti per Edit Volume:**
 
-| Key | Function |
+| Tasto | Funzione |
 |-----|----------|
-| **[** | Iterate backwards through containers |
-| **]** | Iterate forwards through containers |
-| **LMB** | Insert new point |
-| **RMB** | Delete point |
-| **;** | Increase point size |
-| **'** | Decrease point size |
-| **Insert** | Spawn loot at point |
-| **M** | Spawn 48 "AmmoBox_762x54_20Rnd" |
-| **Backspace** | Mark nearby loot for cleanup (depletes lifetime, not instant) |
+| **[** | Itera all'indietro tra i contenitori |
+| **]** | Itera in avanti tra i contenitori |
+| **LMB** | Inserisci nuovo punto |
+| **RMB** | Elimina punto |
+| **;** | Aumenta dimensione del punto |
+| **'** | Diminuisci dimensione del punto |
+| **Insert** | Genera loot al punto |
+| **M** | Genera 48 "AmmoBox_762x54_20Rnd" |
+| **Backspace** | Contrassegna il loot vicino per la pulizia (esaurisce la durata, non istantaneo) |
 
 #### Loot Tool
 
-| Option | Descrizione | Script Equivalent |
+| Opzione | Descrizione | Equivalente Script |
 |--------|-------------|-------------------|
-| **Deplete Lifetime** | Depletes lifetime to 3 seconds (scheduled for cleanup) | `GetCEApi().LootDepleteLifetime()` |
-| **Set Damage = 1.0** | Sets health to 0 | `GetCEApi().LootSetDamageToOne()` |
-| **Damage + Deplete** | Performs both of the above | `GetCEApi().LootDepleteAndDamage()` |
-| **Invert Avoidance** | Toggles player avoidance (detection of nearby players) | -- |
-| **Project Target Loot** | Emulates spawning of targeted item, generates images and logs. Requires "Loot Vis" enabled | `GetCEApi().SpawnAnalyze()` and `GetCEApi().EconomyMap()` |
+| **Deplete Lifetime** | Esaurisce la durata a 3 secondi (programmato per la pulizia) | `GetCEApi().LootDepleteLifetime()` |
+| **Set Damage = 1.0** | Imposta la salute a 0 | `GetCEApi().LootSetDamageToOne()` |
+| **Damage + Deplete** | Esegue entrambe le azioni sopra | `GetCEApi().LootDepleteAndDamage()` |
+| **Invert Avoidance** | Attiva/disattiva l'evitamento giocatore (rilevamento di giocatori vicini) | -- |
+| **Project Target Loot** | Emula lo spawn dell'oggetto puntato, genera immagini e log. Richiede "Loot Vis" abilitato | `GetCEApi().SpawnAnalyze()` e `GetCEApi().EconomyMap()` |
 
 #### Infected
 
-| Option | Descrizione | Script Equivalent |
+| Opzione | Descrizione | Equivalente Script |
 |--------|-------------|-------------------|
-| **Infected Vis** | Visualize zombie zones, locations, alive/dead status | `GetCEApi().InfectedToggleVisualisation()` |
-| **Infected Zone Info** | On-screen debug when camera is inside an infected zone | `GetCEApi().InfectedToggleZoneInfo()` |
-| **Infected Spawn** | Spawn infected in selected zone (or "InfectedArmy" at cursor) | `GetCEApi().InfectedSpawn()` |
-| **Reset Cleanup** | Sets cleanup timer to 3 seconds | `GetCEApi().InfectedResetCleanup()` |
+| **Infected Vis** | Visualizza le zone zombie, le posizioni, lo stato vivo/morto | `GetCEApi().InfectedToggleVisualisation()` |
+| **Infected Zone Info** | Debug a schermo quando la telecamera è dentro una zona infetta | `GetCEApi().InfectedToggleZoneInfo()` |
+| **Infected Spawn** | Genera infetti nella zona selezionata (o "InfectedArmy" al cursore) | `GetCEApi().InfectedSpawn()` |
+| **Reset Cleanup** | Imposta il timer di pulizia a 3 secondi | `GetCEApi().InfectedResetCleanup()` |
 
 #### Animal
 
-| Option | Descrizione | Script Equivalent |
+| Opzione | Descrizione | Equivalente Script |
 |--------|-------------|-------------------|
-| **Animal Vis** | Visualize animal zones, locations, alive/dead status | `GetCEApi().AnimalToggleVisualisation()` |
-| **Animal Spawn** | Spawn animal in selected zone (or "AnimalGoat" at cursor) | `GetCEApi().AnimalSpawn()` |
-| **Ambient Spawn** | Spawn "AmbientHen" at cursor target | `GetCEApi().AnimalAmbientSpawn()` |
+| **Animal Vis** | Visualizza le zone animali, le posizioni, lo stato vivo/morto | `GetCEApi().AnimalToggleVisualisation()` |
+| **Animal Spawn** | Genera un animale nella zona selezionata (o "AnimalGoat" al cursore) | `GetCEApi().AnimalSpawn()` |
+| **Ambient Spawn** | Genera "AmbientHen" al bersaglio del cursore | `GetCEApi().AnimalAmbientSpawn()` |
 
 #### Building
 
-**Building Stats** shows on-screen debug about building door states:
+**Building Stats** mostra il debug a schermo sugli stati delle porte degli edifici:
 
-- Left side: whether each door is open/closed and free/locked
-- Middle: stats regarding `buildings.bin` (building persistence)
+- Lato sinistro: se ogni porta è aperta/chiusa e libera/bloccata
+- Centro: statistiche riguardanti `buildings.bin` (persistenza degli edifici)
 
-Door randomization uses the `initOpened` config value. When `rand < initOpened`, the door spawns opened (so `initOpened=0` means doors never spawn open).
+La randomizzazione delle porte usa il valore config `initOpened`. Quando `rand < initOpened`, la porta appare aperta (quindi `initOpened=0` significa che le porte non appaiono mai aperte).
 
-Common `<building/>` setups in economy.xml:
+Configurazioni comuni di `<building/>` in economy.xml:
 
-| Setup | Behavior |
+| Configurazione | Comportamento |
 |-------|----------|
-| `init="0" load="0" respawn="0" save="0"` | No persistence, no randomization, default state after restart |
-| `init="1" load="0" respawn="0" save="0"` | No persistence, doors randomized by initOpened |
-| `init="1" load="1" respawn="0" save="1"` | Saves only locked doors, doors randomized by initOpened |
-| `init="0" load="1" respawn="0" save="1"` | Full persistence, saves exact door state, no randomization |
+| `init="0" load="0" respawn="0" save="0"` | Nessuna persistenza, nessuna randomizzazione, stato predefinito dopo il riavvio |
+| `init="1" load="0" respawn="0" save="0"` | Nessuna persistenza, porte randomizzate da initOpened |
+| `init="1" load="1" respawn="0" save="1"` | Salva solo le porte bloccate, porte randomizzate da initOpened |
+| `init="0" load="1" respawn="0" save="1"` | Persistenza completa, salva lo stato esatto delle porte, nessuna randomizzazione |
 
-#### Other Central Economy Tools
+#### Altri Strumenti dell'Economia Centrale
 
-| Option | Descrizione | Script Equivalent |
+| Opzione | Descrizione | Equivalente Script |
 |--------|-------------|-------------------|
-| **Vehicle&Wreck Vis** | Visualize objects registered to "Vehicle" avoidance. Yellow = Car, Pink = Wrecks (Building), Blue = InventoryItem | `GetCEApi().ToggleVehicleAndWreckVisualisation()` |
-| **Loot Vis** | On-screen Economy Data for anything you look at (loot, infected, dynamic events) | `GetCEApi().ToggleLootVisualisation()` |
-| **Cluster Vis** | On-screen Trajectory DE stats | `GetCEApi().ToggleClusterVisualisation()` |
-| **Dynamic Events Status** | On-screen DE statistics | `GetCEApi().ToggleDynamicEventStatus()` |
-| **Dynamic Events Vis** | Visualize and edit DE spawn points | `GetCEApi().ToggleDynamicEventVisualisation()` |
-| **Dynamic Events Spawn** | Spawn a dynamic event at nearest point or "StaticChristmasTree" as fallback | `GetCEApi().DynamicEventSpawn()` |
-| **Export Dyn Event** | Export DE points to `storage/export/eventSpawn_CLASSNAME.xml` | `GetCEApi().DynamicEventExport()` |
-| **Overall Stats** | On-screen CE statistics | `GetCEApi().ToggleOverallStats()` |
-| **Updaters State** | Shows what the CE is currently processing | -- |
-| **Idle Mode** | Puts CE to sleep (stops processing) | -- |
-| **Force Save** | Forces saving of the entire `storage/data` folder (excludes player database) | -- |
+| **Vehicle&Wreck Vis** | Visualizza gli oggetti registrati all'evitamento "Vehicle". Giallo = Auto, Rosa = Relitti (Building), Blu = InventoryItem | `GetCEApi().ToggleVehicleAndWreckVisualisation()` |
+| **Loot Vis** | Dati Economici a schermo per qualsiasi cosa guardi (loot, infetti, eventi dinamici) | `GetCEApi().ToggleLootVisualisation()` |
+| **Cluster Vis** | Statistiche Trajectory DE a schermo | `GetCEApi().ToggleClusterVisualisation()` |
+| **Dynamic Events Status** | Statistiche DE a schermo | `GetCEApi().ToggleDynamicEventStatus()` |
+| **Dynamic Events Vis** | Visualizza e modifica i punti di spawn DE | `GetCEApi().ToggleDynamicEventVisualisation()` |
+| **Dynamic Events Spawn** | Genera un evento dinamico al punto più vicino o "StaticChristmasTree" come fallback | `GetCEApi().DynamicEventSpawn()` |
+| **Export Dyn Event** | Esporta i punti DE in `storage/export/eventSpawn_CLASSNAME.xml` | `GetCEApi().DynamicEventExport()` |
+| **Overall Stats** | Statistiche CE a schermo | `GetCEApi().ToggleOverallStats()` |
+| **Updaters State** | Mostra cosa sta attualmente elaborando la CE | -- |
+| **Idle Mode** | Mette la CE in pausa (ferma l'elaborazione) | -- |
+| **Force Save** | Forza il salvataggio dell'intera cartella `storage/data` (esclude il database giocatori) | -- |
 
-**Dynamic Events Vis key bindings:**
+**Combinazioni di tasti per Dynamic Events Vis:**
 
-| Key | Function |
+| Tasto | Funzione |
 |-----|----------|
-| **[** | Iterate backwards through available DE |
-| **]** | Iterate forwards through available DE |
-| **LMB** | Insert new point for selected DE |
-| **RMB** | Delete point nearest to cursor |
-| **MMB** | Hold or click to rotate angle |
+| **[** | Itera all'indietro tra i DE disponibili |
+| **]** | Itera in avanti tra i DE disponibili |
+| **LMB** | Inserisci nuovo punto per il DE selezionato |
+| **RMB** | Elimina il punto più vicino al cursore |
+| **MMB** | Tieni premuto o clicca per ruotare l'angolo |
 
 ---
 
 ## AI
 
-### Menu Structure
+### Struttura del Menu
 
 ```
 AI
@@ -765,40 +769,40 @@ AI
   Debug AI Agent
 ```
 
-> **Important:** AI debugging currently does not work in a multiplayer environment.
+> **Importante:** Il debug dell'IA attualmente non funziona in un ambiente multigiocatore.
 
 ### Show NavMesh
 
-Draws debug shapes to visualize the navigation mesh. Shows an on-screen debug with stats.
+Disegna forme di debug per visualizzare la mesh di navigazione. Mostra un debug a schermo con statistiche.
 
-| Key | Function |
+| Tasto | Funzione |
 |-----|----------|
-| **Numpad 0** | Register "Test start" at camera position |
-| **Numpad 1** | Regenerate tile at camera position |
-| **Numpad 2** | Regenerate tiles around camera position |
-| **Numpad 3** | Iterate forwards through visualization types |
-| **LAlt + Numpad 3** | Iterate backwards through visualization types |
-| **Numpad 4** | Register "Test end" at camera position. Draws spheres and a line between start and end. Green = path found, Red = no path |
-| **Numpad 5** | NavMesh nearest position test (SamplePosition). Blue sphere = query, pink sphere = result |
-| **Numpad 6** | NavMesh raycast test. Blue sphere = query, pink sphere = result |
+| **Numpad 0** | Registra "Test start" alla posizione della telecamera |
+| **Numpad 1** | Rigenera il tile alla posizione della telecamera |
+| **Numpad 2** | Rigenera i tile attorno alla posizione della telecamera |
+| **Numpad 3** | Itera in avanti tra i tipi di visualizzazione |
+| **LAlt + Numpad 3** | Itera all'indietro tra i tipi di visualizzazione |
+| **Numpad 4** | Registra "Test end" alla posizione della telecamera. Disegna sfere e una linea tra inizio e fine. Verde = percorso trovato, Rosso = nessun percorso |
+| **Numpad 5** | Test posizione più vicina NavMesh (SamplePosition). Sfera blu = query, sfera rosa = risultato |
+| **Numpad 6** | Test raycast NavMesh. Sfera blu = query, sfera rosa = risultato |
 
 ### Debug Pathgraph World
 
-On-screen debug showing how many path job requests have been completed and how many are currently pending.
+Debug a schermo che mostra quante richieste di job di percorso sono state completate e quante sono attualmente in sospeso.
 
 ### Debug Path Agent
 
-On-screen debug and debug shapes for an AI's pathing. Target an AI entity to select it for tracking. Use this when you are specifically interested in how an AI finds its path.
+Debug a schermo e forme di debug per il pathfinding di un'IA. Punta un'entità IA per selezionarla per il tracciamento. Usa questo quando sei specificamente interessato a come un'IA trova il suo percorso.
 
 ### Debug AI Agent
 
-On-screen debug and debug shapes for an AI's alertness and behavior. Target an AI entity to select it for tracking. Use this when you want to understand an AI's decision-making and awareness state.
+Debug a schermo e forme di debug per l'allerta e il comportamento di un'IA. Punta un'entità IA per selezionarla per il tracciamento. Usa questo quando vuoi capire le decisioni e lo stato di consapevolezza di un'IA.
 
 ---
 
 ## Sounds
 
-### Menu Structure
+### Struttura del Menu
 
 ```
 Sounds
@@ -808,100 +812,100 @@ Sounds
 
 ### Show Playing Samples
 
-Debug visualization for currently playing sounds.
+Visualizzazione di debug per i suoni attualmente in riproduzione.
 
-| Option | Descrizione |
+| Opzione | Descrizione |
 |--------|-------------|
-| **none** | Default, no debug |
-| **ImGui** | Separate window (newest iteration). Supports filtering, full category coverage. Settings saved as `playing_sounds_imgui.ini` / `.bin` in profiles |
-| **DbgUI** | Legacy. Has category filtering, more readable, but goes off-screen and lacks vehicle category |
-| **Engine** | Legacy. Shows real-time color-coded data with stats, but goes off-screen and has no color legend |
+| **none** | Predefinito, nessun debug |
+| **ImGui** | Finestra separata (iterazione più recente). Supporta il filtraggio, copertura completa delle categorie. Impostazioni salvate come `playing_sounds_imgui.ini` / `.bin` nei profili |
+| **DbgUI** | Legacy. Ha il filtraggio per categorie, più leggibile, ma esce dallo schermo e manca la categoria veicoli |
+| **Engine** | Legacy. Mostra dati in tempo reale codificati per colore con statistiche, ma esce dallo schermo e non ha legenda dei colori |
 
 ### Show System Info
 
-On-screen debug stats of the sound system (buffer counts, active sources, etc.).
+Statistiche di debug a schermo del sistema audio (conteggio buffer, sorgenti attive, ecc.).
 
 ---
 
-## Useful Features for Modders
+## Funzionalità Utili per i Modder
 
-While every option has its use, these are the ones modders reach for most frequently:
+Mentre ogni opzione ha il suo utilizzo, queste sono quelle a cui i modder ricorrono più frequentemente:
 
-### Performance Analysis
+### Analisi delle Prestazioni
 
-1. **FPS counter** (LCtrl + Numpad 1) -- Quick check that your mod is not destroying frame rate
-2. **Script Profiler** -- Find which of your classes or functions consume the most CPU time. Set module to WORLD or MISSION to focus on your mod's script layer
+1. **Contatore FPS** (LCtrl + Numpad 1) -- Controllo rapido che la tua mod non stia distruggendo il frame rate
+2. **Profilatore Script** -- Trova quali delle tue classi o funzioni consumano più tempo CPU. Imposta il modulo su WORLD o MISSION per concentrarti sul livello script della tua mod
 
-### Visual Debugging
+### Debug Visivo
 
-1. **Free Camera** -- Fly around to inspect spawned objects, verify positions, check AI behavior from a distance
-2. **Geometry Diagnostic** -- Verify your custom model's fire geometry, view geometry, roadway LOD, and memory points without leaving the game
-3. **Render Debug Mode** (RCtrl + RAlt + W) -- See wireframe overlays to check mesh density and material assignments
+1. **Telecamera Libera** -- Vola in giro per ispezionare oggetti generati, verificare posizioni, controllare il comportamento dell'IA da distanza
+2. **Geometry Diagnostic** -- Verifica la fire geometry, view geometry, roadway LOD e memory points del tuo modello personalizzato senza uscire dal gioco
+3. **Render Debug Mode** (RCtrl + RAlt + W) -- Vedi overlay wireframe per controllare la densità dei mesh e le assegnazioni dei materiali
 
-### Gameplay Testing
+### Test del Gameplay
 
-1. **Free Camera + Insert** -- Teleport your player anywhere on the map instantly
-2. **Weather Sovrascrivi** -- Force specific fog conditions to test visibility-dependent features
-3. **Central Economy tools** -- Spawn infected, animals, loot, and dynamic events on demand
-4. **Combat debug** -- Trace shot trajectories, inspect hitpoint damage systems, test explosion penetration
+1. **Telecamera Libera + Insert** -- Teletrasporta il tuo giocatore ovunque nella mappa istantaneamente
+2. **Override Meteo** -- Forza condizioni di nebbia specifiche per testare funzionalità dipendenti dalla visibilità
+3. **Strumenti Economia Centrale** -- Genera infetti, animali, loot ed eventi dinamici su richiesta
+4. **Debug combattimento** -- Traccia le traiettorie degli spari, ispeziona i sistemi di danno degli hitpoint, testa la penetrazione delle esplosioni
 
-### AI Development
+### Sviluppo IA
 
-1. **Show NavMesh** -- Verify that AI can actually navigate to where you expect
-2. **Debug AI Agent** -- See what an infected or animal is thinking, what alert level it is at
-3. **Debug Path Agent** -- Vedi la actual path an AI is taking and whether pathfinding succeeds
+1. **Show NavMesh** -- Verifica che l'IA possa effettivamente navigare dove ti aspetti
+2. **Debug AI Agent** -- Vedi cosa sta pensando un infetto o animale, a che livello di allerta si trova
+3. **Debug Path Agent** -- Vedi il percorso effettivo che un'IA sta seguendo e se il pathfinding ha successo
 
 ---
 
-## Quando Usare the Diag Menu
+## Quando Usare il Diag Menu
 
-### During Development
+### Durante lo Sviluppo
 
-- **Script Profiler** when optimizing per-frame code (OnUpdate, EOnFrame)
-- **Free Camera** for positioning objects, verifying spawn locations, inspecting model placement
-- **Geometry Diagnostic** immediately after importing a new model to verify LODs and geometry types
-- **FPS counter** as a baseline before and after adding new features
+- **Profilatore Script** quando ottimizzi il codice per-frame (OnUpdate, EOnFrame)
+- **Telecamera Libera** per posizionare oggetti, verificare posizioni di spawn, ispezionare il posizionamento dei modelli
+- **Geometry Diagnostic** immediatamente dopo l'importazione di un nuovo modello per verificare i LOD e i tipi di geometria
+- **Contatore FPS** come linea di base prima e dopo l'aggiunta di nuove funzionalità
 
-### During Testing
+### Durante il Testing
 
-- **Combat debug** to verify weapon damage, projectile behavior, explosion effects
-- **CE tools** to test loot distribution, spawn points, dynamic events
-- **AI debug** to verify infected/animal behavior responds correctly to player presence
-- **Weather debug** to test your mod under different weather conditions
+- **Debug combattimento** per verificare danni delle armi, comportamento dei proiettili, effetti delle esplosioni
+- **Strumenti CE** per testare la distribuzione del loot, i punti di spawn, gli eventi dinamici
+- **Debug IA** per verificare che il comportamento degli infetti/animali risponda correttamente alla presenza del giocatore
+- **Debug meteo** per testare la tua mod in diverse condizioni meteorologiche
 
-### During Bug Investigation
+### Durante l'Investigazione dei Bug
 
-- **FPS counter + Script Profiler** when players report performance issues
-- **Free Camera + Spacebar** (object debug) to inspect objects that are not behaving correctly
-- **Render Debug Mode** to diagnose visual artifacts or material issues
-- **Show Bullet** to debug physics collision problems
+- **Contatore FPS + Profilatore Script** quando i giocatori segnalano problemi di prestazioni
+- **Telecamera Libera + Barra spaziatrice** (debug oggetto) per ispezionare oggetti che non si comportano correttamente
+- **Render Debug Mode** per diagnosticare artefatti visivi o problemi con i materiali
+- **Show Bullet** per il debug dei problemi di collisione fisica
 
 ---
 
 ## Errori Comuni
 
-**Using retail executable.** The Diag Menu is only available in `DayZDiag_x64.exe`. If you press Win+Alt and nothing happens, you are running the retail build.
+**Usare l'eseguibile retail.** Il Diag Menu è disponibile solo in `DayZDiag_x64.exe`. Se premi Win+Alt e non succede nulla, stai usando la build retail.
 
-**Forgetting Max. Collider Distance is 0.** The physics visualization (Draw Bullet shape) will show nothing if Max. Collider Distance is still at its default of 0. Set it to at least 10-20 to see colliders around you.
+**Dimenticare che Max. Collider Distance è 0.** La visualizzazione della fisica (Draw Bullet shape) non mostrerà nulla se Max. Collider Distance è ancora al suo valore predefinito di 0. Impostalo almeno a 10-20 per vedere i collider intorno a te.
 
-**CE tools in multiplayer.** Most Central Economy debug options only work in single-player with CE enabled. Do not expect them to function on a dedicated server.
+**Strumenti CE in multigiocatore.** La maggior parte delle opzioni di debug dell'Economia Centrale funziona solo in single-player con la CE abilitata. Non aspettarti che funzionino su un server dedicato.
 
-**AI debug in multiplayer.** AI debugging currently does not work in a multiplayer environment. Test AI behavior in single-player.
+**Debug IA in multigiocatore.** Il debug dell'IA attualmente non funziona in un ambiente multigiocatore. Testa il comportamento dell'IA in single-player.
 
-**Confusing "Bullet" with ammunition.** The "Enfusion World" category's "Bullet" options refer to the Bullet physics engine, not weapon ammunition. Combat-related debugging is under Game > Combat.
+**Confondere "Bullet" con le munizioni.** Le opzioni "Bullet" della categoria "Enfusion World" si riferiscono al motore fisico Bullet, non alle munizioni delle armi. Il debug relativo al combattimento si trova sotto Game > Combat.
 
-**Leaving profiler on.** The Script Profiler has measurable overhead. Turn it off when you are done profiling to get accurate FPS readings.
+**Lasciare il profilatore attivo.** Il Profilatore Script ha un overhead misurabile. Disattivalo quando hai finito la profilazione per ottenere letture FPS accurate.
 
-**Large collider distance valori.** Setting Max. Collider Distance to 200 or 500 will tank your frame rate. Use the smallest value that covers your area of interest.
+**Valori di distanza collider grandi.** Impostare Max. Collider Distance a 200 o 500 distruggerà il tuo frame rate. Usa il valore più piccolo che copra la tua area di interesse.
 
-**Not enabling prerequisites.** Several options depend on others being enabled first:
-- "Draw Char Ctrl" and "Draw Bullet wireframe" depend on "Draw Bullet shape"
-- "Edit Volume" requires free camera
-- "Project Target Loot" requires "Loot Vis" to be enabled
+**Non abilitare i prerequisiti.** Diverse opzioni dipendono da altre che devono essere abilitate prima:
+- "Draw Char Ctrl" e "Draw Bullet wireframe" dipendono da "Draw Bullet shape"
+- "Edit Volume" richiede la telecamera libera
+- "Project Target Loot" richiede che "Loot Vis" sia abilitato
 
 ---
 
 ## Prossimi Passi
 
-- **Chapter 8.6: [Debugging & Testing](06-debugging-testing.md)** -- Script logs, Print debugging, file patching, and Workbench
-- **Chapter 8.7: [Publishing to Workshop](07-publishing-workshop.md)** -- Package and publish your tested mod
+- **Capitolo 8.6: [Debugging & Testing](06-debugging-testing.md)** -- Log degli script, debug con Print, file patching e Workbench
+- **Capitolo 8.7: [Pubblicare sul Workshop](07-publishing-workshop.md)** -- Impacchetta e pubblica la tua mod testata

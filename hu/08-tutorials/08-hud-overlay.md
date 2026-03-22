@@ -1,30 +1,34 @@
-# Chapter 8.8: Building a HUD Overlay
+# 8.8. fejezet: HUD overlay készítése
 
-[Home](../../README.md) | [<< Previous: Publishing to the Steam Workshop](07-publishing-workshop.md) | **Building a HUD Overlay** | [Next: Professional Mod Template >>](09-professional-template.md)
-
----
-
-## Tartalomjegyzek
-
-- [What We Are Building](#what-we-are-building)
-- [Elofeletelek](#prerequisites)
-- [Mod Structure](#mod-structure)
-- [Step 1: Create the Layout File](#step-1-create-the-layout-file)
-- [Step 2: Create the HUD Controller Class](#step-2-create-the-hud-controller-class)
-- [Step 3: Hook into MissionGameplay](#step-3-hook-into-missiongameplay)
-- [Step 4: Request Data from Server](#step-4-request-data-from-server)
-- [Step 5: Add Toggle with Keybind](#step-5-add-toggle-with-keybind)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Extending the HUD](#extending-the-hud)
-- [Gyakori hibak](#common-mistakes)
-- [Kovetkezo lepesek](#next-steps)
+[Főoldal](../../README.md) | [<< Előző: Publikálás a Steam Workshopra](07-publishing-workshop.md) | **HUD overlay készítése** | [Következő: Professzionális mod sablon >>](09-professional-template.md)
 
 ---
 
-## What We Are Building
+> **Összefoglaló:** Ez az útmutató végigvezet egy egyéni HUD overlay készítésén, amely szerver információkat jelenít meg a képernyő jobb felső sarkában. Létre fogsz hozni egy layout fájlt, írni egy vezérlő osztályt, becsatlakozni a misszió életciklusba, adatokat kérni a szerverről RPC-n keresztül, hozzáadni egy átkapcsoló billentyűkötést, és csiszolni az eredményt halványítási animációkkal és intelligens láthatósággal. A végére egy nem tolakodó Szerver Infó HUD-od lesz, amely a szerver nevét, a játékosszámot és az aktuális játékon belüli időt mutatja -- plusz alapos megértésed arról, hogyan működnek a HUD overlayek a DayZ-ben.
 
-A small, semi-transparent panel anchored to the top-right corner of the screen that displays three lines of information:
+---
+
+## Tartalomjegyzék
+
+- [Mit építünk](#mit-építünk)
+- [Előfeltételek](#előfeltételek)
+- [Mod struktúra](#mod-struktúra)
+- [1. lépés: A layout fájl létrehozása](#1-lépés-a-layout-fájl-létrehozása)
+- [2. lépés: A HUD vezérlő osztály létrehozása](#2-lépés-a-hud-vezérlő-osztály-létrehozása)
+- [3. lépés: Becsatlakozás a MissionGameplay-be](#3-lépés-becsatlakozás-a-missiongameplay-be)
+- [4. lépés: Adatok kérése a szerverről](#4-lépés-adatok-kérése-a-szerverről)
+- [5. lépés: Átkapcsolás billentyűkötéssel](#5-lépés-átkapcsolás-billentyűkötéssel)
+- [6. lépés: Csiszolás](#6-lépés-csiszolás)
+- [Teljes kód referencia](#teljes-kód-referencia)
+- [A HUD bővítése](#a-hud-bővítése)
+- [Gyakori hibák](#gyakori-hibák)
+- [Következő lépések](#következő-lépések)
+
+---
+
+## Mit építünk
+
+Egy kicsi, félig átlátszó panel, amely a képernyő jobb felső sarkához van rögzítve, és három sor információt jelenít meg:
 
 ```
   Aurora Survival [Official]
@@ -32,25 +36,25 @@ A small, semi-transparent panel anchored to the top-right corner of the screen t
   Time: 14:35
 ```
 
-The panel sits below the status indicators and above the quickbar. It updates once per second (not every frame), fades in when shown and fades out when hidden, and automatically hides when the inventory or pause menu is open. The player can toggle it on and off with a configurable key (default: **F7**).
+A panel az állapotjelzők alatt és a gyorselérési sáv felett helyezkedik el. Másodpercenként egyszer frissül (nem minden képkockánál), megjelenik behalványodva és eltűnik kihalványodva, és automatikusan elrejtőzik, amikor a felszerelés vagy a szüneteltetés menü nyitva van. A játékos ki- és bekapcsolhatja egy konfigurálható billentyűvel (alapértelmezett: **F7**).
 
-### Expected Result
+### Várt eredmény
 
-When loaded, you will see a dark semi-transparent rectangle in the top-right area of the screen. White text shows the server name on the first line, the current player count on the second line, and the in-game world time on the third line. Pressing F7 smoothly fades it out; pressing F7 again fades it back in.
-
----
-
-## Elofeletelek
-
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Basic understanding of Enforce Script syntax
-- Familiarity with DayZ's client-server model (the HUD runs on the client; player count comes from the server)
+Betöltéskor egy sötét, félig átlátszó téglalapot fogsz látni a képernyő jobb felső területén. Fehér szöveg mutatja a szerver nevét az első sorban, az aktuális játékosszámot a második sorban, és a játékon belüli világidőt a harmadik sorban. Az F7 megnyomása simán kihalványítja; az F7 újbóli megnyomása visszahalványítja.
 
 ---
 
-## Mod Structure
+## Előfeltételek
 
-Create the following directory tree:
+- Működő mod struktúra (először végezd el a [8.1. fejezetet](01-first-mod.md))
+- Alapvető Enforce Script szintaxis ismerete
+- A DayZ kliens-szerver modelljének ismerete (a HUD a kliensen fut; a játékosszám a szerverről jön)
+
+---
+
+## Mod struktúra
+
+Hozd létre a következő könyvtárfát:
 
 ```
 ServerInfoHUD/
@@ -74,13 +78,13 @@ ServerInfoHUD/
             ServerInfoHUD.layout
 ```
 
-The `3_Game` layer defines constants (our RPC ID). The `4_World` layer handles the server-side response. The `5_Mission` layer contains the HUD class and the mission hook. The layout file defines the widget tree.
+A `3_Game` réteg definiálja a konstansokat (az RPC ID-nket). A `4_World` réteg kezeli a szerver oldali választ. Az `5_Mission` réteg tartalmazza a HUD osztályt és a misszió hookot. A layout fájl definiálja a widget fát.
 
 ---
 
-## Step 1: Create the Layout File
+## 1. lépés: A layout fájl létrehozása
 
-Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system uses a coordinate model where each widget has a position and size expressed as proportional values (0.0 to 1.0 of the parent) plus pixel offsets.
+A layout fájlok (`.layout`) XML-ben definiálják a widget hierarchiát. A DayZ GUI rendszere egy koordináta modellt használ, ahol minden widgetnek van pozíciója és mérete, arányos értékekkel (0.0 - 1.0 a szülő arányában) plusz pixel eltolásokkal kifejezve.
 
 ### `GUI/layouts/ServerInfoHUD.layout`
 
@@ -88,7 +92,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 <?xml version="1.0" encoding="UTF-8"?>
 <layoutset>
   <children>
-    <!-- Root frame: covers the full screen, does not consume input -->
+    <!-- Gyökér keret: lefedi a teljes képernyőt, nem fogyaszt bemenetet -->
     <Widget name="ServerInfoRoot" type="FrameWidgetClass">
       <Attribute name="position" value="0 0" />
       <Attribute name="size" value="1 1" />
@@ -99,7 +103,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
       <Attribute name="hexactsize" value="0" />
       <Attribute name="vexactsize" value="0" />
       <children>
-        <!-- Background panel: top-right corner -->
+        <!-- Háttér panel: jobb felső sarok -->
         <Widget name="ServerInfoPanel" type="ImageWidgetClass">
           <Attribute name="position" value="1 0" />
           <Attribute name="size" value="220 70" />
@@ -111,7 +115,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
           <Attribute name="vexactsize" value="1" />
           <Attribute name="color" value="0 0 0 0.55" />
           <children>
-            <!-- Server name text -->
+            <!-- Szerver név szöveg -->
             <Widget name="ServerNameText" type="TextWidgetClass">
               <Attribute name="position" value="8 6" />
               <Attribute name="size" value="204 20" />
@@ -126,7 +130,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- Player count text -->
+            <!-- Játékosszám szöveg -->
             <Widget name="PlayerCountText" type="TextWidgetClass">
               <Attribute name="position" value="8 28" />
               <Attribute name="size" value="204 18" />
@@ -141,7 +145,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- In-game time text -->
+            <!-- Játékon belüli idő szöveg -->
             <Widget name="TimeText" type="TextWidgetClass">
               <Attribute name="position" value="8 48" />
               <Attribute name="size" value="204 18" />
@@ -164,25 +168,25 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 </layoutset>
 ```
 
-### Key Layout Fogaloms
+### Főbb layout fogalmak
 
-| Attribute | Jelentes |
+| Attribútum | Jelentés |
 |-----------|---------|
-| `halign="2"` | Horizontal alignment: **right**. The widget anchors to the right edge of its parent. |
-| `valign="0"` | Vertical alignment: **top**. |
-| `hexactpos="0"` + `vexactpos="1"` | Horizontal position is proportional (1.0 = right edge), vertical position is in pixels. |
-| `hexactsize="1"` + `vexactsize="1"` | Width and height are in pixels (220 x 70). |
-| `color="0 0 0 0.55"` | RGBA as floats. Black at 55% opacity for the background panel. |
+| `halign="2"` | Vízszintes igazítás: **jobbra**. A widget a szülője jobb széléhez rögzül. |
+| `valign="0"` | Függőleges igazítás: **felülre**. |
+| `hexactpos="0"` + `vexactpos="1"` | A vízszintes pozíció arányos (1.0 = jobb szél), a függőleges pozíció pixelben van. |
+| `hexactsize="1"` + `vexactsize="1"` | A szélesség és magasság pixelben van (220 x 70). |
+| `color="0 0 0 0.55"` | RGBA lebegőpontos számokként. Fekete 55%-os átlátszatlansággal a háttér panelhez. |
 
-The `ServerInfoPanel` is positioned at proportional X=1.0 (right edge) with `halign="2"` (right-aligned), so the panel's right edge touches the right side of the screen. The Y position is 0 pixels from the top. This places our HUD in the top-right corner.
+A `ServerInfoPanel` az arányos X=1.0 pozícióra (jobb szél) van helyezve `halign="2"` (jobbra igazított) beállítással, így a panel jobb széle érinti a képernyő jobb oldalát. Az Y pozíció 0 pixel a tetejétől. Ez a jobb felső sarokba helyezi a HUD-unkat.
 
-**Why pixel sizes for the panel?** Proportional sizing would make the panel scale with resolution, but for small info widgets you want a fixed pixel footprint so the text stays readable at all resolutions.
+**Miért pixel méret a panelhez?** Az arányos méretezés a panelt a felbontással együtt méretezné, de kis infó widgeteknél rögzített pixel lábnyomot szeretnél, hogy a szöveg minden felbontáson olvasható maradjon.
 
 ---
 
-## Step 2: Create the HUD Controller Class
+## 2. lépés: A HUD vezérlő osztály létrehozása
 
-The controller class loads the layout, finds widgets by name, and exposes methods to update the displayed text. It extends `ScriptedWidgetEventHandler` so it can receive widget events if needed later.
+A vezérlő osztály betölti a layoutot, név alapján megtalálja a widgeteket, és metódusokat biztosít a megjelenített szöveg frissítéséhez. A `ScriptedWidgetEventHandler`-t terjeszti ki, hogy később widget eseményeket fogadhasson, ha szükséges.
 
 ### `Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
@@ -198,7 +202,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
     protected bool m_IsVisible;
     protected float m_UpdateTimer;
 
-    // How often to refresh displayed data (seconds)
+    // Milyen gyakran frissítse a megjelenített adatokat (másodperc)
     static const float UPDATE_INTERVAL = 1.0;
 
     void ServerInfoHUD()
@@ -212,7 +216,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         Destroy();
     }
 
-    // Create and show the HUD
+    // HUD létrehozása és megjelenítése
     void Init()
     {
         if (m_Root)
@@ -242,11 +246,11 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_Root.Show(true);
         m_IsVisible = true;
 
-        // Request initial data from server
+        // Kezdeti adatok kérése a szerverről
         RequestServerInfo();
     }
 
-    // Remove all widgets
+    // Összes widget eltávolítása
     void Destroy()
     {
         if (m_Root)
@@ -256,7 +260,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Called every frame from MissionGameplay.OnUpdate
+    // Minden képkockánál meghívódik a MissionGameplay.OnUpdate-ből
     void Update(float timeslice)
     {
         if (!m_Root)
@@ -275,7 +279,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Update the in-game time display (client-side, no RPC needed)
+    // A játékon belüli idő megjelenítés frissítése (kliens oldali, nincs szükség RPC-re)
     protected void RefreshTime()
     {
         if (!m_TimeText)
@@ -296,12 +300,12 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_TimeText.SetText("Time: " + hourStr + ":" + minStr);
     }
 
-    // Send RPC to server asking for player count and server name
+    // RPC küldése a szervernek a játékosszám és szerver név kéréséhez
     protected void RequestServerInfo()
     {
         if (!GetGame().IsMultiplayer())
         {
-            // Offline mode: just show local info
+            // Offline mód: csak helyi infó megjelenítése
             SetServerName("Offline Mode");
             SetPlayerCount(1, 1);
             return;
@@ -315,7 +319,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         rpc.Send(player, SIH_RPC_REQUEST_INFO, true, NULL);
     }
 
-    // --- Setters called when data arrives ---
+    // --- Beállítók, amelyek az adatok megérkezésekor hívódnak ---
 
     void SetServerName(string name)
     {
@@ -333,7 +337,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Toggle visibility
+    // Láthatóság átkapcsolása
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -342,7 +346,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
             m_Root.Show(m_IsVisible);
     }
 
-    // Hide when menus are open
+    // Elrejtés, amikor menük nyitva vannak
     void SetMenuState(bool menuOpen)
     {
         if (!m_Root)
@@ -370,18 +374,18 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 ```
 
-### Important Reszlets
+### Fontos részletek
 
-1. **`CreateWidgets` path**: The path is relative to the mod root. Since we pack the `GUI/` folder inside the PBO, the engine resolves `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` using the mod prefix.
-2. **`FindAnyWidget`**: Searches the widget tree recursively by name. Always check for NULL after casting.
-3. **`Widget.Unlink()`**: Properly removes the widget and all its children from the UI tree. Always call this in cleanup.
-4. **Timer accumulator pattern**: We add `timeslice` each frame and act only when the accumulated time exceeds `UPDATE_INTERVAL`. This prevents doing work every single frame.
+1. **`CreateWidgets` útvonal**: Az útvonal a mod gyökérhez képest relatív. Mivel a `GUI/` mappát a PBO-n belül csomagoljuk, a motor feloldja a `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` útvonalat a mod prefix segítségével.
+2. **`FindAnyWidget`**: Rekurzívan keres a widget fában név alapján. Castolás után mindig ellenőrizd NULL-ra.
+3. **`Widget.Unlink()`**: Megfelelően eltávolítja a widgetet és annak összes gyerekét az UI fából. Takarításnál mindig hívd meg.
+4. **Időzítő akkumulátor minta**: Minden képkockánál hozzáadjuk a `timeslice`-ot, és csak akkor cselekszünk, amikor az összegyűjtött idő meghaladja az `UPDATE_INTERVAL`-t. Ez megakadályozza, hogy minden egyes képkockánál dolgozzunk.
 
 ---
 
-## Step 3: Hook into MissionGameplay
+## 3. lépés: Becsatlakozás a MissionGameplay-be
 
-The `MissionGameplay` class is the mission controller on the client side. We use `modded class` to inject our HUD into its lifecycle without replacing the vanilla file.
+A `MissionGameplay` osztály a misszió vezérlő a kliens oldalon. A `modded class`-t használjuk, hogy a HUD-unkat beilleszthessük az életciklusába anélkül, hogy lecserélnénk a vanilla fájlt.
 
 ### `Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
@@ -394,14 +398,14 @@ modded class MissionGameplay
     {
         super.OnInit();
 
-        // Create the HUD overlay
+        // A HUD overlay létrehozása
         m_ServerInfoHUD = new ServerInfoHUD();
         m_ServerInfoHUD.Init();
     }
 
     override void OnMissionFinish()
     {
-        // Clean up BEFORE calling super
+        // Takarítás a super hívása ELŐTT
         if (m_ServerInfoHUD)
         {
             m_ServerInfoHUD.Destroy();
@@ -418,7 +422,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Hide HUD when inventory or any menu is open
+        // HUD elrejtése, amikor a felszerelés vagy bármilyen menü nyitva van
         UIManager uiMgr = GetGame().GetUIManager();
         bool menuOpen = false;
 
@@ -431,10 +435,10 @@ modded class MissionGameplay
 
         m_ServerInfoHUD.SetMenuState(menuOpen);
 
-        // Update HUD data (throttled internally)
+        // HUD adatok frissítése (belsőleg korlátozva)
         m_ServerInfoHUD.Update(timeslice);
 
-        // Check toggle key
+        // Átkapcsoló billentyű ellenőrzése
         Input input = GetGame().GetInput();
         if (input)
         {
@@ -445,7 +449,7 @@ modded class MissionGameplay
         }
     }
 
-    // Accessor so the RPC handler can reach the HUD
+    // Elérő, hogy az RPC kezelő elérhesse a HUD-ot
     ServerInfoHUD GetServerInfoHUD()
     {
         return m_ServerInfoHUD;
@@ -453,41 +457,41 @@ modded class MissionGameplay
 };
 ```
 
-### Why This Minta Works
+### Miért működik ez a minta
 
-- **`OnInit`** runs once when the player enters gameplay. We create and initialize the HUD here.
-- **`OnUpdate`** runs every frame. We pass `timeslice` to the HUD, which internally throttles to once per second. We also check for the toggle key press and menu visibility here.
-- **`OnMissionFinish`** runs when the player disconnects or the mission ends. We destroy our widgets here to prevent memory leaks.
+- Az **`OnInit`** egyszer fut le, amikor a játékos belép a játékmenetbe. Itt hozzuk létre és inicializáljuk a HUD-ot.
+- Az **`OnUpdate`** minden képkockánál fut. Átadjuk a `timeslice`-ot a HUD-nak, amely belsőleg másodpercenként egyszer korlátozza. Itt ellenőrizzük az átkapcsoló billentyű lenyomását és a menü láthatóságot is.
+- Az **`OnMissionFinish`** akkor fut, amikor a játékos lekapcsolódik vagy a misszió véget ér. Itt semmisítjük meg a widgetjeinket a memóriaszivárgás megelőzéséhez.
 
-### Critical Rule: Always Clean Up
+### Kritikus szabály: Mindig takaríts
 
-If you forget to destroy your widgets in `OnMissionFinish`, the widget root will leak into the next session. After a few server hops, the player ends up with stacked ghost widgets consuming memory. Always pair `Init()` with `Destroy()`.
+Ha elfelejted megsemmisíteni a widgetjeidet az `OnMissionFinish`-ben, a widget gyökér átszivárog a következő munkamenetbe. Néhány szerverváltás után a játékosnál egymásra halmozódott szellem widgetek maradnak, amelyek memóriát fogyasztanak. Mindig párosítsd az `Init()`-et a `Destroy()`-jal.
 
 ---
 
-## Step 4: Request Data from Server
+## 4. lépés: Adatok kérése a szerverről
 
-The player count is only known on the server. We need a simple RPC (Remote Procedure Call) round-trip: the client sends a request, the server reads the data and sends it back.
+A játékosszámot csak a szerver ismeri. Szükségünk van egy egyszerű RPC (Remote Procedure Call) oda-visszaútra: a kliens küld egy kérést, a szerver beolvassa az adatokat és visszaküldi.
 
-### Step 4a: Define the RPC ID
+### 4a lépés: Az RPC ID definiálása
 
-RPC IDs must be unique across all mods. We define ours in the `3_Game` layer so both client and server code can reference it.
+Az RPC ID-knek egyedinek kell lenniük az összes mod között. A mieinket a `3_Game` rétegben definiáljuk, hogy mind a kliens, mind a szerver kód hivatkozhasson rájuk.
 
 ### `Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for the Server Info HUD.
-// Using high numbers to avoid conflicts with vanilla and other mods.
+// RPC ID-k a Szerver Infó HUD-hoz.
+// Magas számok használata az ütközések elkerüléséhez a vanillával és más modokkal.
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-**Why `3_Game`?** Konstansok and enums belong in the lowest layer that both client and server can access. The `3_Game` layer loads before `4_World` and `5_Mission`, so both sides can see these values.
+**Miért `3_Game`?** A konstansok és enum-ok a legalsó rétegbe tartoznak, amelyet mind a kliens, mind a szerver elérhet. A `3_Game` réteg a `4_World` és `5_Mission` előtt töltődik be, így mindkét oldal láthatja ezeket az értékeket.
 
-### Step 4b: Server-Side Handler
+### 4b lépés: Szerver oldali kezelő
 
-The server listens for `SIH_RPC_REQUEST_INFO`, gathers the data, and responds with `SIH_RPC_RESPONSE_INFO`.
+A szerver figyeli az `SIH_RPC_REQUEST_INFO`-t, összegyűjti az adatokat, és válaszol az `SIH_RPC_RESPONSE_INFO`-val.
 
 ### `Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
@@ -516,22 +520,22 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Gather server info
+        // Szerver infó összegyűjtése
         string serverName = "";
         GetGame().GetHostName(serverName);
 
         int playerCount = 0;
         int maxPlayers = 0;
 
-        // Get the player list
+        // Játékos lista lekérése
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         playerCount = players.Count();
 
-        // Max players from server config
+        // Maximum játékosok a szerver konfigból
         maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send response back to the requesting client
+        // Válasz küldése vissza a kérő kliensnek
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -541,13 +545,11 @@ modded class PlayerBase
 };
 ```
 
-### Step 4c: Client-Side RPC Receiver
+### 4c lépés: Kliens oldali RPC fogadó
 
-The client receives the response and updates the HUD.
+A kliens fogadja a választ és frissíti a HUD-ot.
 
-Add this to the same `ServerInfoHUD.c` file (at the bottom, outside the class), or create a separate file in `5_Mission/ServerInfoHUD/`:
-
-Add the following **below** the `ServerInfoHUD` class in `ServerInfoHUD.c`:
+Add hozzá a `ServerInfoHUD` osztály **alá** a `ServerInfoHUD.c` fájlban:
 
 ```c
 modded class PlayerBase
@@ -582,7 +584,7 @@ modded class PlayerBase
         if (!ctx.Read(maxPlayers))
             return;
 
-        // Access the HUD through MissionGameplay
+        // A HUD elérése a MissionGameplay-en keresztül
         MissionGameplay mission = MissionGameplay.Cast(
             GetGame().GetMission()
         );
@@ -600,29 +602,29 @@ modded class PlayerBase
 };
 ```
 
-### How the RPC Flow Works
+### Hogyan működik az RPC folyamat
 
 ```
-CLIENT                           SERVER
+KLIENS                           SZERVER
   |                                |
   |--- SIH_RPC_REQUEST_INFO ----->|
-  |                                | reads serverName, playerCount, maxPlayers
+  |                                | beolvassa: serverName, playerCount, maxPlayers
   |<-- SIH_RPC_RESPONSE_INFO ----|
   |                                |
-  | updates HUD text              |
+  | frissíti a HUD szöveget       |
 ```
 
-The client sends the request once per second (throttled by the update timer). The server responds with three values packed into the RPC context. The client reads them in the same order they were written.
+A kliens másodpercenként egyszer küldi a kérést (a frissítési időzítő korlátozza). A szerver három értékkel válaszol, amelyeket az RPC kontextusba csomagol. A kliens ugyanabban a sorrendben olvassa ki őket, ahogyan írva lettek.
 
-**Fontos:** `rpc.Write()` and `ctx.Read()` must use the same types in the same order. If the server writes a `string` then two `int` values, the client must read a `string` then two `int` values.
+**Fontos:** Az `rpc.Write()` és a `ctx.Read()` ugyanazokat a típusokat kell használja ugyanabban a sorrendben. Ha a szerver egy `string`-et, majd két `int` értéket ír, a kliensnek egy `string`-et, majd két `int` értéket kell olvasnia.
 
 ---
 
-## Step 5: Add Toggle with Keybind
+## 5. lépés: Átkapcsolás billentyűkötéssel
 
-### Step 5a: Define the Input in `inputs.xml`
+### 5a lépés: A bemenet definiálása az `inputs.xml`-ben
 
-DayZ uses `inputs.xml` to register custom key actions. The file must be placed in `Scripts/data/inputs.xml` and referenced from `config.cpp`.
+A DayZ az `inputs.xml`-t használja egyéni billentyű akciók regisztrálásához. A fájlt a `Scripts/data/inputs.xml` helyre kell tenni, és hivatkozni rá a `config.cpp`-ből.
 
 ### `Scripts/data/inputs.xml`
 
@@ -642,14 +644,14 @@ DayZ uses `inputs.xml` to register custom key actions. The file must be placed i
 </modded_inputs>
 ```
 
-| Elem | Cel |
-|---------|---------|
-| `<actions>` | Declares the input action by name. `loc` is the display string shown in the keybinding options menu. |
-| `<preset>` | Assigns the default key. `kF7` maps to the F7 key. |
+| Elem | Cél |
+|------|-----|
+| `<actions>` | Deklarálja a beviteli akciót név alapján. A `loc` a billentyűkötési beállítások menüben megjelenített string. |
+| `<preset>` | Az alapértelmezett billentyűt rendeli hozzá. A `kF7` az F7 billentyűhöz térképeződik. |
 
-### Step 5b: Reference `inputs.xml` in `config.cpp`
+### 5b lépés: Az `inputs.xml` hivatkozása a `config.cpp`-ben
 
-Your `config.cpp` must tell the engine where to find the inputs file. Add an `inputs` entry inside the `defs` block:
+A `config.cpp`-nek meg kell mondania a motornak, hol találja a bemeneti fájlt. Adj hozzá egy `inputs` bejegyzést a `defs` blokkon belül:
 
 ```cpp
 class defs
@@ -680,9 +682,9 @@ class defs
 };
 ```
 
-### Step 5c: Read the Key Press
+### 5c lépés: A billentyű lenyomás olvasása
 
-We already handle this in the `MissionGameplay` hook from Step 3:
+Ezt már kezeljük a `MissionGameplay` hookban a 3. lépésből:
 
 ```c
 if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
@@ -691,22 +693,22 @@ if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
 }
 ```
 
-`GetUApi()` returns the input API singleton. `GetInputByName` looks up our registered action. `LocalPress()` returns `true` for exactly one frame when the key is pressed down.
+A `GetUApi()` a beviteli API singletont adja vissza. A `GetInputByName` kikeresi a regisztrált akciónkat. A `LocalPress()` pontosan egy képkockára adja vissza a `true`-t, amikor a billentyű lenyomódik.
 
-### Key Name Reference
+### Billentyű név referencia
 
-Common key names for `<btn>`:
+Gyakori billentyű nevek a `<btn>`-hez:
 
-| Key Name | Key |
-|----------|-----|
-| `kF1` through `kF12` | Function keys |
-| `kH`, `kI`, etc. | Letter keys |
-| `kNumpad0` through `kNumpad9` | Numpad |
-| `kLControl` | Left Control |
-| `kLShift` | Left Shift |
-| `kLAlt` | Left Alt |
+| Billentyű név | Billentyű |
+|---------------|-----------|
+| `kF1` - `kF12` | Funkcióbillentyűk |
+| `kH`, `kI`, stb. | Betűbillentyűk |
+| `kNumpad0` - `kNumpad9` | Számbillentyűzet |
+| `kLControl` | Bal Control |
+| `kLShift` | Bal Shift |
+| `kLAlt` | Bal Alt |
 
-Modosito combos use nesting:
+Módosító kombinációk beágyazást használnak:
 
 ```xml
 <input name="UAServerInfoToggle">
@@ -716,20 +718,20 @@ Modosito combos use nesting:
 </input>
 ```
 
-This means "hold Left Control and press H."
+Ez azt jelenti: "tartsd lenyomva a bal Control-t és nyomd meg a H-t."
 
 ---
 
-## Step 6: Polish
+## 6. lépés: Csiszolás
 
-### 6a: Fade In/Out Animation
+### 6a: Behalványodás/kihalványodás animáció
 
-DayZ provides `WidgetFadeTimer` for smooth alpha transitions. Update the `ServerInfoHUD` class to use it:
+A DayZ `WidgetFadeTimer`-t biztosít sima alfa átmenetekhez. Frissítsd a `ServerInfoHUD` osztályt, hogy használja:
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
 {
-    // ... existing fields ...
+    // ... meglévő mezők ...
 
     protected ref WidgetFadeTimer m_FadeTimer;
 
@@ -740,7 +742,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_FadeTimer = new WidgetFadeTimer();
     }
 
-    // Replace the ToggleVisibility method:
+    // Cseréld le a ToggleVisibility metódust:
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -759,15 +761,15 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // ... rest of class ...
+    // ... az osztály többi része ...
 };
 ```
 
-`FadeIn(widget, duration)` animates the widget's alpha from 0 to 1 over the given duration in seconds. `FadeOut` goes from 1 to 0 and hides the widget when done.
+A `FadeIn(widget, duration)` a widget alfáját 0-ról 1-re animálja a megadott időtartam alatt másodpercben. A `FadeOut` 1-ről 0-ra megy és elrejti a widgetet, amikor kész.
 
-### 6b: Background Panel with Alpha
+### 6b: Háttér panel alfával
 
-We already set this in the layout (`color="0 0 0 0.55"`), giving a dark overlay at 55% opacity. If you want to adjust the alpha at runtime:
+Ezt már beállítottuk a layoutban (`color="0 0 0 0.55"`), ami egy sötét overlayt ad 55%-os átlátszatlansággal. Ha futásidőben akarod módosítani az alfát:
 
 ```c
 void SetBackgroundAlpha(float alpha)
@@ -783,20 +785,20 @@ void SetBackgroundAlpha(float alpha)
 }
 ```
 
-The `ARGB()` function takes integer values 0-255 for alpha, red, green, and blue.
+Az `ARGB()` függvény 0-255 közötti egész értékeket fogad az alfa, piros, zöld és kék csatornákhoz.
 
-### 6c: Font and Color Choices
+### 6c: Betűtípus és szín választások
 
-DayZ ships several fonts you can reference in layouts:
+A DayZ több betűtípust szállít, amelyekre hivatkozhatsz a layoutokban:
 
-| Font Path | Style |
-|-----------|-------|
-| `gui/fonts/MetronBook` | Clean sans-serif (used in vanilla HUD) |
-| `gui/fonts/MetronMedium` | Bolder version of MetronBook |
-| `gui/fonts/Metron` | Thinnest variant |
-| `gui/fonts/luxuriousscript` | Decorative script (avoid for HUD) |
+| Betűtípus útvonal | Stílus |
+|-------------------|--------|
+| `gui/fonts/MetronBook` | Tiszta sans-serif (a vanilla HUD-ban használt) |
+| `gui/fonts/MetronMedium` | Vastagabb változat a MetronBook-ból |
+| `gui/fonts/Metron` | Legvékonyabb változat |
+| `gui/fonts/luxuriousscript` | Dekoratív script (kerüld a HUD-nál) |
 
-To change text color at runtime:
+Szöveg szín megváltoztatása futásidőben:
 
 ```c
 void SetTextColor(TextWidget widget, int r, int g, int b, int a)
@@ -806,12 +808,12 @@ void SetTextColor(TextWidget widget, int r, int g, int b, int a)
 }
 ```
 
-### 6d: Respecting Other UI
+### 6d: Más felületek tiszteletben tartása
 
-Our `MissionHook.c` already detects when a menu is open and calls `SetMenuState(true)`. Here is a more thorough approach that checks the inventory specifically:
+A `MissionHook.c` fájlunk már észleli, amikor egy menü nyitva van, és meghívja a `SetMenuState(true)`-t. Íme egy alaposabb megközelítés, amely kifejezetten a felszerelést is ellenőrzi:
 
 ```c
-// In the OnUpdate override of modded MissionGameplay:
+// A modded MissionGameplay OnUpdate felülírásában:
 bool menuOpen = false;
 
 UIManager uiMgr = GetGame().GetUIManager();
@@ -822,22 +824,22 @@ if (uiMgr)
         menuOpen = true;
 }
 
-// Also check if inventory is open
+// A felszerelés nyitva van-e, szintén ellenőrizzük
 if (uiMgr && uiMgr.FindMenu(MENU_INVENTORY))
     menuOpen = true;
 
 m_ServerInfoHUD.SetMenuState(menuOpen);
 ```
 
-This ensures your HUD hides behind the inventory screen, the pause menu, the options screen, and any other scripted menu.
+Ez biztosítja, hogy a HUD-od elrejtőzik a felszerelés képernyő, a szüneteltetés menü, a beállítások képernyő és bármely más scriptelt menü mögött.
 
 ---
 
-## Complete Code Reference
+## Teljes kód referencia
 
-Below is every file in the mod, in its final form with all polish applied.
+Az alábbiakban a mod minden fájlja, végleges formájában az összes csiszolással.
 
-### File 1: `ServerInfoHUD/mod.cpp`
+### 1. fájl: `ServerInfoHUD/mod.cpp`
 
 ```cpp
 name = "Server Info HUD";
@@ -846,7 +848,7 @@ version = "1.0";
 overview = "Displays server name, player count, and in-game time.";
 ```
 
-### File 2: `ServerInfoHUD/Scripts/config.cpp`
+### 2. fájl: `ServerInfoHUD/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -905,7 +907,7 @@ class CfgMods
 };
 ```
 
-### File 3: `ServerInfoHUD/Scripts/data/inputs.xml`
+### 3. fájl: `ServerInfoHUD/Scripts/data/inputs.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -923,17 +925,17 @@ class CfgMods
 </modded_inputs>
 ```
 
-### File 4: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
+### 4. fájl: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for Server Info HUD.
-// Use high numbers to avoid collisions with vanilla ERPCs and other mods.
+// RPC ID-k a Szerver Infó HUD-hoz.
+// Magas számok használata az ütközések elkerüléséhez a vanilla ERPC-kkel és más modokkal.
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-### File 5: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
+### 5. fájl: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
 ```c
 modded class PlayerBase
@@ -946,7 +948,7 @@ modded class PlayerBase
     {
         super.OnRPC(sender, rpc_type, ctx);
 
-        // Only the server handles this RPC
+        // Csak a szerver kezeli ezt az RPC-t
         if (!GetGame().IsServer())
             return;
 
@@ -961,19 +963,19 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Get server name
+        // Szerver név lekérése
         string serverName = "";
         GetGame().GetHostName(serverName);
 
-        // Count players
+        // Játékosok számlálása
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         int playerCount = players.Count();
 
-        // Get max player slots
+        // Maximum játékos helyek lekérése
         int maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send the data back to the requesting client
+        // Az adatok visszaküldése a kérő kliensnek
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -983,7 +985,7 @@ modded class PlayerBase
 };
 ```
 
-### File 6: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
+### 6. fájl: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
@@ -1166,7 +1168,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 
 // -----------------------------------------------
-// Client-side RPC receiver
+// Kliens oldali RPC fogadó
 // -----------------------------------------------
 modded class PlayerBase
 {
@@ -1216,7 +1218,7 @@ modded class PlayerBase
 };
 ```
 
-### File 7: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
+### 7. fájl: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
 ```c
 modded class MissionGameplay
@@ -1249,7 +1251,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Detect open menus
+        // Nyitott menük észlelése
         bool menuOpen = false;
         UIManager uiMgr = GetGame().GetUIManager();
         if (uiMgr)
@@ -1262,7 +1264,7 @@ modded class MissionGameplay
         m_ServerInfoHUD.SetMenuState(menuOpen);
         m_ServerInfoHUD.Update(timeslice);
 
-        // Toggle key
+        // Átkapcsoló billentyű
         if (GetUApi().GetInputByName(
             "UAServerInfoToggle"
         ).LocalPress())
@@ -1278,7 +1280,7 @@ modded class MissionGameplay
 };
 ```
 
-### File 8: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
+### 8. fájl: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1351,16 +1353,16 @@ modded class MissionGameplay
 
 ---
 
-## Extending the HUD
+## A HUD bővítése
 
-Once you have the basic HUD working, here are natural extensions.
+Ha az alap HUD működik, íme természetes bővítések.
 
-### Adding FPS Display
+### FPS kijelzés hozzáadása
 
-FPS can be read client-side without any RPC:
+Az FPS kliens oldalon olvasható bármilyen RPC nélkül:
 
 ```c
-// Add a TextWidget m_FPSText field and find it in Init()
+// Adj hozzá egy TextWidget m_FPSText mezőt és keresd meg az Init()-ben
 
 protected void RefreshFPS()
 {
@@ -1372,7 +1374,7 @@ protected void RefreshFPS()
 }
 ```
 
-Call `RefreshFPS()` alongside `RefreshTime()` in the update method. Note that `GetDeltaT()` returns the time of the current frame, so the FPS value will fluctuate. For a smoother display, average over several frames:
+Hívd meg a `RefreshFPS()`-t a `RefreshTime()` mellett a frissítés metódusban. Vedd figyelembe, hogy a `GetDeltaT()` az aktuális képkocka idejét adja vissza, tehát az FPS érték ingadozni fog. Simább megjelenítéshez átlagolj több képkockán:
 
 ```c
 protected float m_FPSAccum;
@@ -1389,13 +1391,13 @@ protected void RefreshFPS()
     float avgFPS = m_FPSFrames / m_FPSAccum;
     m_FPSText.SetText("FPS: " + Math.Round(avgFPS).ToString());
 
-    // Reset every second (when main timer fires)
+    // Visszaállítás másodpercenként (amikor a fő időzítő aktiválódik)
     m_FPSAccum = 0;
     m_FPSFrames = 0;
 }
 ```
 
-### Adding Player Position
+### Játékos pozíció hozzáadása
 
 ```c
 protected void RefreshPosition()
@@ -1414,9 +1416,9 @@ protected void RefreshPosition()
 }
 ```
 
-### Multiple HUD Panels
+### Több HUD panel
 
-For multiple panels (compass, status, minimap), create a parent manager class that holds an array of HUD elements:
+Több panelhez (iránytű, állapot, minitérkép) hozz létre egy szülő menedzser osztályt, amely HUD elemek tömbjét tartja:
 
 ```c
 class HUDManager
@@ -1446,9 +1448,9 @@ class HUDManager
 };
 ```
 
-### Draggable HUD Elems
+### Húzható HUD elemek
 
-Making a widget draggable requires handling mouse events via `ScriptedWidgetEventHandler`:
+Egy widget húzhatóvá tétele egér események kezelését igényli a `ScriptedWidgetEventHandler`-en keresztül:
 
 ```c
 class DraggableHUD : ScriptedWidgetEventHandler
@@ -1491,30 +1493,30 @@ class DraggableHUD : ScriptedWidgetEventHandler
 };
 ```
 
-Megjegyzes: for dragging to work, the widget must have `SetHandler(this)` called on it so the event handler receives events. Also, the cursor must be visible, which limits draggable HUDs to situations where a menu or edit mode is active.
+Megjegyzés: a húzás működéséhez a widgeten meg kell hívni a `SetHandler(this)` metódust, hogy az eseménykezelő megkapja az eseményeket. Ezen kívül a kurzornak láthatónak kell lennie, ami korlátozza a húzható HUD-okat azokra a helyzetekre, amikor egy menü vagy szerkesztési mód aktív.
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-### 1. Updating Every Frame Instead of Throttled
+### 1. Frissítés minden képkockánál korlátozás helyett
 
-**Wrong:**
+**Helytelen:**
 
 ```c
 override void OnUpdate(float timeslice)
 {
     super.OnUpdate(timeslice);
-    m_ServerInfoHUD.RefreshTime();      // Runs 60+ times per second!
-    m_ServerInfoHUD.RequestServerInfo(); // Sends 60+ RPCs per second!
+    m_ServerInfoHUD.RefreshTime();      // Másodpercenként 60+ alkalommal fut!
+    m_ServerInfoHUD.RequestServerInfo(); // Másodpercenként 60+ RPC-t küld!
 }
 ```
 
-**Right:** Use a timer accumulator (as shown in the tutorial) so expensive operations run at most once per second. HUD text that changes every frame (like an FPS counter) is fine to update per-frame, but RPC requests must be throttled.
+**Helyes:** Használj időzítő akkumulátort (ahogyan az útmutatóban megmutatva), hogy a drága műveletek legfeljebb másodpercenként egyszer fussanak. A HUD szöveg, ami minden képkockánál változik (mint az FPS számláló) frissülhet képkockánként, de az RPC kéréseket korlátozni kell.
 
-### 2. Not Cleaning Up in OnMissionFinish
+### 2. Takarítás hiánya az OnMissionFinish-ben
 
-**Wrong:**
+**Helytelen:**
 
 ```c
 modded class MissionGameplay
@@ -1526,88 +1528,88 @@ modded class MissionGameplay
         super.OnInit();
         m_HUD = new ServerInfoHUD();
         m_HUD.Init();
-        // No cleanup anywhere -- widget leaks on disconnect!
+        // Sehol nincs takarítás -- widget szivárog lekapcsolódáskor!
     }
 };
 ```
 
-**Right:** Always destroy widgets and null references in `OnMissionFinish()`. The destructor (`~ServerInfoHUD`) is a safety net, but do not rely on it -- `OnMissionFinish` is the correct place for explicit cleanup.
+**Helyes:** Mindig semmisítsd meg a widgeteket és nullázd a referenciákat az `OnMissionFinish()`-ben. A destruktor (`~ServerInfoHUD`) egy biztonsági háló, de ne hagyatkozz rá -- az `OnMissionFinish` a helyes hely az explicit takarításra.
 
-### 3. HUD Behind Other UI Elems
+### 3. HUD más UI elemek mögött
 
-Widgets created later render on top of widgets created earlier. If your HUD appears behind vanilla UI, it was created too early. Solutions:
+A később létrehozott widgetek a korábban létrehozottak tetejére renderelődnek. Ha a HUD-od a vanilla UI mögött jelenik meg, túl korán hozták létre. Megoldások:
 
-- Create the HUD later in the initialization sequence (e.g., on the first `OnUpdate` call rather than in `OnInit`).
-- Use `m_Root.SetSort(100)` to force a higher sort order, pushing your widget above others.
+- Hozd létre a HUD-ot később az inicializálási sorrendben (pl. az első `OnUpdate` híváskor az `OnInit` helyett).
+- Használd az `m_Root.SetSort(100)` metódust magasabb rendezési sorrend kényszerítéséhez, ami a widgetedet mások fölé tolja.
 
-### 4. Requesting Data Too Frequently (RPC Spam)
+### 4. Túl gyakori adatkérés (RPC spam)
 
-Sending an RPC every frame creates 60+ network packets per second per connected player. On a 60-player server, that is 3,600 packets per second of unnecessary traffic. Always throttle RPC requests. Once per second is reasonable for non-critical info. For data that rarely changes (like server name), you could request it only once at init and cache it.
+RPC küldése minden képkockánál csatlakozott játékosonként másodpercenként 60+ hálózati csomagot hoz létre. Egy 60 játékosos szerveren ez másodpercenként 3600 csomag felesleges forgalom. Mindig korlátozd az RPC kéréseket. Másodpercenként egyszer ésszerű nem kritikus információhoz. Ritkán változó adatokhoz (mint a szerver neve) kérheted csak egyszer az init-kor és gyorsítótárazhatod.
 
-### 5. Forgetting the `super` Call
+### 5. A `super` hívás elfelejtése
 
 ```c
-// WRONG: breaks vanilla HUD functionality
+// HELYTELEN: megtöri a vanilla HUD funkcionalitást
 override void OnInit()
 {
     m_HUD = new ServerInfoHUD();
     m_HUD.Init();
-    // Missing super.OnInit()! Vanilla HUD will not initialize.
+    // Hiányzik a super.OnInit()! A vanilla HUD nem fog inicializálódni.
 }
 ```
 
-Always call `super.OnInit()` (and `super.OnUpdate()`, `super.OnMissionFinish()`) first. Omitting the super call breaks the vanilla implementation and every other mod that hooks the same method.
+Mindig hívd meg először a `super.OnInit()`-et (és `super.OnUpdate()`-et, `super.OnMissionFinish()`-t). A super hívás kihagyása megtöri a vanilla implementációt és minden más modot, amely ugyanazt a metódust hookolja.
 
-### 6. Using Wrong Script Layer
+### 6. Rossz script réteg használata
 
-If you try to reference `MissionGameplay` from `4_World`, you will get an "Undefined type" error because `5_Mission` types are not visible to `4_World`. The RPC constants go in `3_Game`, the server handler goes in `4_World` (modding `PlayerBase` which lives there), and the HUD class and mission hook go in `5_Mission`.
+Ha megpróbálod hivatkozni a `MissionGameplay`-t a `4_World`-ből, "Undefined type" hibát kapsz, mert az `5_Mission` típusok nem láthatók a `4_World` számára. Az RPC konstansok a `3_Game`-be tartoznak, a szerver kezelő a `4_World`-be (a `PlayerBase` modolása, ami ott él), a HUD osztály és a misszió hook pedig az `5_Mission`-be.
 
-### 7. Hardcoded Layout Path
+### 7. Beégetett layout útvonal
 
-The layout path in `CreateWidgets()` is relative to the game's search paths. If your PBO prefix does not match the path string, the layout will not load and `CreateWidgets` returns NULL. Always check for NULL after `CreateWidgets` and log an error if it fails.
+A layout útvonal a `CreateWidgets()`-ben a játék keresési útvonalaihoz képest relatív. Ha a PBO prefixed nem egyezik az útvonal stringgel, a layout nem fog betöltődni és a `CreateWidgets` NULL-t ad vissza. Mindig ellenőrizd NULL-ra a `CreateWidgets` után és logolj hibát, ha sikertelen.
 
 ---
 
-## Kovetkezo lepesek
+## Következő lépések
 
-Now that you have a working HUD overlay, consider these progressions:
+Most, hogy van egy működő HUD overlayd, fontold meg ezeket a továbblépéseket:
 
-1. **Save user preferences** -- Store whether the HUD is visible in a local JSON file so the toggle state persists across sessions. 
-2. **Add server-side configuration** -- Let server admins enable/disable the HUD or choose which fields to show via a JSON config file.
-3. **Build an admin overlay** -- Expand the HUD to show admin-only information (server performance, entity count, restart timer) using permission checks.
-4. **Create a compass HUD** -- Use `GetGame().GetCurrentCameraDirection()` to calculate heading and display a compass bar at the top of the screen.
-5. **Study existing mods** -- Look at DayZ Expansion's quest HUD and Colorful UI's overlay system for production-quality HUD implementations.
+1. **Felhasználói preferenciák mentése** -- Tárold, hogy a HUD látható-e egy helyi JSON fájlban, így az átkapcsolási állapot megmarad a munkamenetek között.
+2. **Szerver oldali konfiguráció hozzáadása** -- Engedd, hogy a szerver adminok engedélyezzék/letiltsák a HUD-ot, vagy válasszák ki, mely mezők jelenjenek meg egy JSON konfigurációs fájlon keresztül.
+3. **Admin overlay készítése** -- Bővítsd a HUD-ot, hogy csak admin információkat mutasson (szerver teljesítmény, entitásszám, újraindítási időzítő) jogosultsági ellenőrzésekkel.
+4. **Iránytű HUD készítése** -- Használd a `GetGame().GetCurrentCameraDirection()` metódust az irány kiszámításához és jeleníts meg egy iránytű sávot a képernyő tetején.
+5. **Meglévő modok tanulmányozása** -- Nézd meg a DayZ Expansion quest HUD-ját és a Colorful UI overlay rendszerét produkciós minőségű HUD implementációkért.
 
 ---
 
 ## Legjobb gyakorlatok
 
-- **Throttle `OnUpdate` to 1-second intervals minimum.** Use a timer accumulator to avoid running expensive operations (RPC requests, text formatting) 60+ times per second. Only per-frame visuals like FPS counters should update every frame.
-- **Hide the HUD when inventory or any menu is open.** Check `GetGame().GetUIManager().GetMenu()` on each update and suppress your overlay. Overlapping UI elements confuse players and block interaction.
-- **Always clean up widgets in `OnMissionFinish`.** Leaked widget roots persist across server hops, stacking ghost panels that consume memory and eventually cause visual glitches.
-- **Use `SetSort()` to control render order.** If your HUD appears behind vanilla elements, call `m_Root.SetSort(100)` to push it above. Without explicit sort order, creation timing determines layering.
-- **Cache server data that rarely changes.** The server name does not change during a session. Request it once at init and cache it locally instead of re-requesting it every second.
+- **Korlátozd az `OnUpdate`-et minimum 1 másodperces intervallumokra.** Használj időzítő akkumulátort, hogy elkerüld a drága műveletek (RPC kérések, szöveg formázás) másodpercenként 60+ alkalommal futtatását. Csak a képkockánkénti vizuális elemek, mint az FPS számláló frissüljenek minden képkockánál.
+- **Rejtsd el a HUD-ot, amikor a felszerelés vagy bármilyen menü nyitva van.** Ellenőrizd a `GetGame().GetUIManager().GetMenu()` metódust minden frissítéskor és rejtsd el az overlayt. Az átfedő UI elemek összezavarják a játékosokat és blokkolják az interakciót.
+- **Mindig takaríts el widgeteket az `OnMissionFinish`-ben.** A kiszivárgott widget gyökerek megmaradnak a szerverváltások között, egymásra halmozódott szellem paneleket halmozva, amelyek memóriát fogyasztanak és végül vizuális hibákat okoznak.
+- **Használd a `SetSort()` metódust a renderelési sorrend vezérléséhez.** Ha a HUD-od vanilla elemek mögött jelenik meg, hívd meg az `m_Root.SetSort(100)` metódust, hogy fölé told. Explicit rendezési sorrend nélkül a létrehozási időzítés határozza meg a rétegezést.
+- **Gyorsítótárazd a ritkán változó szerver adatokat.** A szerver neve nem változik egy munkamenet során. Kérd egyszer az init-kor és tárold helyileg ahelyett, hogy másodpercenként újra kérnéd.
 
 ---
 
-## Elmelet vs gyakorlat
+## Elmélet vs gyakorlat
 
-| Fogalom | Elmelet | Valosag |
-|---------|--------|---------|
-| `OnUpdate(float timeslice)` | Called once per frame with the frame delta time | On a 144 FPS client, this fires 144 times per second. Sending an RPC each call creates 144 network packets/second per player. Always accumulate `timeslice` and act only when the sum exceeds your interval. |
-| `CreateWidgets()` layout path | Loads the layout from the path you provide | The path is relative to the PBO prefix, not the file system. If your PBO prefix does not match the path string, `CreateWidgets` silently returns NULL with no error in the log. |
-| `WidgetFadeTimer` | Smoothly animates widget opacity | `FadeOut` hides the widget after the animation completes, but `FadeIn` does NOT call `Show(true)` first. You must manually show the widget before calling `FadeIn`, or nothing appears. |
-| `GetUApi().GetInputByName()` | Visszaad the input action for your custom keybind | If `inputs.xml` is not referenced in `config.cpp` under `class inputs`, the action name is unknown and `GetInputByName` returns null, causing a crash on `.LocalPress()`. |
+| Fogalom | Elmélet | Valóság |
+|---------|---------|---------|
+| `OnUpdate(float timeslice)` | Képkockánként egyszer hívódik a képkocka delta idővel | Egy 144 FPS-es kliensen ez másodpercenként 144-szer aktiválódik. RPC küldése minden híváskor játékosonként másodpercenként 144 hálózati csomagot hoz létre. Mindig gyűjtsd a `timeslice`-ot és csak akkor cselekedj, ha az összeg meghaladja az intervallumodat. |
+| `CreateWidgets()` layout útvonal | Betölti a layoutot a megadott útvonalról | Az útvonal a PBO prefix-hez képest relatív, nem a fájlrendszerhez. Ha a PBO prefixed nem egyezik az útvonal stringgel, a `CreateWidgets` csendben NULL-t ad vissza hiba nélkül a logban. |
+| `WidgetFadeTimer` | Simán animálja a widget átlátszóságát | A `FadeOut` elrejti a widgetet az animáció befejezése után, de a `FadeIn` NEM hívja meg először a `Show(true)` metódust. Manuálisan meg kell jelenítened a widgetet a `FadeIn` meghívása előtt, különben semmi sem jelenik meg. |
+| `GetUApi().GetInputByName()` | Visszaadja a beviteli akciót az egyéni billentyűkötésedhez | Ha az `inputs.xml` nincs hivatkozva a `config.cpp`-ben a `class inputs` alatt, az akció név ismeretlen és a `GetInputByName` null-t ad vissza, ami összeomlást okoz a `.LocalPress()` hívásnál. |
 
 ---
 
-## What You Learned
+## Amit tanultál
 
-In this tutorial you learned:
-- How to create a HUD layout with anchored, semi-transparent panels
-- How to build a controller class that throttles updates to a fixed interval
-- How to hook into `MissionGameplay` for HUD lifecycle management (init, update, cleanup)
-- How to request server data via RPC and display it on the client
-- How to register a custom keybind via `inputs.xml` and toggle HUD visibility with fade animations
+Ebben az útmutatóban megtanultad:
+- Hogyan hozz létre HUD layoutot rögzített, félig átlátszó panelekkel
+- Hogyan építs vezérlő osztályt, amely rögzített intervallumra korlátozza a frissítéseket
+- Hogyan csatlakozz a `MissionGameplay`-be a HUD életciklus kezeléséhez (inicializálás, frissítés, takarítás)
+- Hogyan kérj szerver adatokat RPC-n keresztül és jelenítsd meg a kliensen
+- Hogyan regisztrálj egyéni billentyűkötést az `inputs.xml`-en keresztül és kapcsold a HUD láthatóságot halványítási animációkkal
 
-**Elozo:** [Chapter 8.7: Publishing to Steam Workshop](07-publishing-workshop.md)
+**Előző:** [8.7. fejezet: Publikálás a Steam Workshopra](07-publishing-workshop.md)

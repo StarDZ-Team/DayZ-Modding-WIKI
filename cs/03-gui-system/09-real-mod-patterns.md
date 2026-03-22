@@ -1,40 +1,42 @@
-# Chapter 3.9: Real Mod UI Patterns
+# Kapitola 3.9: Vzory UI ve skutečných modech
 
-[Home](../../README.md) | [<< Previous: Dialogs & Modals](08-dialogs-modals.md) | **Real Mod UI Patterns** | [Next: Advanced Widgets >>](10-advanced-widgets.md)
-
----
-
-All code shown is extracted from actual mod source. File paths reference the original repositories.
+[Domů](../../README.md) | [<< Předchozí: Dialogy a modální okna](08-dialogs-modals.md) | **Vzory UI ve skutečných modech** | [Další: Pokročilé widgety >>](10-advanced-widgets.md)
 
 ---
 
-## Why Study Real Mods?
+Tato kapitola zkoumá vzory UI nalezené v šesti profesionálních modech DayZ: COT (Community Online Tools), VPP Admin Tools, DabsFramework, Colorful UI, Expansion a DayZ Editor. Každý mod řeší jiné problémy. Studium jejich přístupů vám dá knihovnu ověřených vzorů nad rámec toho, co pokrývá oficiální dokumentace.
 
-DayZ documentation explains individual widgets and event callbacks but says nothing about:
-
-- How to manage 12 admin panels without code duplication
-- How to build a dialog system with callback routing
-- How to theme an entire UI without touching vanilla layout files
-- How to synchronize a market grid with server data over RPC
-- How to structure an editor with undo/redo and a command system
-
-These are architecture problems. Every large mod invents solutions for them. Some are elegant, some are cautionary tales. This chapter maps the patterns so you can pick the right approach for your project.
+Veškerý zobrazený kód je extrahován ze skutečného zdrojového kódu modů. Cesty k souborům odkazují na původní repozitáře.
 
 ---
 
-## COT (Community Online Tools) UI Vzors
+## Proč studovat skutečné mody?
 
-COT is the most widely-used DayZ admin tool. Its UI architecture is built around a module-form-window system where each tool (ESP, Player Manager, Teleport, Object Spawner, etc.) is a self-contained module with its own panel.
+Dokumentace DayZ vysvětluje jednotlivé widgety a callbacky událostí, ale neříká nic o:
 
-### Module-Form-Window Architecture
+- Jak spravovat 12 admin panelů bez duplikace kódu
+- Jak vytvořit systém dialogů se směrováním callbacků
+- Jak tematizovat celé UI bez úprav vanilla souborů layoutu
+- Jak synchronizovat mřížku marketu se serverovými daty přes RPC
+- Jak strukturovat editor s undo/redo a systémem příkazů
 
-COT separates concerns into three layers:
+To jsou architektonické problémy. Každý velký mod pro ně vymýšlí řešení. Některá jsou elegantní, jiná jsou varovné příklady. Tato kapitola mapuje vzory, abyste si mohli vybrat správný přístup pro svůj projekt.
 
-1. **JMRenderableModuleBase** -- Declares the module's metadata (title, icon, layout path, permissions). Manages the CF_Window lifecycle. Does not contain UI logic.
-2. **JMFormBase** -- The actual UI panel. Extends `ScriptedWidgetEventHandler`. Receives widget events, builds UI elements, talks to the module for data operations.
-3. **CF_Window** -- The windowing container provided by the CF framework. Handles drag, resize, close chrome.
+---
 
-A module declares itself with overrides:
+## Vzory UI v COT (Community Online Tools)
+
+COT je nejrozšířenější admin nástroj pro DayZ. Jeho UI architektura je postavena kolem systému modul-formulář-okno, kde každý nástroj (ESP, Správce hráčů, Teleport, Spawner objektů atd.) je samostatný modul s vlastním panelem.
+
+### Architektura modul-formulář-okno
+
+COT odděluje záležitosti do tří vrstev:
+
+1. **JMRenderableModuleBase** -- Deklaruje metadata modulu (název, ikona, cesta layoutu, oprávnění). Spravuje životní cyklus CF_Window. Neobsahuje logiku UI.
+2. **JMFormBase** -- Vlastní panel UI. Rozšiřuje `ScriptedWidgetEventHandler`. Přijímá události widgetů, vytváří elementy UI, komunikuje s modulem pro datové operace.
+3. **CF_Window** -- Okenní kontejner poskytovaný frameworkem CF. Zpracovává přetahování, změnu velikosti, zavírání.
+
+Modul se deklaruje přepsáními:
 
 ```c
 class JMExampleModule: JMRenderableModuleBase
@@ -72,7 +74,7 @@ class JMExampleModule: JMRenderableModuleBase
 }
 ```
 
-The module is registered in a central constructor that builds the module list:
+Modul se registruje v centrálním konstruktoru, který sestavuje seznam modulů:
 
 ```c
 modded class JMModuleConstructor
@@ -91,7 +93,7 @@ modded class JMModuleConstructor
 }
 ```
 
-When `Show()` is called on a module, it creates a window and loads the form:
+Když se na modulu zavolá `Show()`, vytvoří okno a načte formulář:
 
 ```c
 void Show()
@@ -106,7 +108,7 @@ void Show()
 }
 ```
 
-The form's `Init` binds the module reference through a protected override:
+`Init` formuláře naváže referenci modulu přes chráněné přepsání:
 
 ```c
 class JMExampleForm: JMFormBase
@@ -120,16 +122,16 @@ class JMExampleForm: JMFormBase
 
     override void OnInit()
     {
-        // Build UI elements programmatically using UIActionManager
+        // Sestavit elementy UI programaticky pomocí UIActionManager
     }
 }
 ```
 
-**Key takeaway:** Each tool is entirely self-contained. Adding a new admin tool means creating one Module class, one Form class, one layout file, and inserting one line in the constructor. No existing code changes.
+**Klíčový poznatek:** Každý nástroj je zcela samostatný. Přidání nového admin nástroje znamená vytvoření jedné třídy modulu, jedné třídy formuláře, jednoho souboru layoutu a vložení jednoho řádku v konstruktoru. Žádné změny existujícího kódu.
 
-### Programmatic UI with UIAkceManager
+### Programatické UI s UIActionManager
 
-COT does not build complex forms in layout files. Instead, it uses a factory class (`UIAkceManager`) that creates standardized UI action widgets at runtime:
+COT nestaví složité formuláře v souborech layoutu. Místo toho používá tovární třídu (`UIActionManager`), která vytváří standardizované widgety UI akcí za běhu:
 
 ```c
 override void OnInit()
@@ -137,10 +139,10 @@ override void OnInit()
     m_Scroller = UIActionManager.CreateScroller(layoutRoot.FindAnyWidget("panel"));
     Widget actions = m_Scroller.GetContentWidget();
 
-    // Grid layout: 8 rows, 1 column
+    // Layout mřížky: 8 řádků, 1 sloupec
     m_PanelAlpha = UIActionManager.CreateGridSpacer(actions, 8, 1);
 
-    // Standard widget types
+    // Standardní typy widgetů
     m_Text = UIActionManager.CreateText(m_PanelAlpha, "Label", "Value");
     m_EditableText = UIActionManager.CreateEditableText(
         m_PanelAlpha, "Name:", this, "OnChange_EditableText"
@@ -155,22 +157,22 @@ override void OnInit()
         m_PanelAlpha, "Execute", this, "OnClick_Button"
     );
 
-    // Sub-grid for side-by-side buttons
+    // Podmřížka pro tlačítka vedle sebe
     Widget gridButtons = UIActionManager.CreateGridSpacer(m_PanelAlpha, 1, 2);
     m_Button = UIActionManager.CreateButton(gridButtons, "Left", this, "OnClick_Left");
     m_NavButton = UIActionManager.CreateNavButton(gridButtons, "Right", ...);
 }
 ```
 
-Each `UIAkce*` widget type has its own layout file (e.g., `UIAkceSlider.layout`, `UIAkceCheckbox.layout`) loaded as a prefab. The factory approach means:
+Každý typ widgetu `UIAction*` má svůj vlastní soubor layoutu (např. `UIActionSlider.layout`, `UIActionCheckbox.layout`) načtený jako prefab. Tovární přístup znamená:
 
-- Consistent sizing and spacing across all panels
-- No layout file duplication
-- New action types can be added once and used everywhere
+- Konzistentní velikosti a mezery napříč všemi panely
+- Žádná duplikace souborů layoutu
+- Nové typy akcí mohou být přidány jednou a použity všude
 
-### ESP Overlay (Drawing on CanvasWidget)
+### ESP překrytí (kreslení na CanvasWidget)
 
-COT's ESP system draws labels, health bars, and lines directly over the 3D world using `CanvasWidget`. The key pattern is a screen-space `CanvasWidget` that covers the entire viewport, with individual ESP widget handlers positioned at projected world coordinates:
+ESP systém COT kreslí popisky, health bary a čáry přímo přes 3D svět pomocí `CanvasWidget`. Klíčovým vzorem je `CanvasWidget` v prostoru obrazovky, který pokrývá celý viewport, s individuálními handlery ESP widgetů pozicovanými na promítnutých světových souřadnicích:
 
 ```c
 class JMESPWidgetHandler: ScriptedWidgetEventHandler
@@ -202,11 +204,11 @@ class JMESPWidgetHandler: ScriptedWidgetEventHandler
 }
 ```
 
-ESP widgets are created from prefab layouts (`esp_widget.layout`) and positioned each frame by projecting 3D positions to screen coordinates. The canvas itself is a fullscreen overlay loaded at startup.
+ESP widgety jsou vytvářeny z prefabových layoutů (`esp_widget.layout`) a každý snímek pozicovány projekcí 3D pozic na souřadnice obrazovky. Plátno samotné je celoobrazovkové překrytí načtené při spuštění.
 
-### Confirmation Dialogs
+### Potvrzovací dialogy
 
-COT provides a callback-based confirmation system built into `JMFormBase`. Confirmations are created with named callbacks:
+COT poskytuje systém potvrzení založený na callbackech zabudovaný do `JMFormBase`. Potvrzení se vytvářejí s pojmenovanými callbacky:
 
 ```c
 CreateConfirmation_Two(
@@ -218,7 +220,7 @@ CreateConfirmation_Two(
 );
 ```
 
-The `JMConfirmationForm` uses `CallByName` to invoke the callback method on the form:
+`JMConfirmationForm` používá `CallByName` pro vyvolání metody callbacku na formuláři:
 
 ```c
 class JMConfirmationForm: JMConfirmation
@@ -235,17 +237,17 @@ class JMConfirmationForm: JMConfirmation
 }
 ```
 
-This allows chaining confirmations (one confirmation opens another) without hardcoding the flow.
+To umožňuje řetězení potvrzení (jedno potvrzení otevře další) bez natvrdo kódování toku.
 
 ---
 
-## VPP Admin Tools UI Vzors
+## Vzory UI v VPP Admin Tools
 
-VPP takes a different approach from COT: it uses `UIScriptedMenu` with a toolbar HUD, draggable sub-windows, and a global dialog box system.
+VPP volí jiný přístup než COT: používá `UIScriptedMenu` s HUD panelem nástrojů, přetahovatelnými podokny a globálním systémem dialogových oken.
 
-### Toolbar Button Registration
+### Registrace tlačítek panelu nástrojů
 
-`VPPAdminHud` maintains a list of button definitions. Each button maps a permission string to a display name, icon, and tooltip:
+`VPPAdminHud` udržuje seznam definic tlačítek. Každé tlačítko mapuje řetězec oprávnění na zobrazovaný název, ikonu a tooltip:
 
 ```c
 class VPPAdminHud extends VPPScriptedMenu
@@ -260,10 +262,10 @@ class VPPAdminHud extends VPPScriptedMenu
         InsertButton("MenuItemManager", "Items Spawner",
             "set:dayz_gui_vpp image:vpp_icon_item_manager",
             "#VSTR_TOOLTIP_ITEMMANAGER");
-        // ... 10 more tools
+        // ... 10 dalších nástrojů
         DefineButtons();
 
-        // Verify permissions with server via RPC
+        // Ověřit oprávnění se serverem přes RPC
         array<string> perms = new array<string>;
         for (int i = 0; i < m_DefinedButtons.Count(); i++)
             perms.Insert(m_DefinedButtons[i].param1);
@@ -273,11 +275,11 @@ class VPPAdminHud extends VPPScriptedMenu
 }
 ```
 
-External mods can override `DefineButtons()` to add their own toolbar buttons, making VPP extensible without modifying its source.
+Externí mody mohou přepsat `DefineButtons()` pro přidání vlastních tlačítek panelu nástrojů, čímž je VPP rozšiřitelné bez modifikace jeho zdrojového kódu.
 
-### Sub-Menu Window System
+### Systém podoken menu
 
-Each tool panel extends `AdminHudSubMenu`, which provides draggable window behavior, show/hide toggling, and window priority management:
+Každý panel nástroje rozšiřuje `AdminHudSubMenu`, který poskytuje přetahovatelné chování okna, přepínání zobrazení/skrytí a správu priority oken:
 
 ```c
 class AdminHudSubMenu: ScriptedWidgetEventHandler
@@ -296,7 +298,7 @@ class AdminHudSubMenu: ScriptedWidgetEventHandler
         OnMenuShow();
     }
 
-    // Drag support via title bar
+    // Podpora přetahování přes záhlaví
     override bool OnDrag(Widget w, int x, int y)
     {
         if (w == m_TitlePanel)
@@ -319,7 +321,7 @@ class AdminHudSubMenu: ScriptedWidgetEventHandler
         return true;
     }
 
-    // Double-click title bar to maximize/restore
+    // Dvojklik na záhlaví pro maximalizaci/obnovení
     override bool OnDoubleClick(Widget w, int x, int y, int button)
     {
         if (button == MouseState.LEFT && w == m_TitlePanel)
@@ -332,11 +334,11 @@ class AdminHudSubMenu: ScriptedWidgetEventHandler
 }
 ```
 
-**Key takeaway:** VPP builds a mini window manager inside DayZ. Each sub-menu is a draggable, resizable window with focus management. The `SetWindowPriorty()` call adjusts z-order so the clicked window comes to front.
+**Klíčový poznatek:** VPP staví mini správce oken uvnitř DayZ. Každé podmenu je přetahovatelné okno s možností změny velikosti a správou fokusu. Volání `SetWindowPriorty()` upravuje z-pořadí, takže kliknuté okno se dostane dopředu.
 
-### VPPDialogBox -- Callback-based Dialog
+### VPPDialogBox -- Dialog založený na callbackech
 
-VPP's dialog system uses an enum-driven approach. The dialog shows/hides buttons based on a type enum, and routes the result through `CallFunction`:
+Systém dialogů VPP používá přístup řízený enumerací. Dialog zobrazuje/skrývá tlačítka na základě enumerace typu a směruje výsledek přes `CallFunction`:
 
 ```c
 enum DIAGTYPE
@@ -383,7 +385,7 @@ class VPPDialogBox extends ScriptedWidgetEventHandler
 }
 ```
 
-The `ConfirmationEventHandler` wraps a button widget so clicking it spawns a dialog. The dialog result is forwarded to any class via a named callback:
+`ConfirmationEventHandler` obaluje widget tlačítka tak, že kliknutí na něj spawne dialog. Výsledek dialogu je předán jakékoliv třídě přes pojmenovaný callback:
 
 ```c
 class ConfirmationEventHandler extends ScriptedWidgetEventHandler
@@ -420,9 +422,9 @@ class ConfirmationEventHandler extends ScriptedWidgetEventHandler
 }
 ```
 
-### PopUp with OnWidgetScriptInit
+### PopUp s OnWidgetScriptInit
 
-VPP popup forms bind to their layout via `OnWidgetScriptInit` and use `ScriptedWidgetEventHandler`:
+VPP vyskakovací formuláře se navazují na svůj layout přes `OnWidgetScriptInit` a používají `ScriptedWidgetEventHandler`:
 
 ```c
 class PopUpCreatePreset extends ScriptedWidgetEventHandler
@@ -468,22 +470,22 @@ class PopUpCreatePreset extends ScriptedWidgetEventHandler
 }
 ```
 
-**Key takeaway:** `delete this` on close is the common popup disposal pattern. The destructor calls `m_root.Unlink()` to remove the widget tree. This is clean but requires care -- if anything holds a reference to the popup after deletion, you get a null access.
+**Klíčový poznatek:** `delete this` při zavření je běžný vzor likvidace vyskakovacího okna. Destruktor volá `m_root.Unlink()` pro odstranění stromu widgetů. Toto je čisté, ale vyžaduje opatrnost -- pokud cokoliv drží referenci na vyskakovací okno po smazání, dojde k přístupu na null.
 
 ---
 
-## DabsFramework UI Vzors
+## Vzory UI v DabsFramework
 
-DabsFramework introduces a full MVC (Model-View-Controller) architecture for DayZ UI. It is used by DayZ Editor and Expansion as their UI foundation.
+DabsFramework zavádí plnou MVC (Model-View-Controller) architekturu pro DayZ UI. Používá ho DayZ Editor a Expansion jako základ svého UI.
 
-### ViewController and Data Binding
+### ViewController a datové navázání
 
-The core idea: instead of manually finding widgets and setting their text, you declare properties on a controller class and bind them to widgets by name in the layout editor.
+Jádrová myšlenka: místo ručního hledání widgetů a nastavování jejich textu deklarujete vlastnosti na třídě controlleru a navážete je na widgety podle názvu v editoru layoutu.
 
 ```c
 class TestController: ViewController
 {
-    // Variable name matches Binding_Name in the layout
+    // Název proměnné odpovídá Binding_Name v layoutu
     string TextBox1 = "Initial Text";
     int TextBox2;
     bool WindowButton1;
@@ -506,7 +508,7 @@ class TestController: ViewController
 }
 ```
 
-In the layout, each widget has a `ViewBinding` script class with a `Binding_Name` reference property set to the variable name (e.g., "TextBox1"). When `NotifyPropertyZmenad()` is called, the framework finds all ViewBindings with that name and updates the widget:
+V layoutu má každý widget skriptovou třídu `ViewBinding` s referenční vlastností `Binding_Name` nastavenou na název proměnné (např. "TextBox1"). Když se zavolá `NotifyPropertyChanged()`, framework najde všechna ViewBindings s tímto názvem a aktualizuje widget:
 
 ```c
 class ViewBinding : ScriptedViewBase
@@ -537,11 +539,11 @@ class ViewBinding : ScriptedViewBase
 }
 ```
 
-**Two-way binding** means changes in the widget (user typing) propagate back to the controller property automatically.
+**Obousměrné navázání** znamená, že změny ve widgetu (uživatel píše) se automaticky propagují zpět do vlastnosti controlleru.
 
-### ObservableCollection -- List Data Binding
+### ObservableCollection -- Datové navázání seznamů
 
-For dynamic lists, DabsFramework provides `ObservableCollection<T>`. Insert/remove operations automatically update the bound widget (e.g., a WrapSpacer or ScrollWidget):
+Pro dynamické seznamy poskytuje DabsFramework `ObservableCollection<T>`. Operace vkládání/odebírání automaticky aktualizují navázaný widget (např. WrapSpacer nebo ScrollWidget):
 
 ```c
 class MyController: ViewController
@@ -558,16 +560,16 @@ class MyController: ViewController
     override void CollectionChanged(string property_name,
                                     CollectionChangedEventArgs args)
     {
-        // Called automatically on Insert/Remove
+        // Volá se automaticky při Insert/Remove
     }
 }
 ```
 
-Each `Insert()` fires a `CollectionZmenad` event, which the ViewBinding intercepts to create/destroy child widgets. No manual widget management needed.
+Každé `Insert()` vyvolá událost `CollectionChanged`, kterou ViewBinding zachytí pro vytvoření/zničení podřízených widgetů. Žádná ruční správa widgetů není potřeba.
 
-### ScriptView -- Layout-from-Code
+### ScriptView -- Layout z kódu
 
-`ScriptView` is the all-script alternative to `OnWidgetScriptInit`. You subclass it, override `GetLayoutFile()`, and instantiate it. The constructor loads the layout, finds the controller, and wires everything:
+`ScriptView` je plně skriptová alternativa k `OnWidgetScriptInit`. Podtřídíte ji, přepíšete `GetLayoutFile()` a instancujete ji. Konstruktor načte layout, najde controller a propojí vše:
 
 ```c
 class CustomDialogWindow: ScriptView
@@ -583,34 +585,34 @@ class CustomDialogWindow: ScriptView
     }
 }
 
-// Usage:
+// Použití:
 CustomDialogWindow window = new CustomDialogWindow();
 ```
 
-Widget variables declared as fields on `ScriptView` subclasses are auto-populated by name matching against the layout hierarchy (`LoadWidgetsAsVariables`). This eliminates `FindAnyWidget()` calls.
+Proměnné widgetů deklarované jako pole na podtřídách `ScriptView` jsou automaticky naplněny shodou názvů oproti hierarchii layoutu (`LoadWidgetsAsVariables`). Tím se eliminují volání `FindAnyWidget()`.
 
-### RelayCommand -- Button-to-Akce Binding
+### RelayCommand -- Navázání tlačítka na akci
 
-Buttons can be bound to `RelayCommand` objects via the `Relay_Command` reference property in ViewBinding. This decouples button clicks from handlers:
+Tlačítka mohou být navázána na objekty `RelayCommand` přes referenční vlastnost `Relay_Command` ve ViewBinding. To odděluje kliknutí na tlačítko od handlerů:
 
 ```c
 class EditorCommand: RelayCommand
 {
     override bool Execute(Class sender, CommandArgs args)
     {
-        // Perform action
+        // Provést akci
         return true;
     }
 
     override bool CanExecute()
     {
-        // Enable/disable the button
+        // Povolit/zakázat tlačítko
         return true;
     }
 
     override void CanExecuteChanged(bool state)
     {
-        // Grey out the widget when disabled
+        // Zšedivit widget při zakázání
         if (m_ViewBinding)
         {
             Widget root = m_ViewBinding.GetLayoutRoot();
@@ -621,19 +623,19 @@ class EditorCommand: RelayCommand
 }
 ```
 
-**Key takeaway:** DabsFramework eliminates boilerplate. You declare data, bind it by name, and the framework handles synchronization. The cost is the learning curve and the framework dependency.
+**Klíčový poznatek:** DabsFramework eliminuje boilerplate. Deklarujete data, navážete je podle názvu a framework zpracovává synchronizaci. Cenou je křivka učení a závislost na frameworku.
 
 ---
 
-## Colorful UI Vzors
+## Vzory UI v Colorful UI
 
-Colorful UI replaces vanilla DayZ menus with themed versions without modifying vanilla script files. Its approach is entirely based on `modded class` overrides and a centralized color/branding system.
+Colorful UI nahrazuje vanilla menu DayZ tematizovanými verzemi bez modifikace vanilla skriptových souborů. Jeho přístup je zcela založen na přepsáních `modded class` a centralizovaném systému barev/brandingu.
 
-### 3-Layer Theme System
+### 3-vrstvý systém témat
 
-Colors are organized in three tiers:
+Barvy jsou organizovány ve třech úrovních:
 
-**Layer 1 -- UIColor (base palette):** Raw color values with semantic names.
+**Vrstva 1 -- UIColor (základní paleta):** Surové hodnoty barev se sémantickými názvy.
 
 ```c
 class UIColor
@@ -647,7 +649,7 @@ class UIColor
 }
 ```
 
-**Layer 2 -- colorScheme (semantic mapping):** Maps UI concepts to palette colors. Server owners change this layer to theme their server.
+**Vrstva 2 -- colorScheme (sémantické mapování):** Mapuje koncepty UI na barvy palety. Majitelé serverů mění tuto vrstvu pro tematizaci svého serveru.
 
 ```c
 class colorScheme
@@ -663,7 +665,7 @@ class colorScheme
 }
 ```
 
-**Layer 3 -- Branding/Settings (server identity):** Logo paths, URLs, feature toggles.
+**Vrstva 3 -- Branding/Settings (identita serveru):** Cesty k logům, URL, přepínače funkcí.
 
 ```c
 class Branding
@@ -689,9 +691,9 @@ class SocialURL
 }
 ```
 
-### Non-Destructive Vanilla UI Modification
+### Nedestruktivní modifikace vanilla UI
 
-Colorful UI replaces vanilla menus using `modded class`. Each vanilla `UIScriptedMenu` subclass is modded to load a custom layout file and apply theme colors:
+Colorful UI nahrazuje vanilla menu pomocí `modded class`. Každá podtřída vanilla `UIScriptedMenu` je modována pro načtení vlastního souboru layoutu a aplikaci barev tématu:
 
 ```c
 modded class MainMenu extends UIScriptedMenu
@@ -707,7 +709,7 @@ modded class MainMenu extends UIScriptedMenu
         m_TopShader = ImageWidget.Cast(layoutRoot.FindAnyWidget("TopShader"));
         m_BottomShader = ImageWidget.Cast(layoutRoot.FindAnyWidget("BottomShader"));
 
-        // Apply theme colors
+        // Aplikovat barvy tématu
         if (m_TopShader) m_TopShader.SetColor(colorScheme.TopShader());
         if (m_BottomShader) m_BottomShader.SetColor(colorScheme.BottomShader());
         if (m_MenuDivider) m_MenuDivider.SetColor(colorScheme.Separator());
@@ -719,23 +721,23 @@ modded class MainMenu extends UIScriptedMenu
 }
 ```
 
-This pattern is important: Colorful UI ships entirely custom `.layout` files that mirror vanilla widget names. The `modded class` override swaps the layout path but keeps vanilla widget names so that if any vanilla code references those widget names, it still works.
+Tento vzor je důležitý: Colorful UI dodává zcela vlastní soubory `.layout`, které zrcadlí názvy vanilla widgetů. Přepsání `modded class` zamění cestu layoutu, ale zachová názvy vanilla widgetů, takže pokud jakýkoliv vanilla kód odkazuje na tyto názvy widgetů, stále funguje.
 
-### Resolution-Aware Layout Variants
+### Varianty layoutu podle rozlišení
 
-Colorful UI provides separate inventory layout directories for different screen widths:
+Colorful UI poskytuje oddělené adresáře layoutu inventáře pro různé šířky obrazovek:
 
 ```
-GUI/layouts/inventory/narrow/   -- small screens
-GUI/layouts/inventory/medium/   -- standard 1080p
+GUI/layouts/inventory/narrow/   -- malé obrazovky
+GUI/layouts/inventory/medium/   -- standardní 1080p
 GUI/layouts/inventory/wide/     -- ultrawide
 ```
 
-Each directory contains the same file names (`cargo_container.layout`, `left_area.layout`, etc.) with adjusted sizing. The correct variant is selected at runtime based on screen resolution.
+Každý adresář obsahuje stejné názvy souborů (`cargo_container.layout`, `left_area.layout` atd.) s upravenými rozměry. Správná varianta je vybrána za běhu na základě rozlišení obrazovky.
 
-### Configuration via Static Variables
+### Konfigurace přes statické proměnné
 
-Server owners configure Colorful UI by editing static variable values in `Settings.c`:
+Majitelé serverů konfigurují Colorful UI úpravou hodnot statických proměnných v `Settings.c`:
 
 ```c
 static bool StartMainMenu    = true;
@@ -745,48 +747,48 @@ static bool ShowDeadScreen   = false;
 static bool CuiDebug         = true;
 ```
 
-This is the simplest possible config system: edit the script, rebuild PBO. No JSON loading, no config manager. For a client-only visual mod, this is appropriate.
+Toto je nejjednodušší možný konfigurovací systém: upravte skript, sestavte PBO. Žádné načítání JSON, žádný config manager. Pro mod pouze na straně klienta se zaměřením na vizuály je to přiměřené.
 
-**Key takeaway:** Colorful UI demonstrates that you can retheme the entire DayZ client without server-side code, using only `modded class` overrides, custom layout files, and a centralized color system.
+**Klíčový poznatek:** Colorful UI ukazuje, že můžete kompletně přetematizovat celý DayZ klient bez serverového kódu, pouze pomocí přepsání `modded class`, vlastních souborů layoutu a centralizovaného systému barev.
 
 ---
 
-## Expansion UI Vzors
+## Vzory UI v Expansion
 
-DayZ Expansion is the largest community mod ecosystem. Its UI ranges from notification toasts to full market trading interfaces with server synchronization.
+DayZ Expansion je největší komunitní modový ekosystém. Jeho UI sahá od notifikačních toastů po plná rozhraní pro obchodování na marketu se serverovou synchronizací.
 
-### Notification System (Multiple Typs)
+### Systém notifikací (více typů)
 
-Expansion defines six notification visual types, each with its own layout:
+Expansion definuje šest vizuálních typů notifikací, každý s vlastním layoutem:
 
 ```c
 enum ExpansionNotificationType
 {
-    TOAST    = 1,    // Small corner popup
-    BAGUETTE = 2,   // Wide banner across screen
-    ACTIVITY = 4,   // Activity feed entry
-    KILLFEED = 8,   // Kill announcement
-    MARKET   = 16,  // Market transaction result
-    GARAGE   = 32   // Vehicle storage result
+    TOAST    = 1,    // Malé vyskakovací okno v rohu
+    BAGUETTE = 2,   // Široký banner přes obrazovku
+    ACTIVITY = 4,   // Záznam feedu aktivit
+    KILLFEED = 8,   // Oznámení zabití
+    MARKET   = 16,  // Výsledek transakce na marketu
+    GARAGE   = 32   // Výsledek úschovy vozidla
 }
 ```
 
-Notifications are created from anywhere (client or server) using a static API:
+Notifikace se vytvářejí odkudkoliv (klient nebo server) pomocí statického API:
 
 ```c
-// From server, sent to specific player via RPC:
+// Ze serveru, odesláno konkrétnímu hráči přes RPC:
 NotificationSystem.Create_Expansion(
-    "Trade Complete",          // title
+    "Trade Complete",          // titulek
     "You purchased M4A1",     // text
-    "market_icon",             // icon name
-    ARGB(255, 50, 200, 50),   // color
-    7,                         // display time (seconds)
-    sendTo,                    // PlayerIdentity (null = all)
-    ExpansionNotificationType.MARKET  // type
+    "market_icon",             // název ikony
+    ARGB(255, 50, 200, 50),   // barva
+    7,                         // doba zobrazení (sekundy)
+    sendTo,                    // PlayerIdentity (null = všichni)
+    ExpansionNotificationType.MARKET  // typ
 );
 ```
 
-The notification module maintains a list of active notifications and manages their lifecycle. Each `ExpansionNotificationView` (a `ScriptView` subclass) handles its own show/hide animation:
+Modul notifikací udržuje seznam aktivních notifikací a spravuje jejich životní cyklus. Každý `ExpansionNotificationView` (podtřída `ScriptView`) zpracovává svou vlastní animaci zobrazení/skrytí:
 
 ```c
 class ExpansionNotificationView: ScriptView
@@ -816,21 +818,21 @@ class ExpansionNotificationView: ScriptView
 }
 ```
 
-Each notification type has a separate layout file (`expansion_notification_toast.layout`, `expansion_notification_killfeed.layout`, etc.) allowing completely different visual treatments.
+Každý typ notifikace má oddělený soubor layoutu (`expansion_notification_toast.layout`, `expansion_notification_killfeed.layout` atd.), což umožňuje zcela odlišné vizuální zpracování.
 
-### Market Menu (Complex Interactive Panel)
+### Menu marketu (složitý interaktivní panel)
 
-The `ExpansionMarketMenu` is one of the most complex UIs in any DayZ mod. It extends `ExpansionScriptViewMenu` (which extends DabsFramework's ScriptView) and manages:
+`ExpansionMarketMenu` je jedno z nejsložitějších UI v jakémkoliv modu DayZ. Rozšiřuje `ExpansionScriptViewMenu` (který rozšiřuje ScriptView z DabsFramework) a spravuje:
 
-- Kategorie tree with collapsible sections
-- Item grid with search filtering
-- Buy/sell price display with currency icons
-- Quantity controls
-- Item preview widget
-- Player inventory preview
-- Dropdown selectors for skins
-- Attachment configuration checkboxes
-- Confirmation dialogs for purchases/sales
+- Strom kategorií se skládacími sekcemi
+- Mřížku předmětů s filtrováním vyhledáváním
+- Zobrazení cen nákupu/prodeje s ikonami měny
+- Ovládání množství
+- Widget náhledu předmětu
+- Náhled inventáře hráče
+- Výběrové rozbalovací nabídky pro skiny
+- Zaškrtávací políčka konfigurace příslušenství
+- Potvrzovací dialogy pro nákupy/prodeje
 
 ```c
 class ExpansionMarketMenu: ExpansionScriptViewMenu
@@ -839,7 +841,7 @@ class ExpansionMarketMenu: ExpansionScriptViewMenu
     protected ref ExpansionMarketModule m_MarketModule;
     protected ref ExpansionMarketItem m_SelectedMarketItem;
 
-    // Direct widget references (auto-populated by ScriptView)
+    // Přímé reference na widgety (automaticky naplněné ScriptView)
     protected EditBoxWidget market_filter_box;
     protected ButtonWidget market_item_buy;
     protected ButtonWidget market_item_sell;
@@ -847,7 +849,7 @@ class ExpansionMarketMenu: ExpansionScriptViewMenu
     protected ItemPreviewWidget market_item_preview;
     protected PlayerPreviewWidget market_player_preview;
 
-    // State tracking
+    // Sledování stavu
     protected int m_Quantity = 1;
     protected int m_BuyPrice;
     protected int m_SellPrice;
@@ -855,11 +857,11 @@ class ExpansionMarketMenu: ExpansionScriptViewMenu
 }
 ```
 
-**Key takeaway:** For complex interactive UIs, Expansion combines DabsFramework's MVC with traditional widget references. The controller handles data binding for lists and text, while direct widget references handle specialized widgets like `ItemPreviewWidget` and `PlayerPreviewWidget` that need imperative control.
+**Klíčový poznatek:** Pro složitá interaktivní UI Expansion kombinuje MVC z DabsFramework s tradičními referencemi na widgety. Controller zpracovává datové navázání pro seznamy a text, zatímco přímé reference na widgety zpracovávají specializované widgety jako `ItemPreviewWidget` a `PlayerPreviewWidget`, které potřebují imperativní řízení.
 
-### ExpansionScriptViewMenu -- Menu Lifecycle
+### ExpansionScriptViewMenu -- Životní cyklus menu
 
-Expansion wraps ScriptView in a menu base class that handles input locking, blur effects, and update timers:
+Expansion obaluje ScriptView do základní třídy menu, která zpracovává uzamčení vstupu, efekty rozmazání a časovače aktualizací:
 
 ```c
 class ExpansionScriptViewMenu: ExpansionScriptViewMenuBase
@@ -890,17 +892,17 @@ class ExpansionScriptViewMenu: ExpansionScriptViewMenuBase
 }
 ```
 
-This ensures every Expansion menu consistently locks player movement, shows cursor, applies background blur, and cleans up on close.
+Toto zajišťuje, že každé menu Expansion konzistentně uzamkne pohyb hráče, zobrazí kurzor, aplikuje rozmazání pozadí a vyčistí se při zavření.
 
 ---
 
-## DayZ Editor UI Vzors
+## Vzory UI v DayZ Editoru
 
-DayZ Editor is a full object placement tool built as a DayZ mod. It uses DabsFramework extensively and implements patterns typically found in desktop applications: toolbars, menus, property inspectors, command system with undo/redo.
+DayZ Editor je plný nástroj pro umísťování objektů postavený jako mod DayZ. Rozsáhle používá DabsFramework a implementuje vzory typicky nalézané v desktopových aplikacích: panely nástrojů, menu, inspektory vlastností, systém příkazů s undo/redo.
 
-### Command Vzor with Keyboard Zkratkas
+### Vzor příkazů s klávesovými zkratkami
 
-The Editor's command system decouples actions from UI elements. Each action (New, Open, Save, Undo, Redo, Delete, etc.) is an `EditorCommand` subclass:
+Systém příkazů Editoru odděluje akce od elementů UI. Každá akce (Nový, Otevřít, Uložit, Zpět, Vpřed, Smazat atd.) je podtřída `EditorCommand`:
 
 ```c
 class EditorUndoCommand: EditorCommand
@@ -934,7 +936,7 @@ class EditorUndoCommand: EditorCommand
 }
 ```
 
-The `EditorCommandManager` registers all commands and maps shortcuts:
+`EditorCommandManager` registruje všechny příkazy a mapuje zkratky:
 
 ```c
 class EditorCommandManager
@@ -956,11 +958,11 @@ class EditorCommandManager
 }
 ```
 
-Commands integrate with DabsFramework's `RelayCommand` so toolbar buttons automatically grey out when `CanExecute()` returns false.
+Příkazy se integrují s `RelayCommand` z DabsFramework, takže tlačítka panelu nástrojů automaticky zšediví, když `CanExecute()` vrací false.
 
-### Menu Bar System
+### Systém lišty menu
 
-The Editor builds its menu bar (File, Edit, View, Editor) using an observable collection of menu items. Each menu is a `ScriptView` subclass:
+Editor staví svou lištu menu (Soubor, Úpravy, Zobrazení, Editor) pomocí observable kolekce položek menu. Každé menu je podtřída `ScriptView`:
 
 ```c
 class EditorMenu: ScriptView
@@ -989,34 +991,34 @@ class EditorMenu: ScriptView
 }
 ```
 
-The `ObservableCollection` automatically creates the visual menu items when commands are inserted.
+`ObservableCollection` automaticky vytváří vizuální položky menu při vkládání příkazů.
 
-### HUD with Data-Bound Panels
+### HUD s datově navázanými panely
 
-The editor HUD controller uses `ObservableCollection` for all list panels:
+Controller HUD editoru používá `ObservableCollection` pro všechny panely seznamů:
 
 ```c
 class EditorHudController: EditorControllerBase
 {
-    // Object lists bound to sidebar panels
+    // Seznamy objektů navázané na panely postranního panelu
     ref ObservableCollection<ref EditorPlaceableListItem> LeftbarSpacerConfig;
     ref ObservableCollection<EditorListItem> RightbarPlacedData;
     ref ObservableCollection<EditorPlayerListItem> RightbarPlayerData;
 
-    // Log entries with max count
+    // Záznamy logu s maximálním počtem
     static const int MAX_LOG_ENTRIES = 20;
     ref ObservableCollection<ref EditorLogEntry> EditorLogEntries;
 
-    // Camera track keyframes
+    // Klíčové snímky stopy kamery
     ref ObservableCollection<ref EditorCameraTrackListItem> CameraTrackData;
 }
 ```
 
-Adding an object to the scene automatically adds it to the sidebar list. Deleting removes it. No manual widget creation/destruction.
+Přidání objektu na scénu automaticky přidá položku do seznamu postranního panelu. Smazání ji odstraní. Žádné ruční vytváření/ničení widgetů.
 
-### Theming via Widget Name Lists
+### Tematizace přes seznamy názvů widgetů
 
-The Editor centralizes themed widgets using a static array of widget names:
+Editor centralizuje tematizované widgety pomocí statického pole názvů widgetů:
 
 ```c
 static const ref array<string> ThemedWidgetStrings = {
@@ -1027,20 +1029,20 @@ static const ref array<string> ThemedWidgetStrings = {
 };
 ```
 
-A theming pass iterates this array and applies colors from `EditorSettings`, avoiding scattered `SetColor()` calls throughout the codebase.
+Průchod tematizace iteruje toto pole a aplikuje barvy z `EditorSettings`, čímž se vyhne rozptýleným voláním `SetColor()` po celém kódu.
 
 ---
 
-## Common UI Architecture Vzors
+## Společné vzory architektur UI
 
-These patterns appear across multiple mods. They represent the community's consensus on how to solve recurring DayZ UI problems.
+Tyto vzory se objevují napříč více mody. Reprezentují konsenzus komunity ohledně řešení opakujících se problémů UI v DayZ.
 
-### Panel Manager (Show/Hide by Name or Typ)
+### Správce panelů (zobrazení/skrytí podle názvu nebo typu)
 
-Both VPP and COT maintain a registry of UI panels accessible by typename:
+VPP i COT udržují registr UI panelů přístupných podle typename:
 
 ```c
-// VPP pattern
+// Vzor VPP
 VPPScriptedMenu GetMenuByType(typename menuType)
 {
     foreach (VPPScriptedMenu menu : M_SCRIPTED_UI_INSTANCES)
@@ -1051,7 +1053,7 @@ VPPScriptedMenu GetMenuByType(typename menuType)
     return NULL;
 }
 
-// COT pattern
+// Vzor COT
 void ToggleShow()
 {
     if (IsVisible())
@@ -1061,28 +1063,28 @@ void ToggleShow()
 }
 ```
 
-This prevents duplicate panels and provides a single point of control for visibility.
+Toto zabraňuje duplicitním panelům a poskytuje jediný bod řízení viditelnosti.
 
-### Widget Recycling for Lists
+### Recyklace widgetů pro seznamy
 
-When displaying large lists (player lists, item catalogs, object browsers), mods avoid creating/destroying widgets on every update. Instead they maintain a pool:
+Při zobrazování velkých seznamů (seznamy hráčů, katalogy předmětů, prohlížeče objektů) mody vyhnou se vytváření/ničení widgetů při každé aktualizaci. Místo toho udržují pool:
 
 ```c
-// Simplified pattern used across mods
+// Zjednodušený vzor používaný napříč mody
 void UpdatePlayerList(array<PlayerInfo> players)
 {
-    // Hide excess widgets
+    // Skrýt přebytečné widgety
     for (int i = players.Count(); i < m_PlayerWidgets.Count(); i++)
         m_PlayerWidgets[i].Show(false);
 
-    // Create new widgets only if needed
+    // Vytvořit nové widgety pouze pokud je potřeba
     while (m_PlayerWidgets.Count() < players.Count())
     {
         Widget w = GetGame().GetWorkspace().CreateWidgets(PLAYER_ENTRY_LAYOUT, m_ListParent);
         m_PlayerWidgets.Insert(w);
     }
 
-    // Update visible widgets with data
+    // Aktualizovat viditelné widgety s daty
     for (int j = 0; j < players.Count(); j++)
     {
         m_PlayerWidgets[j].Show(true);
@@ -1091,14 +1093,14 @@ void UpdatePlayerList(array<PlayerInfo> players)
 }
 ```
 
-DabsFramework's `ObservableCollection` handles this automatically, but manual implementations use this pattern.
+`ObservableCollection` z DabsFramework to zpracovává automaticky, ale ruční implementace používají tento vzor.
 
-### Lazy Widget Creation
+### Líné vytváření widgetů
 
-Several mods defer widget creation until first show:
+Několik modů odkládá vytváření widgetů do prvního zobrazení:
 
 ```c
-// VPP pattern
+// Vzor VPP
 override Widget Init()
 {
     if (!m_Init)
@@ -1107,19 +1109,19 @@ override Widget Init()
         m_Init = true;
         return layoutRoot;
     }
-    // Subsequent calls skip creation
+    // Následná volání přeskočí vytváření
     return layoutRoot;
 }
 ```
 
-This avoids loading all admin panels at startup when most will never be opened.
+Tím se vyhne načítání všech admin panelů při spuštění, když většina z nich nebude nikdy otevřena.
 
-### Event Delegation Through Handler Chains
+### Delegování událostí přes řetězce handlerů
 
-A common pattern is a parent handler that delegates to child handlers:
+Běžným vzorem je rodičovský handler, který deleguje na podřízené handlery:
 
 ```c
-// Parent handles click, routes to appropriate child
+// Rodič zpracovává kliknutí, směruje na příslušného potomka
 override bool OnClick(Widget w, int x, int y, int button)
 {
     if (w == m_closeButton)
@@ -1128,7 +1130,7 @@ override bool OnClick(Widget w, int x, int y, int button)
         return true;
     }
 
-    // Delegate to active tool panel
+    // Delegovat na aktivní panel nástrojů
     if (m_ActivePanel)
         return m_ActivePanel.OnClick(w, x, y, button);
 
@@ -1136,9 +1138,9 @@ override bool OnClick(Widget w, int x, int y, int button)
 }
 ```
 
-### OnWidgetScriptInit as Universal Entry Point
+### OnWidgetScriptInit jako univerzální vstupní bod
 
-Every mod studied uses `OnWidgetScriptInit` as the layout-to-script binding mechanism:
+Každý studovaný mod používá `OnWidgetScriptInit` jako mechanismus navázání layoutu na skript:
 
 ```c
 void OnWidgetScriptInit(Widget w)
@@ -1146,24 +1148,24 @@ void OnWidgetScriptInit(Widget w)
     m_root = w;
     m_root.SetHandler(this);
 
-    // Find child widgets
+    // Najít podřízené widgety
     m_Button = ButtonWidget.Cast(m_root.FindAnyWidget("button_name"));
     m_Text = TextWidget.Cast(m_root.FindAnyWidget("text_name"));
 }
 ```
 
-This is set via the `scriptclass` property in the layout file. The engine calls `OnWidgetScriptInit` automatically when `CreateWidgets()` processes a widget with a script class.
+Toto se nastavuje přes vlastnost `scriptclass` v souboru layoutu. Engine volá `OnWidgetScriptInit` automaticky, když `CreateWidgets()` zpracovává widget se skriptovou třídou.
 
 ---
 
-## Anti-Vzors to Avoid
+## Anti-vzory, kterým se vyhnout
 
-These mistakes appear in real mod code and cause performance issues or crashes.
+Tyto chyby se objevují ve skutečném kódu modů a způsobují problémy s výkonem nebo pády.
 
-### Creating Widgets Every Frame
+### Vytváření widgetů každý snímek
 
 ```c
-// BAD: Creates new widgets on every Update call
+// ŠPATNĚ: Vytváří nové widgety při každém volání Update
 override void Update(float dt)
 {
     Widget label = GetGame().GetWorkspace().CreateWidgets("label.layout", m_Parent);
@@ -1171,55 +1173,55 @@ override void Update(float dt)
 }
 ```
 
-Widget creation allocates memory and triggers layout recalculation. At 60 FPS this creates 60 widgets per second. Always create once and update in place.
+Vytváření widgetů alokuje paměť a spouští přepočet layoutu. Při 60 FPS to vytváří 60 widgetů za sekundu. Vždy vytvořte jednou a aktualizujte na místě.
 
-### Not Cleaning Up Event Handlers
+### Nečištění handlerů událostí
 
 ```c
-// BAD: Insert without corresponding Remove
+// ŠPATNĚ: Insert bez odpovídajícího Remove
 void OnInit()
 {
     GetGame().GetUpdateQueue(CALL_CATEGORY_GUI).Insert(Update);
     JMScriptInvokers.ESP_VIEWTYPE_CHANGED.Insert(OnESPViewTypeChanged);
 }
 
-// Missing from destructor:
+// Chybí v destruktoru:
 // GetGame().GetUpdateQueue(CALL_CATEGORY_GUI).Remove(Update);
 // JMScriptInvokers.ESP_VIEWTYPE_CHANGED.Remove(OnESPViewTypeChanged);
 ```
 
-Every `Insert` on a `ScriptInvoker` or update queue needs a matching `Remove` in the destructor. Orphaned handlers cause calls to deleted objects and null access crashes.
+Každé `Insert` na `ScriptInvoker` nebo frontě aktualizací potřebuje odpovídající `Remove` v destruktoru. Osiřelé handlery způsobují volání na smazané objekty a pády přístupu na null.
 
-### Hardcoding Pixel Positions
+### Natvrdo kódované pixelové pozice
 
 ```c
-// BAD: Breaks on different resolutions
+// ŠPATNĚ: Nefunguje na jiných rozlišeních
 m_Panel.SetPos(540, 320);
 m_Panel.SetSize(400, 300);
 ```
 
-Always use proportional (0.0-1.0) positioning or let container widgets handle layout. Pixel positions only work at the resolution they were designed for.
+Vždy používejte proporcionální (0.0-1.0) pozicování nebo nechte kontejnerové widgety zpracovat layout. Pixelové pozice fungují pouze na rozlišení, pro které byly navrženy.
 
-### Deep Widget Nesting Without Ucel
+### Hluboké vnoření widgetů bez účelu
 
 ```
 Frame -> Panel -> Frame -> Panel -> Frame -> TextWidget
 ```
 
-Every nesting level adds layout calculation overhead. If an intermediate widget serves no purpose (no background, no sizing constraint, no event handling), remove it. Flatten hierarchies where possible.
+Každá úroveň vnoření přidává režii výpočtu layoutu. Pokud prostřední widget neslouží žádnému účelu (žádné pozadí, žádné omezení rozměrů, žádné zpracování událostí), odstraňte ho. Zploštěte hierarchie, kde je to možné.
 
-### Ignoring Sprava fokusu
+### Ignorování správy fokusu
 
 ```c
-// BAD: Opens dialog but does not set focus
+// ŠPATNĚ: Otevře dialog, ale nenastaví fokus
 void ShowDialog()
 {
     m_Dialog.Show(true);
-    // Missing: SetFocus(m_Dialog.GetLayoutRoot());
+    // Chybí: SetFocus(m_Dialog.GetLayoutRoot());
 }
 ```
 
-Without `SetFocus()`, keyboard events may still go to widgets behind the dialog. Expansion's approach is correct:
+Bez `SetFocus()` mohou klávesnicové události stále směřovat na widgety za dialogem. Přístup Expansion je správný:
 
 ```c
 override void OnShow()
@@ -1228,55 +1230,55 @@ override void OnShow()
 }
 ```
 
-### Forgetting Widget Cleanup on Destruction
+### Zapomenutí čištění widgetů při destrukci
 
 ```c
-// BAD: Widget tree leaks when script object is destroyed
+// ŠPATNĚ: Strom widgetů uniká, když je skriptový objekt zničen
 void ~MyPanel()
 {
-    // m_root.Unlink() is missing!
+    // m_root.Unlink() chybí!
 }
 ```
 
-If you create widgets with `CreateWidgets()`, you own them. Call `Unlink()` on the root in your destructor. `ScriptView` and `UIScriptedMenu` handle this automatically, but raw `ScriptedWidgetEventHandler` subclasses must do it manually.
+Pokud vytváříte widgety pomocí `CreateWidgets()`, vlastníte je. Zavolejte `Unlink()` na kořeni ve vašem destruktoru. `ScriptView` a `UIScriptedMenu` to zpracovávají automaticky, ale surové podtřídy `ScriptedWidgetEventHandler` to musí udělat ručně.
 
 ---
 
-## Shrnuti: Which Vzor to Use When
+## Shrnutí: Který vzor použít kdy
 
-| Need | Recommended Vzor | Source Mod |
+| Potřeba | Doporučený vzor | Zdrojový mod |
 |------|-------------------|------------|
-| Simple tool panel | `ScriptedWidgetEventHandler` + `OnWidgetScriptInit` | VPP |
-| Complex data-bound UI | `ScriptView` + `ViewController` + `ObservableCollection` | DabsFramework |
-| Admin panel system | Module + Form + Window (module registration pattern) | COT |
-| Draggable sub-windows | `AdminHudSubMenu` (title bar drag handling) | VPP |
-| Confirmation dialog | `VPPDialogBox` or `JMConfirmation` (callback-based) | VPP / COT |
-| Popup with input | `PopUpCreatePreset` pattern (`delete this` on close) | VPP |
-| Fullscreen menu | `ExpansionScriptViewMenu` (lock controls, blur, timer) | Expansion |
-| Theme/color system | 3-layer (palette, scheme, branding) with `modded class` | Colorful UI |
-| Vanilla UI override | `modded class` + replacement `.layout` files | Colorful UI |
-| Notification system | Typ enum + per-type layout + static creation API | Expansion |
-| Toolbar command system | `EditorCommand` + `EditorCommandManager` + shortcuts | DayZ Editor |
-| Menu bar with items | `EditorMenu` + `ObservableCollection<EditorMenuItem>` | DayZ Editor |
-| ESP/HUD overlay | Fullscreen `CanvasWidget` + projected widget positioning | COT |
-| Resolution variants | Separate layout directories (narrow/medium/wide) | Colorful UI |
-| Large list performance | Widget recycling pool (hide/show, create on demand) | Common |
-| Configuration | Static variables (client mod) or JSON via config manager | Colorful UI |
+| Jednoduchý panel nástroje | `ScriptedWidgetEventHandler` + `OnWidgetScriptInit` | VPP |
+| Složité datově navázané UI | `ScriptView` + `ViewController` + `ObservableCollection` | DabsFramework |
+| Systém admin panelů | Modul + formulář + okno (vzor registrace modulů) | COT |
+| Přetahovatelná podokna | `AdminHudSubMenu` (přetahování přes záhlaví) | VPP |
+| Potvrzovací dialog | `VPPDialogBox` nebo `JMConfirmation` (založené na callbackech) | VPP / COT |
+| Vyskakovací okno se vstupem | Vzor `PopUpCreatePreset` (`delete this` při zavření) | VPP |
+| Celoobrazovkové menu | `ExpansionScriptViewMenu` (uzamčení ovládání, rozmazání, časovač) | Expansion |
+| Systém témat/barev | 3-vrstvý (paleta, schéma, branding) s `modded class` | Colorful UI |
+| Přepsání vanilla UI | `modded class` + náhradní soubory `.layout` | Colorful UI |
+| Systém notifikací | Enumerace typu + layout per typ + statické API pro vytváření | Expansion |
+| Systém příkazů panelu nástrojů | `EditorCommand` + `EditorCommandManager` + zkratky | DayZ Editor |
+| Lišta menu s položkami | `EditorMenu` + `ObservableCollection<EditorMenuItem>` | DayZ Editor |
+| ESP/HUD překrytí | Celoobrazovkový `CanvasWidget` + pozicování promítnutých widgetů | COT |
+| Varianty rozlišení | Oddělené adresáře layoutu (narrow/medium/wide) | Colorful UI |
+| Výkon velkých seznamů | Pool recyklace widgetů (skrýt/zobrazit, vytvořit na vyžádání) | Společné |
+| Konfigurace | Statické proměnné (klientský mod) nebo JSON přes config manager | Colorful UI |
 
-### Decision Flowchart
+### Rozhodovací vývojový diagram
 
-1. **Is it a one-off simple panel?** Use `ScriptedWidgetEventHandler` with `OnWidgetScriptInit`. Build the layout in the editor, find widgets by name.
+1. **Je to jednorázový jednoduchý panel?** Použijte `ScriptedWidgetEventHandler` s `OnWidgetScriptInit`. Sestavte layout v editoru, najděte widgety podle názvu.
 
-2. **Does it have dynamic lists or frequently-changing data?** Use DabsFramework's `ViewController` with `ObservableCollection`. The data binding eliminates manual widget updates.
+2. **Má dynamické seznamy nebo často se měnící data?** Použijte `ViewController` z DabsFramework s `ObservableCollection`. Datové navázání eliminuje ruční aktualizace widgetů.
 
-3. **Is it part of a multi-panel admin tool?** Use the COT module-form pattern. Each tool is self-contained with its own module, form, and layout. Registration is a single line.
+3. **Je to součást vícepanelového admin nástroje?** Použijte vzor modulu-formuláře z COT. Každý nástroj je samostatný se svým vlastním modulem, formulářem a layoutem. Registrace je jeden řádek.
 
-4. **Does it need to replace vanilla UI?** Use the Colorful UI pattern: `modded class`, custom layout file, centralized color scheme.
+4. **Potřebuje nahradit vanilla UI?** Použijte vzor Colorful UI: `modded class`, vlastní soubor layoutu, centralizované barevné schéma.
 
-5. **Does it need server-to-client data sync?** Combine any pattern above with RPC. Expansion's market menu shows how to manage loading states, request/response cycles, and update timers within a ScriptView.
+5. **Potřebuje synchronizaci dat server-klient?** Kombinujte jakýkoliv výše uvedený vzor s RPC. Menu marketu Expansion ukazuje, jak spravovat stavy načítání, cykly požadavek/odpověď a časovače aktualizací v rámci ScriptView.
 
-6. **Does it need undo/redo or complex interaction?** Use the command pattern from DayZ Editor. Commands decouple actions from buttons, support shortcuts, and integrate with DabsFramework's `RelayCommand` for automatic enable/disable.
+6. **Potřebuje undo/redo nebo složitou interakci?** Použijte vzor příkazů z DayZ Editoru. Příkazy oddělují akce od tlačítek, podporují zkratky a integrují se s `RelayCommand` z DabsFramework pro automatické povolování/zakazování.
 
 ---
 
-*Dalsi chapter: [Advanced Widgets](10-advanced-widgets.md) -- RichTextWidget formatting, CanvasWidget drawing, MapWidget markers, ItemPreviewWidget, PlayerPreviewWidget, VideoWidget, and RenderTargetWidget.*
+*Další kapitola: [Pokročilé widgety](10-advanced-widgets.md) -- Formátování RichTextWidget, kreslení CanvasWidget, značky MapWidget, ItemPreviewWidget, PlayerPreviewWidget, VideoWidget a RenderTargetWidget.*

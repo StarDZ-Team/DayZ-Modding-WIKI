@@ -1,69 +1,73 @@
-# Chapter 8.11: Creating Custom Clothing
+# Kapitola 8.11: Vytváření vlastního oblečení
 
-[Home](../../README.md) | [<< Previous: Creating a Custom Vehicle](10-vehicle-mod.md) | **Creating Custom Clothing** | [Next: Building a Trading System >>](12-trading-system.md)
+[Domů](../../README.md) | [<< Předchozí: Vytváření vlastního vozidla](10-vehicle-mod.md) | **Vytváření vlastního oblečení** | [Další: Vytváření obchodního systému >>](12-trading-system.md)
+
+---
+
+> **Shrnutí:** Tento tutoriál vás provede vytvořením vlastní taktické bundy pro DayZ. Vyberete základní třídu, definujete oblečení v config.cpp s izolačními a kapacitními vlastnostmi, přetexturujete ho kamufláží pomocí skrytých výběrů, přidáte lokalizaci a spawning a volitelně ho rozšíříte o skriptové chování. Na konci budete mít nositelnou bundu, která hráče zahřívá, pojme předměty a spawnuje se ve světě.
 
 ---
 
 ## Obsah
 
-- [What We Are Building](#what-we-are-building)
-- [Step 1: Choose a Zakladni trida](#step-1-choose-a-base-class)
-- [Step 2: config.cpp for Clothing](#step-2-configcpp-for-clothing)
-- [Step 3: Create Textures](#step-3-create-textures)
-- [Step 4: Add Cargo Space](#step-4-add-cargo-space)
-- [Step 5: Localization and Spawning](#step-5-localization-and-spawning)
-- [Step 6: Script Behavior (Optional)](#step-6-script-behavior-optional)
-- [Step 7: Build, Test, Polish](#step-7-build-test-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Caste chyby](#common-mistakes)
-- [Doporucene postupy](#best-practices)
+- [Co budeme vytvářet](#what-we-are-building)
+- [Krok 1: Výběr základní třídy](#step-1-choose-a-base-class)
+- [Krok 2: config.cpp pro oblečení](#step-2-configcpp-for-clothing)
+- [Krok 3: Vytvoření textur](#step-3-create-textures)
+- [Krok 4: Přidání úložného prostoru](#step-4-add-cargo-space)
+- [Krok 5: Lokalizace a spawning](#step-5-localization-and-spawning)
+- [Krok 6: Skriptové chování (volitelné)](#step-6-script-behavior-optional)
+- [Krok 7: Build, testování, doladění](#step-7-build-test-polish)
+- [Kompletní reference kódu](#complete-code-reference)
+- [Časté chyby](#common-mistakes)
+- [Doporučené postupy](#best-practices)
 - [Teorie vs praxe](#theory-vs-practice)
-- [What You Learned](#what-you-learned)
+- [Co jste se naučili](#what-you-learned)
 
 ---
 
-## What We Are Building
+## Co budeme vytvářet
 
-We will create a **Tactical Camo Jacket** -- a military-style jacket with woodland camouflage that players can find and wear. It will:
+Vytvoříme **Taktickou maskáčovou bundu** -- bundu vojenského stylu s lesním maskovacím vzorem, kterou hráči mohou najít a nosit. Bude:
 
-- Extend the vanilla Gorka jacket model (no 3D modeling required)
-- Have a custom camo retexture using hidden selections
-- Provide warmth through `heatIsolation` values
-- Carry items in its pockets (cargo space)
-- Take damage with visual degradation across health states
-- Spawn at military locations in the world
+- Rozšiřovat vanilla model bundy Gorka (není potřeba 3D modelování)
+- Mít vlastní maskáčovou přetexturu pomocí skrytých výběrů
+- Poskytovat teplo prostřednictvím hodnot `heatIsolation`
+- Pojmout předměty v kapsách (úložný prostor)
+- Degradovat vizuálně při poškození napříč stavy zdraví
+- Spawnovat se na vojenských lokacích ve světě
 
-**Predpoklady:** A working mod structure (complete [Chapter 8.1](01-first-mod.md) and [Chapter 8.2](02-custom-item.md) first), a text editor, DayZ Tools installed (for TexView2), and an image editor for creating camo textures.
+**Předpoklady:** Funkční struktura modu (nejprve dokončete [Kapitolu 8.1](01-first-mod.md) a [Kapitolu 8.2](02-custom-item.md)), textový editor, nainstalované DayZ Tools (pro TexView2) a grafický editor pro tvorbu maskáčových textur.
 
 ---
 
-## Step 1: Choose a Zakladni trida
+## Krok 1: Výběr základní třídy
 
-Clothing in DayZ inherits from `Clothing_Base`, but you almost never extend that directly. DayZ provides intermediate base classes for each body slot:
+Oblečení v DayZ dědí z `Clothing_Base`, ale tuto třídu téměř nikdy nerozšiřujete přímo. DayZ poskytuje mezilehlé základní třídy pro každý slot na těle:
 
-| Zakladni trida | Body Slot | Priklads |
+| Základní třída | Slot na těle | Příklady |
 |------------|-----------|----------|
-| `Top_Base` | Body (torso) | Jackets, shirts, hoodies |
-| `Pants_Base` | Legs | Jeans, cargo pants |
-| `Shoes_Base` | Feet | Boots, sneakers |
-| `HeadGear_Base` | Head | Helmets, hats |
-| `Mask_Base` | Face | Gas masks, balaclavas |
-| `Gloves_Base` | Hands | Tactical gloves |
-| `Vest_Base` | Vest slot | Plate carriers, chest rigs |
-| `Glasses_Base` | Eyewear | Sunglasses |
-| `Backpack_Base` | Back | Backpacks, bags |
+| `Top_Base` | Tělo (trup) | Bundy, košile, mikiny |
+| `Pants_Base` | Nohy | Džíny, cargo kalhoty |
+| `Shoes_Base` | Nohy (chodidla) | Boty, tenisky |
+| `HeadGear_Base` | Hlava | Helmy, čepice |
+| `Mask_Base` | Obličej | Plynové masky, kukly |
+| `Gloves_Base` | Ruce | Taktické rukavice |
+| `Vest_Base` | Slot pro vestu | Nosičky plátů, taktické vesty |
+| `Glasses_Base` | Brýle | Sluneční brýle |
+| `Backpack_Base` | Záda | Batohy, tašky |
 
-The full inheritance chain is: `Clothing_Base -> Clothing -> Top_Base -> GorkaEJacket_ColorBase -> YourJacket`
+Kompletní řetězec dědičnosti je: `Clothing_Base -> Clothing -> Top_Base -> GorkaEJacket_ColorBase -> VašeBunda`
 
-### Why Extend an Existing Vanilla Item
+### Proč rozšířit existující vanilla předmět
 
-You can extend at different levels:
+Můžete rozšiřovat na různých úrovních:
 
-1. **Extend a specific item** (like `GorkaEJacket_ColorBase`) -- easiest. You inherit the model, animations, slot, and all properties. Only change textures and tweak values. This is what Bohemia's `Test_ClothingRetexture` sample does.
-2. **Extend a slot base** (like `Top_Base`) -- clean starting point, but you must specify a model and all properties.
-3. **Extend `Clothing` directly** -- only for completely custom slot behavior. Rarely needed.
+1. **Rozšíření konkrétního předmětu** (jako `GorkaEJacket_ColorBase`) -- nejjednodušší. Zdědíte model, animace, slot a všechny vlastnosti. Pouze změníte textury a upravíte hodnoty. Přesně tak to dělá Bohemia v ukázce `Test_ClothingRetexture`.
+2. **Rozšíření základní třídy slotu** (jako `Top_Base`) -- čistý výchozí bod, ale musíte specifikovat model a všechny vlastnosti.
+3. **Rozšíření `Clothing` přímo** -- pouze pro zcela vlastní chování slotu. Zřídka potřebné.
 
-For our tactical jacket, we will extend `GorkaEJacket_ColorBase`. Looking at the vanilla script:
+Pro naši taktickou bundu rozšíříme `GorkaEJacket_ColorBase`. Podívejme se na vanilla skript:
 
 ```c
 class GorkaEJacket_ColorBase extends Top_Base
@@ -78,15 +82,15 @@ class GorkaEJacket_Summer extends GorkaEJacket_ColorBase {};
 class GorkaEJacket_Flat extends GorkaEJacket_ColorBase {};
 ```
 
-Notice the pattern: a `_ColorBase` class handles shared behavior, and individual color variants extend it with no additional code. Their config.cpp entries provide different textures. We will follow the same pattern.
+Všimněte si vzoru: třída `_ColorBase` obstarává sdílené chování a jednotlivé barevné varianty ji rozšiřují bez dalšího kódu. Jejich záznamy v config.cpp poskytují různé textury. Budeme následovat stejný vzor.
 
-To find base classes, look in `scripts/4_world/entities/itembase/clothing_base.c` (defines all slot bases) and `scripts/4_world/entities/itembase/clothing/` (one file per clothing family).
+Základní třídy najdete v `scripts/4_world/entities/itembase/clothing_base.c` (definuje všechny základní třídy slotů) a `scripts/4_world/entities/itembase/clothing/` (jeden soubor na rodinu oblečení).
 
 ---
 
-## Step 2: config.cpp for Clothing
+## Krok 2: config.cpp pro oblečení
 
-Create `MyClothingMod/Data/config.cpp`:
+Vytvořte `MyClothingMod/Data/config.cpp`:
 
 ```cpp
 class CfgPatches
@@ -184,73 +188,73 @@ class CfgVehicles
 };
 ```
 
-### Clothing-Specific Poles Explained
+### Vysvětlení polí specifických pro oblečení
 
-**Thermal and stealth:**
+**Tepelné a maskování:**
 
-| Pole | Hodnota | Explanation |
+| Pole | Hodnota | Vysvětlení |
 |-------|-------|-------------|
-| `heatIsolation` | `0.8` | Warmth provided (0.0-1.0 range). The engine multiplies this by health and wetness factors. A pristine dry jacket gives full warmth; a ruined, soaked one gives almost none. |
-| `visibilityModifikator` | `0.7` | Player visibility to AI (lower = harder to detect). |
-| `absorbency` | `0.3` | Water absorption (0 = waterproof, 1 = sponge). Lower is better for rain resistance. |
+| `heatIsolation` | `0.8` | Poskytované teplo (rozsah 0.0-1.0). Engine tuto hodnotu násobí faktory zdraví a vlhkosti. Nepoškozená suchá bunda poskytuje plné teplo; zničená promáčená téměř žádné. |
+| `visibilityModifier` | `0.7` | Viditelnost hráče pro AI (nižší = těžší detekce). |
+| `absorbency` | `0.3` | Absorpce vody (0 = vodotěsné, 1 = houba). Nižší je lepší pro odolnost proti dešti. |
 
-**Vanilla heatIsolation reference:** T-shirt 0.2, Hoodie 0.5, Gorka Jacket 0.7, Pole Jacket 0.8, Wool Coat 0.9.
+**Vanilla reference heatIsolation:** Tričko 0.2, Mikina 0.5, Bunda Gorka 0.7, Polní bunda 0.8, Vlněný kabát 0.9.
 
-**Repair:** `repairableWithKits[] = { 5, 2 }` lists kit types (5=Sewing Kit, 2=Leather Sewing Kit). `repairCosts[]` gives material consumed per repair, in matching order.
+**Opravy:** `repairableWithKits[] = { 5, 2 }` uvádí typy sad (5=Šicí sada, 2=Kožedělnická šicí sada). `repairCosts[]` udává spotřebovaný materiál na opravu v odpovídajícím pořadí.
 
-**Armor:** A `damage` value of 0.8 means the player receives 80% of incoming damage (20% absorbed). Lower values = more protection.
+**Zbroj:** Hodnota `damage` 0.8 znamená, že hráč obdrží 80 % příchozího poškození (20 % absorbováno). Nižší hodnoty = větší ochrana.
 
-**Wetness:** `Soaking` controls how fast rain/water soaks the item. `Drying` negative values represent moisture loss from body heat, fires, and wringing.
+**Vlhkost:** `Soaking` řídí, jak rychle déšť/voda namočí předmět. Záporné hodnoty `Drying` představují ztrátu vlhkosti z tělesného tepla, ohňů a ždímání.
 
-**Hidden selections:** The Gorka model has 3 selections -- index 0 is the ground model, indices 1 and 2 are the worn model. You override `hiddenSelectionsTextures[]` with your custom PAA paths.
+**Skryté výběry:** Model Gorka má 3 výběry -- index 0 je model na zemi, indexy 1 a 2 jsou nošený model. Přepíšete `hiddenSelectionsTextures[]` vlastními cestami k PAA souborům.
 
-**Health levels:** Each entry is `{ healthThreshold, { materialPath } }`. When health drops below a threshold, the engine swaps the material. Vanilla damage rvmats add wear marks and tears.
+**Úrovně zdraví:** Každý záznam je `{ práhZdraví, { cestaMaterialu } }`. Když zdraví klesne pod práh, engine vymění materiál. Vanilla damage rvmaty přidávají stopy opotřebení a trhliny.
 
 ---
 
-## Step 3: Create Textures
+## Krok 3: Vytvoření textur
 
-### Finding and Creating Textures
+### Hledání a tvorba textur
 
-The Gorka jacket textures live at `DZ\characters\tops\data\` -- extract the `gorka_upper_summer_co.paa` (color), `gorka_upper_nohq.paa` (normal), and `gorka_upper_smdi.paa` (specular) from the P: drive to use as templates.
+Textury bundy Gorka se nachází v `DZ\characters\tops\data\` -- extrahujte `gorka_upper_summer_co.paa` (barva), `gorka_upper_nohq.paa` (normálová mapa) a `gorka_upper_smdi.paa` (spekulární mapa) z P: disku jako šablony.
 
-**Creating the camo pattern:**
+**Vytvoření maskáčového vzoru:**
 
-1. Open the vanilla `_co` texture in TexView2, export as TGA/PNG
-2. Paint your woodland camo in your image editor, following the UV layout
-3. Keep the same dimensions (typically 2048x2048 or 1024x1024)
-4. Save as TGA, convert to PAA using TexView2 (File > Save As > .paa)
+1. Otevřete vanilla `_co` texturu v TexView2, exportujte jako TGA/PNG
+2. Namalujte svůj lesní maskáč v grafickém editoru, sledujte UV rozložení
+3. Zachovejte stejné rozměry (typicky 2048x2048 nebo 1024x1024)
+4. Uložte jako TGA, převeďte na PAA pomocí TexView2 (File > Save As > .paa)
 
-### Texture Typs
+### Typy textur
 
-| Suffix | Ucel | Required? |
+| Přípona | Účel | Povinná? |
 |--------|---------|-----------|
-| `_co` | Main color/pattern | Yes |
-| `_nohq` | Normal map (fabric detail) | No -- uses vanilla default |
-| `_smdi` | Specular (shininess) | No -- uses vanilla default |
-| `_as` | Alpha/surface mask | No |
+| `_co` | Hlavní barva/vzor | Ano |
+| `_nohq` | Normálová mapa (detail tkaniny) | Ne -- používá výchozí vanilla |
+| `_smdi` | Spekulární (lesklost) | Ne -- používá výchozí vanilla |
+| `_as` | Alpha/povrchová maska | Ne |
 
-For a retexture, you only need `_co` textures. The normal and specular maps from the vanilla model continue to work.
+Pro přetexturu potřebujete pouze `_co` textury. Normálové a spekulární mapy z vanilla modelu fungují nadále.
 
-For full material control, create `.rvmat` files and reference them in `hiddenSelectionsMaterials[]`. See Bohemia's `Test_ClothingRetexture` sample for working rvmat examples with damage and destruct variants.
-
----
-
-## Step 4: Add Cargo Space
-
-When extending `GorkaEJacket_ColorBase`, you inherit its cargo grid (4x3) and inventory slot (`"Body"`) automatically. The `itemSize[] = { 3, 4 }` property defines how large the jacket is when stored as loot -- NOT its cargo capacity.
-
-Common clothing slots: `"Body"` (jackets), `"Legs"` (pants), `"Feet"` (boots), `"Headgear"` (hats), `"Vest"` (chest rigs), `"Gloves"`, `"Mask"`, `"Back"` (backpacks).
-
-Some clothing accepts attachments (like Plate Carrier pouches). Add them with `attachments[] = { "Shoulder", "Armband" };`. For a basic jacket, the inherited cargo is sufficient.
+Pro úplnou kontrolu materiálu vytvořte `.rvmat` soubory a odkazujte je v `hiddenSelectionsMaterials[]`. Pro fungující příklady rvmat s variantami poškození a destrukce se podívejte na Bohemia ukázku `Test_ClothingRetexture`.
 
 ---
 
-## Step 5: Localization and Spawning
+## Krok 4: Přidání úložného prostoru
+
+Při rozšíření `GorkaEJacket_ColorBase` automaticky zdědíte jeho mřížku úložného prostoru (4x3) a inventářový slot (`"Body"`). Vlastnost `itemSize[] = { 3, 4 }` definuje, jak velká je bunda při uložení jako loot -- NE její kapacitu úložného prostoru.
+
+Běžné sloty oblečení: `"Body"` (bundy), `"Legs"` (kalhoty), `"Feet"` (boty), `"Headgear"` (čepice), `"Vest"` (taktické vesty), `"Gloves"`, `"Mask"`, `"Back"` (batohy).
+
+Některé oblečení akceptuje příslušenství (jako pouzdra na Plate Carrier). Přidejte je pomocí `attachments[] = { "Shoulder", "Armband" };`. Pro základní bundu je zděděný úložný prostor dostačující.
+
+---
+
+## Krok 5: Lokalizace a spawning
 
 ### Stringtable
 
-Create `MyClothingMod/Data/Stringtable.csv`:
+Vytvořte `MyClothingMod/Data/Stringtable.csv`:
 
 ```csv
 "Language","English","Czech","German","Russian","Polish","Hungarian","Italian","Spanish","French","Chinese","Japanese","Portuguese","ChineseSimp","Korean"
@@ -260,7 +264,7 @@ Create `MyClothingMod/Data/Stringtable.csv`:
 
 ### Spawning (types.xml)
 
-Add to your server's mission folder `types.xml`:
+Přidejte do `types.xml` ve složce mise vašeho serveru:
 
 ```xml
 <type name="MCM_TacticalJacket_Woodland">
@@ -279,13 +283,13 @@ Add to your server's mission folder `types.xml`:
 </type>
 ```
 
-Use `category name="clothes"` for all clothing. Set `usage` to match where the item should spawn (Military, Town, Police, etc.) and `value` for the map tier (Tier1=coast through Tier4=deep inland).
+Použijte `category name="clothes"` pro veškeré oblečení. Nastavte `usage` podle toho, kde se má předmět spawnovat (Military, Town, Police atd.) a `value` pro tier mapy (Tier1=pobřeží až Tier4=hluboko ve vnitrozemí).
 
 ---
 
-## Step 6: Script Behavior (Optional)
+## Krok 6: Skriptové chování (volitelné)
 
-For a simple retexture, you do not need scripts. But to add behavior when the jacket is worn, create a script class.
+Pro jednoduchou přetexturu nepotřebujete skripty. Ale pro přidání chování při nošení bundy vytvořte skriptovou třídu.
 
 ### Scripts config.cpp
 
@@ -322,9 +326,9 @@ class CfgMods
 };
 ```
 
-### Custom Jacket Script
+### Skript vlastní bundy
 
-Create `Scripts/4_World/MyClothingMod/MCM_TacticalJacket.c`:
+Vytvořte `Scripts/4_World/MyClothingMod/MCM_TacticalJacket.c`:
 
 ```c
 class MCM_TacticalJacket_ColorBase extends GorkaEJacket_ColorBase
@@ -357,42 +361,42 @@ class MCM_TacticalJacket_ColorBase extends GorkaEJacket_ColorBase
 };
 ```
 
-### Key Clothing Events
+### Klíčové události oblečení
 
-| Event | When It Fires | Common Use |
+| Událost | Kdy se spouští | Běžné použití |
 |-------|---------------|------------|
-| `OnWasAttached(parent, slot_id)` | Player equips the item | Apply buffs, show effects |
-| `OnWasDetached(parent, slot_id)` | Player unequips the item | Remove buffs, clean up |
-| `EEItemAttached(item, slot_name)` | Item attached to this clothing | Show/hide model selections |
-| `EEItemDetached(item, slot_name)` | Item detached from this clothing | Reverse visual changes |
-| `EEHealthLevelZmenad(old, new, zone)` | Health crosses a threshold | Update visual state |
+| `OnWasAttached(parent, slot_id)` | Hráč si nasadí předmět | Aplikace buffů, zobrazení efektů |
+| `OnWasDetached(parent, slot_id)` | Hráč si sundá předmět | Odebrání buffů, úklid |
+| `EEItemAttached(item, slot_name)` | Předmět připojen k tomuto oblečení | Zobrazení/skrytí výběrů modelu |
+| `EEItemDetached(item, slot_name)` | Předmět odpojen z tohoto oblečení | Vrácení vizuálních změn |
+| `EEHealthLevelChanged(old, new, zone)` | Zdraví překročí práh | Aktualizace vizuálního stavu |
 
-**Dulezite:** Always call `super` at the start of every override. The parent class handles critical engine behavior.
+**Důležité:** Vždy volejte `super` na začátku každého přepsání. Rodičovská třída obstarává kritické chování enginu.
 
 ---
 
-## Step 7: Build, Test, Polish
+## Krok 7: Build, testování, doladění
 
-### Build and Spawn
+### Build a spawn
 
-Pack `Data/` and `Scripts/` as separate PBOs. Launch DayZ with your mod and spawn the jacket:
+Zabalte `Data/` a `Scripts/` jako samostatná PBO. Spusťte DayZ s vaším modem a spawněte bundu:
 
 ```c
 GetGame().GetPlayer().GetInventory().CreateInInventory("MCM_TacticalJacket_Woodland");
 ```
 
-### Verification Checklist
+### Kontrolní seznam ověření
 
-1. **Does it appear in inventory?** If not, check `scope=2` and class name match.
-2. **Correct texture?** Vychozi Gorka texture = wrong paths. White/pink = missing texture file.
-3. **Can you equip it?** Should go to Body slot. If not, check the parent class chain.
-4. **Display name shows?** If you see raw `$STR_` text, the stringtable is not loading.
-5. **Provides warmth?** Check `heatIsolation` in the debug/inspect menu.
-6. **Damage degrades visuals?** Test with: `ItemBase.Cast(GetGame().GetPlayer().GetItemOnSlot("Body")).SetHealth("", "", 40);`
+1. **Objeví se v inventáři?** Pokud ne, zkontrolujte `scope=2` a shodu názvu třídy.
+2. **Správná textura?** Výchozí Gorka textura = špatné cesty. Bílá/růžová = chybějící soubor textury.
+3. **Můžete si ji obléct?** Měla by jít do slotu Body. Pokud ne, zkontrolujte řetězec rodičovské třídy.
+4. **Zobrazuje se název?** Pokud vidíte surový text `$STR_`, stringtable se nenačítá.
+5. **Poskytuje teplo?** Zkontrolujte `heatIsolation` v debug/inspect menu.
+6. **Poškození degraduje vizuál?** Otestujte pomocí: `ItemBase.Cast(GetGame().GetPlayer().GetItemOnSlot("Body")).SetHealth("", "", 40);`
 
-### Adding Color Variants
+### Přidání barevných variant
 
-Follow the `_ColorBase` pattern -- add sibling classes that only differ in textures:
+Následujte vzor `_ColorBase` -- přidejte sourozenecké třídy, které se liší pouze v texturách:
 
 ```cpp
 class MCM_TacticalJacket_Desert : MCM_TacticalJacket_ColorBase
@@ -409,25 +413,25 @@ class MCM_TacticalJacket_Desert : MCM_TacticalJacket_ColorBase
 };
 ```
 
-Each variant needs its own `scope=2`, display name, textures, stringtable entries, and types.xml entry.
+Každá varianta potřebuje vlastní `scope=2`, zobrazovaný název, textury, záznamy ve stringtable a záznam v types.xml.
 
 ---
 
-## Complete Code Reference
+## Kompletní reference kódu
 
-### Directory Structure
+### Adresářová struktura
 
 ```
 MyClothingMod/
     mod.cpp
     Data/
-        config.cpp              <-- Item definitions (see Step 2)
-        Stringtable.csv         <-- Display names (see Step 5)
+        config.cpp              <-- Definice předmětů (viz Krok 2)
+        Stringtable.csv         <-- Zobrazované názvy (viz Krok 5)
         Textures/
             tactical_jacket_woodland_co.paa
             tactical_jacket_g_woodland_co.paa
-    Scripts/                    <-- Only needed for script behavior
-        config.cpp              <-- CfgMods entry (see Step 6)
+    Scripts/                    <-- Potřebné pouze pro skriptové chování
+        config.cpp              <-- Záznam CfgMods (viz Krok 6)
         4_World/
             MyClothingMod/
                 MCM_TacticalJacket.c
@@ -442,33 +446,33 @@ version = "1.0";
 overview = "Adds a tactical jacket with camo variants to DayZ.";
 ```
 
-All other files are shown in full in their respective steps above.
+Všechny ostatní soubory jsou zobrazeny celé v příslušných krocích výše.
 
 ---
 
-## Caste chyby
+## Časté chyby
 
-| Chyba | Dusledek | Oprava |
+| Chyba | Důsledek | Oprava |
 |---------|-------------|-----|
-| Forgetting `scope=2` on variants | Item does not spawn or appear in admin tools | Set `scope=0` on base, `scope=2` on each spawnable variant |
-| Wrong texture array count | White/pink textures on some parts | Match `hiddenSelectionsTextures` count to the model's hidden selections (Gorka has 3) |
-| Forward slashes in texture paths | Textures fail to load silently | Use backslashes: `"MyMod\Data\tex.paa"` |
-| Missing `requiredAddons` | Config parser cannot resolve parent class | Include `"DZ_Characters_Tops"` for tops |
-| `heatIsolation` above 1.0 | Player overheats in warm weather | Keep values in 0.0-1.0 range |
-| Empty `healthLevels` materials | No visual damage degradation | Always reference at least vanilla rvmats |
-| Skipping `super` in overrides | Broken inventory, damage, or attachment behavior | Always call `super.MetodaName()` first |
+| Zapomenutí `scope=2` na variantách | Předmět se nespawnuje ani se nezobrazí v admin nástrojích | Nastavte `scope=0` na základ, `scope=2` na každou spawnovatelnou variantu |
+| Špatný počet textur v poli | Bílé/růžové textury na některých částech | Srovnejte počet `hiddenSelectionsTextures` s počtem skrytých výběrů modelu (Gorka má 3) |
+| Lomítka v cestách textur | Textury se tiše nenačtou | Používejte zpětná lomítka: `"MyMod\Data\tex.paa"` |
+| Chybějící `requiredAddons` | Parser configu nemůže rozpoznat rodičovskou třídu | Zahrňte `"DZ_Characters_Tops"` pro vršky |
+| `heatIsolation` nad 1.0 | Hráč se přehřívá v teplém počasí | Udržujte hodnoty v rozsahu 0.0-1.0 |
+| Prázdné materiály v `healthLevels` | Žádná vizuální degradace poškozením | Vždy odkazujte alespoň vanilla rvmaty |
+| Vynechání `super` v přepsáních | Nefunkční inventář, poškození nebo chování příloh | Vždy volejte `super.NázevMetody()` jako první |
 
 ---
 
-## Doporucene postupy
+## Doporučené postupy
 
-- **Start with a simple retexture.** Get a working mod with a texture swap before adding custom properties or scripts. This isolates config issues from texture issues.
-- **Use the _ColorBase pattern.** Shared properties in `scope=0` base, only textures and names in `scope=2` variants. No duplication.
-- **Keep insulation values realistic.** Reference vanilla items with similar real-world equivalents.
-- **Test with script console before types.xml.** Confirm the item works before debugging spawn tables.
-- **Use `$STR_` references for all player-facing text.** Enables future localization without config changes.
-- **Pack Data and Scripts as separate PBOs.** Update textures without rebuilding scripts.
-- **Provide ground textures.** The `_g_` texture makes dropped items look correct.
+- **Začněte jednoduchou přetexturou.** Zprovozněte mod s výměnou textury, než přidáte vlastní vlastnosti nebo skripty. Tím izolujete problémy configu od problémů s texturami.
+- **Používejte vzor _ColorBase.** Sdílené vlastnosti v `scope=0` základu, pouze textury a názvy ve variantách se `scope=2`. Žádná duplikace.
+- **Udržujte izolační hodnoty realistické.** Odkazujte vanilla předměty s podobnými reálnými ekvivalenty.
+- **Testujte pomocí skriptové konzole před types.xml.** Potvrďte, že předmět funguje, než začnete ladit tabulky spawnů.
+- **Používejte `$STR_` reference pro veškerý text směřující k hráčům.** Umožňuje budoucí lokalizaci bez změn v configu.
+- **Balte Data a Scripts jako samostatná PBO.** Aktualizujte textury bez přestavby skriptů.
+- **Poskytujte textury pro zem.** Textura `_g_` zajistí správný vzhled odhozených předmětů.
 
 ---
 
@@ -476,30 +480,30 @@ All other files are shown in full in their respective steps above.
 
 | Koncept | Teorie | Realita |
 |---------|--------|---------|
-| `heatIsolation` | A simple warmth number | Effective warmth depends on health and wetness. The engine multiplies it by factors in `MiscGameplayFunctions.GetCurrentItemHeatIsolation()`. |
-| Armor `damage` values | Lower = more protection | A value of 0.8 means the player receives 80% damage (only 20% absorbed). Many modders read 0.9 as "90% protection" when it is actually 10%. |
-| `scope` inheritance | Children inherit parent scope | They do NOT. Each class must explicitly set `scope`. Parent `scope=0` defaults all children to `scope=0`. |
-| `absorbency` | Controls rain protection | It controls moisture absorption, which REDUCES warmth. Waterproof = LOW absorbency (0.1). High absorbency (0.8+) = soaks like a sponge. |
-| Hidden selections | Work on any model | Not all models expose the same selections. Check with Object Builder or vanilla config before choosing a base model. |
+| `heatIsolation` | Jednoduché číslo tepla | Efektivní teplo závisí na zdraví a vlhkosti. Engine ho násobí faktory v `MiscGameplayFunctions.GetCurrentItemHeatIsolation()`. |
+| Hodnoty `damage` zbroje | Nižší = větší ochrana | Hodnota 0.8 znamená, že hráč obdrží 80 % poškození (pouze 20 % absorbováno). Mnoho modderů čte 0.9 jako "90% ochrana", když je to ve skutečnosti 10 %. |
+| Dědičnost `scope` | Děti dědí scope rodiče | NEDĚDÍ. Každá třída musí explicitně nastavit `scope`. Rodičovský `scope=0` nastaví všechny děti na výchozí `scope=0`. |
+| `absorbency` | Řídí ochranu před deštěm | Řídí absorpci vlhkosti, která SNIŽUJE teplo. Vodotěsný = NÍZKÁ absorbency (0.1). Vysoká absorbency (0.8+) = nasákne jako houba. |
+| Skryté výběry | Fungují na jakémkoli modelu | Ne všechny modely zpřístupňují stejné výběry. Před výběrem základního modelu zkontrolujte v Object Builder nebo vanilla configu. |
 
 ---
 
-## What You Learned
+## Co jste se naučili
 
-In this tutorial you learned:
+V tomto tutoriálu jste se naučili:
 
-- How DayZ clothing inherits from slot-specific base classes (`Top_Base`, `Pants_Base`, etc.)
-- How to define a clothing item in config.cpp with thermal, armor, and wetness properties
-- How hidden selections allow retexturing vanilla models with custom camo patterns
-- How `heatIsolation`, `visibilityModifikator`, and `absorbency` affect gameplay
-- How the `DamageSystem` controls visual degradation and armor protection
-- How to create color variants using the `_ColorBase` pattern
-- How to add spawn entries with `types.xml` and display names with `Stringtable.csv`
-- How to optionally add script behavior with `OnWasAttached` and `OnWasDetached` events
+- Jak oblečení v DayZ dědí ze základních tříd specifických pro sloty (`Top_Base`, `Pants_Base` atd.)
+- Jak definovat kus oblečení v config.cpp s tepelnými, zbrojovými a vlhkostními vlastnostmi
+- Jak skryté výběry umožňují přetexturu vanilla modelů vlastními maskáčovými vzory
+- Jak `heatIsolation`, `visibilityModifier` a `absorbency` ovlivňují gameplay
+- Jak `DamageSystem` řídí vizuální degradaci a ochranu zbrojí
+- Jak vytvořit barevné varianty pomocí vzoru `_ColorBase`
+- Jak přidat záznamy spawnování s `types.xml` a zobrazované názvy se `Stringtable.csv`
+- Jak volitelně přidat skriptové chování s událostmi `OnWasAttached` a `OnWasDetached`
 
-**Dalsi:** Apply the same techniques to create pants (`Pants_Base`), boots (`Shoes_Base`), or a vest (`Vest_Base`). The config structure is identical -- only the parent class and inventory slot change.
+**Další:** Použijte stejné techniky k vytvoření kalhot (`Pants_Base`), bot (`Shoes_Base`) nebo vesty (`Vest_Base`). Struktura configu je identická -- mění se pouze rodičovská třída a inventářový slot.
 
 ---
 
-**Predchozi:** [Chapter 8.8: HUD Overlay](08-hud-overlay.md)
-**Dalsi:** Coming soon
+**Předchozí:** [Kapitola 8.8: HUD overlay](08-hud-overlay.md)
+**Další:** Již brzy

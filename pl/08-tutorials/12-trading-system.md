@@ -1,30 +1,34 @@
-# Chapter 8.12: Building a Trading System
+# Rozdział 8.12: Budowanie systemu handlowego
 
-[Home](../../README.md) | [<< Previous: Creating Custom Clothing](11-clothing-mod.md) | **Building a Trading System** | [Next: The Diagnostic Menu >>](13-diag-menu.md)
-
----
-
-## Spis tresci
-
-- [What We Are Building](#what-we-are-building)
-- [Step 1: Data Model (3_Game)](#step-1-data-model-3_game)
-- [Step 2: RPC Stale (3_Game)](#step-2-rpc-constants-3_game)
-- [Step 3: Server-Side Shop Manager (4_World)](#step-3-server-side-shop-manager-4_world)
-- [Step 4: Client-Side Shop UI (5_Mission)](#step-4-client-side-shop-ui-5_mission)
-- [Step 5: Layout File](#step-5-layout-file)
-- [Step 6: Mission Hook and Keybind](#step-6-mission-hook-and-keybind)
-- [Step 7: Currency Item](#step-7-currency-item)
-- [Step 8: Shop Config JSON](#step-8-shop-config-json)
-- [Step 9: Build and Test](#step-9-build-and-test)
-- [Security Considerations](#security-considerations)
-- [Complete Code Reference](#complete-code-reference)
-- [Najlepsze praktyki / Czeste bledy / What You Learned](#best-practices)
+[Strona główna](../../README.md) | [<< Poprzedni: Tworzenie niestandardowej odzieży](11-clothing-mod.md) | **Budowanie systemu handlowego** | [Następny: Menu diagnostyczne >>](13-diag-menu.md)
 
 ---
 
-## What We Are Building
+> **Podsumowanie:** Zbuduj kompletny system sklepu bez NPC: konfiguracja JSON, walidacja kupna/sprzedaży po stronie serwera, kategoryzowany interfejs użytkownika, transakcje oparte na walucie. Najbardziej złożony tutorial w tym wiki -- obejmuje modelowanie danych, cykle RPC, manipulację ekwipunkiem i zasady ochrony przed oszustwami.
 
-Players press F6 to open a shop menu, browse items by category (Weapons, Food, Medical), and buy/sell using a currency item. The server validates every transaction -- the client never decides prices or spawns items.
+---
+
+## Spis treści
+
+- [Co budujemy](#what-we-are-building)
+- [Krok 1: Model danych (3_Game)](#step-1-data-model-3_game)
+- [Krok 2: Stałe RPC (3_Game)](#step-2-rpc-constants-3_game)
+- [Krok 3: Menedżer sklepu po stronie serwera (4_World)](#step-3-server-side-shop-manager-4_world)
+- [Krok 4: Interfejs sklepu po stronie klienta (5_Mission)](#step-4-client-side-shop-ui-5_mission)
+- [Krok 5: Plik layoutu](#step-5-layout-file)
+- [Krok 6: Hook misji i skrót klawiszowy](#step-6-mission-hook-and-keybind)
+- [Krok 7: Przedmiot waluty](#step-7-currency-item)
+- [Krok 8: Konfiguracja sklepu JSON](#step-8-shop-config-json)
+- [Krok 9: Budowanie i testowanie](#step-9-build-and-test)
+- [Kwestie bezpieczeństwa](#security-considerations)
+- [Kompletna dokumentacja kodu](#complete-code-reference)
+- [Najlepsze praktyki / Częste błędy / Czego się nauczyłeś](#best-practices)
+
+---
+
+## Co budujemy
+
+Gracze naciskają F6, aby otworzyć menu sklepu, przeglądają przedmioty według kategorii (Broń, Jedzenie, Medyczne) i kupują/sprzedają za pomocą przedmiotu waluty. Serwer waliduje każdą transakcję -- klient nigdy nie decyduje o cenach ani nie tworzy przedmiotów.
 
 ```mermaid
 sequenceDiagram
@@ -46,18 +50,18 @@ sequenceDiagram
 ```
 
 ```
-CLIENT                                SERVER
-1. Press F6 --> REQUEST_SHOP_DATA ->  2. Load config, count currency
+KLIENT                                SERWER
+1. Naciśnij F6 --> REQUEST_SHOP_DATA ->  2. Załaduj konfigurację, policz walutę
                                          SHOP_DATA_RESPONSE ->
-3. Show categories + items
-   Click Buy --> BUY_ITEM (cls,qty) -> 4. Validate, remove currency, spawn
+3. Pokaż kategorie + przedmioty
+   Kliknij Kup --> BUY_ITEM (cls,qty) -> 4. Walidacja, usuń walutę, utwórz przedmiot
                                          TRANSACTION_RESULT ->
-5. Show result, update balance
+5. Pokaż wynik, zaktualizuj saldo
 ```
 
-**Key rule:** Client sends `(className, quantity)` only. Server looks up the price.
+**Kluczowa zasada:** Klient wysyła tylko `(className, quantity)`. Serwer sprawdza cenę.
 
-### Mod Structure
+### Struktura moda
 
 ```
 ShopDemo/
@@ -71,7 +75,7 @@ ShopDemo/
 
 ---
 
-## Step 1: Data Model (3_Game)
+## Krok 1: Model danych (3_Game)
 
 ### `Scripts/3_Game/ShopDemo/ShopDemoData.c`
 
@@ -100,11 +104,11 @@ class ShopConfig
 };
 ```
 
-Keep `SellPrice < BuyPrice` always to prevent infinite money loops.
+Zawsze utrzymuj `SellPrice < BuyPrice`, aby zapobiec nieskończonym pętlom pieniędzy.
 
 ---
 
-## Step 2: RPC Stale (3_Game)
+## Krok 2: Stałe RPC (3_Game)
 
 ### `Scripts/3_Game/ShopDemo/ShopDemoRPC.c`
 
@@ -121,7 +125,7 @@ class ShopDemoRPC
 
 ---
 
-## Step 3: Server-Side Shop Manager (4_World)
+## Krok 3: Menedżer sklepu po stronie serwera (4_World)
 
 ### `Scripts/4_World/ShopDemo/ShopDemoManager.c`
 
@@ -316,7 +320,7 @@ modded class PlayerBase
         if (!player) return;
         ShopDemoManager mgr = ShopDemoManager.Get();
         ShopConfig cfg = mgr.GetConfig();
-        // Serialize: "CatName|cls,name,buy,sell;cls2,...\nCat2|..."
+        // Serializacja: "CatName|cls,name,buy,sell;cls2,...\nCat2|..."
         string payload = "";
         for (int c = 0; c < cfg.Categories.Count(); c++)
         {
@@ -357,11 +361,11 @@ modded class MissionServer
 };
 ```
 
-**Key decisions:** Currency removed *before* spawning items (prevents duplication). Always `DeleteSafe()` for networked items. Quantity clamped to 1-10 to prevent abuse.
+**Kluczowe decyzje:** Waluta jest usuwana *przed* tworzeniem przedmiotów (zapobiega duplikacji). Zawsze używaj `DeleteSafe()` dla obiektów sieciowych. Ilość ograniczona do 1-10, aby zapobiec nadużyciom.
 
 ---
 
-## Step 4: Client-Side Shop UI (5_Mission)
+## Krok 4: Interfejs sklepu po stronie klienta (5_Mission)
 
 ### `Scripts/5_Mission/ShopDemo/ShopDemoMenu.c`
 
@@ -454,7 +458,7 @@ class ShopDemoMenu extends ScriptedWidgetEventHandler
             }
             m_CatItems.Insert(ci);
         }
-        // Build category buttons
+        // Tworzenie przycisków kategorii
         if (m_CategoryPanel)
         {
             for (int b = 0; b < m_CatNames.Count(); b++)
@@ -531,11 +535,11 @@ class ShopDemoMenu extends ScriptedWidgetEventHandler
 
 ---
 
-## Step 5: Layout File
+## Krok 5: Plik layoutu
 
 ### `GUI/layouts/shop_menu.layout`
 
-Three columns: Categories (left 20%), Items (center 46%), Szczegols (right 26%).
+Trzy kolumny: Kategorie (lewo 20%), Przedmioty (środek 46%), Szczegóły (prawo 26%).
 
 ```
 FrameWidgetClass ShopMenuRoot {
@@ -568,7 +572,7 @@ FrameWidgetClass ShopMenuRoot {
 
 ---
 
-## Step 6: Mission Hook and Keybind
+## Krok 6: Hook misji i skrót klawiszowy
 
 ### `Scripts/5_Mission/ShopDemo/ShopDemoMission.c`
 
@@ -608,7 +612,7 @@ modded class MissionGameplay
 };
 ```
 
-For released mods, use `inputs.xml` so players can remap the key:
+W przypadku wydanych modów użyj `inputs.xml`, aby gracze mogli zmienić przypisanie klawisza:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -621,95 +625,95 @@ For released mods, use `inputs.xml` so players can remap the key:
 
 ---
 
-## Step 7: Currency Item
+## Krok 7: Przedmiot waluty
 
-You can use any existing item -- set `CurrencyClassName` to `"Rag"` in the JSON and rags become money. For a custom coin, see [Chapter 8.2: Custom Item](02-custom-item.md).
-
----
-
-## Step 8: Shop Config JSON
-
-Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edit prices, add categories/items, restart server. Always keep `SellPrice < BuyPrice`.
+Możesz użyć dowolnego istniejącego przedmiotu -- ustaw `CurrencyClassName` na `"Rag"` w JSON, a szmaty staną się pieniędzmi. Aby stworzyć niestandardową monetę, zobacz [Rozdział 8.2: Niestandardowy przedmiot](02-custom-item.md).
 
 ---
 
-## Step 9: Build and Test
+## Krok 8: Konfiguracja sklepu JSON
 
-1. Pack `ShopDemo/` into PBO, add to server+client `@ShopDemo/addons/`, add `-mod=@ShopDemo`
-2. Spawn currency, press F6, browse, buy/sell
-3. Check server log for `[ShopDemo]` lines
+Automatycznie generowana w `$profile:ShopDemo/ShopConfig.json` przy pierwszym uruchomieniu serwera. Edytuj ceny, dodawaj kategorie/przedmioty, zrestartuj serwer. Zawsze utrzymuj `SellPrice < BuyPrice`.
 
-| Test Case | Expected |
+---
+
+## Krok 9: Budowanie i testowanie
+
+1. Spakuj `ShopDemo/` do PBO, dodaj do serwera+klienta `@ShopDemo/addons/`, dodaj `-mod=@ShopDemo`
+2. Zrespawnuj walutę, naciśnij F6, przeglądaj, kupuj/sprzedawaj
+3. Sprawdź log serwera w poszukiwaniu linii `[ShopDemo]`
+
+| Przypadek testowy | Oczekiwany wynik |
 |-----------|----------|
-| Buy with no currency | "Need X, have 0" |
-| Buy unknown class (hacked) | "Item not in shop" |
-| Sell item not owned | "You don't have that item" |
-| Inventory full on buy | Item drops on ground |
+| Kupno bez waluty | "Need X, have 0" |
+| Kupno nieznanej klasy (zhackowane) | "Item not in shop" |
+| Sprzedaż nieposiadanego przedmiotu | "You don't have that item" |
+| Pełny ekwipunek przy kupnie | Przedmiot upada na ziemię |
 
 ---
 
-## Security Considerations
+## Kwestie bezpieczeństwa
 
-1. **NEVER trust client-sent prices.** Client sends `(className, qty)` only. Server looks up price.
-2. **Delete before spawn.** Remove currency first, then create items. Prevents duplication.
-3. **Validate existence.** Confirm item is in inventory before giving sell currency.
-4. **Log everything.** Print player name, item, amount for every transaction.
-5. **Quantity bounds.** Reject `qty <= 0` or `qty > 10`.
-6. **Rate limit** in production: 500ms cooldown per player per transaction.
+1. **NIGDY nie ufaj cenom wysyłanym przez klienta.** Klient wysyła tylko `(className, qty)`. Serwer sprawdza cenę.
+2. **Usuń przed utworzeniem.** Najpierw usuń walutę, potem utwórz przedmioty. Zapobiega duplikacji.
+3. **Waliduj istnienie.** Potwierdź, że przedmiot jest w ekwipunku, zanim przyznasz walutę za sprzedaż.
+4. **Loguj wszystko.** Wypisuj nazwę gracza, przedmiot, kwotę dla każdej transakcji.
+5. **Limity ilości.** Odrzucaj `qty <= 0` lub `qty > 10`.
+6. **Limit częstotliwości** w produkcji: 500ms przerwy na gracza na transakcję.
 
 ---
 
-## Complete Code Reference
+## Kompletna dokumentacja kodu
 
-| File | Layer | Przeznaczenie |
-|------|-------|---------|
-| `ShopDemoRPC.c` | 3_Game | RPC ID constants |
-| `ShopDemoData.c` | 3_Game | Data classes: ShopItem, ShopKategoria, ShopConfig |
-| `ShopDemoManager.c` | 4_World | Server: config, buy/sell logic, inventory, RPC handlers |
-| `ShopDemoMenu.c` | 5_Mission | Client: UI, dynamic widgets, RPC send/receive |
-| `ShopDemoMission.c` | 5_Mission | Mission hook: init, keybind, RPC routing |
-| `shop_menu.layout` | GUI | 3-panel layout |
+| Plik | Warstwa | Przeznaczenie |
+|------|---------|---------------|
+| `ShopDemoRPC.c` | 3_Game | Stałe identyfikatorów RPC |
+| `ShopDemoData.c` | 3_Game | Klasy danych: ShopItem, ShopCategory, ShopConfig |
+| `ShopDemoManager.c` | 4_World | Serwer: konfiguracja, logika kupna/sprzedaży, ekwipunek, handlery RPC |
+| `ShopDemoMenu.c` | 5_Mission | Klient: UI, dynamiczne widżety, wysyłanie/odbieranie RPC |
+| `ShopDemoMission.c` | 5_Mission | Hook misji: inicjalizacja, skrót klawiszowy, routing RPC |
+| `shop_menu.layout` | GUI | Layout z 3 panelami |
 
 ---
 
 ## Najlepsze praktyki
 
-- **Server is the single source of truth.** Client is a display terminal.
-- **Use `DeleteSafe()` not `Delete()`.** Handles network sync and locked slots.
-- **Data classes in 3_Game.** Visible to both 4_World and 5_Mission.
-- **Always call `super` in overrides.** Breaking the chain breaks other mods.
-- **Clean up dynamic widgets.** Every `CreateWidget` needs `Unlink` on close.
+- **Serwer jest jedynym źródłem prawdy.** Klient to terminal wyświetlający.
+- **Używaj `DeleteSafe()` zamiast `Delete()`.** Obsługuje synchronizację sieciową i zablokowane sloty.
+- **Klasy danych w 3_Game.** Widoczne zarówno dla 4_World, jak i 5_Mission.
+- **Zawsze wywołuj `super` w nadpisaniach.** Przerwanie łańcucha psuje inne mody.
+- **Sprzątaj dynamiczne widżety.** Każdy `CreateWidget` wymaga `Unlink` przy zamykaniu.
 
 ## Teoria vs praktyka
 
-| Koncepcja | Teoria | Rzeczywistosc |
+| Koncepcja | Teoria | Rzeczywistość |
 |---------|--------|---------|
-| `JsonFileLoader.LoadFile()` | Loads cleanly | Trailing commas cause silent failures. Validate JSON externally. |
-| String RPC serialization | Simple | 500+ items may hit size limits. Paginate for large shops. |
-| `CreateInInventory()` | Always works | Zwraca null if inventory full. Always check. |
-| Listen server testing | Fast iteration | Hides network bugs. Test on dedicated server. |
+| `JsonFileLoader.LoadFile()` | Ładuje czysto | Końcowe przecinki powodują ciche błędy. Waliduj JSON zewnętrznie. |
+| Serializacja ciągów znaków przez RPC | Proste | 500+ przedmiotów może przekroczyć limit rozmiaru. Paginuj duże sklepy. |
+| `CreateInInventory()` | Zawsze działa | Zwraca null, jeśli ekwipunek jest pełny. Zawsze sprawdzaj. |
+| Testowanie na listen server | Szybka iteracja | Ukrywa błędy sieciowe. Testuj na dedykowanym serwerze. |
 
-## What You Learned
+## Czego się nauczyłeś
 
-- JSON config loading with `JsonFileLoader<T>` and auto-generation of defaults
-- Singleton pattern for server-side game managers
-- Inventory enumeration, counting, deletion (`DeleteSafe`), and spawning
-- String serialization of complex data over RPC (categories, items, prices)
-- Dynamic widget creation for data-driven UI
-- Full buy/sell transaction flow with server-only authority
-- Security principles for multiplayer economy systems
+- Ładowanie konfiguracji JSON za pomocą `JsonFileLoader<T>` i automatyczne generowanie wartości domyślnych
+- Wzorzec singleton dla menedżerów gry po stronie serwera
+- Enumeracja ekwipunku, zliczanie, usuwanie (`DeleteSafe`) i tworzenie przedmiotów
+- Serializacja ciągów znaków złożonych danych przez RPC (kategorie, przedmioty, ceny)
+- Dynamiczne tworzenie widżetów dla interfejsu opartego na danych
+- Pełny przepływ transakcji kupna/sprzedaży z wyłączną autoryzacją serwera
+- Zasady bezpieczeństwa dla systemów ekonomicznych w grach wieloosobowych
 
-## Czeste bledy
+## Częste błędy
 
-| Blad | Rozwiazanie |
+| Błąd | Rozwiązanie |
 |---------|-----|
-| Client sends price | Send `(className, qty)` only. Server decides price. |
-| Spawn before paying | Remove currency first, then create items. |
-| Skip `super.OnRPC()` | Always call super -- other mods need the chain. |
-| `Delete()` on networked items | Use `DeleteSafe()`. |
-| Ignore `CreateInInventory` return | Check for null, fall back to ground spawn. |
-| Redeclare vars in else-if | Declare once before the if-chain (Enforce Script rule). |
+| Klient wysyła cenę | Wysyłaj tylko `(className, qty)`. Serwer decyduje o cenie. |
+| Tworzenie przed zapłatą | Najpierw usuń walutę, potem utwórz przedmioty. |
+| Pominięcie `super.OnRPC()` | Zawsze wywołuj super -- inne mody potrzebują łańcucha. |
+| `Delete()` na obiektach sieciowych | Używaj `DeleteSafe()`. |
+| Ignorowanie zwracanej wartości `CreateInInventory` | Sprawdzaj null, używaj tworzenia na ziemi jako zapasowego rozwiązania. |
+| Redeklaracja zmiennych w else-if | Deklaruj raz przed łańcuchem if (zasada Enforce Script). |
 
 ---
 
-**Poprzedni:** [Chapter 8.11: Clothing Mod](11-clothing-mod.md)
+**Poprzedni:** [Rozdział 8.11: Mod odzieży](11-clothing-mod.md)

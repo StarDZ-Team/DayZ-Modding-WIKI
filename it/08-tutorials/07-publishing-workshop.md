@@ -1,60 +1,64 @@
-# Chapter 8.7: Publishing to the Steam Workshop
+# Capitolo 8.7: Pubblicare sullo Steam Workshop
 
-[Home](../../README.md) | [<< Previous: Debugging & Testing](06-debugging-testing.md) | **Publishing to the Steam Workshop** | [Next: Building a HUD Overlay >>](08-hud-overlay.md)
+[Home](../../README.md) | [<< Precedente: Debugging & Testing](06-debugging-testing.md) | **Pubblicare sullo Steam Workshop** | [Successivo: Costruire un Overlay HUD >>](08-hud-overlay.md)
+
+---
+
+> **Riepilogo:** La tua mod è costruita, testata e pronta per il mondo. Questo tutorial ti guida attraverso il processo completo di pubblicazione dall'inizio alla fine: preparare la cartella della mod, firmare i PBO per la compatibilità multigiocatore, creare un elemento Steam Workshop, caricare tramite DayZ Tools o riga di comando, e mantenere gli aggiornamenti nel tempo. Alla fine, la tua mod sarà live sul Workshop e giocabile da chiunque.
 
 ---
 
 ## Indice
 
-- [Introduction](#introduction)
-- [Pre-Publishing Checklist](#pre-publishing-checklist)
-- [Step 1: Prepare Your Mod Folder](#step-1-prepare-your-mod-folder)
-- [Step 2: Write a Complete mod.cpp](#step-2-write-a-complete-modcpp)
-- [Step 3: Prepare Logo and Preview Images](#step-3-prepare-logo-and-preview-images)
-- [Step 4: Generate a Key Pair](#step-4-generate-a-key-pair)
-- [Step 5: Sign Your PBOs](#step-5-sign-your-pbos)
-- [Step 6: Publish via DayZ Tools Publisher](#step-6-publish-via-dayz-tools-publisher)
-- [Publishing via Command Line (Alternative)](#publishing-via-command-line-alternative)
-- [Updating Your Mod](#updating-your-mod)
-- [Version Management Best Practices](#version-management-best-practices)
-- [Workshop Page Best Practices](#workshop-page-best-practices)
-- [Guide for Server Operators](#guide-for-server-operators)
-- [Distribution Without the Workshop](#distribution-without-the-workshop)
-- [Common Problems and Solutions](#common-problems-and-solutions)
-- [The Complete Mod Lifecycle](#the-complete-mod-lifecycle)
-- [Next Steps](#next-steps)
+- [Introduzione](#introduzione)
+- [Checklist Pre-Pubblicazione](#checklist-pre-pubblicazione)
+- [Passo 1: Preparare la Cartella della Mod](#passo-1-preparare-la-cartella-della-mod)
+- [Passo 2: Scrivere un mod.cpp Completo](#passo-2-scrivere-un-modcpp-completo)
+- [Passo 3: Preparare Logo e Immagini di Anteprima](#passo-3-preparare-logo-e-immagini-di-anteprima)
+- [Passo 4: Generare una Coppia di Chiavi](#passo-4-generare-una-coppia-di-chiavi)
+- [Passo 5: Firmare i Tuoi PBO](#passo-5-firmare-i-tuoi-pbo)
+- [Passo 6: Pubblicare tramite il Publisher di DayZ Tools](#passo-6-pubblicare-tramite-il-publisher-di-dayz-tools)
+- [Pubblicazione tramite Riga di Comando (Alternativa)](#pubblicazione-tramite-riga-di-comando-alternativa)
+- [Aggiornare la Tua Mod](#aggiornare-la-tua-mod)
+- [Buone Pratiche per la Gestione delle Versioni](#buone-pratiche-per-la-gestione-delle-versioni)
+- [Buone Pratiche per la Pagina Workshop](#buone-pratiche-per-la-pagina-workshop)
+- [Guida per gli Operatori di Server](#guida-per-gli-operatori-di-server)
+- [Distribuzione Senza il Workshop](#distribuzione-senza-il-workshop)
+- [Problemi Comuni e Soluzioni](#problemi-comuni-e-soluzioni)
+- [Il Ciclo di Vita Completo della Mod](#il-ciclo-di-vita-completo-della-mod)
+- [Prossimi Passi](#prossimi-passi)
 
 ---
 
 ## Introduzione
 
-Publishing to the Steam Workshop is the final step in the DayZ modding journey. Everything you have learned in previous chapters culminates here. Once your mod is on the Workshop, any DayZ player can subscribe, download, and play with it. Questo capitolo tratta the complete process: preparing your mod, signing PBOs, uploading, and maintaining updates.
+Pubblicare sullo Steam Workshop è il passo finale nel percorso di modding di DayZ. Tutto ciò che hai imparato nei capitoli precedenti culmina qui. Una volta che la tua mod è sul Workshop, qualsiasi giocatore di DayZ può iscriversi, scaricarla e giocarci. Questo capitolo copre il processo completo: preparare la tua mod, firmare i PBO, caricare e mantenere gli aggiornamenti.
 
 ---
 
-## Pre-Publishing Checklist
+## Checklist Pre-Pubblicazione
 
-Before you upload anything, go through this list. Skipping items here causes the most common post-publish headaches.
+Prima di caricare qualsiasi cosa, scorri questa lista. Saltare degli elementi qui causa i più comuni problemi post-pubblicazione.
 
-- [ ] All features tested on a **dedicated server** (not just single-player)
-- [ ] Multiplayer tested: another client can join and use mod features
-- [ ] No game-breaking errors in script logs (`DayZDiag_x64.RPT` or `script_*.log`)
-- [ ] All `Print()` debug statements removed or wrapped in `#ifdef DEVELOPER`
-- [ ] No hardcoded test values or leftover experimental code
-- [ ] `stringtable.csv` contains all user-facing strings with translations
-- [ ] `credits.json` filled out with author and contributor information
-- [ ] Logo image prepared (see [Step 3](#step-3-prepare-logo-and-preview-images) for sizes)
-- [ ] All textures converted to `.paa` format (not raw `.png`/`.tga` in PBOs)
-- [ ] Workshop description and installation instructions written
-- [ ] Changelog started (even if just "1.0.0 - Initial release")
+- [ ] Tutte le funzionalità testate su un **server dedicato** (non solo in single-player)
+- [ ] Test multigiocatore: un altro client può connettersi e usare le funzionalità della mod
+- [ ] Nessun errore critico nei log degli script (`DayZDiag_x64.RPT` o `script_*.log`)
+- [ ] Tutte le istruzioni `Print()` di debug rimosse o avvolte in `#ifdef DEVELOPER`
+- [ ] Nessun valore di test hardcoded o codice sperimentale residuo
+- [ ] `stringtable.csv` contiene tutte le stringhe visibili all'utente con le traduzioni
+- [ ] `credits.json` compilato con le informazioni su autore e contributori
+- [ ] Immagine del logo preparata (vedi [Passo 3](#passo-3-preparare-logo-e-immagini-di-anteprima) per le dimensioni)
+- [ ] Tutte le texture convertite in formato `.paa` (non `.png`/`.tga` grezzi nei PBO)
+- [ ] Descrizione del Workshop e istruzioni di installazione scritte
+- [ ] Changelog iniziato (anche solo "1.0.0 - Rilascio iniziale")
 
 ---
 
-## Step 1: Prepare Your Mod Folder
+## Passo 1: Preparare la Cartella della Mod
 
-Your final mod folder must follow DayZ's expected structure exactly.
+La cartella finale della tua mod deve seguire esattamente la struttura prevista da DayZ.
 
-### Required Structure
+### Struttura Richiesta
 
 ```
 @MyMod/
@@ -66,32 +70,32 @@ Your final mod folder must follow DayZ's expected structure exactly.
 ├── keys/
 │   └── MyMod.bikey
 ├── mod.cpp
-└── meta.cpp  (auto-generated by the DayZ Launcher on first load)
+└── meta.cpp  (auto-generato dal DayZ Launcher al primo caricamento)
 ```
 
-### Folder Breakdown
+### Dettaglio delle Cartelle
 
-| Folder / File | Scopo |
+| Cartella / File | Scopo |
 |---------------|---------|
-| `addons/` | Contenuto all `.pbo` files (packed mod content) and their `.bisign` signature files |
-| `keys/` | Contenuto the public key (`.bikey`) that servers use to verify your PBOs |
-| `mod.cpp` | Mod metadata: name, author, version, description, icon paths |
-| `meta.cpp` | Auto-generated by DayZ Launcher; contains the Workshop ID after publishing |
+| `addons/` | Contiene tutti i file `.pbo` (contenuto mod impacchettato) e i loro file di firma `.bisign` |
+| `keys/` | Contiene la chiave pubblica (`.bikey`) che i server usano per verificare i tuoi PBO |
+| `mod.cpp` | Metadati della mod: nome, autore, versione, descrizione, percorsi delle icone |
+| `meta.cpp` | Auto-generato dal DayZ Launcher; contiene l'ID Workshop dopo la pubblicazione |
 
-### Important Rules
+### Regole Importanti
 
-- The folder name **must** start with `@`. This is how DayZ identifies mod directories.
-- Every `.pbo` in `addons/` must have a matching `.bisign` file next to it.
-- The `.bikey` file in `keys/` must correspond to the private key used to create the `.bisign` files.
-- Do **not** include source files (`.c` scripts, raw textures, Workbench projects) in the upload del tuo mod. Only packed PBOs belong here.
+- Il nome della cartella **deve** iniziare con `@`. Questo è il modo in cui DayZ identifica le directory delle mod.
+- Ogni `.pbo` in `addons/` deve avere un file `.bisign` corrispondente accanto.
+- Il file `.bikey` in `keys/` deve corrispondere alla chiave privata usata per creare i file `.bisign`.
+- **Non** includere i file sorgente (script `.c`, texture grezze, progetti Workbench) nella cartella di caricamento. Solo i PBO impacchettati vanno qui.
 
 ---
 
-## Step 2: Write a Complete mod.cpp
+## Passo 2: Scrivere un mod.cpp Completo
 
-The `mod.cpp` file tells DayZ and the launcher everything about your mod. An incomplete `mod.cpp` causes missing icons, blank descriptions, and display issues.
+Il file `mod.cpp` dice a DayZ e al launcher tutto sulla tua mod. Un `mod.cpp` incompleto causa icone mancanti, descrizioni vuote e problemi di visualizzazione.
 
-### Full mod.cpp Example
+### Esempio Completo di mod.cpp
 
 ```cpp
 name         = "My Awesome Mod";
@@ -110,118 +114,118 @@ versionPath  = "MyMod/Data/version.txt";
 
 ### Riferimento dei Campi
 
-| Campo | Required | Descrizione |
+| Campo | Obbligatorio | Descrizione |
 |-------|----------|-------------|
-| `name` | Yes | Display name shown in the DayZ Launcher mod list |
-| `picture` | Yes | Path to the main logo image (displayed in launcher). Relative to the P: drive or mod root |
-| `logo` | Yes | Same as picture in most cases; used in some UI contexts |
-| `logoSmall` | No | Smaller version of the logo for compact views |
-| `logoOver` | No | Hover state of the logo (often same as `logo`) |
-| `tooltip` | Yes | Short one-line description shown on hover in the launcher |
-| `overview` | Yes | Longer description shown in the mod details panel |
-| `author` | Yes | Your name or team name |
-| `overviewPicture` | No | Large image shown in the mod overview panel |
-| `action` | No | URL opened when the player clicks "Website" (typically your Workshop page or GitHub) |
-| `version` | Yes | Current version string (e.g., `"1.0.0"`) |
-| `versionPath` | No | Path to a text file containing the version number (for automated builds) |
+| `name` | Sì | Nome visualizzato nella lista mod del DayZ Launcher |
+| `picture` | Sì | Percorso dell'immagine logo principale (visualizzata nel launcher). Relativo al drive P: o alla root della mod |
+| `logo` | Sì | Uguale a picture nella maggior parte dei casi; usato in alcuni contesti UI |
+| `logoSmall` | No | Versione più piccola del logo per viste compatte |
+| `logoOver` | No | Stato hover del logo (spesso uguale a `logo`) |
+| `tooltip` | Sì | Breve descrizione di una riga mostrata al passaggio del mouse nel launcher |
+| `overview` | Sì | Descrizione più lunga mostrata nel pannello dettagli della mod |
+| `author` | Sì | Il tuo nome o il nome del team |
+| `overviewPicture` | No | Immagine grande mostrata nel pannello panoramica della mod |
+| `action` | No | URL aperto quando il giocatore clicca "Website" (tipicamente la tua pagina Workshop o GitHub) |
+| `version` | Sì | Stringa versione corrente (es., `"1.0.0"`) |
+| `versionPath` | No | Percorso a un file di testo contenente il numero di versione (per build automatizzate) |
 
 ### Errori Comuni
 
-- **Missing semicolons** at the end of each line. Every line must end with `;`.
-- **Wrong image paths.** Paths are relative to the P: drive root when building. After packing, the path should reflect the PBO prefix. Test by loading the mod locally before uploading.
-- **Forgetting to update the version** before re-uploading. Always increment the version string.
+- **Punti e virgola mancanti** alla fine di ogni riga. Ogni riga deve terminare con `;`.
+- **Percorsi immagine errati.** I percorsi sono relativi alla root del drive P: durante la build. Dopo l'impacchettamento, il percorso dovrebbe riflettere il prefisso del PBO. Testa caricando la mod localmente prima di caricare.
+- **Dimenticare di aggiornare la versione** prima di ricaricare. Incrementa sempre la stringa versione.
 
 ---
 
-## Step 3: Prepare Logo and Preview Images
+## Passo 3: Preparare Logo e Immagini di Anteprima
 
-### Image Requirements
+### Requisiti delle Immagini
 
-| Image | Size | Format | Used For |
+| Immagine | Dimensione | Formato | Usata Per |
 |-------|------|--------|----------|
-| Mod logo (`picture` / `logo`) | 512 x 512 px | `.paa` (in-game) | DayZ Launcher mod list |
-| Small logo (`logoSmall`) | 128 x 128 px | `.paa` (in-game) | Compact launcher views |
-| Steam Workshop preview | 512 x 512 px | `.png` or `.jpg` | Workshop page thumbnail |
-| Overview picture | 1024 x 512 px | `.paa` (in-game) | Mod details panel |
+| Logo mod (`picture` / `logo`) | 512 x 512 px | `.paa` (in-game) | Lista mod del DayZ Launcher |
+| Logo piccolo (`logoSmall`) | 128 x 128 px | `.paa` (in-game) | Viste compatte del launcher |
+| Anteprima Steam Workshop | 512 x 512 px | `.png` o `.jpg` | Miniatura della pagina Workshop |
+| Immagine panoramica | 1024 x 512 px | `.paa` (in-game) | Pannello dettagli della mod |
 
-### Converting Images to PAA
+### Conversione delle Immagini in PAA
 
-DayZ uses `.paa` textures internally. To convert PNG/TGA images:
+DayZ usa texture `.paa` internamente. Per convertire immagini PNG/TGA:
 
-1. Open **TexView2** (included with DayZ Tools)
-2. File > Open your `.png` or `.tga` image
-3. File > Save As > choose `.paa` format
-4. Save to your mod's `Data/Textures/` directory
+1. Apri **TexView2** (incluso con DayZ Tools)
+2. File > Open la tua immagine `.png` o `.tga`
+3. File > Save As > scegli il formato `.paa`
+4. Salva nella directory `Data/Textures/` della tua mod
 
-Addon Builder can also auto-convert textures when packing PBOs if configured to binarize.
+Addon Builder può anche auto-convertire le texture durante l'impacchettamento dei PBO se configurato per binarizzare.
 
-### Tips
+### Suggerimenti
 
-- Use a clear, recognizable icon that reads well at small sizes.
-- Keep text on logos to a minimum -- it becomes unreadable at 128x128.
-- The Steam Workshop preview image (`.png`/`.jpg`) is separate from the in-game logo (`.paa`). You upload it through the Publisher.
+- Usa un'icona chiara e riconoscibile che si legga bene a piccole dimensioni.
+- Mantieni il testo sui logo al minimo -- diventa illeggibile a 128x128.
+- L'immagine di anteprima dello Steam Workshop (`.png`/`.jpg`) è separata dal logo in-game (`.paa`). La carichi attraverso il Publisher.
 
 ---
 
-## Step 4: Generate a Key Pair
+## Passo 4: Generare una Coppia di Chiavi
 
-Key signing is **essential** for multiplayer. Almost all public servers enable signature verification, so without proper signatures players will be kicked when joining with your mod.
+La firma delle chiavi è **essenziale** per il multigiocatore. Quasi tutti i server pubblici abilitano la verifica delle firme, quindi senza firme appropriate i giocatori verranno espulsi quando si connettono con la tua mod.
 
-### How Key Signing Works
+### Come Funziona la Firma delle Chiavi
 
-- You create a **key pair**: a `.biprivatekey` (private) and a `.bikey` (public)
-- You sign each `.pbo` with the private key, producing a `.bisign` file
-- You distribute the `.bikey` with your mod; server operators place it in their `keys/` folder
-- When a player joins, the server checks each `.pbo` against its `.bisign` using the `.bikey`
+- Crei una **coppia di chiavi**: un `.biprivatekey` (privata) e un `.bikey` (pubblica)
+- Firmi ogni `.pbo` con la chiave privata, producendo un file `.bisign`
+- Distribuisci il `.bikey` con la tua mod; gli operatori di server lo posizionano nella loro cartella `keys/`
+- Quando un giocatore si connette, il server verifica ogni `.pbo` contro il suo `.bisign` usando il `.bikey`
 
-### Generating Keys with DayZ Tools
+### Generare le Chiavi con DayZ Tools
 
-1. Open **DayZ Tools** from Steam
-2. In the main window, find and click **DS Create Key** (sometimes listed under Tools or Utilities)
-3. Enter a **key name** -- use your mod name (e.g., `MyMod`)
-4. Choose where to save the files
-5. Two files are created:
-   - `MyMod.bikey` -- the **public key** (distribute this)
-   - `MyMod.biprivatekey` -- the **private key** (keep this secret)
+1. Apri **DayZ Tools** da Steam
+2. Nella finestra principale, trova e clicca **DS Create Key** (a volte elencato sotto Tools o Utilities)
+3. Inserisci un **nome chiave** -- usa il nome della tua mod (es., `MyMod`)
+4. Scegli dove salvare i file
+5. Vengono creati due file:
+   - `MyMod.bikey` -- la **chiave pubblica** (distribuisci questa)
+   - `MyMod.biprivatekey` -- la **chiave privata** (tienila segreta)
 
-### Generating Keys via Command Line
+### Generare le Chiavi tramite Riga di Comando
 
-Puoi anche usare the `DSCreateKey` tool directly from a terminal:
+Puoi anche usare lo strumento `DSCreateKey` direttamente da un terminale:
 
 ```batch
 "C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\Bin\DsUtils\DSCreateKey.exe" MyMod
 ```
 
-This creates `MyMod.bikey` and `MyMod.biprivatekey` in the current directory.
+Questo crea `MyMod.bikey` e `MyMod.biprivatekey` nella directory corrente.
 
-### Critical Security Rule
+### Regola Critica di Sicurezza
 
-> **NEVER share your `.biprivatekey` file.** Anyone who has your private key can sign modified PBOs that servers will accept as legitimate. Store it securely and back it up. If you lose it, you must generate a new key pair, re-sign everything, and server operators must update their keys.
+> **NON condividere MAI il tuo file `.biprivatekey`.** Chiunque abbia la tua chiave privata può firmare PBO modificati che i server accetteranno come legittimi. Conservala in modo sicuro e fai un backup. Se la perdi, devi generare una nuova coppia di chiavi, rifirmare tutto, e gli operatori di server devono aggiornare le loro chiavi.
 
 ---
 
-## Step 5: Sign Your PBOs
+## Passo 5: Firmare i Tuoi PBO
 
-Every `.pbo` file in your mod must be signed with your private key. This produces `.bisign` files that sit alongside the PBOs.
+Ogni file `.pbo` nella tua mod deve essere firmato con la tua chiave privata. Questo produce file `.bisign` che si affiancano ai PBO.
 
-### Signing with DayZ Tools
+### Firmare con DayZ Tools
 
-1. Open **DayZ Tools**
-2. Find and click **DS Sign File** (under Tools or Utilities)
-3. Select your `.biprivatekey` file
-4. Select the `.pbo` file to sign
-5. A `.bisign` file is created next to the PBO (e.g., `MyMod_Scripts.pbo.MyMod.bisign`)
-6. Repeat for every `.pbo` in your `addons/` folder
+1. Apri **DayZ Tools**
+2. Trova e clicca **DS Sign File** (sotto Tools o Utilities)
+3. Seleziona il tuo file `.biprivatekey`
+4. Seleziona il file `.pbo` da firmare
+5. Viene creato un file `.bisign` accanto al PBO (es., `MyMod_Scripts.pbo.MyMod.bisign`)
+6. Ripeti per ogni `.pbo` nella tua cartella `addons/`
 
-### Signing via Command Line
+### Firmare tramite Riga di Comando
 
-For automation or multiple PBOs, use the command line:
+Per l'automazione o PBO multipli, usa la riga di comando:
 
 ```batch
 "C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\Bin\DsUtils\DSSignFile.exe" MyMod.biprivatekey MyMod_Scripts.pbo
 ```
 
-To sign all PBOs in a folder with a batch script:
+Per firmare tutti i PBO in una cartella con uno script batch:
 
 ```batch
 @echo off
@@ -237,9 +241,9 @@ echo All PBOs signed.
 pause
 ```
 
-### After Signing: Verify Your Folder
+### Dopo la Firma: Verifica la Tua Cartella
 
-Your `addons/` folder should look like this:
+La tua cartella `addons/` dovrebbe apparire così:
 
 ```
 addons/
@@ -249,38 +253,38 @@ addons/
 └── MyMod_Data.pbo.MyMod.bisign
 ```
 
-Every `.pbo` must have a corresponding `.bisign`. If any `.bisign` is missing, players will be kicked from signature-verified servers.
+Ogni `.pbo` deve avere un `.bisign` corrispondente. Se manca qualche `.bisign`, i giocatori verranno espulsi dai server con verifica delle firme.
 
-### Place the Public Key
+### Posizionare la Chiave Pubblica
 
-Copy `MyMod.bikey` into your `@MyMod/keys/` del tuo mod. This is what server operators will copy into their server's `keys/` directory to allow your mod.
+Copia `MyMod.bikey` nella cartella `@MyMod/keys/` della tua mod. Questo è ciò che gli operatori di server copieranno nella directory `keys/` del loro server per autorizzare la tua mod.
 
 ---
 
-## Step 6: Publish via DayZ Tools Publisher
+## Passo 6: Pubblicare tramite il Publisher di DayZ Tools
 
-DayZ Tools includes a built-in Workshop publisher -- the easiest way to get your mod onto Steam.
+DayZ Tools include un publisher Workshop integrato -- il modo più semplice per portare la tua mod su Steam.
 
-### Open the Publisher
+### Aprire il Publisher
 
-1. Open **DayZ Tools** from Steam
-2. Click **Publisher** in the main window (may also be labeled "Workshop Tool")
-3. The Publisher window opens with fields for your mod details
+1. Apri **DayZ Tools** da Steam
+2. Clicca **Publisher** nella finestra principale (potrebbe anche essere etichettato "Workshop Tool")
+3. Si apre la finestra del Publisher con i campi per i dettagli della tua mod
 
-### Fill In the Details
+### Compilare i Dettagli
 
-| Campo | What to Enter |
+| Campo | Cosa Inserire |
 |-------|---------------|
-| **Title** | Your mod's display name (e.g., "My Awesome Mod") |
-| **Description** | Detailed overview of what your mod does. Supports Steam's BB code formatting (see below) |
-| **Preview Image** | Browse to your 512 x 512 `.png` or `.jpg` preview image |
-| **Mod Folder** | Browse to your complete `@MyMod` folder |
-| **Tags** | Select relevant tags (e.g., Weapons, Vehicles, UI, Server, Gear, Maps) |
-| **Visibility** | **Public** (anyone can find it), **Friends Only**, or **Unlisted** (only accessible via direct link) |
+| **Title** | Il nome visualizzato della tua mod (es., "My Awesome Mod") |
+| **Description** | Panoramica dettagliata di cosa fa la tua mod. Supporta la formattazione BB code di Steam (vedi sotto) |
+| **Preview Image** | Sfoglia fino alla tua immagine di anteprima `.png` o `.jpg` 512 x 512 |
+| **Mod Folder** | Sfoglia fino alla tua cartella completa `@MyMod` |
+| **Tags** | Seleziona i tag pertinenti (es., Weapons, Vehicles, UI, Server, Gear, Maps) |
+| **Visibility** | **Public** (chiunque può trovarla), **Friends Only**, o **Unlisted** (accessibile solo tramite link diretto) |
 
-### Steam BB Code Quick Reference
+### Riferimento Rapido al BB Code di Steam
 
-The Workshop description supports BB code:
+La descrizione del Workshop supporta il BB code:
 
 ```
 [h1]Features[/h1]
@@ -294,40 +298,40 @@ The Workshop description supports BB code:
 [img]https://example.com/image.png[/img]
 ```
 
-### Publish
+### Pubblicare
 
-1. Review all fields one final time
-2. Click **Publish** (or **Upload**)
-3. Wait for the upload to complete. Large mods may take several minutes depending on your connection.
-4. Once complete, you will see a confirmation with your **Workshop ID** (a long numeric ID like `2345678901`)
-5. **Save this Workshop ID.** You need it to push updates later.
+1. Rivedi tutti i campi un'ultima volta
+2. Clicca **Publish** (o **Upload**)
+3. Attendi il completamento del caricamento. Le mod grandi possono richiedere diversi minuti a seconda della tua connessione.
+4. Una volta completato, vedrai una conferma con il tuo **Workshop ID** (un lungo ID numerico come `2345678901`)
+5. **Salva questo Workshop ID.** Ti servirà per caricare gli aggiornamenti successivi.
 
-### After Publishing: Verify
+### Dopo la Pubblicazione: Verifica
 
-Do not skip this. Test your mod as a regular player would:
+Non saltare questo passaggio. Testa la tua mod come farebbe un giocatore normale:
 
-1. Visit `https://steamcommunity.com/sharedfiles/filedetails/?id=YOUR_ID` and verify title, description, preview image
-2. **Subscribe** to your own mod on the Workshop
-3. Launch DayZ, confirm the mod appears in the launcher
-4. Enable it, launch the game, join a server (or run your own test server)
-5. Confirm all features work
-6. Update the `action` field in `mod.cpp` to point to your Workshop page URL
+1. Visita `https://steamcommunity.com/sharedfiles/filedetails/?id=YOUR_ID` e verifica titolo, descrizione, immagine di anteprima
+2. **Iscriviti** alla tua stessa mod sul Workshop
+3. Avvia DayZ, conferma che la mod appare nel launcher
+4. Abilitala, avvia il gioco, connettiti a un server (o avvia il tuo server di test)
+5. Conferma che tutte le funzionalità funzionano
+6. Aggiorna il campo `action` in `mod.cpp` per puntare all'URL della tua pagina Workshop
 
-If anything is broken, update and re-upload before announcing publicly.
+Se qualcosa non funziona, aggiorna e ricarica prima di annunciare pubblicamente.
 
 ---
 
-## Publishing via Command Line (Alternative)
+## Pubblicazione tramite Riga di Comando (Alternativa)
 
-For automation, CI/CD, or batch uploads, SteamCMD provides a command-line alternative.
+Per l'automazione, CI/CD, o caricamenti batch, SteamCMD fornisce un'alternativa da riga di comando.
 
-### Install SteamCMD
+### Installare SteamCMD
 
-Download from [Valve's developer site](https://developer.valvesoftware.com/wiki/SteamCMD) and extract to a folder like `C:\SteamCMD\`.
+Scarica dal [sito developer di Valve](https://developer.valvesoftware.com/wiki/SteamCMD) ed estrai in una cartella come `C:\SteamCMD\`.
 
-### Create a VDF File
+### Creare un File VDF
 
-SteamCMD uses a `.vdf` file to describe what to upload. Create a file called `workshop_publish.vdf`:
+SteamCMD usa un file `.vdf` per descrivere cosa caricare. Crea un file chiamato `workshop_publish.vdf`:
 
 ```
 "workshopitem"
@@ -347,49 +351,49 @@ SteamCMD uses a `.vdf` file to describe what to upload. Create a file called `wo
 
 | Campo | Valore |
 |-------|-------|
-| `appid` | Always `221100` for DayZ |
-| `publishedfileid` | `0` for a new item; use the Workshop ID for updates |
-| `contentfolder` | Absolute path to your `@MyMod` folder |
-| `previewfile` | Absolute path to your preview image |
-| `visibility` | `0` = Public, `1` = Friends Only, `2` = Unlisted, `3` = Private |
-| `title` | Mod name |
-| `description` | Mod description (plain text) |
-| `changenote` | Text shown in the change history on the Workshop page |
+| `appid` | Sempre `221100` per DayZ |
+| `publishedfileid` | `0` per un nuovo elemento; usa l'ID Workshop per gli aggiornamenti |
+| `contentfolder` | Percorso assoluto alla tua cartella `@MyMod` |
+| `previewfile` | Percorso assoluto alla tua immagine di anteprima |
+| `visibility` | `0` = Pubblico, `1` = Solo Amici, `2` = Non in Lista, `3` = Privato |
+| `title` | Nome della mod |
+| `description` | Descrizione della mod (testo semplice) |
+| `changenote` | Testo mostrato nella cronologia delle modifiche sulla pagina Workshop |
 
-### Run SteamCMD
+### Eseguire SteamCMD
 
 ```batch
 C:\SteamCMD\steamcmd.exe +login YourSteamUsername +workshop_build_item "C:\Path\To\workshop_publish.vdf" +quit
 ```
 
-SteamCMD will prompt for your password and Steam Guard code on first use. After authentication, it uploads the mod and prints the Workshop ID.
+SteamCMD chiederà la tua password e il codice Steam Guard al primo utilizzo. Dopo l'autenticazione, carica la mod e stampa l'ID Workshop.
 
-### Quando Usare Command Line
+### Quando Usare la Riga di Comando
 
-- **Automated builds:** integrate into a build script that packs PBOs, signs them, and uploads in one step
-- **Batch operations:** uploading multiple mods at once
-- **Headless servers:** environments without a GUI
-- **CI/CD pipelines:** GitHub Actions or similar can call SteamCMD
+- **Build automatizzate:** integra in uno script di build che impacchetta i PBO, li firma e li carica in un solo passo
+- **Operazioni batch:** caricare più mod contemporaneamente
+- **Server headless:** ambienti senza GUI
+- **Pipeline CI/CD:** GitHub Actions o simili possono chiamare SteamCMD
 
 ---
 
-## Updating Your Mod
+## Aggiornare la Tua Mod
 
-### Step-by-Step Update Process
+### Processo di Aggiornamento Passo per Passo
 
-1. **Make your code changes** and test thoroughly
-2. **Increment the version** in `mod.cpp` (e.g., `"1.0.0"` becomes `"1.0.1"`)
-3. **Rebuild all PBOs** using Addon Builder or your build script
-4. **Re-sign all PBOs** with the **same private key** you used originally
-5. **Open the DayZ Tools Publisher**
-6. Enter your existing **Workshop ID** (or select the existing item)
-7. Point to your updated `@MyMod` folder
-8. Write a **change note** describing what changed
-9. Click **Publish / Update**
+1. **Apporta le modifiche al codice** e testa accuratamente
+2. **Incrementa la versione** in `mod.cpp` (es., `"1.0.0"` diventa `"1.0.1"`)
+3. **Ricostruisci tutti i PBO** usando Addon Builder o il tuo script di build
+4. **Rifirma tutti i PBO** con la **stessa chiave privata** che hai usato originariamente
+5. **Apri il Publisher di DayZ Tools**
+6. Inserisci il tuo **Workshop ID** esistente (o seleziona l'elemento esistente)
+7. Punta alla tua cartella `@MyMod` aggiornata
+8. Scrivi una **nota di modifica** che descrive cosa è cambiato
+9. Clicca **Publish / Update**
 
-### Using SteamCMD for Updates
+### Usare SteamCMD per gli Aggiornamenti
 
-Update the VDF file with your Workshop ID and a new change note:
+Aggiorna il file VDF con il tuo Workshop ID e una nuova nota di modifica:
 
 ```
 "workshopitem"
@@ -401,29 +405,29 @@ Update the VDF file with your Workshop ID and a new change note:
 }
 ```
 
-Then run SteamCMD as before. The `publishedfileid` tells Steam to update the existing item instead of creating a new one.
+Poi esegui SteamCMD come prima. Il `publishedfileid` dice a Steam di aggiornare l'elemento esistente invece di crearne uno nuovo.
 
-### Important: Use the Same Key
+### Importante: Usa la Stessa Chiave
 
-Always sign updates with the **same private key** you used for the original release. If you sign with a different key, server operators must replace the old `.bikey` with your new one -- which means downtime and confusion. Only generate a new key pair if your private key is compromised.
+Firma sempre gli aggiornamenti con la **stessa chiave privata** che hai usato per il rilascio originale. Se firmi con una chiave diversa, gli operatori di server devono sostituire il vecchio `.bikey` con il tuo nuovo -- il che significa downtime e confusione. Genera una nuova coppia di chiavi solo se la tua chiave privata è compromessa.
 
 ---
 
-## Version Management Best Practices
+## Buone Pratiche per la Gestione delle Versioni
 
-### Semantic Versioning
+### Versionamento Semantico
 
-Use **MAJOR.MINOR.PATCH** format:
+Usa il formato **MAJOR.MINOR.PATCH**:
 
-| Component | When to Increment | Esempio |
+| Componente | Quando Incrementare | Esempio |
 |-----------|-------------------|---------|
-| **MAJOR** | Breaking changes: config format changes, removed features, API overhauls | `1.0.0` to `2.0.0` |
-| **MINOR** | New features that are backwards-compatible | `1.0.0` to `1.1.0` |
-| **PATCH** | Bug fixes, small tweaks, translation updates | `1.0.0` to `1.0.1` |
+| **MAJOR** | Modifiche che rompono la compatibilità: cambi nel formato del config, funzionalità rimosse, revisioni API | `1.0.0` a `2.0.0` |
+| **MINOR** | Nuove funzionalità retrocompatibili | `1.0.0` a `1.1.0` |
+| **PATCH** | Correzioni di bug, piccole modifiche, aggiornamenti delle traduzioni | `1.0.0` a `1.0.1` |
 
-### Changelog Format
+### Formato del Changelog
 
-Maintain a changelog in your Workshop description or a separate file. A clean format:
+Mantieni un changelog nella descrizione del Workshop o in un file separato. Un formato pulito:
 
 ```
 v1.2.0 (2025-06-15)
@@ -440,15 +444,15 @@ v1.0.0 (2025-04-01)
 - Initial release
 ```
 
-### Backwards Compatibility
+### Retrocompatibilità
 
-When your mod saves persistent data (JSON configs, player data files), think carefully before changing the format:
+Quando la tua mod salva dati persistenti (config JSON, file dati giocatore), rifletti bene prima di cambiare il formato:
 
-- **Adding new fields** is safe. Use default values for missing fields when loading old files.
-- **Renaming or removing fields** is a breaking change. Increment MAJOR version.
-- **Consider a migration pattern:** detect the old format, convert to new format, save.
+- **Aggiungere nuovi campi** è sicuro. Usa valori predefiniti per i campi mancanti quando carichi vecchi file.
+- **Rinominare o rimuovere campi** è una modifica che rompe la compatibilità. Incrementa la versione MAJOR.
+- **Considera un pattern di migrazione:** rileva il vecchio formato, converti nel nuovo formato, salva.
 
-Example migration check in Enforce Script:
+Esempio di controllo migrazione in Enforce Script:
 
 ```csharp
 // In your config load function
@@ -462,106 +466,106 @@ if (config.configVersion < 2)
 }
 ```
 
-### Git Tagging
+### Tag Git
 
-If you use Git for version control (and you should), tag each release:
+Se usi Git per il controllo versione (e dovresti), tagga ogni rilascio:
 
 ```bash
 git tag -a v1.0.0 -m "Initial release"
 git push origin v1.0.0
 ```
 
-This creates a permanent reference point so you can always go back to the exact code of any published version.
+Questo crea un punto di riferimento permanente così puoi sempre tornare al codice esatto di qualsiasi versione pubblicata.
 
 ---
 
-## Workshop Page Best Practices
+## Buone Pratiche per la Pagina Workshop
 
-### Description Structure
+### Struttura della Descrizione
 
-Organize your description with these sections:
+Organizza la tua descrizione con queste sezioni:
 
-1. **Overview** -- what the mod does, in 2-3 sentences
-2. **Features** -- bullet list of key features
-3. **Requirements** -- list all dependency mods with Workshop links
-4. **Installation** -- step-by-step for players (usually just "subscribe and enable")
-5. **Server Setup** -- instructions for server operators (key placement, config files)
-6. **FAQ** -- common questions answered preemptively
-7. **Known Issues** -- be honest about current limitations
-8. **Support** -- link to your Discord, GitHub issues, or forum thread
-9. **Changelog** -- recent version history
-10. **License** -- how others can (or cannot) use your work
+1. **Panoramica** -- cosa fa la mod, in 2-3 frasi
+2. **Funzionalità** -- elenco puntato delle funzionalità chiave
+3. **Requisiti** -- elenca tutte le mod dipendenza con link al Workshop
+4. **Installazione** -- passo per passo per i giocatori (di solito solo "iscriviti e abilita")
+5. **Configurazione Server** -- istruzioni per gli operatori di server (posizionamento chiavi, file di config)
+6. **FAQ** -- domande comuni risposte preventivamente
+7. **Problemi Noti** -- sii onesto sulle limitazioni attuali
+8. **Supporto** -- link al tuo Discord, GitHub issues, o thread del forum
+9. **Changelog** -- cronologia delle versioni recenti
+10. **Licenza** -- come altri possono (o non possono) usare il tuo lavoro
 
-### Screenshots and Media
+### Screenshot e Media
 
-- Include **3-5 in-game screenshots** showing your mod in action
-- If your mod adds UI, show the UI panels clearly
-- If your mod adds items, show them in-game (not just in the editor)
-- A short gameplay video dramatically increases subscriptions
+- Includi **3-5 screenshot in-game** che mostrano la tua mod in azione
+- Se la tua mod aggiunge UI, mostra chiaramente i pannelli dell'interfaccia
+- Se la tua mod aggiunge oggetti, mostrali in-game (non solo nell'editor)
+- Un breve video di gameplay aumenta drasticamente le iscrizioni
 
-### Dependencies
+### Dipendenze
 
-If your mod requires other mods, list them clearly with Workshop links. Use the Steam Workshop "Required Items" feature so the launcher automatically loads dependencies.
+Se la tua mod richiede altre mod, elencale chiaramente con i link al Workshop. Usa la funzionalità "Required Items" dello Steam Workshop così il launcher carica automaticamente le dipendenze.
 
-### Update Schedule
+### Programma di Aggiornamento
 
-Set expectations. If you update weekly, say so. If updates are occasional, say "updates as needed." Players are more understanding when they know what to expect.
+Imposta le aspettative. Se aggiorni settimanalmente, dillo. Se gli aggiornamenti sono occasionali, di' "aggiornamenti secondo necessità". I giocatori sono più comprensivi quando sanno cosa aspettarsi.
 
 ---
 
-## Guide for Server Operators
+## Guida per gli Operatori di Server
 
-Include this information in your Workshop description for server admins.
+Includi queste informazioni nella descrizione del Workshop per gli admin dei server.
 
-### Installing a Workshop Mod on a Dedicated Server
+### Installare una Mod Workshop su un Server Dedicato
 
-1. **Download the mod** using SteamCMD or the Steam client:
+1. **Scarica la mod** usando SteamCMD o il client Steam:
    ```batch
    steamcmd +login anonymous +workshop_download_item 221100 WORKSHOP_ID +quit
    ```
-2. **Copy** (or symlink) the `@ModName` folder to the DayZ Server directory
-3. **Copy the `.bikey` file** from `@ModName/keys/` to the server's `keys/` folder
-4. **Add the mod** to the `-mod=` launch parameter
+2. **Copia** (o crea un symlink) la cartella `@ModName` nella directory del Server DayZ
+3. **Copia il file `.bikey`** da `@ModName/keys/` alla cartella `keys/` del server
+4. **Aggiungi la mod** al parametro di avvio `-mod=`
 
-### Launch Parameter Syntax
+### Sintassi dei Parametri di Avvio
 
-Mods are loaded via the `-mod=` parameter, separated by semicolons:
+Le mod vengono caricate tramite il parametro `-mod=`, separate da punti e virgola:
 
 ```
 -mod=@CF;@VPPAdminTools;@MyMod
 ```
 
-Use the **full relative path** from the server root. On Linux, paths are case-sensitive.
+Usa il **percorso relativo completo** dalla root del server. Su Linux, i percorsi sono case-sensitive.
 
-### Load Order
+### Ordine di Caricamento
 
-Mods load in the order listed in `-mod=`. This matters when mods depend on each other:
+Le mod vengono caricate nell'ordine elencato in `-mod=`. Questo è importante quando le mod dipendono l'una dall'altra:
 
-- **Dependencies first.** If `@MyMod` requires `@CF`, list `@CF` before `@MyMod`.
-- **General rule:** frameworks first, content mods last.
-- If your mod declares `requiredAddons` in `config.cpp`, DayZ will attempt to resolve load order automatically, but explicit ordering in `-mod=` is safer.
+- **Dipendenze prima.** Se `@MyMod` richiede `@CF`, elenca `@CF` prima di `@MyMod`.
+- **Regola generale:** framework prima, mod di contenuto per ultime.
+- Se la tua mod dichiara `requiredAddons` in `config.cpp`, DayZ tenterà di risolvere l'ordine di caricamento automaticamente, ma l'ordinamento esplicito in `-mod=` è più sicuro.
 
-### Key Management
+### Gestione delle Chiavi
 
-- Place **one `.bikey` per mod** in the server's `keys/` directory
-- When a mod updates with the same key, no action needed -- existing `.bikey` still works
-- If a mod author changes keys, you must replace the old `.bikey` with the new one
-- The `keys/` folder path is relative to the server root (e.g., `DayZServer/keys/`)
+- Posiziona **un `.bikey` per mod** nella directory `keys/` del server
+- Quando una mod si aggiorna con la stessa chiave, nessuna azione necessaria -- il `.bikey` esistente funziona ancora
+- Se un autore di mod cambia chiavi, devi sostituire il vecchio `.bikey` con quello nuovo
+- Il percorso della cartella `keys/` è relativo alla root del server (es., `DayZServer/keys/`)
 
 ---
 
-## Distribution Without the Workshop
+## Distribuzione Senza il Workshop
 
-### When to Skip the Workshop
+### Quando Saltare il Workshop
 
-- **Private mods** for your own server community
-- **Beta testing** with a small group before public release
-- **Commercial or licensed mods** distributed through other channels
-- **Rapid iteration** during development (faster than re-uploading each time)
+- **Mod private** per la tua community di server
+- **Beta testing** con un piccolo gruppo prima del rilascio pubblico
+- **Mod commerciali o con licenza** distribuite attraverso altri canali
+- **Iterazione rapida** durante lo sviluppo (più veloce che ricaricare ogni volta)
 
-### Creating a Release ZIP
+### Creare uno ZIP di Rilascio
 
-Package your mod for manual distribution:
+Impacchetta la tua mod per la distribuzione manuale:
 
 ```
 MyMod_v1.0.0.zip
@@ -576,7 +580,7 @@ MyMod_v1.0.0.zip
     └── mod.cpp
 ```
 
-Include a `README.txt` with installation instructions:
+Includi un `README.txt` con le istruzioni di installazione:
 
 ```
 INSTALLATION:
@@ -587,52 +591,52 @@ INSTALLATION:
 
 ### GitHub Releases
 
-If your mod is open source, use GitHub Releases to host versioned downloads:
+Se la tua mod è open source, usa GitHub Releases per ospitare download versionati:
 
-1. Tag the release in Git (`git tag v1.0.0`)
-2. Build and sign PBOs
-3. Create a ZIP of the `@MyMod` folder
-4. Create a GitHub Release and attach the ZIP
-5. Write release notes in the release description
+1. Tagga il rilascio in Git (`git tag v1.0.0`)
+2. Costruisci e firma i PBO
+3. Crea uno ZIP della cartella `@MyMod`
+4. Crea una GitHub Release e allega lo ZIP
+5. Scrivi le note di rilascio nella descrizione del rilascio
 
-This gives you version history, download counts, and a stable URL for each release.
+Questo ti dà cronologia delle versioni, conteggio dei download e un URL stabile per ogni rilascio.
 
 ---
 
-## Common Problems and Solutions
+## Problemi Comuni e Soluzioni
 
 | Problema | Causa | Soluzione |
 |---------|-------|-----|
-| "Addon rejected by server" | Server missing `.bikey`, or `.bisign` does not match `.pbo` | Confirm `.bikey` is in server `keys/` del tuo mod. Re-sign PBOs with the correct `.biprivatekey`. |
-| "Signature check failed" | PBO modified after signing, or signed with wrong key | Rebuild PBO from clean source. Re-sign with the **same key** that generated the server's `.bikey`. |
-| Mod not in DayZ Launcher | Malformed `mod.cpp` or wrong folder structure | Check `mod.cpp` for syntax errors (missing `;`). Ensure folder starts with `@`. Restart launcher. |
-| Upload fails in Publisher | Auth, connection, or file lock issue | Verify Steam login. Close Workbench/Addon Builder. Try running DayZ Tools as Administrator. |
-| Wrong/missing Workshop icon | Bad path in `mod.cpp` or wrong image format | Verify `picture`/`logo` paths point to actual `.paa` files. Workshop preview (`.png`) is separate. |
-| Conflicts with other mods | Redefining vanilla classes instead of modding them | Use `modded class`, call `super` in overrides, set `requiredAddons` for load order. |
-| Players crash on load | Script errors, corrupt PBOs, or missing dependencies | Check `.RPT` logs. Rebuild PBOs from clean source. Verify dependencies load first. |
+| "Addon rejected by server" | Il server non ha il `.bikey`, o il `.bisign` non corrisponde al `.pbo` | Conferma che il `.bikey` sia nella cartella `keys/` del server. Rifirma i PBO con il `.biprivatekey` corretto. |
+| "Signature check failed" | PBO modificato dopo la firma, o firmato con la chiave sbagliata | Ricostruisci il PBO dal sorgente pulito. Rifirma con la **stessa chiave** che ha generato il `.bikey` del server. |
+| La mod non appare nel DayZ Launcher | `mod.cpp` malformato o struttura cartella errata | Controlla `mod.cpp` per errori di sintassi (`;` mancanti). Assicurati che la cartella inizi con `@`. Riavvia il launcher. |
+| Il caricamento fallisce nel Publisher | Problema di autenticazione, connessione o blocco file | Verifica il login Steam. Chiudi Workbench/Addon Builder. Prova a eseguire DayZ Tools come Amministratore. |
+| Icona Workshop errata/mancante | Percorso errato in `mod.cpp` o formato immagine sbagliato | Verifica che i percorsi `picture`/`logo` puntino a file `.paa` effettivi. L'anteprima Workshop (`.png`) è separata. |
+| Conflitti con altre mod | Ridefinizione di classi vanilla invece di moddarne | Usa `modded class`, chiama `super` negli override, imposta `requiredAddons` per l'ordine di caricamento. |
+| I giocatori crashano al caricamento | Errori di script, PBO corrotti o dipendenze mancanti | Controlla i log `.RPT`. Ricostruisci i PBO dal sorgente pulito. Verifica che le dipendenze si carichino prima. |
 
 ---
 
-## The Complete Mod Lifecycle
+## Il Ciclo di Vita Completo della Mod
 
 ```
-IDEA → SETUP (8.1) → STRUCTURE (8.1, 8.5) → CODE (8.2, 8.3, 8.4) → BUILD (8.1)
-  → TEST → DEBUG (8.6) → POLISH → SIGN (8.7) → PUBLISH (8.7) → MAINTAIN (8.7)
+IDEA → SETUP (8.1) → STRUTTURA (8.1, 8.5) → CODICE (8.2, 8.3, 8.4) → BUILD (8.1)
+  → TEST → DEBUG (8.6) → RIFINITURA → FIRMA (8.7) → PUBBLICAZIONE (8.7) → MANTENIMENTO (8.7)
                                     ↑                                    │
-                                    └────── feedback loop ───────────────┘
+                                    └────── ciclo di feedback ───────────┘
 ```
 
-After publishing, player feedback sends you back to CODE, TEST, and DEBUG. That cycle of publish-feedback-improve is how great mods are built.
+Dopo la pubblicazione, il feedback dei giocatori ti riporta a CODICE, TEST e DEBUG. Quel ciclo di pubblicazione-feedback-miglioramento è il modo in cui vengono create le grandi mod.
 
 ---
 
 ## Prossimi Passi
 
-You have completed the full DayZ modding tutorial series -- from a blank workspace to a published, signed, and maintained mod on the Steam Workshop. From here:
+Hai completato la serie completa di tutorial sul modding di DayZ -- da uno spazio di lavoro vuoto a una mod pubblicata, firmata e mantenuta sullo Steam Workshop. Da qui:
 
-- **Explore the reference chapters** (Chapters 1-7) for deeper knowledge on the GUI system, config.cpp, and Enforce Script
-- **Study open-source mods** like CF, Community Online Tools, and Expansion for advanced patterns
-- **Join the DayZ modding community** on Discord and the Bohemia Interactive forums
-- **Build bigger.** Your first mod was Hello World. Your next one could be a complete gameplay overhaul.
+- **Esplora i capitoli di riferimento** (Capitoli 1-7) per una conoscenza più approfondita del sistema GUI, config.cpp e Enforce Script
+- **Studia le mod open-source** come CF, Community Online Tools e Expansion per pattern avanzati
+- **Unisciti alla community di modding di DayZ** su Discord e i forum di Bohemia Interactive
+- **Costruisci in grande.** La tua prima mod era Hello World. La prossima potrebbe essere una revisione completa del gameplay.
 
-The tools are in your hands. Build something great.
+Gli strumenti sono nelle tue mani. Costruisci qualcosa di grande.

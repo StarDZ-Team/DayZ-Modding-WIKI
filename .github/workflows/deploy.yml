@@ -35,7 +35,7 @@ jobs:
       - name: Build VitePress
         run: npm run build
         env:
-          NODE_OPTIONS: '--max-old-space-size=8192'
+          NODE_OPTIONS: '--max-old-space-size=16384'
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

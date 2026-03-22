@@ -4,15 +4,15 @@
 
 ---
 
-## Содержание
+## Table of Contents
 
 - [Introduction](#introduction)
 - [Pre-Publishing Checklist](#pre-publishing-checklist)
-- [Шаг 1: Prepare Your Mod Folder](#step-1-prepare-your-mod-folder)
-- [Шаг 2: Write a Complete mod.cpp](#step-2-write-a-complete-modcpp)
-- [Шаг 3: Prepare Logo and Preview Images](#step-3-prepare-logo-and-preview-images)
-- [Шаг 4: Generate a Key Pair](#step-4-generate-a-key-pair)
-- [Шаг 5: Sign Your PBOs](#step-5-sign-your-pbos)
+- [Step 1: Prepare Your Mod Folder](#step-1-prepare-your-mod-folder)
+- [Step 2: Write a Complete mod.cpp](#step-2-write-a-complete-modcpp)
+- [Step 3: Prepare Logo and Preview Images](#step-3-prepare-logo-and-preview-images)
+- [Step 4: Generate a Key Pair](#step-4-generate-a-key-pair)
+- [Step 5: Sign Your PBOs](#step-5-sign-your-pbos)
 - [Step 6: Publish via DayZ Tools Publisher](#step-6-publish-via-dayz-tools-publisher)
 - [Publishing via Command Line (Alternative)](#publishing-via-command-line-alternative)
 - [Updating Your Mod](#updating-your-mod)
@@ -26,9 +26,9 @@
 
 ---
 
-## Введение
+## Introduction
 
-Publishing to the Steam Workshop is the final step in the DayZ modding journey. Everything you have learned in previous chapters culminates here. Once your mod is on the Workshop, any DayZ player can subscribe, download, and play with it. Эта глава охватывает the complete process: preparing your mod, signing PBOs, uploading, and maintaining updates.
+Publishing to the Steam Workshop is the final step in the DayZ modding journey. Everything you have learned in previous chapters culminates here. Once your mod is on the Workshop, any DayZ player can subscribe, download, and play with it. This chapter covers the complete process: preparing your mod, signing PBOs, uploading, and maintaining updates.
 
 ---
 
@@ -43,14 +43,14 @@ Before you upload anything, go through this list. Skipping items here causes the
 - [ ] No hardcoded test values or leftover experimental code
 - [ ] `stringtable.csv` contains all user-facing strings with translations
 - [ ] `credits.json` filled out with author and contributor information
-- [ ] Logo image prepared (см. [Step 3](#step-3-prepare-logo-and-preview-images) for sizes)
+- [ ] Logo image prepared (see [Step 3](#step-3-prepare-logo-and-preview-images) for sizes)
 - [ ] All textures converted to `.paa` format (not raw `.png`/`.tga` in PBOs)
 - [ ] Workshop description and installation instructions written
 - [ ] Changelog started (even if just "1.0.0 - Initial release")
 
 ---
 
-## Шаг 1: Prepare Your Mod Folder
+## Step 1: Prepare Your Mod Folder
 
 Your final mod folder must follow DayZ's expected structure exactly.
 
@@ -87,7 +87,7 @@ Your final mod folder must follow DayZ's expected structure exactly.
 
 ---
 
-## Шаг 2: Write a Complete mod.cpp
+## Step 2: Write a Complete mod.cpp
 
 The `mod.cpp` file tells DayZ and the launcher everything about your mod. An incomplete `mod.cpp` causes missing icons, blank descriptions, and display issues.
 
@@ -108,7 +108,7 @@ version      = "1.0.0";
 versionPath  = "MyMod/Data/version.txt";
 ```
 
-### Справка по полям
+### Field Reference
 
 | Field | Required | Description |
 |-------|----------|-------------|
@@ -125,7 +125,7 @@ versionPath  = "MyMod/Data/version.txt";
 | `version` | Yes | Current version string (e.g., `"1.0.0"`) |
 | `versionPath` | No | Path to a text file containing the version number (for automated builds) |
 
-### Типичные ошибки
+### Common Mistakes
 
 - **Missing semicolons** at the end of each line. Every line must end with `;`.
 - **Wrong image paths.** Paths are relative to the P: drive root when building. After packing, the path should reflect the PBO prefix. Test by loading the mod locally before uploading.
@@ -133,7 +133,7 @@ versionPath  = "MyMod/Data/version.txt";
 
 ---
 
-## Шаг 3: Prepare Logo and Preview Images
+## Step 3: Prepare Logo and Preview Images
 
 ### Image Requirements
 
@@ -150,20 +150,20 @@ DayZ uses `.paa` textures internally. To convert PNG/TGA images:
 
 1. Open **TexView2** (included with DayZ Tools)
 2. File > Open your `.png` or `.tga` image
-3. File > Сохранить As > choose `.paa` format
-4. Сохранить to your mod's `Data/Текстуры/` directory
+3. File > Save As > choose `.paa` format
+4. Save to your mod's `Data/Textures/` directory
 
 Addon Builder can also auto-convert textures when packing PBOs if configured to binarize.
 
 ### Tips
 
 - Use a clear, recognizable icon that reads well at small sizes.
-- Keep text on logos to a minimum --- он becomes unreadable at 128x128.
+- Keep text on logos to a minimum -- it becomes unreadable at 128x128.
 - The Steam Workshop preview image (`.png`/`.jpg`) is separate from the in-game logo (`.paa`). You upload it through the Publisher.
 
 ---
 
-## Шаг 4: Generate a Key Pair
+## Step 4: Generate a Key Pair
 
 Key signing is **essential** for multiplayer. Almost all public servers enable signature verification, so without proper signatures players will be kicked when joining with your mod.
 
@@ -181,8 +181,8 @@ Key signing is **essential** for multiplayer. Almost all public servers enable s
 3. Enter a **key name** -- use your mod name (e.g., `MyMod`)
 4. Choose where to save the files
 5. Two files are created:
-   - `MyMod.bikey` ---  **public key** (distribute this)
-   - `MyMod.biprivatekey` ---  **private key** (keep this secret)
+   - `MyMod.bikey` -- the **public key** (distribute this)
+   - `MyMod.biprivatekey` -- the **private key** (keep this secret)
 
 ### Generating Keys via Command Line
 
@@ -200,7 +200,7 @@ This creates `MyMod.bikey` and `MyMod.biprivatekey` in the current directory.
 
 ---
 
-## Шаг 5: Sign Your PBOs
+## Step 5: Sign Your PBOs
 
 Every `.pbo` file in your mod must be signed with your private key. This produces `.bisign` files that sit alongside the PBOs.
 
@@ -259,7 +259,7 @@ Copy `MyMod.bikey` into your `@MyMod/keys/` folder. This is what server operator
 
 ## Step 6: Publish via DayZ Tools Publisher
 
-DayZ Tools includes a built-in Workshop publisher ---  easiest way to get your mod onto Steam.
+DayZ Tools includes a built-in Workshop publisher -- the easiest way to get your mod onto Steam.
 
 ### Open the Publisher
 
@@ -300,7 +300,7 @@ The Workshop description supports BB code:
 2. Click **Publish** (or **Upload**)
 3. Wait for the upload to complete. Large mods may take several minutes depending on your connection.
 4. Once complete, you will see a confirmation with your **Workshop ID** (a long numeric ID like `2345678901`)
-5. **Сохранить this Workshop ID.** You need it to push updates later.
+5. **Save this Workshop ID.** You need it to push updates later.
 
 ### After Publishing: Verify
 
@@ -343,7 +343,7 @@ SteamCMD uses a `.vdf` file to describe what to upload. Create a file called `wo
 }
 ```
 
-### Справка по полям
+### Field Reference
 
 | Field | Value |
 |-------|-------|
@@ -403,7 +403,7 @@ Update the VDF file with your Workshop ID and a new change note:
 
 Then run SteamCMD as before. The `publishedfileid` tells Steam to update the existing item instead of creating a new one.
 
-### Важно: Use the Same Key
+### Important: Use the Same Key
 
 Always sign updates with the **same private key** you used for the original release. If you sign with a different key, server operators must replace the old `.bikey` with your new one -- which means downtime and confusion. Only generate a new key pair if your private key is compromised.
 
@@ -626,7 +626,7 @@ After publishing, player feedback sends you back to CODE, TEST, and DEBUG. That 
 
 ---
 
-## Следующие шаги
+## Next Steps
 
 You have completed the full DayZ modding tutorial series -- from a blank workspace to a published, signed, and maintained mod on the Steam Workshop. From here:
 

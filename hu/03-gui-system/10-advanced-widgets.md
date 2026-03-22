@@ -1,21 +1,23 @@
-# Chapter 3.10: Advanced Widgets
+# 3.10. fejezet: Haladó widgetek
 
-[Home](../../README.md) | [<< Previous: Real Mod UI Patterns](09-real-mod-patterns.md) | **Advanced Widgets**
-
----
-
-This chapter covers every advanced widget type with confirmed API signatures extracted from vanilla source code and real mod usage.
+[Főoldal](../../README.md) | [<< Előző: Valós mod UI minták](09-real-mod-patterns.md) | **Haladó widgetek**
 
 ---
 
-## RichTextWidget Formatting
+A korábbi fejezetekben tárgyalt standard konténer-, szöveg- és kép widgeteken túl a DayZ speciális widget típusokat kínál formázott szöveges megjelenítéshez, 2D vászon rajzoláshoz, térkép megjelenítéshez, 3D tárgy előnézetekhez, videó lejátszáshoz és render-to-texture funkcióhoz. Ezek a widgetek olyan képességeket nyitnak meg, amelyeket egyszerű layoutokkal nem lehet elérni.
 
-`RichTextWidget` extends `TextWidget` and supports inline markup tags within its text content. It is the primary way to display formatted text with embedded images, variable font sizes, and line breaks.
+Ez a fejezet minden haladó widget típust lefed, megerősített API szignatúrákkal, amelyeket a vanilla forráskódból és valós mod használatból nyertünk ki.
 
-### Class Definition
+---
+
+## RichTextWidget formázás
+
+A `RichTextWidget` kiterjeszti a `TextWidget`-et és támogatja az inline jelölő tageket a szöveges tartalmán belül. Ez az elsődleges módja a formázott szöveg megjelenítésének beágyazott képekkel, változó betűméretekkel és sortörésekkel.
+
+### Osztálydefiníció
 
 ```
-// From scripts/1_core/proto/enwidgets.c
+// Forrás: scripts/1_core/proto/enwidgets.c
 class RichTextWidget extends TextWidget
 {
     proto native float GetContentHeight();
@@ -29,27 +31,27 @@ class RichTextWidget extends TextWidget
 };
 ```
 
-`RichTextWidget` inherits all `TextWidget` methods -- `SetText()`, `SetTextExactSize()`, `SetOutline()`, `SetShadow()`, `SetTextFormat()`, and the rest. The key difference is that `SetText()` on a `RichTextWidget` parses inline markup tags.
+A `RichTextWidget` örökli az összes `TextWidget` metódust -- `SetText()`, `SetTextExactSize()`, `SetOutline()`, `SetShadow()`, `SetTextFormat()` és a többit. A lényeges különbség az, hogy a `SetText()` egy `RichTextWidget`-en elemzi az inline jelölő tageket.
 
-### Supported Inline Tags
+### Támogatott inline tagek
 
-These tags are confirmed through vanilla DayZ usage in `news_feed.txt`, `InputUtils.c`, and multiple menu scripts.
+Ezek a tagek a vanilla DayZ használatán keresztül vannak megerősítve a `news_feed.txt`, `InputUtils.c` és több menü scriptben.
 
-#### Inline Image
+#### Inline kép
 
 ```
 <image set="IMAGESET_NAME" name="IMAGE_NAME" />
 <image set="IMAGESET_NAME" name="IMAGE_NAME" scale="1.5" />
 ```
 
-Embeds an image from a named imageset directly into the text flow. The `scale` attribute controls the image size relative to the text line height.
+Egy képet ágyaz be egy megnevezett képkészletből közvetlenül a szövegfolyamba. A `scale` attribútum a kép méretét szabályozza a szöveg sormagasságához képest.
 
-Vanilla example from `scripts/data/news_feed.txt`:
+Vanilla példa a `scripts/data/news_feed.txt` fájlból:
 ```
 <image set="dayz_gui" name="icon_pin" />  Welcome to DayZ!
 ```
 
-Vanilla example from `scripts/3_game/tools/inpututils.c` -- building controller button icons:
+Vanilla példa a `scripts/3_game/tools/inpututils.c` fájlból -- kontroller gomb ikonok építése:
 ```c
 string icon = string.Format(
     "<image set=\"%1\" name=\"%2\" scale=\"%3\" />",
@@ -60,30 +62,30 @@ string icon = string.Format(
 richTextWidget.SetText(icon + " Press to confirm");
 ```
 
-Common imagesets in vanilla DayZ:
-- `dayz_gui` -- general UI icons (pin, notifications)
-- `dayz_inventory` -- inventory slot icons (shoulderleft, hands, vest, etc.)
-- `xbox_buttons` -- Xbox controller button images (A, B, X, Y)
-- `playstation_buttons` -- PlayStation controller button images
+Gyakori képkészletek a vanilla DayZ-ben:
+- `dayz_gui` -- általános UI ikonok (tű, értesítések)
+- `dayz_inventory` -- felszerelés slot ikonok (shoulderleft, hands, vest, stb.)
+- `xbox_buttons` -- Xbox kontroller gomb képek (A, B, X, Y)
+- `playstation_buttons` -- PlayStation kontroller gomb képek
 
-#### Line Break
+#### Sortörés
 
 ```
 </br>
 ```
 
-Forces a line break within the rich text content. Note the closing-tag syntax -- this is how DayZ's parser expects it.
+Sortörést kényszerít a formázott szöveg tartalmon belül. Figyeld meg a záró-tag szintaxist -- a DayZ elemzője így várja.
 
-#### Font Size / Heading
+#### Betűméret / Címsor
 
 ```
-<h scale="0.8">Text content here</h>
-<h scale="0.6">Smaller text content</h>
+<h scale="0.8">Szöveges tartalom itt</h>
+<h scale="0.6">Kisebb szöveges tartalom</h>
 ```
 
-Wraps text in a heading block with a scale multiplier. The `scale` attribute is a float that controls the font size relative to the widget's base font. Larger values produce bigger text.
+A szöveget egy címsor blokkba csomagolja egy skálázási szorzóval. A `scale` attribútum egy lebegőpontos szám, amely a betűméretet a widget alap betűtípusához képest szabályozza. Nagyobb értékek nagyobb szöveget eredményeznek.
 
-Vanilla example from `scripts/data/news_feed.txt`:
+Vanilla példa a `scripts/data/news_feed.txt` fájlból:
 ```
 <h scale="0.8">
 <image set="dayz_gui" name="icon_pin" />  Section Title
@@ -94,18 +96,18 @@ Body text at smaller size goes here.
 </br>
 ```
 
-### Practical Hasznalat Mintas
+### Gyakorlati használati minták
 
-#### Getting a RichTextWidget reference
+#### RichTextWidget referencia lekérése
 
-In scripts, cast from the layout exactly like any other widget:
+Scriptben pontosan úgy castolj a layoutból, mint bármely más widgetet:
 
 ```c
 RichTextWidget m_Label;
 m_Label = RichTextWidget.Cast(root.FindAnyWidget("MyRichLabel"));
 ```
 
-In `.layout` files, use the layout class name:
+`.layout` fájlokban használd a layout osztálynevet:
 
 ```
 RichTextWidgetClass MyRichLabel {
@@ -115,19 +117,19 @@ RichTextWidgetClass MyRichLabel {
 }
 ```
 
-#### Setting rich content with controller icons
+#### Formázott tartalom beállítása kontroller ikonokkal
 
-The vanilla `InputUtils` class provides a helper that generates the `<image>` tag string for any input action:
+A vanilla `InputUtils` osztály egy segédfüggvényt biztosít, amely a `<image>` tag stringet generálja bármely beviteli akcióhoz:
 
 ```c
-// From scripts/3_game/tools/inpututils.c
+// Forrás: scripts/3_game/tools/inpututils.c
 string buttonIcon = InputUtils.GetRichtextButtonIconFromInputAction(
-    "UAUISelect",              // input action name
-    "#menu_select",            // localized label
+    "UAUISelect",              // beviteli akció neve
+    "#menu_select",            // lokalizált címke
     EUAINPUT_DEVICE_CONTROLLER,
-    InputUtils.ICON_SCALE_TOOLBAR  // 1.81 scale
+    InputUtils.ICON_SCALE_TOOLBAR  // 1.81 skála
 );
-// Result: '<image set="xbox_buttons" name="A" scale="1.81" /> Select'
+// Eredmény: '<image set="xbox_buttons" name="A" scale="1.81" /> Select'
 
 RichTextWidget toolbar = RichTextWidget.Cast(
     layoutRoot.FindAnyWidget("ToolbarText")
@@ -135,48 +137,48 @@ RichTextWidget toolbar = RichTextWidget.Cast(
 toolbar.SetText(buttonIcon);
 ```
 
-The two predefined scale constants:
+A két előre definiált skála konstans:
 - `InputUtils.ICON_SCALE_NORMAL` = 1.21
 - `InputUtils.ICON_SCALE_TOOLBAR` = 1.81
 
-#### Scrollable rich text content
+#### Görgethető formázott szöveg tartalom
 
-`RichTextWidget` exposes content height and offset methods for paging or scrolling:
+A `RichTextWidget` tartalom magasság és eltolás metódusokat tesz elérhetővé lapozáshoz vagy görgetéshez:
 
 ```c
-// From scripts/5_mission/gui/bookmenu.c
-HtmlWidget m_content;  // HtmlWidget extends RichTextWidget
+// Forrás: scripts/5_mission/gui/bookmenu.c
+HtmlWidget m_content;  // A HtmlWidget kiterjeszti a RichTextWidget-et
 m_content.LoadFile(book.ConfigGetString("file"));
 
 float totalHeight = m_content.GetContentHeight();
-// Page through content:
+// Lapozás a tartalomban:
 m_content.SetContentOffset(pageOffset, true);  // snapToLine = true
 ```
 
-#### Text elision
+#### Szöveg levágás
 
-When text overflows a fixed-width area, you can elide (truncate with an indicator):
+Amikor a szöveg túlcsordul egy rögzített szélességű területen, levághatod (csonkíthatod jelzővel):
 
 ```c
-// Truncate line 0 to maxWidth pixels, appending "..."
+// A 0. sor csonkítása maxWidth pixelre, "..." hozzáfűzésével
 richText.ElideText(0, maxWidth, "...");
 ```
 
-#### Line visibility control
+#### Sor láthatóság vezérlés
 
-Show or hide specific line ranges within the content:
+Specifikus sortartományok megjelenítése vagy elrejtése a tartalmon belül:
 
 ```c
 int lineCount = richText.GetNumLines();
-// Hide all lines after the 5th
+// Az 5. után minden sor elrejtése
 richText.SetLinesVisibility(5, lineCount - 1, false);
-// Get the pixel width of a specific line
+// Egy specifikus sor pixel szélességének lekérése
 float width = richText.GetLineWidth(2);
 ```
 
-### HtmlWidget -- Extended RichTextWidget
+### HtmlWidget -- Kiterjesztett RichTextWidget
 
-`HtmlWidget` extends `RichTextWidget` with a single additional method:
+A `HtmlWidget` kiterjeszti a `RichTextWidget`-et egyetlen további metódussal:
 
 ```
 class HtmlWidget extends RichTextWidget
@@ -185,37 +187,37 @@ class HtmlWidget extends RichTextWidget
 };
 ```
 
-Used by the vanilla book system to load `.html` text files:
+A vanilla könyvrendszer használja `.html` szövegfájlok betöltéséhez:
 
 ```c
-// From scripts/5_mission/gui/bookmenu.c
+// Forrás: scripts/5_mission/gui/bookmenu.c
 HtmlWidget content;
 Class.CastTo(content, layoutRoot.FindAnyWidget("HtmlWidget"));
 content.LoadFile(book.ConfigGetString("file"));
 ```
 
-### RichTextWidget vs TextWidget -- Key Differences
+### RichTextWidget vs TextWidget -- Főbb különbségek
 
-| Funkcio | TextWidget | RichTextWidget |
+| Funkció | TextWidget | RichTextWidget |
 |---------|-----------|---------------|
-| Inline `<image>` tags | No | Yes |
-| `<h>` heading tags | No | Yes |
-| `</br>` line breaks | No (use `\n`) | Yes |
-| Content scrolling | No | Yes (via offset) |
-| Line visibility | No | Yes |
-| Text elision | No | Yes |
-| Performance | Faster | Slower (tag parsing) |
+| Inline `<image>` tagek | Nem | Igen |
+| `<h>` címsor tagek | Nem | Igen |
+| `</br>` sortörések | Nem (használj `\n`-t) | Igen |
+| Tartalom görgetés | Nem | Igen (eltolással) |
+| Sor láthatóság | Nem | Igen |
+| Szöveg levágás | Nem | Igen |
+| Teljesítmény | Gyorsabb | Lassabb (tag elemzés) |
 
-Use `TextWidget` for simple labels. Use `RichTextWidget` only when you need inline images, formatted headings, or content scrolling.
+Használj `TextWidget`-et egyszerű címkékhez. Használj `RichTextWidget`-et csak akkor, ha inline képekre, formázott címsorokra vagy tartalom görgetésre van szükséged.
 
 ---
 
-## CanvasWidget Drawing
+## CanvasWidget rajzolás
 
-`CanvasWidget` provides immediate-mode 2D drawing on screen. It has exactly two native methods:
+A `CanvasWidget` azonnali módú 2D rajzolást biztosít a képernyőn. Pontosan két natív metódusa van:
 
 ```
-// From scripts/1_core/proto/enwidgets.c
+// Forrás: scripts/1_core/proto/enwidgets.c
 class CanvasWidget extends Widget
 {
     proto native void DrawLine(float x1, float y1, float x2, float y2,
@@ -224,17 +226,17 @@ class CanvasWidget extends Widget
 };
 ```
 
-That is the entire API. All complex shapes -- rectangles, circles, grids -- must be built from line segments.
+Ez az egész API. Minden összetett alakzatot -- téglalapokat, köröket, rácsokat -- vonalszegmensekből kell felépíteni.
 
-### Coordinate System
+### Koordinátarendszer
 
-`CanvasWidget` uses **screen-space pixel coordinates** relative to the canvas widget's own bounds. The origin `(0, 0)` is the top-left corner of the canvas widget.
+A `CanvasWidget` **képernyő-tér pixel koordinátákat** használ a vászon widget saját határaihoz képest. Az origó `(0, 0)` a vászon widget bal felső sarka.
 
-If the canvas fills the full screen (position 0,0 size 1,1 in relative mode), then coordinates map directly to screen pixels after converting from the widget's internal size.
+Ha a vászon kitölti a teljes képernyőt (pozíció 0,0 méret 1,1 relatív módban), akkor a koordináták közvetlenül a képernyő pixelekre térképeződnek a widget belső méretéből való átalakítás után.
 
-### Layout Setup
+### Layout beállítás
 
-In a `.layout` file:
+Egy `.layout` fájlban:
 
 ```
 CanvasWidgetClass MyCanvas {
@@ -248,11 +250,11 @@ CanvasWidgetClass MyCanvas {
 }
 ```
 
-Key flags:
-- `ignorepointer 1` -- the canvas does not block mouse input to widgets beneath it
-- The size `1 1` in relative mode means "fill the parent"
+Fontos jelzők:
+- `ignorepointer 1` -- a vászon nem blokkolja az egér bemenetet az alatta lévő widgetekhez
+- Az `1 1` méret relatív módban azt jelenti, hogy "töltsd ki a szülőt"
 
-In script:
+Scriptben:
 
 ```c
 CanvasWidget m_Canvas;
@@ -261,48 +263,48 @@ m_Canvas = CanvasWidget.Cast(
 );
 ```
 
-Or create from a layout file:
+Vagy hozd létre egy layout fájlból:
 
 ```c
-// From COT: JM/COT/GUI/layouts/esp_canvas.layout
+// Forrás: COT: JM/COT/GUI/layouts/esp_canvas.layout
 m_Canvas = CanvasWidget.Cast(
     g_Game.GetWorkspace().CreateWidgets("path/to/canvas.layout")
 );
 ```
 
-### Drawing Primitives
+### Rajzolási primitívek
 
-#### Lines
+#### Vonalak
 
 ```c
-// Draw a red horizontal line
+// Piros vízszintes vonal rajzolása
 m_Canvas.DrawLine(10, 50, 200, 50, 2, ARGB(255, 255, 0, 0));
 
-// Draw a white diagonal line, 3 pixels wide
+// Fehér átlós vonal rajzolása, 3 pixel széles
 m_Canvas.DrawLine(0, 0, 100, 100, 3, COLOR_WHITE);
 ```
 
-The `color` parameter uses ARGB format: `ARGB(alpha, red, green, blue)`.
+A `color` paraméter ARGB formátumot használ: `ARGB(alfa, piros, zöld, kék)`.
 
-#### Rectangles (from lines)
+#### Téglalapok (vonalakból)
 
 ```c
 void DrawRectangle(CanvasWidget canvas, float x, float y,
                    float w, float h, float lineWidth, int color)
 {
-    canvas.DrawLine(x, y, x + w, y, lineWidth, color);         // top
-    canvas.DrawLine(x + w, y, x + w, y + h, lineWidth, color); // right
-    canvas.DrawLine(x + w, y + h, x, y + h, lineWidth, color); // bottom
-    canvas.DrawLine(x, y + h, x, y, lineWidth, color);         // left
+    canvas.DrawLine(x, y, x + w, y, lineWidth, color);         // felső
+    canvas.DrawLine(x + w, y, x + w, y + h, lineWidth, color); // jobb
+    canvas.DrawLine(x + w, y + h, x, y + h, lineWidth, color); // alsó
+    canvas.DrawLine(x, y + h, x, y, lineWidth, color);         // bal
 }
 ```
 
-#### Circles (from line segments)
+#### Körök (vonalszegmensekből)
 
-COT implements this pattern in `JMESPCanvas`:
+A COT implementálja ezt a mintát a `JMESPCanvas`-ban:
 
 ```c
-// From DayZ-CommunityOnlineTools/.../JMESPModule.c
+// Forrás: DayZ-CommunityOnlineTools/.../JMESPModule.c
 void DrawCircle(float cx, float cy, float radius,
                 int lineWidth, int color, int segments)
 {
@@ -323,21 +325,21 @@ void DrawCircle(float cx, float cy, float radius,
 }
 ```
 
-More segments produce a smoother circle. 36 segments is a common default.
+Több szegmens simább kört eredményez. 36 szegmens egy gyakori alapértelmezés.
 
-### Per-Frame Redrawing Minta
+### Képkockánkénti újrarajzolási minta
 
-`CanvasWidget` is immediate-mode: you must `Clear()` and redraw every frame. This is typically done in an `Update()` or `OnUpdate()` callback.
+A `CanvasWidget` azonnali módú: minden képkockánál `Clear()`-elni és újra kell rajzolni. Ezt jellemzően egy `Update()` vagy `OnUpdate()` callbackben végzik.
 
-Vanilla example from `scripts/5_mission/gui/mapmenu.c`:
+Vanilla példa a `scripts/5_mission/gui/mapmenu.c` fájlból:
 
 ```c
 override void Update(float timeslice)
 {
     super.Update(timeslice);
-    m_ToolsScaleCellSizeCanvas.Clear();  // clear previous frame
+    m_ToolsScaleCellSizeCanvas.Clear();  // előző képkocka törlése
 
-    // ... draw scale ruler segments ...
+    // ... skála vonalzó szegmensek rajzolása ...
     RenderScaleRuler();
 }
 
@@ -364,35 +366,35 @@ protected void RenderScaleRuler()
 }
 ```
 
-### ESP Overlay Minta (from COT)
+### ESP overlay minta (a COT-ból)
 
-COT (Community Online Tools) uses `CanvasWidget` as a full-screen overlay to draw skeleton wireframes on players and objects. This is one of the most sophisticated canvas usage patterns in any DayZ mod.
+A COT (Community Online Tools) a `CanvasWidget`-et teljes képernyős overlayként használja csontváz drótvázak rajzolásához játékosokon és objektumokon. Ez az egyik legkifinomultabb vászon használati minta bármely DayZ modban.
 
-**Architecture:**
+**Architektúra:**
 
-1. A full-screen `CanvasWidget` is created from a layout file
-2. Every frame, `Clear()` is called
-3. World-space positions are converted to screen coordinates
-4. Lines are drawn between bone positions to render skeletons
+1. Egy teljes képernyős `CanvasWidget` jön létre egy layout fájlból
+2. Minden képkockánál meghívódik a `Clear()`
+3. A világ-tér pozíciók képernyő koordinátákká alakulnak
+4. Vonalak rajzolódnak a csont pozíciók közé a csontvázak megjelenítéséhez
 
-**World-to-screen conversion** (from COT's `JMESPCanvas`):
+**Világ-képernyő átalakítás** (a COT `JMESPCanvas`-ából):
 
 ```c
-// From DayZ-CommunityOnlineTools/.../JMESPModule.c
+// Forrás: DayZ-CommunityOnlineTools/.../JMESPModule.c
 vector TransformToScreenPos(vector worldPos, out bool isInBounds)
 {
     float parentW, parentH;
     vector screenPos;
 
-    // Get relative screen position (0..1 range)
+    // Relatív képernyő pozíció lekérése (0..1 tartomány)
     screenPos = g_Game.GetScreenPosRelative(worldPos);
 
-    // Check if the position is visible on screen
+    // Ellenőrzés, hogy a pozíció látható-e a képernyőn
     isInBounds = screenPos[0] >= 0 && screenPos[0] <= 1
               && screenPos[1] >= 0 && screenPos[1] <= 1
               && screenPos[2] >= 0;
 
-    // Convert to canvas pixel coordinates
+    // Átalakítás vászon pixel koordinátákra
     m_Canvas.GetScreenSize(parentW, parentH);
     screenPos[0] = screenPos[0] * parentW;
     screenPos[1] = screenPos[1] * parentH;
@@ -401,7 +403,7 @@ vector TransformToScreenPos(vector worldPos, out bool isInBounds)
 }
 ```
 
-**Drawing a line from world position A to world position B:**
+**Vonal rajzolása A világ pozícióból B világ pozícióba:**
 
 ```c
 void DrawWorldLine(vector from, vector to, int width, int color)
@@ -417,43 +419,43 @@ void DrawWorldLine(vector from, vector to, int width, int color)
 }
 ```
 
-**Drawing a player skeleton:**
+**Játékos csontváz rajzolása:**
 
 ```c
-// Simplified from COT's JMESPSkeleton.Draw()
+// Egyszerűsítve a COT JMESPSkeleton.Draw() metódusából
 static void DrawSkeleton(Human human, CanvasWidget canvas)
 {
-    // Define limb connections (bone pairs)
-    // neck->spine3, spine3->pelvis, neck->leftarm, etc.
+    // Végtag csatlakozások definiálása (csont párok)
+    // neck->spine3, spine3->pelvis, neck->leftarm, stb.
 
     int color = COLOR_WHITE;
     switch (human.GetHealthLevel())
     {
         case GameConstants.STATE_DAMAGED:
-            color = 0xFFDCDC00;  // yellow
+            color = 0xFFDCDC00;  // sárga
             break;
         case GameConstants.STATE_BADLY_DAMAGED:
-            color = 0xFFDC0000;  // red
+            color = 0xFFDC0000;  // piros
             break;
     }
 
-    // Draw each limb as a line between two bone positions
+    // Minden végtag rajzolása vonalként két csont pozíció között
     vector bone1Pos = human.GetBonePositionWS(
         human.GetBoneIndexByName("neck")
     );
     vector bone2Pos = human.GetBonePositionWS(
         human.GetBoneIndexByName("spine3")
     );
-    // ... convert to screen coords, then DrawLine ...
+    // ... átalakítás képernyő koordinátákra, majd DrawLine ...
 }
 ```
 
-### Vanilla Debug Canvas
+### Vanilla debug vászon
 
-The engine provides a built-in debug canvas through the `Debug` class:
+A motor beépített debug vásznat biztosít a `Debug` osztályon keresztül:
 
 ```c
-// From scripts/3_game/tools/debug.c
+// Forrás: scripts/3_game/tools/debug.c
 static void InitCanvas()
 {
     if (!m_DebugLayoutCanvas)
@@ -486,24 +488,24 @@ static void ClearCanvas()
 }
 ```
 
-### Performance Considerations
+### Teljesítmény szempontok
 
-- **Clear and redraw every frame.** `CanvasWidget` does not retain state between frames in most use cases where the view changes (camera movement, etc.). Call `Clear()` at the start of each update.
-- **Minimize line count.** Each `DrawLine()` call has overhead. For complex shapes like circles, use fewer segments (12-18) for distant objects, more (36) for close ones.
-- **Check screen bounds first.** Convert world positions to screen coordinates and skip objects that are off-screen or behind the camera (`screenPos[2] < 0`).
-- **Use `ignorepointer 1`.** Always set this flag on canvas overlays so they do not intercept mouse events.
-- **One canvas is enough.** Use a single full-screen canvas for all overlay drawing rather than creating multiple canvas widgets.
+- **Töröld és rajzold újra minden képkockánál.** A `CanvasWidget` nem tartja meg az állapotot a képkockák között a legtöbb használati esetben, ahol a nézet változik (kamera mozgás, stb.). Hívd meg a `Clear()` metódust minden frissítés elején.
+- **Minimalizáld a vonalak számát.** Minden `DrawLine()` hívásnak van többletterhelése. Összetett alakzatoknál, mint a körök, használj kevesebb szegmenst (12-18) távoli objektumoknál, többet (36) közeli objektumoknál.
+- **Először ellenőrizd a képernyő határokat.** Alakítsd át a világ pozíciókat képernyő koordinátákra, és hagyd ki az objektumokat, amelyek a képernyőn kívül vagy a kamera mögött vannak (`screenPos[2] < 0`).
+- **Használd az `ignorepointer 1`-et.** Mindig állítsd be ezt a jelzőt a vászon overlayeken, hogy ne fogják el az egér eseményeket.
+- **Egy vászon elegendő.** Használj egyetlen teljes képernyős vásznat az összes overlay rajzoláshoz ahelyett, hogy több vászon widgetet hoznál létre.
 
 ---
 
 ## MapWidget
 
-`MapWidget` displays the DayZ terrain map and provides methods for placing markers, coordinate conversion, and zoom control.
+A `MapWidget` megjeleníti a DayZ terep térképet és metódusokat biztosít jelölők elhelyezéséhez, koordináta átalakításhoz és zoom vezérléshez.
 
-### Class Definition
+### Osztálydefiníció
 
 ```
-// From scripts/3_game/gameplay.c
+// Forrás: scripts/3_game/gameplay.c
 class MapWidget: Widget
 {
     proto native void    ClearUserMarks();
@@ -520,68 +522,68 @@ class MapWidget: Widget
 };
 ```
 
-### Getting the Map Widget
+### A térkép widget lekérése
 
-In a `.layout` file, place the map using the `MapWidgetClass` type. In script, obtain the reference by casting:
+Egy `.layout` fájlban helyezd el a térképet a `MapWidgetClass` típussal. Scriptben a referenciát castolással szerezheted meg:
 
 ```c
 MapWidget m_Map;
 m_Map = MapWidget.Cast(layoutRoot.FindAnyWidget("Map"));
 ```
 
-### Map Coordinates vs World Coordinates
+### Térkép koordináták vs világ koordináták
 
-DayZ uses two coordinate spaces:
+A DayZ két koordinátateret használ:
 
-- **World coordinates**: 3D vectors in meters. `x` = east/west, `y` = altitude, `z` = north/south. Chernarus ranges roughly 0-15360 on x and z axes.
-- **Screen coordinates**: Pixel positions on the map widget. These change as the user pans and zooms.
+- **Világ koordináták**: 3D vektorok méterben. `x` = kelet/nyugat, `y` = magasság, `z` = észak/dél. A Chernarus hozzávetőleg 0-15360 tartományú az x és z tengelyeken.
+- **Képernyő koordináták**: Pixel pozíciók a térkép widgeten. Ezek változnak, ahogy a felhasználó mozgatja és zoomolja a térképet.
 
-The `MapWidget` provides conversion between these:
+A `MapWidget` biztosítja az átalakítást ezek között:
 
 ```c
-// World position to screen pixel on the map
+// Világ pozíció képernyő pixelre a térképen
 vector screenPos = m_Map.MapToScreen(worldPosition);
 
-// Screen pixel on the map to world position
+// Képernyő pixel a térképen világ pozícióvá
 vector worldPos = m_Map.ScreenToMap(Vector(screenX, screenY, 0));
 ```
 
-### Adding Jelolos
+### Jelölők hozzáadása
 
-`AddUserMark()` places a marker at a world position with a label, color, and icon texture:
+Az `AddUserMark()` egy jelölőt helyez el egy világ pozíción címkével, színnel és ikon textúrával:
 
 ```c
 m_Map.AddUserMark(
-    playerPos,                                   // vector: world position
-    "You",                                       // string: label text
-    COLOR_RED,                                   // int: ARGB color
-    "\\dz\\gear\\navigation\\data\\map_tree_ca.paa"  // string: icon texture
+    playerPos,                                   // vector: világ pozíció
+    "You",                                       // string: címke szöveg
+    COLOR_RED,                                   // int: ARGB szín
+    "\\dz\\gear\\navigation\\data\\map_tree_ca.paa"  // string: ikon textúra
 );
 ```
 
-Vanilla example from `scripts/5_mission/gui/scriptconsolegeneraltab.c`:
+Vanilla példa a `scripts/5_mission/gui/scriptconsolegeneraltab.c` fájlból:
 
 ```c
-// Mark player position
+// Játékos pozíció jelölése
 m_DebugMapWidget.AddUserMark(
     playerPos, "You", COLOR_RED,
     "\\dz\\gear\\navigation\\data\\map_tree_ca.paa"
 );
 
-// Mark other players
+// Más játékosok jelölése
 m_DebugMapWidget.AddUserMark(
     rpd.m_Pos, rpd.m_Name + " " + dist + "m", COLOR_BLUE,
     "\\dz\\gear\\navigation\\data\\map_tree_ca.paa"
 );
 
-// Mark camera position
+// Kamera pozíció jelölése
 m_DebugMapWidget.AddUserMark(
     cameraPos, "Camera", COLOR_GREEN,
     "\\dz\\gear\\navigation\\data\\map_tree_ca.paa"
 );
 ```
 
-Another vanilla example from `scripts/5_mission/gui/mapmenu.c` (commented out but shows the API):
+Másik vanilla példa a `scripts/5_mission/gui/mapmenu.c` fájlból (kikommentezve, de mutatja az API-t):
 
 ```c
 m.AddUserMark("2681 4.7 1751", "Label1", ARGB(255,255,0,0),
@@ -592,25 +594,25 @@ m.AddUserMark("2670 4.7 1651", "Label3", ARGB(255,0,0,255),
     "\\dz\\gear\\navigation\\data\\map_busstop_ca.paa");
 ```
 
-### Clearing Jelolos
+### Jelölők törlése
 
-`ClearUserMarks()` removes all user-placed markers at once. There is no method to remove a single marker by reference. The standard pattern is to clear all markers and re-add the ones you want each frame.
+A `ClearUserMarks()` egyszerre eltávolítja az összes felhasználó által elhelyezett jelölőt. Nincs metódus egyetlen jelölő referencia alapján történő eltávolítására. A standard minta az, hogy törölsz minden jelölőt, és újra hozzáadod azokat, amelyeket meg akarsz tartani, minden képkockánál.
 
 ```c
-// From scripts/5_mission/gui/scriptconsolesoundstab.c
+// Forrás: scripts/5_mission/gui/scriptconsolesoundstab.c
 override void Update(float timeslice)
 {
     m_DebugMapWidget.ClearUserMarks();
-    // Re-add all current markers
+    // Összes aktuális jelölő újra hozzáadása
     m_DebugMapWidget.AddUserMark(playerPos, "You", COLOR_RED, iconPath);
 }
 ```
 
-### Available Map Jelolo Ikons
+### Elérhető térkép jelölő ikonok
 
-The vanilla game registers these marker icon textures in `scripts/5_mission/gui/mapmarkersinfo.c`:
+A vanilla játék ezeket a jelölő ikon textúrákat regisztrálja a `scripts/5_mission/gui/mapmarkersinfo.c` fájlban:
 
-| Enum Konstans | Texture Path |
+| Enum konstans | Textúra útvonal |
 |---|---|
 | `MARKERTYPE_MAP_BORDER_CROSS` | `\dz\gear\navigation\data\map_border_cross_ca.paa` |
 | `MARKERTYPE_MAP_BROADLEAF` | `\dz\gear\navigation\data\map_broadleaf_ca.paa` |
@@ -630,28 +632,28 @@ The vanilla game registers these marker icon textures in `scripts/5_mission/gui/
 | `MARKERTYPE_MAP_VIEWPOINT` | `\dz\gear\navigation\data\map_viewpoint_ca.paa` |
 | `MARKERTYPE_MAP_WATERPUMP` | `\dz\gear\navigation\data\map_waterpump_ca.paa` |
 
-Access these by enum via `MapJeloloTipuss.GetJeloloTipusFromID(eMapJeloloTipuss.MARKERTYPE_MAP_CAMP)`.
+Ezeket enum-mal érheted el a `MapMarkerTypes.GetMarkerTypeFromID(eMapMarkerTypes.MARKERTYPE_MAP_CAMP)` segítségével.
 
-### Zoom and Pan Control
+### Zoom és panorámázás vezérlés
 
 ```c
-// Set the map center to a world position
+// A térkép közepének beállítása egy világ pozícióra
 m_Map.SetMapPos(playerWorldPos);
 
-// Get/set zoom level (0.0 = fully zoomed out, 1.0 = fully zoomed in)
+// Zoom szint lekérése/beállítása (0.0 = teljesen kicsinyítve, 1.0 = teljesen nagyítva)
 float currentScale = m_Map.GetScale();
-m_Map.SetScale(0.33);  // moderate zoom level
+m_Map.SetScale(0.33);  // mérsékelt zoom szint
 
-// Get map info
-float contourInterval = m_Map.GetContourInterval();  // meters between contour lines
-float cellSize = m_Map.GetCellSize(legendWidth);      // cell size for scale ruler
+// Térkép információk lekérése
+float contourInterval = m_Map.GetContourInterval();  // méter a szintvonalak között
+float cellSize = m_Map.GetCellSize(legendWidth);      // cellaméret a skála vonalzóhoz
 ```
 
-### Map Click Handling
+### Térkép kattintás kezelés
 
-Handle mouse clicks on the map via the `OnDoubleClick` or `OnMouseButtonDown` callbacks on a `ScriptedWidgetEventHandler` or `UIScriptedMenu`. Convert the click position to world coordinates using `ScreenToMap()`.
+Kezeld az egérkattintásokat a térképen az `OnDoubleClick` vagy `OnMouseButtonDown` callbackeken keresztül egy `ScriptedWidgetEventHandler`-en vagy `UIScriptedMenu`-n. Alakítsd át a kattintás pozíciót világ koordinátákra a `ScreenToMap()` segítségével.
 
-Vanilla example from `scripts/5_mission/gui/scriptconsolegeneraltab.c`:
+Vanilla példa a `scripts/5_mission/gui/scriptconsolegeneraltab.c` fájlból:
 
 ```c
 override bool OnDoubleClick(Widget w, int x, int y, int button)
@@ -660,21 +662,21 @@ override bool OnDoubleClick(Widget w, int x, int y, int button)
 
     if (w == m_DebugMapWidget)
     {
-        // Convert screen click to world coordinates
+        // Képernyő kattintás átalakítása világ koordinátákra
         vector worldPos = m_DebugMapWidget.ScreenToMap(Vector(x, y, 0));
 
-        // Get terrain height at that position
+        // Terep magasság lekérése az adott pozícióban
         float surfaceY = g_Game.SurfaceY(worldPos[0], worldPos[2]);
         float roadY = g_Game.SurfaceRoadY(worldPos[0], worldPos[2]);
         worldPos[1] = Math.Max(surfaceY, roadY);
 
-        // Use the world position (e.g., teleport player)
+        // A világ pozíció használata (pl. játékos teleportálása)
     }
     return false;
 }
 ```
 
-From `scripts/5_mission/gui/maphandler.c`:
+A `scripts/5_mission/gui/maphandler.c` fájlból:
 
 ```c
 class MapHandler : ScriptedWidgetEventHandler
@@ -682,33 +684,33 @@ class MapHandler : ScriptedWidgetEventHandler
     override bool OnDoubleClick(Widget w, int x, int y, int button)
     {
         vector worldPos = MapWidget.Cast(w).ScreenToMap(Vector(x, y, 0));
-        // Place a marker, teleport, etc.
+        // Jelölő elhelyezése, teleportálás, stb.
         return true;
     }
 }
 ```
 
-### Expansion Map Jelolo System
+### Expansion térkép jelölő rendszer
 
-The Expansion mod builds a full marker system on top of the vanilla `MapWidget`. Key patterns:
+Az Expansion mod egy teljes jelölő rendszert épít a vanilla `MapWidget` tetejére. Főbb minták:
 
-- Maintains separate dictionaries for personal, server, party, and player markers
-- Limits per-frame marker updates (`m_MaxJeloloUpdatesPerFrame = 3`) for performance
-- Draws scale ruler lines using a `CanvasWidget` alongside the map
-- Uses custom marker widget overlays positioned via `MapToScreen()` for richer marker visuals than `AddUserMark()` supports
+- Külön szótárakat tart fenn személyes, szerver, csapat és játékos jelölőkhöz
+- Korlátozza a képkockánkénti jelölő frissítéseket (`m_MaxMarkerUpdatesPerFrame = 3`) a teljesítmény érdekében
+- Skála vonalzó vonalakat rajzol egy `CanvasWidget` segítségével a térkép mellett
+- Egyéni jelölő widget overlayeket használ, amelyeket a `MapToScreen()` segítségével pozícionál, gazdagabb jelölő vizualitáshoz, mint amit az `AddUserMark()` támogat
 
-This approach demonstrates that for complex marker UIs (icons with tooltips, editable labels, colored categories), you should overlay custom widgets positioned via `MapToScreen()` rather than relying solely on `AddUserMark()`.
+Ez a megközelítés bemutatja, hogy összetett jelölő felületeknél (ikonok eszköztippekkel, szerkeszthető címkékkel, színes kategóriákkal) egyéni widgeteket kell pozícionálnod a `MapToScreen()` segítségével, ahelyett hogy kizárólag az `AddUserMark()`-ra hagyatkoznál.
 
 ---
 
 ## ItemPreviewWidget
 
-`ItemPreviewWidget` renders a 3D preview of any `EntityAI` (item, weapon, vehicle) inside a UI panel.
+Az `ItemPreviewWidget` bármely `EntityAI` (tárgy, fegyver, jármű) 3D előnézetét rendereli egy UI panelen belül.
 
-### Class Definition
+### Osztálydefiníció
 
 ```
-// From scripts/3_game/gameplay.c
+// Forrás: scripts/3_game/gameplay.c
 class ItemPreviewWidget: Widget
 {
     proto native void    SetItem(EntityAI object);
@@ -724,19 +726,19 @@ class ItemPreviewWidget: Widget
 };
 ```
 
-### View Indices
+### Nézet indexek
 
-The `viewIndex` parameter selects which bounding box and camera angle to use. These are defined per item in the item's config:
+A `viewIndex` paraméter kiválasztja, melyik befoglaló dobozt és kameraszöget használja. Ezek tárgyankénti konfigurációban vannak definiálva:
 
-- View 0: default (`boundingbox_min` + `boundingbox_max` + `invView`)
-- View 1: alternate (`boundingbox_min2` + `boundingbox_max2` + `invView2`)
-- View 2+: additional views if defined
+- View 0: alapértelmezett (`boundingbox_min` + `boundingbox_max` + `invView`)
+- View 1: alternatív (`boundingbox_min2` + `boundingbox_max2` + `invView2`)
+- View 2+: további nézetek, ha definiálva vannak
 
-Use `item.GetViewIndex()` to get the item's preferred view.
+Használd az `item.GetViewIndex()` metódust a tárgy preferált nézetének lekéréséhez.
 
-### Hasznalat Minta -- Item Inspection
+### Használati minta -- Tárgy vizsgálat
 
-From `scripts/5_mission/gui/inspectmenunew.c`:
+A `scripts/5_mission/gui/inspectmenunew.c` fájlból:
 
 ```c
 class InspectMenuNew extends UIScriptedMenu
@@ -759,9 +761,9 @@ class InspectMenuNew extends UIScriptedMenu
 }
 ```
 
-### Rotation Control (Mouse Drag)
+### Forgatás vezérlés (egér húzás)
 
-The standard pattern for interactive rotation:
+A standard minta az interaktív forgatáshoz:
 
 ```c
 private int m_RotationX;
@@ -782,8 +784,8 @@ override bool OnMouseButtonDown(Widget w, int x, int y, int button)
 void UpdateRotation(int mouse_x, int mouse_y, bool is_dragging)
 {
     vector o = m_Orientation;
-    o[0] = o[0] + (m_RotationY - mouse_y);  // pitch
-    o[1] = o[1] - (m_RotationX - mouse_x);  // yaw
+    o[0] = o[0] + (m_RotationY - mouse_y);  // billenés
+    o[1] = o[1] - (m_RotationX - mouse_x);  // forgás
     m_item_widget.SetModelOrientation(o);
 
     if (!is_dragging)
@@ -791,7 +793,7 @@ void UpdateRotation(int mouse_x, int mouse_y, bool is_dragging)
 }
 ```
 
-### Zoom Control (Mouse Wheel)
+### Zoom vezérlés (egérgörgő)
 
 ```c
 override bool OnMouseWheel(Widget w, int x, int y, int wheel)
@@ -815,12 +817,12 @@ override bool OnMouseWheel(Widget w, int x, int y, int wheel)
 
 ## PlayerPreviewWidget
 
-`PlayerPreviewWidget` renders a full 3D player character model in the UI, complete with equipped items and animations.
+A `PlayerPreviewWidget` egy teljes 3D játékos karakter modellt renderel a felületen, felszerelt tárgyakkal és animációkkal.
 
-### Class Definition
+### Osztálydefiníció
 
 ```
-// From scripts/3_game/gameplay.c
+// Forrás: scripts/3_game/gameplay.c
 class PlayerPreviewWidget: Widget
 {
     proto native void       UpdateItemInHands(EntityAI object);
@@ -834,9 +836,9 @@ class PlayerPreviewWidget: Widget
 };
 ```
 
-### Hasznalat Minta -- Inventory Character Preview
+### Használati minta -- Felszerelés karakter előnézet
 
-From `scripts/5_mission/gui/inventorynew/playerpreview.c`:
+A `scripts/5_mission/gui/inventorynew/playerpreview.c` fájlból:
 
 ```c
 class PlayerPreview: LayoutHolder
@@ -863,19 +865,19 @@ class PlayerPreview: LayoutHolder
 }
 ```
 
-### Keeping Equipment Updated
+### Felszerelés naprakészen tartása
 
-The `UpdateInterval()` method keeps the preview in sync with the actual player's equipment:
+Az `UpdateInterval()` metódus szinkronban tartja az előnézetet a tényleges játékos felszerelésével:
 
 ```c
 override void UpdateInterval()
 {
-    // Update held item
+    // Kézben tartott tárgy frissítése
     m_CharacterPanelWidget.UpdateItemInHands(
         g_Game.GetPlayer().GetEntityInHands()
     );
 
-    // Access the dummy player for animation sync
+    // A dummy játékos elérése animáció szinkronizáláshoz
     DayZPlayer dummyPlayer = m_CharacterPanelWidget.GetDummyPlayer();
     if (dummyPlayer)
     {
@@ -892,20 +894,20 @@ override void UpdateInterval()
 }
 ```
 
-### Rotation and Zoom
+### Forgatás és zoom
 
-The rotation and zoom patterns are identical to `ItemPreviewWidget` -- use `SetModelOrientation()` with mouse drag, and `SetSize()` with mouse wheel. See the previous section for the full code.
+A forgatási és zoom minták azonosak az `ItemPreviewWidget`-éval -- használd a `SetModelOrientation()` metódust egér húzással, és a `SetSize()` metódust egérgörgővel. Lásd az előző szekciót a teljes kódért.
 
 ---
 
 ## VideoWidget
 
-`VideoWidget` plays video files in the UI. It supports playback control, looping, seeking, state queries, subtitles, and event callbacks.
+A `VideoWidget` videó fájlokat játszik le a felületen. Támogatja a lejátszás vezérlést, ismétlést, tekerést, állapot lekérdezéseket, feliratokat és esemény callbackeket.
 
-### Class Definition
+### Osztálydefiníció
 
 ```
-// From scripts/1_core/proto/enwidgets.c
+// Forrás: scripts/1_core/proto/enwidgets.c
 enum VideoState { NONE, PLAYING, PAUSED, STOPPED, FINISHED };
 
 enum VideoCallback
@@ -934,9 +936,9 @@ class VideoWidget extends Widget
 };
 ```
 
-### Hasznalat Minta -- Menu Video
+### Használati minta -- Menü videó
 
-From `scripts/5_mission/gui/newui/mainmenu/mainmenuvideo.c`:
+A `scripts/5_mission/gui/newui/mainmenu/mainmenuvideo.c` fájlból:
 
 ```c
 protected VideoWidget m_Video;
@@ -951,7 +953,7 @@ override Widget Init()
     m_Video.Load("video\\DayZ_onboarding_MASTER.mp4");
     m_Video.Play();
 
-    // Register callback for when video ends
+    // Callback regisztrálása a videó végéhez
     m_Video.SetCallback(VideoCallback.ON_END, StopVideo);
 
     return layoutRoot;
@@ -959,34 +961,34 @@ override Widget Init()
 
 void StopVideo()
 {
-    // Handle video completion
+    // Videó befejezés kezelése
     Close();
 }
 ```
 
-### Subtitles
+### Feliratok
 
-Subtitles require a font assigned to the `VideoWidget` in the layout. Subtitle files use the naming convention `videoName_Language.srt`, with the English version named `videoName.srt` (no language suffix).
+A feliratok megkövetelik, hogy egy betűtípus legyen hozzárendelve a `VideoWidget`-hez a layoutban. A felirat fájlok a `videoName_Language.srt` elnevezési konvenciót használják, az angol verzió `videoName.srt` névvel (nyelvi utótag nélkül).
 
 ```c
-// Subtitles are enabled by default
-m_Video.DisableSubtitles(false);  // explicitly enable
+// A feliratok alapértelmezés szerint engedélyezve vannak
+m_Video.DisableSubtitles(false);  // explicit engedélyezés
 ```
 
-### Return Erteks
+### Visszatérési értékek
 
-The `Load()`, `Play()`, `Pause()`, and `Stop()` methods return `bool`, but this return value is **deprecated**. Use `VideoCallback.ON_ERROR` to detect failures instead.
+A `Load()`, `Play()`, `Pause()` és `Stop()` metódusok `bool`-t adnak vissza, de ez a visszatérési érték **elavult**. Használd a `VideoCallback.ON_ERROR`-t a hibák észleléséhez.
 
 ---
 
-## RenderTargetWidget and RTTextureWidget
+## RenderTargetWidget és RTTextureWidget
 
-These widgets enable rendering a 3D world view into a UI widget.
+Ezek a widgetek lehetővé teszik egy 3D világnézet renderelését egy UI widgetbe.
 
-### Class Definitions
+### Osztálydefiníciók
 
 ```
-// From scripts/1_core/proto/enwidgets.c
+// Forrás: scripts/1_core/proto/enwidgets.c
 class RenderTargetWidget extends Widget
 {
     proto native void SetRefresh(int period, int offset);
@@ -995,11 +997,11 @@ class RenderTargetWidget extends Widget
 
 class RTTextureWidget extends Widget
 {
-    // No additional methods -- serves as a texture target for children
+    // Nincsenek további metódusok -- textúra célként szolgál a gyerekeknek
 };
 ```
 
-The global function `SetWidgetWorld` binds a render target to a world and camera:
+A `SetWidgetWorld` globális függvény köt egy render target-et egy világhoz és kamerához:
 
 ```
 proto native void SetWidgetWorld(
@@ -1011,12 +1013,12 @@ proto native void SetWidgetWorld(
 
 ### RenderTargetWidget
 
-Renders a camera view from a `BaseWorld` into the widget area. Used for security cameras, rear-view mirrors, or picture-in-picture displays.
+Egy kameranézetet renderel egy `BaseWorld`-ből a widget területére. Biztonsági kamerákhoz, visszapillantó tükrökhöz vagy kép-a-képben kijelzőkhöz használják.
 
-From `scripts/2_gamelib/entities/rendertarget.c`:
+A `scripts/2_gamelib/entities/rendertarget.c` fájlból:
 
 ```c
-// Create render target programmatically
+// Render target programozottan létrehozása
 RenderTargetWidget m_RenderWidget;
 
 int screenW, screenH;
@@ -1036,23 +1038,23 @@ Class.CastTo(m_RenderWidget, g_Game.GetWorkspace().CreateWidget(
     sortOrder
 ));
 
-// Bind to the game world with camera index 0
+// Kötés a játék világhoz a 0-s kamera indexszel
 SetWidgetWorld(m_RenderWidget, g_Game.GetWorldEntity(), 0);
 ```
 
-**Refresh control:**
+**Frissítés vezérlés:**
 
 ```c
-// Render every 2nd frame (period=2, offset=0)
+// Renderelés minden 2. képkockánál (period=2, offset=0)
 m_RenderWidget.SetRefresh(2, 0);
 
-// Render at half resolution for performance
+// Renderelés fele felbontáson a teljesítmény érdekében
 m_RenderWidget.SetResolutionScale(0.5, 0.5);
 ```
 
 ### RTTextureWidget
 
-`RTTextureWidget` has no script-side methods beyond those inherited from `Widget`. It serves as a render target texture that child widgets can be rendered into. An `ImageWidget` can reference an `RTTextureWidget` as its texture source via `SetImageTexture()`:
+Az `RTTextureWidget`-nek nincsenek script oldali metódusai a `Widget`-től örökölteken túl. Render target textúraként szolgál, amelybe gyerek widgetek renderelhetők. Egy `ImageWidget` hivatkozhat egy `RTTextureWidget`-re textúra forrásaként a `SetImageTexture()` segítségével:
 
 ```c
 ImageWidget imgWidget;
@@ -1064,57 +1066,57 @@ imgWidget.SetImageTexture(0, rtTexture);
 
 ## Legjobb gyakorlatok
 
-1. **Use the right widget for the job.** `TextWidget` for simple labels, `RichTextWidget` only when you need inline images or formatted content. `CanvasWidget` for dynamic 2D overlays, not static graphics (use `ImageWidget` for those).
+1. **Használd a megfelelő widgetet a feladathoz.** `TextWidget` egyszerű címkékhez, `RichTextWidget` csak akkor, ha inline képekre vagy formázott tartalomra van szükséged. `CanvasWidget` dinamikus 2D overlayekhez, nem statikus grafikákhoz (használj `ImageWidget`-et azokhoz).
 
-2. **Clear canvas every frame.** Always call `Clear()` before redrawing. Failing to clear causes drawings to accumulate and creates visual artifacts.
+2. **Töröld a vásznat minden képkockánál.** Mindig hívd meg a `Clear()` metódust az újrarajzolás előtt. A törlés elmulasztása a rajzok felhalmozódását okozza és vizuális hibákat hoz létre.
 
-3. **Check screen bounds for ESP/overlay drawing.** Before calling `DrawLine()`, verify both endpoints are on screen. Off-screen draws are wasted work.
+3. **Ellenőrizd a képernyő határokat ESP/overlay rajzoláshoz.** A `DrawLine()` hívása előtt ellenőrizd, hogy mindkét végpont a képernyőn van. A képernyőn kívüli rajzolás pazarlás.
 
-4. **Map markers: clear-and-rebuild pattern.** There is no `RemoveUserMark()` method. Call `ClearUserMarks()` then re-add all active markers each update. This is the pattern used by every vanilla and mod implementation.
+4. **Térkép jelölők: törlés-és-újraépítés minta.** Nincs `RemoveUserMark()` metódus. Hívd meg a `ClearUserMarks()` metódust, majd add újra hozzá az összes aktív jelölőt minden frissítésnél. Ezt a mintát használja minden vanilla és mod implementáció.
 
-5. **ItemPreviewWidget needs a real EntityAI.** You cannot preview a classname string -- you need a spawned entity reference. For inventory previews, use the actual inventory item.
+5. **Az ItemPreviewWidget-nek valós EntityAI kell.** Nem tudsz előnézni egy osztálynév stringet -- szükséged van egy spawnolt entitás referenciára. Felszerelés előnézetekhez használd a tényleges felszerelés tárgyat.
 
-6. **PlayerPreviewWidget owns a dummy player.** The widget creates an internal dummy `DayZPlayer`. Access it via `GetDummyPlayer()` to sync animations, but do not destroy it yourself.
+6. **A PlayerPreviewWidget saját dummy játékost birtokol.** A widget létrehoz egy belső dummy `DayZPlayer`-t. Érd el a `GetDummyPlayer()` segítségével az animációk szinkronizálásához, de ne semmisítsd meg magad.
 
-7. **VideoWidget: use callbacks, not return values.** The bool returns from `Load()`, `Play()`, etc. are deprecated. Use `SetCallback(VideoCallback.ON_ERROR, handler)`.
+7. **VideoWidget: használj callbackeket, ne visszatérési értékeket.** A `Load()`, `Play()`, stb. bool visszatérési értékei elavultak. Használd a `SetCallback(VideoCallback.ON_ERROR, handler)` metódust.
 
-8. **RenderTargetWidget performance.** Use `SetRefresh()` with period > 1 to skip frames. Use `SetResolutionScale()` to reduce resolution. These widgets are expensive -- use sparingly.
-
----
-
-## Valos modokban megfigyelt
-
-| Mod | Widget | Hasznalat |
-|-----|--------|-------|
-| **COT** | `CanvasWidget` | Full-screen ESP overlay with skeleton drawing, world-to-screen projection, circle and line primitives |
-| **COT** | `MapWidget` | Admin teleport via `ScreenToMap()` on double-click |
-| **Expansion** | `MapWidget` | Custom marker system with personal/server/party categories, per-frame update throttling |
-| **Expansion** | `CanvasWidget` | Map scale ruler drawing alongside `MapWidget` |
-| **Vanilla Map** | `MapWidget` + `CanvasWidget` | Scale ruler rendered with alternating black/grey line segments |
-| **Vanilla Inspect** | `ItemPreviewWidget` | 3D item inspection with drag rotation and scroll zoom |
-| **Vanilla Inventory** | `PlayerPreviewWidget` | Character preview with equipment sync and injury animations |
-| **Vanilla Hints** | `RichTextWidget` | In-game hint panel with formatted description text |
-| **Vanilla Menus** | `RichTextWidget` | Controller button icons via `InputUtils.GetRichtextButtonIkonFromInputAkcio()` |
-| **Vanilla Books** | `HtmlWidget` | Loading and paging through `.html` text files |
-| **Vanilla Main Menu** | `VideoWidget` | Onboarding video with end callback |
-| **Vanilla Render Target** | `RenderTargetWidget` | Camera-to-widget rendering with configurable refresh rate |
+8. **RenderTargetWidget teljesítmény.** Használd a `SetRefresh()` metódust period > 1 értékkel képkockák kihagyásához. Használd a `SetResolutionScale()` metódust a felbontás csökkentéséhez. Ezek a widgetek drágák -- használd takarékosan.
 
 ---
 
-## Gyakori hibak
+## Valós modokban megfigyelt minták
 
-**1. Using RichTextWidget where TextWidget suffices.**
-Rich text parsing has overhead. If you only need plain text, use `TextWidget`.
+| Mod | Widget | Használat |
+|-----|--------|-----------|
+| **COT** | `CanvasWidget` | Teljes képernyős ESP overlay csontváz rajzolással, világ-képernyő vetítéssel, kör és vonal primitívekkel |
+| **COT** | `MapWidget` | Admin teleportálás a `ScreenToMap()` segítségével dupla kattintásra |
+| **Expansion** | `MapWidget` | Egyéni jelölő rendszer személyes/szerver/csapat kategóriákkal, képkockánkénti frissítés korlátozással |
+| **Expansion** | `CanvasWidget` | Térkép skála vonalzó rajzolás a `MapWidget` mellett |
+| **Vanilla térkép** | `MapWidget` + `CanvasWidget` | Skála vonalzó váltakozó fekete/szürke vonalszegmensekkel |
+| **Vanilla vizsgálat** | `ItemPreviewWidget` | 3D tárgy vizsgálat húzásos forgatással és görgős zoommal |
+| **Vanilla felszerelés** | `PlayerPreviewWidget` | Karakter előnézet felszerelés szinkronizálással és sérülés animációkkal |
+| **Vanilla tippek** | `RichTextWidget` | Játékon belüli tipp panel formázott leírás szöveggel |
+| **Vanilla menük** | `RichTextWidget` | Kontroller gomb ikonok az `InputUtils.GetRichtextButtonIconFromInputAction()` segítségével |
+| **Vanilla könyvek** | `HtmlWidget` | `.html` szövegfájlok betöltése és lapozása |
+| **Vanilla főmenü** | `VideoWidget` | Bevezető videó vége callbackkel |
+| **Vanilla render target** | `RenderTargetWidget` | Kamera-widget renderelés konfigurálható frissítési rátával |
 
-**2. Forgetting to Clear() the canvas.**
+---
+
+## Gyakori hibák
+
+**1. RichTextWidget használata ott, ahol a TextWidget is elég.**
+A formázott szöveg elemzésnek van többletterhelése. Ha csak egyszerű szövegre van szükséged, használj `TextWidget`-et.
+
+**2. A vászon Clear() elfelejtése.**
 ```c
-// WRONG - drawings accumulate, filling the screen
+// HELYTELEN - a rajzok felhalmozódnak, megtöltik a képernyőt
 void Update(float dt)
 {
     m_Canvas.DrawLine(0, 0, 100, 100, 1, COLOR_RED);
 }
 
-// CORRECT
+// HELYES
 void Update(float dt)
 {
     m_Canvas.Clear();
@@ -1122,70 +1124,70 @@ void Update(float dt)
 }
 ```
 
-**3. Drawing behind the camera.**
+**3. Rajzolás a kamera mögé.**
 ```c
-// WRONG - draws lines to objects behind you
+// HELYTELEN - vonalakat rajzol a mögötted lévő objektumokhoz
 vector screenPos = g_Game.GetScreenPosRelative(worldPos);
-// No bounds check!
+// Nincs határ ellenőrzés!
 
-// CORRECT
+// HELYES
 vector screenPos = g_Game.GetScreenPosRelative(worldPos);
 if (screenPos[2] < 0)
-    return;  // behind camera
+    return;  // kamera mögött
 if (screenPos[0] < 0 || screenPos[0] > 1 || screenPos[1] < 0 || screenPos[1] > 1)
-    return;  // off screen
+    return;  // képernyőn kívül
 ```
 
-**4. Trying to remove a single map marker.**
-There is no `RemoveUserMark()`. You must `ClearUserMarks()` and re-add all markers you want to keep.
+**4. Egyetlen térkép jelölő eltávolításának kísérlete.**
+Nincs `RemoveUserMark()`. A `ClearUserMarks()` metódust kell meghívnod, és újra hozzá kell adnod az összes jelölőt, amelyet meg akarsz tartani.
 
-**5. Setting ItemPreviewWidget item to null without checking.**
-Always guard against null entity references before calling `SetItem()`.
+**5. Az ItemPreviewWidget tárgyának null-ra állítása ellenőrzés nélkül.**
+Mindig védekezz null entitás referenciák ellen a `SetItem()` meghívása előtt.
 
-**6. Not setting ignorepointer on overlay canvases.**
-A canvas without `ignorepointer 1` will intercept all mouse events, making the UI beneath it unresponsive.
+**6. Az ignorepointer beállításának elmulasztása overlay vásznakon.**
+Egy `ignorepointer 1` nélküli vászon elfog minden egér eseményt, ami az alatta lévő felületet nem reagálóvá teszi.
 
-**7. Using backslashes in texture paths without doubling.**
-In Enforce Script strings, backslashes must be doubled:
+**7. Visszaper jelek használata textúra útvonalakban megduplázás nélkül.**
+Enforce Script stringekben a visszaper jeleket meg kell duplázni:
 ```c
-// WRONG
+// HELYTELEN
 "\\dz\\gear\\navigation\\data\\map_tree_ca.paa"
-// This is actually CORRECT in Enforce Script -- each \\ produces one \
+// Ez valójában HELYES az Enforce Script-ben -- minden \\ egy \-t eredményez
 ```
 
 ---
 
-## Kompatibilitas es hatas
+## Kompatibilitás és hatás
 
-| Widget | Client-Only | Performance Cost | Mod Compatibility |
-|--------|------------|-----------------|-------------------|
-| `RichTextWidget` | Yes | Low (tag parsing) | Safe, no conflicts |
-| `CanvasWidget` | Yes | Medium (per-frame) | Safe if `ignorepointer` set |
-| `MapWidget` | Yes | Low-Medium | Multiple mods can add markers |
-| `ItemPreviewWidget` | Yes | Medium (3D render) | Safe, widget-scoped |
-| `PlayerPreviewWidget` | Yes | Medium (3D render) | Safe, creates dummy player |
-| `VideoWidget` | Yes | High (video decode) | One video at a time |
-| `RenderTargetWidget` | Yes | High (3D render) | Camera conflicts possible |
-| `RTTextureWidget` | Yes | Low (texture target) | Safe |
+| Widget | Csak kliens | Teljesítmény költség | Mod kompatibilitás |
+|--------|------------|---------------------|-------------------|
+| `RichTextWidget` | Igen | Alacsony (tag elemzés) | Biztonságos, nincs ütközés |
+| `CanvasWidget` | Igen | Közepes (képkockánkénti) | Biztonságos, ha az `ignorepointer` be van állítva |
+| `MapWidget` | Igen | Alacsony-Közepes | Több mod is hozzáadhat jelölőket |
+| `ItemPreviewWidget` | Igen | Közepes (3D renderelés) | Biztonságos, widget-hatókörű |
+| `PlayerPreviewWidget` | Igen | Közepes (3D renderelés) | Biztonságos, dummy játékost hoz létre |
+| `VideoWidget` | Igen | Magas (videó dekódolás) | Egyszerre egy videó |
+| `RenderTargetWidget` | Igen | Magas (3D renderelés) | Kamera ütközések lehetségesek |
+| `RTTextureWidget` | Igen | Alacsony (textúra cél) | Biztonságos |
 
-All these widgets are client-side only. They have no server-side representation and cannot be created or manipulated from server scripts.
-
----
-
-## Osszefoglalas
-
-| Widget | Primary Use | Key Metoduss |
-|--------|-----------|-------------|
-| `RichTextWidget` | Formatted text with inline images | `SetText()`, `GetContentHeight()`, `SetContentOffset()` |
-| `HtmlWidget` | Loading formatted text files | `LoadFile()` |
-| `CanvasWidget` | 2D drawing overlay | `DrawLine()`, `Clear()` |
-| `MapWidget` | Terrain map with markers | `AddUserMark()`, `ClearUserMarks()`, `ScreenToMap()`, `MapToScreen()` |
-| `ItemPreviewWidget` | 3D item display | `SetItem()`, `SetView()`, `SetModelOrientation()` |
-| `PlayerPreviewWidget` | 3D player character display | `SetPlayer()`, `Refresh()`, `UpdateItemInHands()` |
-| `VideoWidget` | Video playback | `Load()`, `Play()`, `Pause()`, `SetCallback()` |
-| `RenderTargetWidget` | Real-time 3D camera view | `SetRefresh()`, `SetResolutionScale()` + `SetWidgetWorld()` |
-| `RTTextureWidget` | Render-to-texture target | Serves as texture source for `ImageWidget.SetImageTexture()` |
+Ezek a widgetek mind kizárólag kliens oldaliak. Nincs szerver oldali reprezentációjuk, és nem hozhatók létre vagy manipulálhatók szerver scriptekből.
 
 ---
 
-*This chapter completes the GUI system section. All API signatures and patterns are confirmed from vanilla DayZ scripts and real mod source code.*
+## Összefoglalás
+
+| Widget | Elsődleges használat | Fő metódusok |
+|--------|---------------------|-------------|
+| `RichTextWidget` | Formázott szöveg inline képekkel | `SetText()`, `GetContentHeight()`, `SetContentOffset()` |
+| `HtmlWidget` | Formázott szövegfájlok betöltése | `LoadFile()` |
+| `CanvasWidget` | 2D rajzolás overlay | `DrawLine()`, `Clear()` |
+| `MapWidget` | Terep térkép jelölőkkel | `AddUserMark()`, `ClearUserMarks()`, `ScreenToMap()`, `MapToScreen()` |
+| `ItemPreviewWidget` | 3D tárgy megjelenítés | `SetItem()`, `SetView()`, `SetModelOrientation()` |
+| `PlayerPreviewWidget` | 3D játékos karakter megjelenítés | `SetPlayer()`, `Refresh()`, `UpdateItemInHands()` |
+| `VideoWidget` | Videó lejátszás | `Load()`, `Play()`, `Pause()`, `SetCallback()` |
+| `RenderTargetWidget` | Valós idejű 3D kameranézet | `SetRefresh()`, `SetResolutionScale()` + `SetWidgetWorld()` |
+| `RTTextureWidget` | Render-to-texture cél | Textúra forrásként szolgál az `ImageWidget.SetImageTexture()` számára |
+
+---
+
+*Ez a fejezet lezárja a GUI rendszer szekciót. Minden API szignatúra és minta megerősítve van a vanilla DayZ scriptekből és valós mod forráskódból.*
