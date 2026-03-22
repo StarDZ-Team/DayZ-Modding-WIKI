@@ -1,46 +1,50 @@
-# Chapter 8.4: Adding Chat Commands
+# チャプター 8.4: チャットコマンドの追加
 
-[Home](../../README.md) | [<< Previous: Building an Admin Panel](03-admin-panel.md) | **Adding Chat Commands** | [Next: Using the DayZ Mod Template >>](05-mod-template.md)
+[ホーム](../../README.md) | [<< 前へ: 管理パネルの構築](03-admin-panel.md) | **チャットコマンドの追加** | [次へ: DayZ Modテンプレートの使用 >>](05-mod-template.md)
+
+---
+
+> **概要:** このチュートリアルでは、DayZ用のチャットコマンドシステムの作成方法を解説します。チャット入力へのフック、コマンドプレフィックスと引数の解析、管理者権限の確認、サーバーサイドアクションの実行、プレイヤーへのフィードバック送信を行います。最終的に、管理者のキャラクターを完全回復する `/heal` コマンドと、さらにコマンドを追加するためのフレームワークが完成します。
 
 ---
 
 ## 目次
 
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Step 1: Hook Into Chat Input](#step-1-hook-into-chat-input)
-- [Step 2: Parse Command Prefix and Arguments](#step-2-parse-command-prefix-and-arguments)
-- [Step 3: Check Admin Permissions](#step-3-check-admin-permissions)
-- [Step 4: Execute the Server-Side Action](#step-4-execute-the-server-side-action)
-- [Step 5: Send Feedback to the Admin](#step-5-send-feedback-to-the-admin)
-- [Step 6: Register Commands](#step-6-register-commands)
-- [Step 7: Add to an Admin Panel Command List](#step-7-add-to-an-admin-panel-command-list)
-- [Complete Working Code: /heal Command](#complete-working-code-heal-command)
-- [Adding More Commands](#adding-more-commands)
-- [Troubleshooting](#troubleshooting)
-- [Next Steps](#next-steps)
+- [構築するもの](#構築するもの)
+- [前提条件](#前提条件)
+- [アーキテクチャ概要](#アーキテクチャ概要)
+- [ステップ1: チャット入力へのフック](#ステップ1-チャット入力へのフック)
+- [ステップ2: コマンドプレフィックスと引数の解析](#ステップ2-コマンドプレフィックスと引数の解析)
+- [ステップ3: 管理者権限の確認](#ステップ3-管理者権限の確認)
+- [ステップ4: サーバーサイドアクションの実行](#ステップ4-サーバーサイドアクションの実行)
+- [ステップ5: 管理者へのフィードバック送信](#ステップ5-管理者へのフィードバック送信)
+- [ステップ6: コマンドの登録](#ステップ6-コマンドの登録)
+- [ステップ7: 管理パネルのコマンドリストへの追加](#ステップ7-管理パネルのコマンドリストへの追加)
+- [完全な動作コード: /heal コマンド](#完全な動作コード-heal-コマンド)
+- [コマンドの追加](#コマンドの追加)
+- [トラブルシューティング](#トラブルシューティング)
+- [次のステップ](#次のステップ)
 
 ---
 
-## What We Are Building
+## 構築するもの
 
-A chat command system with:
+以下の機能を持つチャットコマンドシステムを構築します：
 
-- **`/heal`** -- Fully heals the admin's character (health, blood, shock, hunger, thirst)
-- **`/heal PlayerName`** -- Heals a specific player by name
-- A reusable framework for adding `/kill`, `/teleport`, `/time`, `/weather`, and any other command
-- Admin permission checking so regular players cannot use admin commands
-- Server-side execution with chat feedback messages
+- **`/heal`** -- 管理者のキャラクターを完全回復（体力、血液、ショック、空腹、渇き）
+- **`/heal PlayerName`** -- 名前で指定したプレイヤーを回復
+- `/kill`、`/teleport`、`/time`、`/weather` など、任意のコマンドを追加できる再利用可能なフレームワーク
+- 一般プレイヤーが管理者コマンドを使用できないようにする権限チェック
+- チャットフィードバックメッセージ付きのサーバーサイド実行
 
 ---
 
-## Prerequisites
+## 前提条件
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Understanding of the [client-server RPC pattern](03-admin-panel.md) from Chapter 8.3
+- 動作するMod構造（先に [チャプター 8.1](01-first-mod.md) を完了してください）
+- チャプター 8.3 の [クライアント-サーバーRPCパターン](03-admin-panel.md) の理解
 
-### Mod Structure for This Tutorial
+### このチュートリアルのMod構造
 
 ```
 ChatCommands/
@@ -64,52 +68,52 @@ ChatCommands/
 
 ---
 
-## Architecture Overview
+## アーキテクチャ概要
 
-Chat commands follow this flow:
+チャットコマンドは以下のフローに従います：
 
 ```
-CLIENT                                  SERVER
-------                                  ------
+クライアント                                サーバー
+----------                                ------
 
-1. Admin types "/heal" in chat
-2. Chat hook intercepts the message
-   (prevents it from being sent as chat)
-3. Client sends command via RPC  ---->  4. Server receives RPC
-                                            Checks admin permissions
-                                            Looks up command handler
-                                            Executes the command
-                                        5. Server sends feedback  ---->  CLIENT
-                                            (chat message RPC)
-                                                                     6. Admin sees
-                                                                        feedback in chat
+1. 管理者がチャットで "/heal" と入力
+2. チャットフックがメッセージを傍受
+   （通常のチャットとして送信されるのを防ぐ）
+3. クライアントがRPCでコマンドを送信 ---->  4. サーバーがRPCを受信
+                                              管理者権限を確認
+                                              コマンドハンドラーを検索
+                                              コマンドを実行
+                                          5. サーバーがフィードバックを送信 ----> クライアント
+                                              （チャットメッセージRPC）
+                                                                           6. 管理者がチャットで
+                                                                              フィードバックを確認
 ```
 
-**Why process commands on the server?** Because the server has authority over game state. Only the server can reliably heal players, change weather, teleport characters, and modify world state. The client's role is limited to detecting the command and forwarding it.
+**なぜサーバーでコマンドを処理するのか？** サーバーがゲーム状態に対する権限を持っているためです。プレイヤーの回復、天候の変更、キャラクターのテレポート、ワールド状態の変更を確実に行えるのはサーバーだけです。クライアントの役割はコマンドの検出と転送に限定されます。
 
 ---
 
-## Step 1: Hook Into Chat Input
+## ステップ1: チャット入力へのフック
 
-We need to intercept chat messages before they are sent as regular chat. DayZ provides the `ChatInputMenu` class for this purpose.
+通常のチャットとして送信される前に、チャットメッセージを傍受する必要があります。DayZはこの目的のために `ChatInputMenu` クラスを提供しています。
 
-### The Chat Hook Approach
+### チャットフックのアプローチ
 
-We will mod the `MissionGameplay` class to intercept chat input events. When the player submits a chat message starting with `/`, we intercept it, prevent it from being sent as normal chat, and instead send it as a command RPC to the server.
+`MissionGameplay` クラスをmodして、チャット入力イベントを傍受します。プレイヤーが `/` で始まるチャットメッセージを送信すると、それを傍受し、通常のチャットとしての送信を防ぎ、代わりにコマンドRPCとしてサーバーに送信します。
 
-### Create `Scripts/5_Mission/ChatCommands/CCmdChatHook.c`
+### `Scripts/5_Mission/ChatCommands/CCmdChatHook.c` の作成
 
 ```c
 modded class MissionGameplay
 {
     // -------------------------------------------------------
-    // Intercept chat messages that start with /
+    // / で始まるチャットメッセージを傍受する
     // -------------------------------------------------------
     override void OnEvent(EventType eventTypeId, Param params)
     {
         super.OnEvent(eventTypeId, params);
 
-        // ChatMessageEventTypeID fires when the player sends a chat message
+        // ChatMessageEventTypeID はプレイヤーがチャットメッセージを送信した時に発火する
         if (eventTypeId == ChatMessageEventTypeID)
         {
             Param3<int, string, string> chatParams;
@@ -117,10 +121,10 @@ modded class MissionGameplay
             {
                 string message = chatParams.param3;
 
-                // Check if it starts with /
+                // / で始まるかチェック
                 if (message.Length() > 0 && message.Substring(0, 1) == "/")
                 {
-                    // This is a command -- send it to the server
+                    // これはコマンド -- サーバーに送信する
                     SendChatCommand(message);
                 }
             }
@@ -128,7 +132,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Send the command string to the server via RPC
+    // コマンド文字列をRPC経由でサーバーに送信する
     // -------------------------------------------------------
     protected void SendChatCommand(string fullCommand)
     {
@@ -143,7 +147,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Receive command feedback from the server
+    // サーバーからのコマンドフィードバックを受信する
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
@@ -157,7 +161,7 @@ modded class MissionGameplay
                 string prefix = data.param1;
                 string message = data.param2;
 
-                // Display feedback as a system chat message
+                // フィードバックをシステムチャットメッセージとして表示
                 GetGame().Chat(prefix + " " + message, "colorStatusChannel");
 
                 Print("[ChatCommands] Feedback: " + prefix + " " + message);
@@ -167,23 +171,23 @@ modded class MissionGameplay
 };
 ```
 
-### How Chat Interception Works
+### チャット傍受の仕組み
 
-The `OnEvent` method on `MissionGameplay` is called for various game events. When `eventTypeId` is `ChatMessageEventTypeID`, it means the player just submitted a chat message. The `Param3` contains:
+`MissionGameplay` の `OnEvent` メソッドは、様々なゲームイベントに対して呼び出されます。`eventTypeId` が `ChatMessageEventTypeID` の場合、プレイヤーがチャットメッセージを送信したことを意味します。`Param3` には以下が含まれます：
 
-- `param1` -- Channel (int): the chat channel (global, direct, etc.)
-- `param2` -- Sender name (string)
-- `param3` -- Message text (string)
+- `param1` -- チャンネル（int）：チャットチャンネル（グローバル、ダイレクトなど）
+- `param2` -- 送信者名（string）
+- `param3` -- メッセージテキスト（string）
 
-We check if the message starts with `/`. If it does, we forward the entire string to the server via RPC. The message is still sent as normal chat as well -- in a production mod, you would suppress it (covered in the notes at the end).
+メッセージが `/` で始まるかを確認します。該当する場合、文字列全体をRPC経由でサーバーに転送します。メッセージは通常のチャットとしても送信されます -- 本番のModでは、これを抑制する必要があります（末尾のノートで説明します）。
 
 ---
 
-## Step 2: Parse Command Prefix and Arguments
+## ステップ2: コマンドプレフィックスと引数の解析
 
-On the server side, we need to break a command string like `/heal PlayerName` into its parts: the command name (`heal`) and the arguments (`["PlayerName"]`).
+サーバー側では、`/heal PlayerName` のようなコマンド文字列をその構成要素（コマンド名 `heal` と引数 `["PlayerName"]`）に分解する必要があります。
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRPC.c`
+### `Scripts/3_Game/ChatCommands/CCmdRPC.c` の作成
 
 ```c
 class CCmdRPC
@@ -193,54 +197,54 @@ class CCmdRPC
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdBase.c`
+### `Scripts/3_Game/ChatCommands/CCmdBase.c` の作成
 
 ```c
 // -------------------------------------------------------
-// Base class for all chat commands
+// すべてのチャットコマンドの基底クラス
 // -------------------------------------------------------
 class CCmdBase
 {
-    // The command name without the / prefix (e.g., "heal")
+    // / プレフィックスを除いたコマンド名（例: "heal"）
     string GetName()
     {
         return "";
     }
 
-    // Short description shown in help or command list
+    // ヘルプやコマンドリストに表示される短い説明
     string GetDescription()
     {
         return "";
     }
 
-    // Usage syntax shown when the command is used incorrectly
+    // コマンドが正しく使用されなかった場合に表示される使用法
     string GetUsage()
     {
         return "/" + GetName();
     }
 
-    // Whether this command requires admin privileges
+    // このコマンドが管理者権限を必要とするかどうか
     bool RequiresAdmin()
     {
         return true;
     }
 
-    // Execute the command on the server
-    // Returns true if successful, false if failed
+    // サーバー上でコマンドを実行する
+    // 成功した場合はtrue、失敗した場合はfalseを返す
     bool Execute(PlayerIdentity caller, array<string> args)
     {
         return false;
     }
 
     // -------------------------------------------------------
-    // Helper: Send feedback message to the command caller
+    // ヘルパー: コマンド呼び出し元にフィードバックメッセージを送信する
     // -------------------------------------------------------
     protected void SendFeedback(PlayerIdentity caller, string prefix, string message)
     {
         if (!caller)
             return;
 
-        // Find the caller's player object
+        // 呼び出し元のプレイヤーオブジェクトを検索する
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
 
@@ -266,7 +270,7 @@ class CCmdBase
     }
 
     // -------------------------------------------------------
-    // Helper: Find a player by partial name match
+    // ヘルパー: 部分名でプレイヤーを検索する
     // -------------------------------------------------------
     protected Man FindPlayerByName(string partialName)
     {
@@ -295,18 +299,18 @@ class CCmdBase
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRegistry.c`
+### `Scripts/3_Game/ChatCommands/CCmdRegistry.c` の作成
 
 ```c
 // -------------------------------------------------------
-// Registry that holds all available commands
+// 利用可能なすべてのコマンドを保持するレジストリ
 // -------------------------------------------------------
 class CCmdRegistry
 {
     protected static ref map<string, ref CCmdBase> s_Commands;
 
     // -------------------------------------------------------
-    // Initialize the registry (call once at startup)
+    // レジストリを初期化する（起動時に一度だけ呼び出す）
     // -------------------------------------------------------
     static void Init()
     {
@@ -315,7 +319,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Register a command instance
+    // コマンドインスタンスを登録する
     // -------------------------------------------------------
     static void Register(CCmdBase command)
     {
@@ -338,7 +342,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Look up a command by name
+    // 名前でコマンドを検索する
     // -------------------------------------------------------
     static CCmdBase GetCommand(string name)
     {
@@ -356,7 +360,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Get all registered command names
+    // 登録されているすべてのコマンド名を取得する
     // -------------------------------------------------------
     static array<string> GetCommandNames()
     {
@@ -374,8 +378,8 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Parse a raw command string into name + args
-    // Example: "/heal PlayerName" --> name="heal", args=["PlayerName"]
+    // 生のコマンド文字列を名前と引数に解析する
+    // 例: "/heal PlayerName" --> name="heal", args=["PlayerName"]
     // -------------------------------------------------------
     static void ParseCommand(string fullCommand, out string commandName, out array<string> args)
     {
@@ -385,12 +389,12 @@ class CCmdRegistry
         if (fullCommand.Length() == 0)
             return;
 
-        // Remove the leading /
+        // 先頭の / を除去する
         string raw = fullCommand;
         if (raw.Substring(0, 1) == "/")
             raw = raw.Substring(1, raw.Length() - 1);
 
-        // Split by spaces
+        // スペースで分割する
         raw.Split(" ", args);
 
         if (args.Count() > 0)
@@ -403,68 +407,68 @@ class CCmdRegistry
 };
 ```
 
-### The Parse Logic Explained
+### 解析ロジックの説明
 
-Given the input `/heal SomePlayer`, `ParseCommand` does:
+入力 `/heal SomePlayer` に対して、`ParseCommand` は以下を行います：
 
-1. Removes the leading `/` to get `"heal SomePlayer"`
-2. Splits by spaces to get `["heal", "SomePlayer"]`
-3. Takes the first element as the command name: `"heal"`
-4. Removes it from the array, leaving args: `["SomePlayer"]`
+1. 先頭の `/` を除去して `"heal SomePlayer"` を得る
+2. スペースで分割して `["heal", "SomePlayer"]` を得る
+3. 最初の要素をコマンド名として取得：`"heal"`
+4. 配列からそれを削除し、引数として `["SomePlayer"]` を残す
 
-The command name is converted to lowercase so `/Heal`, `/HEAL`, and `/heal` all work.
+コマンド名は小文字に変換されるため、`/Heal`、`/HEAL`、`/heal` のすべてが動作します。
 
 ---
 
-## Step 3: Check Admin Permissions
+## ステップ3: 管理者権限の確認
 
-Admin permission checking prevents regular players from executing admin commands. DayZ does not have a built-in admin permission system in scripts, so we check against a simple admin list.
+管理者権限の確認により、一般プレイヤーが管理者コマンドを実行することを防ぎます。DayZにはスクリプト内に組み込みの管理者権限システムがないため、シンプルな管理者リストに対してチェックを行います。
 
-### The Admin Check in the Server Handler
+### サーバーハンドラーでの管理者チェック
 
-The simplest approach is to check the player's Steam64 ID against a list of known admin IDs. In a production mod, you would load this list from a config file.
+最もシンプルなアプローチは、プレイヤーのSteam64 IDを既知の管理者IDリストと照合することです。本番のModでは、このリストを設定ファイルから読み込みます。
 
 ```c
-// Simple admin check -- in production, load from a JSON config file
+// シンプルな管理者チェック -- 本番ではJSON設定ファイルから読み込むこと
 static bool IsAdmin(PlayerIdentity identity)
 {
     if (!identity)
         return false;
 
-    // Check the player's plain ID (Steam64 ID)
+    // プレイヤーのプレーンID（Steam64 ID）を確認する
     string playerId = identity.GetPlainId();
 
-    // Hardcoded admin list -- replace with config file loading in production
+    // ハードコードされた管理者リスト -- 本番では設定ファイルの読み込みに置き換えること
     ref array<string> adminIds = new array<string>;
-    adminIds.Insert("76561198000000001");    // Replace with real Steam64 IDs
+    adminIds.Insert("76561198000000001");    // 実際のSteam64 IDに置き換えてください
     adminIds.Insert("76561198000000002");
 
     return (adminIds.Find(playerId) != -1);
 }
 ```
 
-### Where to Find Steam64 IDs
+### Steam64 IDの見つけ方
 
-- Open your Steam profile in a browser
-- The URL contains your Steam64 ID: `https://steamcommunity.com/profiles/76561198XXXXXXXXX`
-- Or use a tool like https://steamid.io to look up any player
+- ブラウザでSteamプロフィールを開きます
+- URLにSteam64 IDが含まれています：`https://steamcommunity.com/profiles/76561198XXXXXXXXX`
+- または https://steamid.io のようなツールを使用して任意のプレイヤーを検索できます
 
-### Production-Grade Permissions
+### 本番グレードの権限
 
-In a real mod, you would:
+実際のModでは、以下を行います：
 
-1. Store admin IDs in a JSON file (`$profile:ChatCommands/admins.json`)
-2. Load the file on server startup
-3. Support permission levels (moderator, admin, superadmin)
-4. Use a framework like MyFramework's `MyPermissions` system for hierarchical permissions
+1. 管理者IDをJSONファイル（`$profile:ChatCommands/admins.json`）に保存する
+2. サーバー起動時にファイルを読み込む
+3. 権限レベル（モデレーター、管理者、スーパー管理者）をサポートする
+4. 階層的な権限のためにフレームワークの `Permissions` システムを使用する
 
 ---
 
-## Step 4: Execute the Server-Side Action
+## ステップ4: サーバーサイドアクションの実行
 
-Now we create the actual `/heal` command and the server handler that processes incoming command RPCs.
+ここでは実際の `/heal` コマンドと、受信したコマンドRPCを処理するサーバーハンドラーを作成します。
 
-### Create `Scripts/4_World/ChatCommands/commands/CCmdHeal.c`
+### `Scripts/4_World/ChatCommands/commands/CCmdHeal.c` の作成
 
 ```c
 class CCmdHeal extends CCmdBase
@@ -490,9 +494,9 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Execute the heal command
-    // /heal         --> heals the caller
-    // /heal Name    --> heals the named player
+    // healコマンドを実行する
+    // /heal         --> 呼び出し元を回復する
+    // /heal Name    --> 指定された名前のプレイヤーを回復する
     // -------------------------------------------------------
     override bool Execute(PlayerIdentity caller, array<string> args)
     {
@@ -502,10 +506,10 @@ class CCmdHeal extends CCmdBase
         Man targetMan = null;
         string targetName = "";
 
-        // Determine the target player
+        // ターゲットプレイヤーを決定する
         if (args.Count() > 0)
         {
-            // Heal a specific player by name
+            // 名前で指定されたプレイヤーを回復する
             string searchName = args.Get(0);
             targetMan = FindPlayerByName(searchName);
 
@@ -519,7 +523,7 @@ class CCmdHeal extends CCmdBase
         }
         else
         {
-            // Heal the caller themselves
+            // 呼び出し元自身を回復する
             ref array<Man> allPlayers = new array<Man>;
             GetGame().GetPlayers(allPlayers);
 
@@ -545,7 +549,7 @@ class CCmdHeal extends CCmdBase
             targetName = "yourself";
         }
 
-        // Execute the heal
+        // 回復を実行する
         PlayerBase targetPlayer;
         if (!Class.CastTo(targetPlayer, targetMan))
         {
@@ -555,7 +559,7 @@ class CCmdHeal extends CCmdBase
 
         HealPlayer(targetPlayer);
 
-        // Log and send feedback
+        // ログ出力とフィードバック送信
         Print("[ChatCommands] " + caller.GetName() + " healed " + targetName);
         SendFeedback(caller, "[Heal]", "Successfully healed " + targetName + ".");
 
@@ -563,30 +567,30 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Apply full heal to a player
+    // プレイヤーに完全回復を適用する
     // -------------------------------------------------------
     protected void HealPlayer(PlayerBase player)
     {
         if (!player)
             return;
 
-        // Restore health to maximum
+        // 体力を最大値に回復する
         player.SetHealth("GlobalHealth", "Health", player.GetMaxHealth("GlobalHealth", "Health"));
 
-        // Restore blood to maximum
+        // 血液を最大値に回復する
         player.SetHealth("GlobalHealth", "Blood", player.GetMaxHealth("GlobalHealth", "Blood"));
 
-        // Remove shock damage
+        // ショックダメージを除去する
         player.SetHealth("GlobalHealth", "Shock", player.GetMaxHealth("GlobalHealth", "Shock"));
 
-        // Set hunger to full (energy value)
-        // PlayerBase has a stats system -- set the energy stat
+        // 空腹を満タンにする（エネルギー値）
+        // PlayerBaseにはステータスシステムがある -- エネルギーステータスを設定する
         player.GetStatEnergy().Set(player.GetStatEnergy().GetMax());
 
-        // Set thirst to full (water value)
+        // 渇きを満タンにする（水分値）
         player.GetStatWater().Set(player.GetStatWater().GetMax());
 
-        // Clear any bleeding sources
+        // すべての出血源を除去する
         player.GetBleedingManagerServer().RemoveAllSources();
 
         Print("[ChatCommands] Healed player: " + player.GetIdentity().GetName());
@@ -594,70 +598,70 @@ class CCmdHeal extends CCmdBase
 };
 ```
 
-### Why 4_World?
+### なぜ 4_World なのか？
 
-The heal command references `PlayerBase`, which is defined in the `4_World` layer. It also uses player stat methods (`GetStatEnergy`, `GetStatWater`, `GetBleedingManagerServer`) that are only available on world entities. The command **must** live in `4_World` or higher.
+healコマンドは `4_World` レイヤーで定義されている `PlayerBase` を参照します。また、ワールドエンティティでのみ利用可能なプレイヤーステータスメソッド（`GetStatEnergy`、`GetStatWater`、`GetBleedingManagerServer`）も使用します。コマンドは `4_World` 以上に配置する**必要があります**。
 
-The base class `CCmdBase` lives in `3_Game` because it does not reference any world types. The concrete command classes that touch world entities live in `4_World`.
+基底クラス `CCmdBase` はワールド型を参照しないため `3_Game` に配置します。ワールドエンティティに触れる具体的なコマンドクラスは `4_World` に配置します。
 
 ---
 
-## Step 5: Send Feedback to the Admin
+## ステップ5: 管理者へのフィードバック送信
 
-Feedback is handled by the `SendFeedback()` method in `CCmdBase`. Let us trace the complete feedback path:
+フィードバックは `CCmdBase` の `SendFeedback()` メソッドで処理されます。完全なフィードバックパスをたどってみましょう：
 
-### Server Sends Feedback
+### サーバーがフィードバックを送信
 
 ```c
-// Inside CCmdBase.SendFeedback()
+// CCmdBase.SendFeedback() 内部
 Param2<string, string> data = new Param2<string, string>(prefix, message);
 GetGame().RPCSingleParam(callerPlayer, CCmdRPC.COMMAND_FEEDBACK, data, true, caller);
 ```
 
-The server sends a `COMMAND_FEEDBACK` RPC to the specific client who issued the command. The data contains a prefix (like `"[Heal]"`) and the message text.
+サーバーは、コマンドを発行した特定のクライアントに `COMMAND_FEEDBACK` RPCを送信します。データにはプレフィックス（`"[Heal]"` など）とメッセージテキストが含まれます。
 
-### Client Receives and Displays Feedback
+### クライアントがフィードバックを受信して表示
 
-Back in `CCmdChatHook.c` (Step 1), the `OnRPC` handler catches this:
+ステップ1の `CCmdChatHook.c` に戻り、`OnRPC` ハンドラーがこれをキャッチします：
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_FEEDBACK)
 {
-    // Deserialize the message
+    // メッセージをデシリアライズする
     Param2<string, string> data = new Param2<string, string>("", "");
     if (ctx.Read(data))
     {
         string prefix = data.param1;
         string message = data.param2;
 
-        // Display in the chat window
+        // チャットウィンドウに表示する
         GetGame().Chat(prefix + " " + message, "colorStatusChannel");
     }
 }
 ```
 
-`GetGame().Chat()` displays a message in the player's chat window. The second parameter is the color channel:
+`GetGame().Chat()` はプレイヤーのチャットウィンドウにメッセージを表示します。第2パラメータはカラーチャンネルです：
 
-| Channel | Color | Typical Use |
+| チャンネル | 色 | 一般的な用途 |
 |---------|-------|-------------|
-| `"colorStatusChannel"` | Yellow/orange | System messages |
-| `"colorAction"` | White | Action feedback |
-| `"colorFriendly"` | Green | Positive feedback |
-| `"colorImportant"` | Red | Warnings/errors |
+| `"colorStatusChannel"` | 黄色/オレンジ | システムメッセージ |
+| `"colorAction"` | 白 | アクションフィードバック |
+| `"colorFriendly"` | 緑 | ポジティブなフィードバック |
+| `"colorImportant"` | 赤 | 警告/エラー |
 
 ---
 
-## Step 6: Register Commands
+## ステップ6: コマンドの登録
 
-The server handler receives command RPCs, looks up the command in the registry, and executes it.
+サーバーハンドラーはコマンドRPCを受信し、レジストリでコマンドを検索して実行します。
 
-### Create `Scripts/4_World/ChatCommands/CCmdServerHandler.c`
+### `Scripts/4_World/ChatCommands/CCmdServerHandler.c` の作成
 
 ```c
 modded class MissionServer
 {
     // -------------------------------------------------------
-    // Register all commands when the server starts
+    // サーバー起動時にすべてのコマンドを登録する
     // -------------------------------------------------------
     override void OnInit()
     {
@@ -665,10 +669,10 @@ modded class MissionServer
 
         CCmdRegistry.Init();
 
-        // Register all commands here
+        // ここですべてのコマンドを登録する
         CCmdRegistry.Register(new CCmdHeal());
 
-        // Add more commands:
+        // さらにコマンドを追加:
         // CCmdRegistry.Register(new CCmdKill());
         // CCmdRegistry.Register(new CCmdTeleport());
         // CCmdRegistry.Register(new CCmdTime());
@@ -678,7 +682,7 @@ modded class MissionServer
 };
 
 // -------------------------------------------------------
-// Server-side RPC handler for incoming commands
+// 受信コマンドのサーバーサイドRPCハンドラー
 // -------------------------------------------------------
 modded class PlayerBase
 {
@@ -700,7 +704,7 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Read the command string
+        // コマンド文字列を読み取る
         Param1<string> data = new Param1<string>("");
         if (!ctx.Read(data))
         {
@@ -711,7 +715,7 @@ modded class PlayerBase
         string fullCommand = data.param1;
         Print("[ChatCommands] Received command from " + sender.GetName() + ": " + fullCommand);
 
-        // Parse the command
+        // コマンドを解析する
         string commandName;
         ref array<string> args;
         CCmdRegistry.ParseCommand(fullCommand, commandName, args);
@@ -719,7 +723,7 @@ modded class PlayerBase
         if (commandName == "")
             return;
 
-        // Look up the command
+        // コマンドを検索する
         CCmdBase command = CCmdRegistry.GetCommand(commandName);
         if (!command)
         {
@@ -727,7 +731,7 @@ modded class PlayerBase
             return;
         }
 
-        // Check admin permissions
+        // 管理者権限を確認する
         if (command.RequiresAdmin() && !IsCommandAdmin(sender))
         {
             Print("[ChatCommands] Non-admin " + sender.GetName() + " tried to use /" + commandName);
@@ -735,7 +739,7 @@ modded class PlayerBase
             return;
         }
 
-        // Execute the command
+        // コマンドを実行する
         bool success = command.Execute(sender, args);
 
         if (success)
@@ -745,7 +749,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Check if a player is an admin
+    // プレイヤーが管理者かどうかを確認する
     // -------------------------------------------------------
     protected bool IsCommandAdmin(PlayerIdentity identity)
     {
@@ -755,8 +759,8 @@ modded class PlayerBase
         string playerId = identity.GetPlainId();
 
         // ----------------------------------------------------------
-        // IMPORTANT: Replace these with your actual admin Steam64 IDs
-        // In production, load from a JSON config file instead
+        // 重要: これらを実際の管理者Steam64 IDに置き換えてください
+        // 本番ではハードコードではなくJSON設定ファイルから読み込んでください
         // ----------------------------------------------------------
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
@@ -766,7 +770,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Send feedback to a specific player
+    // 特定のプレイヤーにフィードバックを送信する
     // -------------------------------------------------------
     protected void SendCommandFeedback(PlayerIdentity target, string prefix, string message)
     {
@@ -793,28 +797,28 @@ modded class PlayerBase
 };
 ```
 
-### The Registration Pattern
+### 登録パターン
 
-Commands are registered in `MissionServer.OnInit()`:
+コマンドは `MissionServer.OnInit()` で登録されます：
 
 ```c
 CCmdRegistry.Init();
 CCmdRegistry.Register(new CCmdHeal());
 ```
 
-Each `Register()` call creates an instance of the command class and stores it in a map keyed by the command name. When a command RPC arrives, the handler looks up the name in the registry and calls `Execute()` on the matching command object.
+各 `Register()` 呼び出しはコマンドクラスのインスタンスを作成し、コマンド名をキーとするマップに格納します。コマンドRPCが到着すると、ハンドラーはレジストリで名前を検索し、一致するコマンドオブジェクトの `Execute()` を呼び出します。
 
-This pattern makes it trivial to add new commands -- create a new class extending `CCmdBase`, implement `Execute()`, and add one `Register()` line.
+このパターンにより、新しいコマンドの追加が非常に簡単になります -- `CCmdBase` を継承する新しいクラスを作成し、`Execute()` を実装して、`Register()` の一行を追加するだけです。
 
 ---
 
-## Step 7: Add to an Admin Panel Command List
+## ステップ7: 管理パネルのコマンドリストへの追加
 
-If you have an admin panel (from [Chapter 8.3](03-admin-panel.md)), you can display the list of available commands in the UI.
+管理パネル（[チャプター 8.3](03-admin-panel.md) のもの）がある場合、利用可能なコマンドのリストをUIに表示できます。
 
-### Request the Command List from the Server
+### サーバーからコマンドリストをリクエストする
 
-Add a new RPC ID in `CCmdRPC.c`:
+`CCmdRPC.c` に新しいRPC IDを追加します：
 
 ```c
 class CCmdRPC
@@ -826,12 +830,12 @@ class CCmdRPC
 };
 ```
 
-### Server-Side: Send the Command List
+### サーバーサイド: コマンドリストの送信
 
-Add this handler in your server-side code:
+サーバーサイドのコードに以下のハンドラーを追加します：
 
 ```c
-// In the server handler, add a case for COMMAND_LIST_REQ
+// サーバーハンドラーに COMMAND_LIST_REQ のケースを追加する
 if (rpc_type == CCmdRPC.COMMAND_LIST_REQ)
 {
     HandleCommandListRequest(sender);
@@ -842,7 +846,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
     if (!requestor)
         return;
 
-    // Build a formatted string of all commands
+    // すべてのコマンドのフォーマットされた文字列を構築する
     array<string> names = CCmdRegistry.GetCommandNames();
     string commandList = "Available Commands:\n";
 
@@ -855,7 +859,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
         }
     }
 
-    // Send back to client
+    // クライアントに返送する
     ref array<Man> players = new array<Man>;
     GetGame().GetPlayers(players);
 
@@ -872,9 +876,9 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
 }
 ```
 
-### Client-Side: Display in a Panel
+### クライアントサイド: パネルへの表示
 
-On the client, catch the response and display it in a text widget:
+クライアント側でレスポンスをキャッチしてテキストウィジェットに表示します：
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
@@ -883,7 +887,7 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
     if (ctx.Read(data))
     {
         string commandList = data.param1;
-        // Display in your admin panel text widget
+        // 管理パネルのテキストウィジェットに表示する
         // m_CommandListText.SetText(commandList);
         Print("[ChatCommands] Command list received:\n" + commandList);
     }
@@ -892,11 +896,11 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
 
 ---
 
-## Complete Working Code: /heal Command
+## 完全な動作コード: /heal コマンド
 
-Here is every file needed for the complete working system. Create these files and your mod will have a functional `/heal` command.
+完全な動作システムに必要なすべてのファイルを以下に示します。これらのファイルを作成すれば、Modに機能する `/heal` コマンドが追加されます。
 
-### config.cpp Setup
+### config.cpp のセットアップ
 
 ```cpp
 class CfgPatches
@@ -1307,7 +1311,7 @@ modded class PlayerBase
 
         string playerId = identity.GetPlainId();
 
-        // REPLACE THESE WITH YOUR ACTUAL ADMIN STEAM64 IDs
+        // これらを実際の管理者Steam64 IDに置き換えてください
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
         adminIds.Insert("76561198000000002");
@@ -1395,11 +1399,11 @@ modded class MissionGameplay
 
 ---
 
-## Adding More Commands
+## コマンドの追加
 
-The registry pattern makes adding new commands straightforward. Here are examples:
+レジストリパターンにより、新しいコマンドの追加は簡単です。以下に例を示します：
 
-### /kill Command
+### /kill コマンド
 
 ```c
 class CCmdKill extends CCmdBase
@@ -1447,7 +1451,7 @@ class CCmdKill extends CCmdBase
 };
 ```
 
-### /time Command
+### /time コマンド
 
 ```c
 class CCmdTime extends CCmdBase
@@ -1478,9 +1482,9 @@ class CCmdTime extends CCmdBase
 };
 ```
 
-### Registering New Commands
+### 新しいコマンドの登録
 
-Add one line per command in `MissionServer.OnInit()`:
+`MissionServer.OnInit()` にコマンドごとに一行追加します：
 
 ```c
 CCmdRegistry.Register(new CCmdHeal());
@@ -1492,32 +1496,32 @@ CCmdRegistry.Register(new CCmdTime());
 
 ## トラブルシューティング
 
-### Command Is Not Recognized ("Unknown command")
+### コマンドが認識されない（「Unknown command」）
 
-- **Registration missing:** Make sure `CCmdRegistry.Register(new CCmdYourCommand())` is called in `MissionServer.OnInit()`.
-- **GetName() typo:** The string returned by `GetName()` must match what the player types (without the `/`).
-- **Case mismatch:** The registry converts names to lowercase. `/Heal`, `/HEAL`, and `/heal` should all work.
+- **登録の欠落:** `MissionServer.OnInit()` で `CCmdRegistry.Register(new CCmdYourCommand())` が呼び出されていることを確認してください。
+- **GetName() のタイプミス:** `GetName()` が返す文字列は、プレイヤーが入力するもの（`/` なし）と一致する必要があります。
+- **大文字小文字の不一致:** レジストリは名前を小文字に変換します。`/Heal`、`/HEAL`、`/heal` のすべてが動作するはずです。
 
-### Permission Denied for Admins
+### 管理者の権限が拒否される
 
-- **Wrong Steam64 ID:** Double-check the admin IDs in `IsCommandAdmin()`. They must be exact Steam64 IDs (17-digit numbers starting with `7656`).
-- **GetPlainId() vs GetId():** `GetPlainId()` returns the Steam64 ID. `GetId()` returns the DayZ session ID. Use `GetPlainId()` for admin checks.
+- **Steam64 IDの誤り:** `IsCommandAdmin()` の管理者IDを再確認してください。正確なSteam64 ID（`7656` で始まる17桁の数字）である必要があります。
+- **GetPlainId() と GetId() の違い:** `GetPlainId()` はSteam64 IDを返します。`GetId()` はDayZセッションIDを返します。管理者チェックには `GetPlainId()` を使用してください。
 
-### Feedback Message Does Not Appear in Chat
+### フィードバックメッセージがチャットに表示されない
 
-- **RPC not reaching client:** Add `Print()` statements on the server to confirm the feedback RPC is being sent.
-- **Client OnRPC not catching it:** Verify the RPC ID matches (`CCmdRPC.COMMAND_FEEDBACK`).
-- **GetGame().Chat() not working:** This function requires the game to be in a state where chat is available. It may not work on the loading screen.
+- **RPCがクライアントに到達していない:** サーバーに `Print()` 文を追加して、フィードバックRPCが送信されていることを確認してください。
+- **クライアントの OnRPC がキャッチしていない:** RPC IDが一致していることを確認してください（`CCmdRPC.COMMAND_FEEDBACK`）。
+- **GetGame().Chat() が動作しない:** この関数はチャットが利用可能な状態でゲームが実行されている必要があります。ロード画面では動作しない場合があります。
 
-### /heal Does Not Actually Heal
+### /heal が実際に回復しない
 
-- **Server-only execution:** `SetHealth()` and stat changes must run on the server. Verify `GetGame().IsServer()` is true when `Execute()` runs.
-- **PlayerBase cast fails:** If `Class.CastTo(targetPlayer, targetMan)` returns false, the target is not a valid PlayerBase. This can happen with AI or non-player entities.
-- **Stat getters return null:** `GetStatEnergy()` and `GetStatWater()` may return null if the player is dead or not fully initialized. Add null checks in production code.
+- **サーバー専用実行:** `SetHealth()` とステータスの変更はサーバー上で実行する必要があります。`Execute()` の実行時に `GetGame().IsServer()` がtrueであることを確認してください。
+- **PlayerBase のキャスト失敗:** `Class.CastTo(targetPlayer, targetMan)` がfalseを返す場合、ターゲットは有効な PlayerBase ではありません。AIまたは非プレイヤーエンティティの場合に発生することがあります。
+- **ステータスゲッターがnullを返す:** `GetStatEnergy()` と `GetStatWater()` は、プレイヤーが死亡しているか完全に初期化されていない場合にnullを返すことがあります。本番コードではnullチェックを追加してください。
 
-### Command Appears in Chat as Regular Message
+### コマンドが通常のメッセージとしてチャットに表示される
 
-- The `OnEvent` hook intercepts the message but does not suppress it from being sent as chat. To suppress it in a production mod, you would need to mod the `ChatInputMenu` class to filter `/` messages before they are sent:
+- `OnEvent` フックはメッセージを傍受しますが、チャットとしての送信は抑制しません。本番のModでこれを抑制するには、`ChatInputMenu` クラスをmodして `/` メッセージを送信前にフィルタリングする必要があります：
 
 ```c
 modded class ChatInputMenu
@@ -1525,29 +1529,63 @@ modded class ChatInputMenu
     override void OnChatInputSend()
     {
         string text = "";
-        // Get the current text from the edit widget
-        // If it starts with /, do NOT call super (which sends it as chat)
-        // Instead, handle it as a command
+        // エディットウィジェットから現在のテキストを取得する
+        // / で始まる場合、super を呼び出さない（superがチャットとして送信する）
+        // 代わりにコマンドとして処理する
 
-        // This approach varies by DayZ version -- check vanilla sources
+        // このアプローチはDayZのバージョンによって異なる -- バニラソースを確認すること
         super.OnChatInputSend();
     }
 };
 ```
 
-The exact implementation depends on the DayZ version and how `ChatInputMenu` exposes the text. The `OnEvent` approach in this tutorial is simpler and works for development, with the tradeoff that the command text also appears as a chat message.
+正確な実装は、DayZのバージョンと `ChatInputMenu` がテキストをどのように公開するかに依存します。このチュートリアルの `OnEvent` アプローチはよりシンプルで開発時に動作しますが、コマンドテキストがチャットメッセージとしても表示されるというトレードオフがあります。
 
 ---
 
 ## 次のステップ
 
-1. **Load admins from a config file** -- Use `JsonFileLoader` to load admin IDs from a JSON file instead of hardcoding them.
-2. **Add a /help command** -- List all available commands with their descriptions and usage.
-3. **Add logging** -- Write command usage to a log file for audit purposes.
-4. **Integrate with a framework** -- MyFramework provides `MyPermissions` for hierarchical permissions and `MyRPC` for string-routed RPCs that avoid integer ID collisions.
-5. **Add cooldowns** -- Prevent command spam by tracking the last execution time per player.
-6. **Build a command palette UI** -- Create an admin panel that lists all commands with clickable buttons (combining this tutorial with [Chapter 8.3](03-admin-panel.md)).
+1. **設定ファイルから管理者を読み込む** -- ハードコードの代わりに `JsonFileLoader` を使用してJSONファイルから管理者IDを読み込みます。
+2. **/help コマンドを追加する** -- 利用可能なすべてのコマンドの説明と使用法を一覧表示します。
+3. **ログ記録を追加する** -- 監査目的でコマンドの使用状況をログファイルに書き込みます。
+4. **フレームワークと統合する** -- 階層的な権限のための `Permissions` システムと、整数ID衝突を回避する文字列ルーティングRPCのための `RPC` システムを提供するフレームワークを使用します。
+5. **クールダウンを追加する** -- プレイヤーごとの最後の実行時間を追跡してコマンドスパムを防ぎます。
+6. **コマンドパレットUIを構築する** -- クリック可能なボタンですべてのコマンドを一覧表示する管理パネルを作成します（このチュートリアルと [チャプター 8.3](03-admin-panel.md) を組み合わせます）。
 
 ---
 
-**前：** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)
+## ベストプラクティス
+
+- **管理者コマンドを実行する前に必ず権限を確認してください。** 権限チェックが欠落していると、任意のプレイヤーが誰でも `/heal` や `/kill` できてしまいます。処理前にサーバー上で呼び出し元のSteam64 ID（`GetPlainId()` 経由）を検証してください。
+- **失敗したコマンドでも管理者にフィードバックを送信してください。** サイレントな失敗はデバッグを不可能にします。何が問題だったかを説明するチャットメッセージ（「Player not found」、「Permission denied」）を必ず送信してください。
+- **管理者チェックには `GetId()` ではなく `GetPlainId()` を使用してください。** `GetId()` は再接続のたびに変わるセッション固有のDayZ IDを返します。`GetPlainId()` は永続的なSteam64 IDを返します。
+- **管理者IDはコード内ではなくJSON設定ファイルに保存してください。** ハードコードされたIDは変更にPBOの再ビルドが必要です。`$profile:` のJSONファイルはModの知識がなくてもサーバー管理者が編集できます。
+- **マッチング前にコマンド名を小文字に変換してください。** プレイヤーは `/Heal`、`/HEAL`、`/heal` と入力する可能性があります。小文字への正規化により、苛立たしい「unknown command」エラーを防ぎます。
+
+---
+
+## 理論と実践
+
+| 概念 | 理論 | 現実 |
+|---------|--------|---------|
+| `OnEvent` によるチャットフック | メッセージを傍受してコマンドとして処理する | メッセージは依然としてすべてのプレイヤーのチャットに表示されます。抑制には `ChatInputMenu` のmodが必要ですが、DayZのバージョンによって異なります。 |
+| `GetGame().Chat()` | プレイヤーのチャットウィンドウにメッセージを表示する | チャットUIがアクティブな場合にのみ動作します。ロード画面や特定のメニュー状態では、メッセージは静かに破棄されます。 |
+| コマンドレジストリパターン | コマンドごとに1クラスのクリーンなアーキテクチャ | 各コマンドクラスファイルは正しいスクリプトレイヤーに配置する必要があります。`CCmdBase` は `3_Game` に、`PlayerBase` を参照する具体的なコマンドは `4_World` に。レイヤーの配置を誤ると、ロード時に「Undefined type」エラーが発生します。 |
+| 名前によるプレイヤー検索 | `FindPlayerByName` が部分名にマッチする | 部分マッチングは、類似した名前のプレイヤーがいるサーバーでは誤ったプレイヤーをターゲットにする可能性があります。本番ではSteam64 IDによるターゲティングや確認ステップの追加を推奨します。 |
+
+---
+
+## 学んだこと
+
+このチュートリアルで学んだことは以下のとおりです：
+- `MissionGameplay.OnEvent` と `ChatMessageEventTypeID` を使用してチャット入力にフックする方法
+- チャットテキストからコマンドプレフィックスと引数を解析する方法
+- Steam64 IDを使用してサーバー上で管理者権限を確認する方法
+- RPCと `GetGame().Chat()` を使用してプレイヤーにコマンドフィードバックを返送する方法
+- 新しいコマンドを追加するための再利用可能なコマンドレジストリパターンの構築方法
+
+**次へ:** [チャプター 8.6: デバッグとテスト](06-debugging-testing.md)
+
+---
+
+**前へ:** [チャプター 8.3: 管理パネルモジュールの構築](03-admin-panel.md)
