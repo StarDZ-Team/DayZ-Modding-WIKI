@@ -615,6 +615,24 @@ VertexShaderID = "Super";
 
 ---
 
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Shared damage RVMAT across all items | Expansion (multiple modules) | Reuses a common set of damage-level RVMATs (`worn`, `damaged`, `ruined`) instead of per-item variants to reduce file count |
+| Emissive materials for screen glow | COT (Admin Tools) | Uses `emmisive[]` values in RVMAT for tablet/device screen effects visible at night |
+| Glass shader for vehicle windows | DayZ-Samples (Test_Vehicle) | Demonstrates `PixelShaderID = "Glass"` with `_ca` textures for transparent windshield panels |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** RVMAT paths are per-PBO and do not collide across mods. However, `hiddenSelectionsMaterials[]` overrides in config.cpp follow last-loaded-wins priority, so two mods overriding the same vanilla item's material will conflict.
+- **Performance:** Each unique RVMAT referenced on a single P3D model creates a separate draw call. Consolidating faces under fewer materials reduces GPU overhead, especially for complex scenes.
+- **Version:** The RVMAT text format and shader names (Super, Glass, AlphaTest) have been stable since DayZ 1.0. No structural changes have been introduced in recent updates.
+
+---
+
 ## Navigation
 
 | Previous | Up | Next |

@@ -1,3 +1,5 @@
+[Home](../../README.md) | [<< Previous: Widget Types](01-widget-types.md) | **Layout File Format** | [Next: Sizing & Positioning >>](03-sizing-positioning.md)
+
 # 3.2 Layout File Format (.layout)
 
 DayZ uses a custom text-based format for UI layout files. These `.layout` files are **NOT XML** -- they use a brace-delimited format similar to config.cpp. The DayZ Workbench editor generates them, but understanding the format lets you hand-edit layouts and debug problems.
@@ -130,12 +132,33 @@ These apply to `WrapSpacerWidgetClass` and `GridSpacerWidgetClass`.
 | `switch` | `toggle` | Makes the button a toggle (stays pressed) |
 | `style` | style name | Visual style for the button |
 
+### fixaspect Values
+
+The `fixaspect` attribute controls how a widget maintains its aspect ratio:
+
+| Value | Behavior |
+|-------|----------|
+| `0` | No aspect ratio constraint (default) |
+| `1` (fixwidth) | Width adjusts to maintain aspect ratio based on height |
+| `2` (fixheight) | Height adjusts to maintain aspect ratio based on width |
+| `3` (inside) | Fits inside the given size, maintaining aspect ratio |
+| `4` (outside) | Fills the given size, maintaining aspect ratio (may crop) |
+
 ### Slider Attributes
 
 | Attribute | Values | Description |
 |---|---|---|
-| `"fill in"` | `0` or `1` | Show a filled track behind the slider handle |
-| `"listen to input"` | `0` or `1` | Respond to mouse input |
+| `"fill in"` | `0` or `1` | Fill the slider track with color up to the thumb position |
+| `"listen to input"` | `0` or `1` | Whether the slider responds to input |
+
+In script, configure the slider range and value:
+
+```c
+SliderWidget slider;
+slider.SetMinMax(0, 100);
+slider.SetCurrent(50);
+float val = slider.GetCurrent();
+```
 
 ### Scroll Attributes
 
@@ -379,6 +402,49 @@ WrapSpacerWidgetClass MyDialog {
 2. **Mixing proportional and pixel values** -- If `hexactsize 0`, the size values are 0.0-1.0 proportional. If `hexactsize 1`, they are pixel values. Using `300` with proportional mode means 300x the parent width.
 3. **Not quoting multi-word attributes** -- Write `"text halign" center`, not `text halign center`.
 4. **Placing ScriptParamsClass in the wrong block** -- It must be in a separate `{ }` block after the children block, not inside it.
+
+---
+
+## Best Practices
+
+- Always set all four exact flags (`hexactpos`, `vexactpos`, `hexactsize`, `vexactsize`) explicitly on every widget. Relying on defaults leads to ambiguous layouts that break when the parent structure changes.
+- Use `scriptclass` sparingly -- only on widgets that genuinely need script-driven behavior. Over-binding adds initialization overhead.
+- Name widgets descriptively (`PlayerListScroll`, `TitleBarClose`) rather than generically (`Frame1`, `btn`). Script code uses `FindAnyWidget()` by name, and collisions cause silent failures.
+- Keep layout files under 200 lines. Split complex UIs into multiple `.layout` files loaded with `CreateWidgets()` and parented programmatically.
+- Always quote multi-word attribute names (`"text halign"`, `"Size To Content V"`). Unquoted multi-word attributes silently fail without error.
+
+---
+
+## Theory vs Practice
+
+> What the documentation says versus how things actually work at runtime.
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `scriptclass` initialization | `OnWidgetScriptInit` is called when the layout loads | If the class does not inherit from `Managed` or has a constructor error, the widget loads but the handler is silently null |
+| `ScriptParamsClass` | Params pass arbitrary data to script classes | Only string and numeric values work reliably; nested objects or arrays are not supported |
+| `color` attribute | Four floats 0.0-1.0 (RGBA) | Some widget types ignore the alpha channel or require `inheritalpha 1` on the parent for transparency to propagate |
+| Attribute defaults | Undocumented attributes use engine defaults | Defaults vary per widget type -- `ButtonWidget` defaults `hexactsize` differently than `FrameWidget` on some engine versions |
+| `"no focus"` | Prevents keyboard focus | Also prevents gamepad selection, which can break controller navigation if set on interactive widgets |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Layout files are isolated per mod -- no direct conflicts. However, `scriptclass` names must be globally unique. Two mods using `scriptclass "PanelHandler"` will cause one to silently fail.
+- **Performance:** Each widget in a layout is a real engine object. Layouts with 500+ widgets cause measurable frame drops. Prefer programmatic pooling for large lists.
+- **Version:** The layout format has been stable since DayZ 1.0. The `ScriptParamsClass` block and `ViewBinding` scriptclass were added by DabsFramework and are not vanilla features.
+
+---
+
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| `scriptclass "ViewBinding"` with `ScriptParamsClass` | DabsFramework / DayZ Editor | Two-way data binding between layouts and ViewControllers via `Binding_Name` param |
+| `WrapSpacerWidgetClass` as dialog root | COT, Expansion | Enables `Size To Content V/H` for auto-sizing dialogs around dynamic content |
+| Separate `.layout` per list row | VPP Admin Tools | Each player row is a standalone layout loaded into a WrapSpacer, enabling reuse and pooling |
+| `priority 998-999` for modal overlays | DabsFramework, COT | Ensures dialogs render above all other UI elements |
 
 ---
 

@@ -1037,4 +1037,4 @@ If you are a C++ developer, here are the biggest adjustments:
 
 | Previous | Up | Next |
 |----------|----|------|
-| [1.11 Error Handling](11-error-handling.md) | [Part 1: Enforce Script](../README.md) | [Part 2: Mod Structure](../02-mod-structure/01-five-layers.md) |
+| [1.11 Error Handling](11-error-handling.md) | [Part 1: Enforce Script](../README.md) | [1.13 Functions & Methods](13-functions-methods.md) |

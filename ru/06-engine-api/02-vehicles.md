@@ -7,7 +7,7 @@
 ## Введение
 
 
-DayZ vehicles are entities that extend the transport system. Cars extend `CarScript`, boats extend `BoatScript`, and both inherit from `Transport`. Vehicles have fluid systems, parts with independent health, gear simulation, and physics managed by the engine. This chapter covers the API methods you need to interact with vehicles in scripts.
+DayZ vehicles are entities that extend the transport system. Cars extend `CarScript`, boats extend `BoatScript`, and both inherit from `Transport`. Vehicles have fluid systems, parts with independent health, gear simulation, and physics managed by the engine. Эта глава охватывает the API methods you need to interact with vehicles in scripts.
 
 ---
 
@@ -347,7 +347,7 @@ void FindAllVehicles(out array<Transport> vehicles)
 | Concept | Key Point |
 |---------|-----------|
 | Hierarchy | `Transport` > `Car`/`Boat` > `CarScript`/`BoatScript` |
-| Engine | `EngineStart()`, `EngineStop()`, `EngineIsOn()`, `EngineGetRPM()` |
+| Engine | `EngineStart()`, `EngineОстановить()`, `EngineIsOn()`, `EngineGetRPM()` |
 | Fluids | `CarFluid` enum: `FUEL`, `OIL`, `BRAKE`, `COOLANT` |
 | Fill/Leak | `Fill(fluid, amount)`, `Leak(fluid, amount)`, `GetFluidFraction(fluid)` |
 | Speed | `GetSpeedometer()` returns km/h |

@@ -1,6 +1,6 @@
 # 3.3 Sizing & Positioning
 
-The DayZ layout system uses a **dual coordinate mode** -- every dimension can be either proportional (relative to the parent) or pixel-based (absolute screen pixels). Misunderstanding this system is the number one source of layout bugs. This chapter explains it thoroughly.
+The DayZ layout system uses a **dual coordinate mode** -- every dimension can be either proportional (relative to the parent) or pixel-based (absolute screen pixels). Misunderstanding this system is the number one source of layout bugs. Эта глава объясняет it thoroughly.
 
 ---
 
@@ -9,7 +9,7 @@ The DayZ layout system uses a **dual coordinate mode** -- every dimension can be
 Every widget has a position (`x, y`) and a size (`width, height`). Each of these four values can independently be either:
 
 - **Proportional** (0.0 to 1.0) -- relative to the parent widget's dimensions
-- **Pixel** (any positive number) -- absolute screen pixels
+- **Pixel** (any positive number) --- bsolute screen pixels
 
 The mode for each axis is controlled by four flags:
 
@@ -20,7 +20,7 @@ The mode for each axis is controlled by four flags:
 | `hexactsize` | Width | Fraction of parent width | Pixel width |
 | `vexactsize` | Height | Fraction of parent height | Pixel height |
 
-This means you can mix modes freely. For example, a widget can have proportional width but pixel height -- a very common pattern for rows and bars.
+Это означает you can mix modes freely. Например, a widget can have proportional width but pixel height ---  very common pattern for rows and bars.
 
 ---
 
@@ -28,7 +28,7 @@ This means you can mix modes freely. For example, a widget can have proportional
 
 When a flag is `0` (proportional), the value represents a **fraction of the parent's dimension**:
 
-- `size 1 1` with `hexactsize 0` and `vexactsize 0` means "100% of parent width, 100% of parent height" -- the child fills the parent.
+- `size 1 1` with `hexactsize 0` and `vexactsize 0` means "100% of parent width, 100% of parent height" ---  child fills the parent.
 - `size 0.5 0.3` means "50% of parent width, 30% of parent height."
 - `position 0.5 0` with `hexactpos 0` means "start at 50% of parent width from the left."
 

@@ -136,7 +136,7 @@ void DoOperation()
 }
 ```
 
-See [Chapter 1.11 — Error Handling](11-error-handling.md) for full patterns.
+См. [Chapter 1.11 — Error Handling](11-error-handling.md) for full patterns.
 
 ---
 
@@ -875,7 +875,7 @@ void ~MyManager()
 
 **What happens:** Server shutdown may kill the process before destructors run. Your save never happens.
 
-**Correct solution:** Save proactively at regular intervals and on known lifecycle events:
+**Correct solution:** Сохранить proactively at regular intervals and on known lifecycle events:
 ```c
 class MyManager
 {
@@ -973,7 +973,7 @@ If you are a C++ developer, here are the biggest adjustments:
 | `operator+` | Named methods (`Add()`) |
 | `namespace` | Name prefixes (`My`, `VPP_`) |
 | `#include` | config.cpp `files[]` |
-| RAII | Manual cleanup in lifecycle methods |
+| RAII | Ручное cleanup in lifecycle methods |
 | Multiple inheritance | Single inheritance + composition |
 | `nullptr` | `null` / `NULL` |
 | Templates with constraints | Templates without constraints + runtime checks |
@@ -990,12 +990,12 @@ If you are a C++ developer, here are the biggest adjustments:
 | `abstract` | Base class + ErrorEx in base methods |
 | `delegate` / `event` | `ScriptInvoker` |
 | Lambda `=>` | Named methods |
-| `?.` null conditional | Manual null checks |
+| `?.` null conditional | Ручное null checks |
 | `??` null coalescing | `if (!x) x = default;` |
 | `try/catch` | Guard clauses |
-| `using` (IDisposable) | Manual cleanup |
+| `using` (IDisposable) | Ручное cleanup |
 | Properties `{ get; set; }` | Public fields or explicit getter/setter methods |
-| LINQ | Manual loops |
+| LINQ | Ручное loops |
 | `nameof()` | Hardcoded strings |
 | `async/await` | CallLater / timers |
 
@@ -1027,7 +1027,7 @@ If you are a C++ developer, here are the biggest adjustments:
 | Dynamic typing | Static typing (all variables typed) |
 | `try/except` | Guard clauses |
 | `lambda` | Named methods |
-| List comprehension | Manual loops |
+| List comprehension | Ручное loops |
 | `**kwargs` / `*args` | Fixed parameters |
 | Duck typing | `IsInherited()` / `Class.CastTo()` |
 | `__init__` | Constructor (same name as class) |
@@ -1061,13 +1061,13 @@ If you are a C++ developer, here are the biggest adjustments:
 | `#define` values | No | `const` |
 | Interfaces | No | Empty base class |
 | Generic constraints | No | Runtime type checks |
-| Enum validation | No | Manual range check |
+| Enum validation | No | Ручное range check |
 | Variadic params | No | `string.Format` or arrays |
 | Nested classes | No | Top-level with prefixed names |
 | Variable-size static arrays | No | `array<T>` |
 | `#include` | No | config.cpp `files[]` |
 | Namespaces | No | Name prefixes |
-| RAII | No | Manual cleanup |
+| RAII | No | Ручное cleanup |
 | `GetGame().GetPlayer()` server | Returns null | Iterate `GetPlayers()` |
 
 ---

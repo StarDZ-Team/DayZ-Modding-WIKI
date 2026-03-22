@@ -7,9 +7,9 @@
 ## Введение
 
 
-DayZ runs at 10--60 server FPS depending on player count, entity load, and mod complexity. Every script cycle that takes too long eats into that frame budget. A single poorly-written `OnUpdate` that scans every vehicle on the map or rebuilds a UI list from scratch can drop server performance noticeably. Professional mods earn their reputation by running fast --- not by having more features, but by implementing the same features with less waste.
+DayZ runs at 10--60 server FPS depending on player count, entity load, and mod complexity. Every script cycle that takes too long eats into that frame budget. A single poorly-written `OnUpdate` that scans every vehicle on the map or rebuilds a UI list from scratch can drop server performance noticeably. Professional mods earn their reputation by running fast ---- нетt by having more features, but by implementing the same features with less waste.
 
-This chapter covers the battle-tested optimization patterns used by COT, VPP, Expansion, Dabs Framework, and MyMod. These are not premature optimizations --- they are standard engineering practices that every DayZ modder should know from the start.
+Эта глава охватывает the battle-tested optimization patterns used by COT, VPP, Expansion, Dabs Framework, and MyMod. These are not premature optimizations ---- y are standard engineering practices that every DayZ modder should know from the start.
 
 ---
 
@@ -231,7 +231,7 @@ The first `RefreshPlayerList` call creates widgets. Every subsequent call reuses
 
 ## Search Debouncing
 
-When a user types into a search box, the `OnChange` event fires on every keystroke. Rebuilding a filtered list on every keystroke is wasteful --- the user is still typing. Instead, delay the search until the user pauses.
+When a user types into a search box, the `OnChange` event fires on every keystroke. Rebuilding a filtered list on every keystroke is wasteful ----  user is still typing. Instead, delay the search until the user pauses.
 
 ### The Debounce Pattern
 
@@ -511,7 +511,7 @@ modded class CarScript
 };
 ```
 
-Now `VehicleRegistry.GetAll()` returns all vehicles instantly --- no world scan needed.
+Now `VehicleRegistry.GetAll()` returns all vehicles instantly ---- нет world scan needed.
 
 ### Expansion's Linked-List Pattern
 
@@ -618,7 +618,7 @@ This scans every physical object in the world within the given radius. At `50000
 GetGame().GetObjectsAtPosition3D(Vector(7500, 0, 7500), 50000, results);
 ```
 
-Use a registration-based registry instead (see [Vehicle Registry Pattern](#vehicle-registry-pattern)).
+Use a registration-based registry instead (см. [Vehicle Registry Pattern](#vehicle-registry-pattern)).
 
 ### 2. Full List Rebuild on Every Keystroke
 
@@ -738,7 +738,7 @@ void OnUpdate(float dt)
 
 Watch the DayZ server script log for these performance warnings:
 
-- `SCRIPT (W): Exceeded X ms` --- a script execution exceeded the engine's time budget
+- `SCRIPT (W): Exceeded X ms` ----  script execution exceeded the engine's time budget
 - Long pauses in log timestamps --- something blocked the main thread
 
 ### Empirical Testing

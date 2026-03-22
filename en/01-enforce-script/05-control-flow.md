@@ -563,6 +563,40 @@ For most DayZ modding scenarios, `CallLater` with a timer is the preferred appro
 
 ---
 
+## Best Practices
+
+- Use guard clauses (`if (!x) return;`) at the top of functions instead of deeply nested `if` blocks -- it keeps the happy path flat and readable.
+- Declare shared variables before `if`/`else` blocks to avoid the sibling-scope redeclaration error unique to Enforce Script.
+- Use `foreach` for simple iteration and `for` with index only when you need to remove elements or access neighbors.
+- Replace `do...while` with `while (first || condition)` using a `bool first = true` flag -- this is the standard Enforce Script workaround.
+- Prefer `CallLater` over `thread` for delayed or repeated actions -- it is cancellable, simpler, and more predictable.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Guard clause + `continue` in loops | COT / Expansion | Loops over players always `continue` on failed cast or `!IsAlive()` before doing work |
+| `switch` on string commands | VPP Admin | Chat command handlers use `switch(command)` with string cases like `"!heal"`, `"!tp"` |
+| Flag variable to break nested loops | Expansion Market | Uses `bool found = false` with check after inner loop to exit outer loop |
+| `CallLater` for delayed spawn | Dabs Framework | Prefers `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater()` over `thread` |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `do...while` loop | Standard in most C-like languages | Does not exist in Enforce Script; causes a confusing compile error |
+| `switch` fall-through | C/C++ cases fall through without `break` | Enforce Script cases are independent -- stacking cases does not share handlers |
+| `thread` keyword | Sounds like multithreading | Actually a coroutine on the main thread; `Sleep()` yields, does not block |
+| Variable scope in `if`/`else` | Sibling blocks should have independent scope | Enforce Script treats them as shared scope -- same variable name in both blocks is a compile error |
+
+---
+
 ## Common Mistakes
 
 | Mistake | Problem | Fix |

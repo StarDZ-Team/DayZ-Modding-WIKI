@@ -412,7 +412,7 @@ string GetSavePath()
 ### Опциональные зависимости модов
 
 
-This is the standard pattern for mods that optionally integrate with other mods:
+Это standard pattern for mods that optionally integrate with other mods:
 
 ```c
 class MyModManager

@@ -810,5 +810,39 @@ class CfgVehicles
 
 ---
 
+## Best Practices
+
+- **Use `scope=2` for items that should be spawnable.** `scope=0` hides the item from admin tools and spawn commands. `scope=1` is for internal base classes only.
+- **Always test hidden selections with at least two textures.** Swap between a vanilla texture and your custom one to confirm the hidden selection name is correct. If the model ignores your texture, the selection name is wrong.
+- **Keep Data and Scripts in separate PBOs.** Item definitions (`CfgVehicles`) in `Data/config.cpp` and scripts in `Scripts/config.cpp` lets you update one without rebuilding the other.
+- **Use the `$STR_` prefix for all player-visible text.** Even if you only support English, string table entries make future localization possible without code changes.
+- **Test with the script console before adding to `types.xml`.** Spawning via `CreateInInventory()` confirms your config works before you spend time debugging spawn table issues.
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `CfgVehicles` | Only for vehicles | Despite the name, `CfgVehicles` holds ALL entity definitions: items, buildings, animals, vehicles, and everything else. |
+| Hidden selections | Replace any texture on any model | Not all models have hidden selections defined. If the model author did not create named `camo` selections, you cannot override textures through config alone. |
+| `itemSize[]` | Defines how big the item looks in inventory | `itemSize[] = { 1, 2 }` means 1 wide and 2 tall -- but the order is `{ columns, rows }`, not `{ width, height }`. Many modders mix these up and get a sideways item. |
+| Stringtable fallback | Empty language columns fall back to English | This works, but if the entire Stringtable.csv fails to load (wrong path, encoding issue), you see raw `$STR_` keys in-game with no error in the script log. |
+
+---
+
+## What You Learned
+
+In this tutorial you learned:
+- How to define a new item class in `CfgVehicles` with inheritance from `Inventory_Base`
+- How hidden selections allow retexturing vanilla models without 3D modeling
+- How to add items to the server spawn table via `types.xml`
+- How to create localized display names with `Stringtable.csv`
+- How to add script behavior to an item class in the `4_World` layer
+
+**Next:** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)
+
+---
+
 **Previous:** [Chapter 8.1: Your First Mod (Hello World)](01-first-mod.md)
 **Next:** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)

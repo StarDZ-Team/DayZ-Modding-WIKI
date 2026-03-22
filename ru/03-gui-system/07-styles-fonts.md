@@ -1,6 +1,6 @@
 # 3.7 Styles, Fonts & Images
 
-This chapter covers the visual building blocks of DayZ UI: predefined styles, font usage, text sizing, image widgets with imageset references, and how to create custom imagesets for your mod.
+Эта глава охватывает the visual building blocks of DayZ UI: predefined styles, font usage, text sizing, image widgets with imageset references, and how to create custom imagesets for your mod.
 
 ---
 
@@ -129,7 +129,7 @@ DayZ text widgets support two sizing modes, controlled by the `"exact text"` att
 
 ### Proportional Text (Default)
 
-When `"exact text" 0` (the default), the font size is determined by the widget's height. The text scales with the widget. This is the default behavior.
+When `"exact text" 0` (the default), the font size is determined by the widget's height. The text scales with the widget. Это default behavior.
 
 ```
 TextWidgetClass ScalingText {
@@ -216,7 +216,7 @@ int color = tw.GetOutlineColor();         // Read outline color (ARGB)
 
 ### Imageset References
 
-The most common way to display images. An imageset is a sprite atlas -- a single texture file with multiple named sub-images.
+The most common way to display images. An imageset is a sprite atlas ---  single texture file with multiple named sub-images.
 
 In a layout file:
 
@@ -303,7 +303,7 @@ An imageset file (`.imageset`) defines named regions within a sprite atlas textu
 
 ### DayZ Native Format
 
-Used by vanilla DayZ and most mods. This is **not** XML -- it uses the same brace-delimited format as layout files.
+Used by vanilla DayZ and most mods. This is **not** XML --- он uses the same brace-delimited format as layout files.
 
 ```
 ImageSetClass {
@@ -366,13 +366,13 @@ Both formats accomplish the same thing. The native format is used by vanilla Day
 
 To create your own imageset for a mod:
 
-### Step 1: Create the Sprite Atlas Texture
+### Шаг 1: Create the Sprite Atlas Texture
 
 Use an image editor (Photoshop, GIMP, etc.) to create a single texture that contains all your icons/images arranged on a grid. Common sizes are 256x256, 512x512, or 1024x1024 pixels.
 
-Save as `.tga`, then convert to `.edds` using DayZ Tools (TexView2 or the ImageTool).
+Сохранить as `.tga`, then convert to `.edds` using DayZ Tools (TexView2 or the ImageTool).
 
-### Step 2: Create the Imageset File
+### Шаг 2: Create the Imageset File
 
 Create a `.imageset` file that maps named regions to positions in the texture:
 
@@ -403,7 +403,7 @@ ImageSetClass {
 }
 ```
 
-### Step 3: Register in config.cpp
+### Шаг 3: Register in config.cpp
 
 In your mod's `config.cpp`, register the imageset under `CfgMods`:
 
@@ -425,7 +425,7 @@ class CfgMods
 };
 ```
 
-### Step 4: Use in Layouts and Code
+### Шаг 4: Use in Layouts and Code
 
 In layout files:
 

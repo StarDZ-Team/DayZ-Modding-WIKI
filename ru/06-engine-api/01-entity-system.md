@@ -7,7 +7,7 @@
 ## Введение
 
 
-Every object in the DayZ world --- items, players, zombies, animals, buildings, vehicles --- descends from a single class hierarchy rooted at `IEntity`. Understanding this hierarchy and the methods available at each level is the foundation of all DayZ modding. This chapter is an API reference for the core entity classes: what methods exist, what their signatures are, and how to use them correctly.
+Every object in the DayZ world ---- онems, players, zombies, animals, buildings, vehicles --- descends from a single class hierarchy rooted at `IEntity`. Understanding this hierarchy and the methods available at each level is the foundation of all DayZ modding. This chapter is an API reference for the core entity classes: what methods exist, what their signatures are, and how to use them correctly.
 
 ---
 
@@ -51,7 +51,7 @@ Key points:
 
 **File:** `1_Core/proto/enentity.c`
 
-The engine-native entity. All proto native methods --- you cannot see their implementation in script.
+The engine-native entity. All proto native methods ---- вы cannot см.ir implementation in script.
 
 ### Transform
 
@@ -113,7 +113,7 @@ event protected void EOnLeave(IEntity other, int extra);
 
 **File:** `3_Game/entities/object.c` (1455 lines)
 
-Base class for all spatial objects in the game world. This is the first script-accessible level of the hierarchy --- `IEntity` is purely engine-native.
+Base class for all spatial objects in the game world. Это first script-accessible level of the hierarchy --- `IEntity` is purely engine-native.
 
 ### Position & Orientation
 
@@ -696,7 +696,7 @@ proto native Object CreateObjectEx(string type, vector pos, int iFlags,
                                     int iRotation = RF_DEFAULT);
 ```
 
-This is the preferred API. The `iFlags` parameter uses ECE (Entity Creation Event) flags.
+Это preferred API. The `iFlags` parameter uses ECE (Entity Creation Event) flags.
 
 ### ECE Flags
 
@@ -782,7 +782,7 @@ EntityAI item = player.GetInventory().CreateInInventory("BandageDressing");
 void Delete();
 ```
 
-Deferred deletion --- the object is removed on the next frame via `CallQueue`. This is the safest way to delete objects because it avoids issues with deleting objects while they are being iterated.
+Deferred deletion ----  object is removed on the next frame via `CallQueue`. Это safest way to delete objects because it avoids issues with deleting objects while they are being iterated.
 
 ### GetGame().ObjectDelete()
 

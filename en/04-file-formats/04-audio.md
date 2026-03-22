@@ -653,6 +653,25 @@ frequencyRandomizer = 0.05;    // +/- 5% pitch variation
 
 ---
 
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Custom notification sounds via SoundSets | Expansion (Notification module) | Defines multiple `CfgSoundSets` for different notification types (success, warning, error) with `spatial = 0` |
+| UI click sounds with cached playback | VPP Admin Tools | Uses `SEffectManager.PlaySoundCachedParams()` for button clicks to avoid re-parsing config each time |
+| Multi-layer weapon audio (shot + tail + crack) | Community weapon packs (RFCP, MuchStuffPack) | Each weapon defines 3-5 separate SoundSets per fire event for close shot, distant rumble, supersonic crack |
+| `frequencyRandomizer` for footstep variation | Vanilla DayZ | Uses 0.05-0.08 pitch randomization on footstep SoundSets to prevent robotic repetition |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** SoundShader and SoundSet class names are global. Two mods defining the same class name will conflict (last loaded wins). Always prefix names with your mod identifier (e.g., `MyMod_Shot_SoundShader`).
+- **Performance:** OGG files are decompressed at runtime. Mods with hundreds of unique audio files increase memory usage. Keep individual files under 500 KB and reuse samples across variants.
+- **Version:** DayZ's audio system (CfgSoundShaders/CfgSoundSets) has been stable since 1.0. The `sound3DProcessingType` and `volumeCurve` named presets were added in later updates but are backward-compatible.
+
+---
+
 ## Navigation
 
 | Previous | Up | Next |

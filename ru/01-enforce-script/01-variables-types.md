@@ -10,7 +10,7 @@
 
 Enforce Script is the scripting language of the Enfusion engine, used by DayZ Standalone. It is an object-oriented language with C-like syntax, similar to C# in many respects but with its own distinct set of types, rules, and limitations. If you have experience with C#, Java, or C++, you will feel at home quickly --- but pay close attention to the differences, because the places where Enforce Script diverges from those languages are exactly the places where bugs hide.
 
-This chapter covers the fundamental building blocks: primitive types, how to declare and initialize variables, and how type conversion works. Every line of DayZ mod code starts here.
+Эта глава охватывает the fundamental building blocks: primitive types, how to declare and initialize variables, and how type conversion works. Every line of DayZ mod code starts here.
 
 ---
 
@@ -83,7 +83,7 @@ void Example()
 }
 ```
 
-This is purely a convenience --- the compiler resolves the type at compile time. There is no performance difference.
+This is purely a convenience ----  compiler resolves the type at compile time. There is no performance difference.
 
 ### Константы
 
@@ -257,7 +257,7 @@ void SafeCheck(PlayerBase player)
 
 ## Working with `string`
 
-Strings in Enforce Script are **value types** --- they are copied when assigned or passed to functions, just like `int` or `float`. This is different from C# or Java where strings are reference types.
+Strings in Enforce Script are **value types** ---- y are copied when assigned or passed to functions, just like `int` or `float`. This is different from C# or Java where strings are reference types.
 
 ```c
 void StringExamples()
@@ -300,7 +300,7 @@ Strings support standard escape sequences:
 | `\\` | Literal backslash |
 | `\"` | Literal double quote |
 
-**Warning:** While these are documented, backslash (`\\`) and escaped quotes (`\"`) are known to cause issues with the CParser in some contexts, especially in JSON-related operations. When working with file paths or JSON strings, avoid backslashes when possible. Use forward slashes for paths --- DayZ accepts them on all platforms.
+**Внимание:** While these are documented, backslash (`\\`) and escaped quotes (`\"`) are known to cause issues with the CParser in some contexts, especially in JSON-related operations. When working with file paths or JSON strings, avoid backslashes when possible. Use forward slashes for paths --- DayZ accepts them on all platforms.
 
 ### Пример из практики: Chat Message
 
@@ -317,7 +317,7 @@ void SendAdminMessage(string adminName, string text)
 
 ## Working with `vector`
 
-The `vector` type holds three `float` components (x, y, z). It is DayZ's fundamental type for positions, directions, rotations, and velocities. Like strings and primitives, vectors are **value types** --- they are copied on assignment.
+The `vector` type holds three `float` components (x, y, z). It is DayZ's fundamental type for positions, directions, rotations, and velocities. Like strings and primitives, vectors are **value types** ---- y are copied on assignment.
 
 ### Initialization
 
@@ -337,7 +337,7 @@ void VectorInit()
 }
 ```
 
-**Important:** The string initialization format uses **spaces** as separators, not commas. `"1 2 3"` is valid; `"1,2,3"` is not.
+**Важно:** The string initialization format uses **spaces** as separators, not commas. `"1 2 3"` is valid; `"1,2,3"` is not.
 
 ### Component Access
 

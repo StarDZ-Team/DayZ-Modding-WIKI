@@ -575,6 +575,24 @@ Players subscribe to the mod on Steam Workshop, or server admins install it manu
 
 ---
 
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| P: drive junctions via `SetupWorkdrive.bat` | COT / Community Online Tools | Ships a batch script that creates junction links from the mod source to P: drive for consistent path resolution |
+| `.gproj` Workbench project files | Dabs Framework | Includes Workbench project files for debugging Enforce Script with breakpoints and variable inspection |
+| Automated `dev.py` build orchestrator | StarDZ (all mods) | Python script wraps AddonBuilder calls, manages multi-PBO builds, launches server/client, and monitors logs |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** All DayZ tools share the P: drive. Multiple mod projects coexist under `P:\` without conflict as long as folder names differ. Junction collisions happen if two mods use the same P: path.
+- **Performance:** Binarize is CPU-intensive and single-threaded per file. Large mods with many P3D models and textures can take 5-10 minutes to binarize. Splitting into multiple PBOs and using `-packonly` for scripts reduces build time significantly.
+- **Version:** DayZ Tools are updated alongside major DayZ patches. Object Builder and Binarize occasionally receive fixes, but the overall workflow has been stable since DayZ 1.0. Always keep DayZ Tools updated via Steam.
+
+---
+
 ## Navigation
 
 | Previous | Up | Next |

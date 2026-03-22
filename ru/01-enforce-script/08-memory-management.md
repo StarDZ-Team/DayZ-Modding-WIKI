@@ -8,7 +8,7 @@
 ## Введение
 
 
-Enforce Script uses **automatic reference counting (ARC)** for memory management -- not garbage collection in the traditional sense. Understanding how `ref`, `autoptr`, and raw pointers work is essential for writing stable DayZ mods. Get it wrong and you will either leak memory (your server gradually consumes more RAM until it crashes) or access deleted objects (instant crash with no useful error message). This chapter explains every pointer type, when to use each, and how to avoid the most dangerous pitfall: reference cycles.
+Enforce Script uses **automatic reference counting (ARC)** for memory management --- нетt garbage collection in the traditional sense. Understanding how `ref`, `autoptr`, and raw pointers work is essential for writing stable DayZ mods. Get it wrong and you will either leak memory (your server gradually consumes more RAM until it crashes) or access deleted objects (instant crash with no useful error message). Эта глава объясняет every pointer type, when to use each, and how to avoid the most dangerous pitfall: reference cycles.
 
 ---
 
@@ -26,7 +26,7 @@ Enforce Script has three ways to hold a reference to an object:
 ### Как работает ARC
 
 
-Every object has a **reference count** -- the number of strong references (`ref`, `autoptr`, local variables, function arguments) pointing to it. When the count drops to zero, the object is automatically destroyed and its destructor is called.
+Every object has a **reference count** ---  number of strong references (`ref`, `autoptr`, local variables, function arguments) pointing to it. When the count drops to zero, the object is automatically destroyed and its destructor is called.
 
 **Weak references** (raw pointers) do NOT increase the reference count. They observe the object without keeping it alive.
 
@@ -67,7 +67,7 @@ class Observer
 The safety of weak references depends on whether the object's class extends `Managed`:
 
 - **Managed classes** (most DayZ gameplay classes): When the object is deleted, all weak references are automatically set to `null`. This is safe.
-- **Non-Managed classes** (plain `class` without inheriting `Managed`): When the object is deleted, weak references become **dangling pointers** -- they still hold the old memory address. Accessing them causes a crash.
+- **Non-Managed classes** (plain `class` without inheriting `Managed`): When the object is deleted, weak references become **dangling pointers** --- y still hold the old memory address. Accessing them causes a crash.
 
 ```c
 // SAFE -- Managed class, weak refs are zeroed
@@ -201,7 +201,7 @@ void ProcessData()
 ### Когда использовать autoptr
 
 
-In practice, **local variables are already strong references by default** in Enforce Script. The `autoptr` keyword makes this explicit and self-documenting. You can use either:
+На практике **local variables are already strong references by default** in Enforce Script. The `autoptr` keyword makes this explicit and self-documenting. You can use either:
 
 ```c
 void Example()
@@ -249,7 +249,7 @@ Use `notnull` on parameters where null would always be a programming error. It c
 ## Циклические ссылки (ВНИМАНИЕ: УТЕЧКА ПАМЯТИ)
 
 
-A reference cycle occurs when two objects hold strong references (`ref`) to each other. Neither object can ever be deleted because each one keeps the other alive. This is the most common source of memory leaks in DayZ mods.
+A reference cycle occurs when two objects hold strong references (`ref`) to each other. Neither object can ever be deleted because each one keeps the other alive. Это most common source of memory leaks in DayZ mods.
 
 ### Проблема
 
@@ -399,10 +399,10 @@ Enforce Script does NOT have a traditional garbage collector that periodically s
 3. When the reference count reaches zero, the object is **immediately** destroyed (destructor is called, memory is freed).
 4. `delete` bypasses the reference count and destroys the object immediately.
 
-This means:
+Это означает:
 - Object lifetimes are predictable and deterministic
 - There are no "GC pauses" or unpredictable delays
-- Reference cycles are NEVER collected -- they are permanent leaks
+- Reference cycles are NEVER collected --- y are permanent leaks
 - Order of destruction is well-defined: objects are destroyed in reverse order of their last reference being released
 
 ---

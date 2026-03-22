@@ -344,6 +344,228 @@ for (int i = 0; i < attCount; i++)
 }
 ```
 
+### Inventory & Slot System
+
+Every EntityAI has a `GameInventory` accessed via `GetInventory()`. The inventory manages cargo space, attachments, and hands. The full class is defined in `3_Game/systems/inventory/inventory.c`.
+
+#### Slot System
+
+DayZ uses numbered slots for attachments. Each slot has a name and ID, defined in `DZ/data/config.cpp` under `CfgSlots`. The `InventorySlots` class (in `3_Game/systems/inventory/inventoryslots.c`) provides slot lookup:
+
+```c
+// Find slot ID by name
+int slotId = InventorySlots.GetSlotIdFromString("Shoulder");
+int headSlot = InventorySlots.GetSlotIdFromString("Headgear");
+
+// Convert slot ID back to name
+string name = InventorySlots.GetSlotName(slotId);
+
+// Get display name for UI
+string displayName = InventorySlots.GetSlotDisplayName(slotId);
+
+// Validate a slot ID
+if (InventorySlots.IsSlotIdValid(slotId))
+{
+    // slot exists
+}
+
+// Invalid slot constant
+if (slotId == InventorySlots.INVALID)
+{
+    Print("Slot not found!");
+}
+```
+
+Common slot names: `"Shoulder"`, `"Melee"`, `"Headgear"`, `"Mask"`, `"Eyewear"`, `"Gloves"`, `"Armband"`, `"Body"`, `"Vest"`, `"Back"`, `"Hips"`, `"Legs"`, `"Feet"`, `"Hands"`
+
+#### Finding Attachments
+
+```c
+GameInventory inv = entity.GetInventory();
+
+// Find attachment by slot ID
+int slotId = InventorySlots.GetSlotIdFromString("Shoulder");
+EntityAI attachment = inv.FindAttachment(slotId);
+
+// Find attachment by slot name (convenience method)
+EntityAI att = inv.FindAttachmentByName("Shoulder");
+
+// Check if a slot is occupied
+bool occupied = inv.FindAttachment(slotId) != null;
+
+// Check if entity is attached to this inventory
+bool isAttached = inv.HasAttachment(someEntity);
+
+// Check if attachment can be added
+bool canAttach = inv.CanAddAttachment(someEntity);
+bool canAttachSlot = inv.CanAddAttachmentEx(someEntity, slotId);
+
+// Create attachment by type name
+EntityAI optic = inv.CreateAttachment("ACOGOptic");
+
+// Create attachment in a specific slot
+EntityAI grip = inv.CreateAttachmentEx("AK_WoodHndgrd", slotId);
+
+// Iterate all attachments
+int attCount = inv.AttachmentCount();
+for (int i = 0; i < attCount; i++)
+{
+    EntityAI item = inv.GetAttachmentFromIndex(i);
+    // NOTE: index is NOT slot ID --- use FindAttachment(slotId) for slot-based lookup
+}
+```
+
+#### Cargo Operations
+
+```c
+GameInventory inv = entity.GetInventory();
+
+// Get cargo container
+CargoBase cargo = inv.GetCargo();
+if (cargo)
+{
+    // Count items in cargo
+    int count = cargo.GetItemCount();
+
+    // Iterate cargo items
+    for (int i = 0; i < cargo.GetItemCount(); i++)
+    {
+        EntityAI item = cargo.GetItem(i);
+        // process item
+    }
+}
+
+// Check if item can fit in cargo
+bool canFit = inv.CanAddEntityInCargo(item, false);
+
+// Create item directly in cargo
+EntityAI newItem = inv.CreateEntityInCargo("BandageDressing");
+
+// Create item at specific cargo position
+EntityAI placed = inv.CreateEntityInCargoEx("Rag", 0, 0, 0, false);
+
+// Create item anywhere in inventory (cargo or attachment slot, whichever fits first)
+EntityAI anywhere = inv.CreateInInventory("Rag");
+```
+
+#### InventoryLocation
+
+For precise placement control, use `InventoryLocation` (defined in `3_Game/systems/inventory/inventorylocation.c`). Every item has a current location, and you create new locations to move items:
+
+```c
+InventoryLocation il = new InventoryLocation();
+
+// Set as attachment in a specific slot
+il.SetAttachment(parentEntity, item, slotId);
+
+// Set as cargo at specific grid position
+il.SetCargo(parentEntity, item, idx, row, col, flip);
+
+// Set as ground position (requires full transform matrix)
+vector transform[4];
+item.GetTransform(transform);
+il.SetGround(item, transform);
+
+// Set in hands
+il.SetHands(playerEntity, item);
+```
+
+**Reading current location:**
+
+```c
+InventoryLocation currentLoc = new InventoryLocation();
+if (item.GetInventory().GetCurrentInventoryLocation(currentLoc))
+{
+    int locType = currentLoc.GetType();  // InventoryLocationType enum
+
+    if (locType == InventoryLocationType.ATTACHMENT)
+    {
+        EntityAI parent = currentLoc.GetParent();
+        int slot = currentLoc.GetSlot();
+    }
+    else if (locType == InventoryLocationType.CARGO)
+    {
+        int row = currentLoc.GetRow();
+        int col = currentLoc.GetCol();
+    }
+}
+```
+
+**InventoryLocationType enum:**
+
+| Type | Description |
+|------|-------------|
+| `UNKNOWN` | Freshly created, no location set |
+| `GROUND` | On the ground in the world |
+| `ATTACHMENT` | Attached to another entity's slot |
+| `CARGO` | In another entity's cargo grid |
+| `HANDS` | In a player's hands |
+| `PROXYCARGO` | Cargo of a large object (building furniture) |
+| `VEHICLE` | Player seated in a vehicle |
+
+**Finding free locations:**
+
+```c
+// Find first free location for an existing item
+InventoryLocation freeLoc = new InventoryLocation();
+if (player.GetInventory().FindFreeLocationFor(item, FindInventoryLocationType.ANY, freeLoc))
+{
+    // freeLoc now contains a valid destination
+}
+
+// Find first free location for a new item type (before creating it)
+InventoryLocation newLoc = new InventoryLocation();
+if (player.GetInventory().FindFirstFreeLocationForNewEntity("BandageDressing", FindInventoryLocationType.CARGO, newLoc))
+{
+    // Can create item at newLoc
+    EntityAI created = GameInventory.LocationCreateEntity(newLoc, "BandageDressing", ECE_IN_INVENTORY, RF_DEFAULT);
+}
+```
+
+#### Inventory Events
+
+```c
+// Called on PARENT when a child is attached to it
+override void EEItemAttached(EntityAI item, string slot_name)
+{
+    super.EEItemAttached(item, slot_name);
+    Print("Attached " + item.GetType() + " to slot " + slot_name);
+}
+
+// Called on PARENT when a child is detached from it
+override void EEItemDetached(EntityAI item, string slot_name)
+{
+    super.EEItemDetached(item, slot_name);
+    Print("Detached " + item.GetType() + " from slot " + slot_name);
+}
+```
+
+#### Inventory State Checks
+
+```c
+GameInventory inv = entity.GetInventory();
+
+// Check if this entity is currently in cargo of something
+bool inCargo = inv.IsInCargo();
+
+// Check how many attachment slots this entity defines
+int slotCount = inv.GetAttachmentSlotsCount();
+for (int i = 0; i < slotCount; i++)
+{
+    int sid = inv.GetAttachmentSlotId(i);
+    string sname = InventorySlots.GetSlotName(sid);
+    Print("Slot: " + sname);
+}
+
+// Check which slots this item CAN go into (as a child)
+int fitCount = inv.GetSlotIdCount();
+for (int j = 0; j < fitCount; j++)
+{
+    int fitSlot = inv.GetSlotId(j);
+    Print("Can fit in slot: " + InventorySlots.GetSlotName(fitSlot));
+}
+```
+
 ### Damage System
 
 ```c
@@ -356,6 +578,201 @@ proto native void DecreaseHealth(string zoneName, string healthType, float value
 proto native void ProcessDirectDamage(int damageType, EntityAI source, string component,
                                        string ammoType, vector modelPos,
                                        float damageCoef = 1.0, int flags = 0);
+```
+
+### Damage System Deep Dive
+
+The damage system in DayZ is zone-based. Each entity can define multiple damage zones (e.g., a car has Engine, FuelTank, Radiator zones; a player has Head, Torso, LeftArm, etc.).
+
+#### ProcessDirectDamage
+
+The core method for applying damage:
+
+```c
+// Apply damage to a specific zone
+proto native void ProcessDirectDamage(int damageType, EntityAI source, string componentName, string ammoName, vector modelPos, float damageCoef = 1.0, int flags = 0);
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `damageType` | `DamageType.CLOSE_COMBAT` (0), `DamageType.FIRE_ARM` (1), `DamageType.EXPLOSION` (2), `DamageType.STUN` (3), `DamageType.CUSTOM` (4) |
+| `source` | The entity that caused the damage (weapon, player, null for environmental) |
+| `componentName` | The damage zone name (e.g., `"Zone_Head"`, `"Engine"`) or empty string `""` for global |
+| `ammoName` | Ammo class name from CfgAmmo config (determines damage values, e.g., `"Bullet_762x39"`, `"MeleeFist"`, `"FallDamageHealth"`) |
+| `modelPos` | Hit position in model space (use `vector.Zero` or `"0 0 0"` when not applicable) |
+| `damageCoef` | Damage multiplier (1.0 = normal, values from CfgAmmo are multiplied by this) |
+| `flags` | `ProcessDirectDamageFlags` controlling damage transfer behavior |
+
+#### DamageType Enum
+
+Defined in `3_Game/damagesystem.c`:
+
+```c
+enum DamageType
+{
+    CLOSE_COMBAT,   // 0 - Player melee, animals, infected
+    FIRE_ARM,       // 1 - Player ranged (firearms)
+    EXPLOSION,      // 2 - Explosions (grenades, mines)
+    STUN,           // 3 - Stun damage (currently unused in vanilla)
+    CUSTOM          // 4 - Everything else (vehicle hit, fall, fireplace, barbed wire, environmental)
+}
+```
+
+> **Note:** Older vanilla code (entityai.c, object.c) uses the constants `DT_CLOSE_COMBAT`, `DT_FIRE_ARM`, `DT_EXPLOSION`, `DT_CUSTOM` as integer aliases. Newer code uses the `DamageType` enum. Both refer to the same values.
+
+#### ProcessDirectDamageFlags
+
+Controls how damage transfers between zones and attachments:
+
+```c
+enum ProcessDirectDamageFlags
+{
+    ALL_TRANSFER,              // Default: damage transfers to attachments and global health
+    NO_ATTACHMENT_TRANSFER,    // Do not transfer damage to attachments
+    NO_GLOBAL_TRANSFER,        // Do not transfer damage to global health
+    NO_TRANSFER                // NO_ATTACHMENT_TRANSFER | NO_GLOBAL_TRANSFER
+}
+```
+
+#### DamageSystem Helper Class
+
+The `DamageSystem` class provides static helpers for common damage operations:
+
+```c
+// Close combat damage by component index (from physics hit detection)
+static proto native void CloseCombatDamage(EntityAI source, Object targetObject, int targetComponentIndex, string ammoTypeName, vector worldPos, int directDamageFlags = ProcessDirectDamageFlags.ALL_TRANSFER);
+
+// Close combat damage by component name
+static proto native void CloseCombatDamageName(EntityAI source, Object targetObject, string targetComponentName, string ammoTypeName, vector worldPos, int directDamageFlags = ProcessDirectDamageFlags.ALL_TRANSFER);
+
+// Area explosion damage
+static proto native void ExplosionDamage(EntityAI source, Object directHitObject, string ammoTypeName, vector worldPos, int damageType);
+```
+
+#### TotalDamageResult
+
+When `EEHitBy` is called, the engine passes a `TotalDamageResult` object containing the computed damage:
+
+```c
+class TotalDamageResult: Managed
+{
+    // Get damage dealt to a specific zone and health type
+    proto native float GetDamage(string zoneName, string healthType);
+
+    // Get the highest damage dealt to any zone for a health type
+    proto native float GetHighestDamage(string healthType);
+}
+```
+
+#### Damage Zones
+
+Damage zones are defined in an entity's `config.cpp` class:
+
+```cpp
+class DamageSystem
+{
+    class GlobalHealth
+    {
+        class Health
+        {
+            hitpoints = 100;
+            healthLevels[] = {
+                {1.0, {"mat_pristine.rvmat"}},
+                {0.7, {"mat_worn.rvmat"}},
+                {0.5, {"mat_damaged.rvmat"}},
+                {0.3, {"mat_badly_damaged.rvmat"}},
+                {0.0, {"mat_ruined.rvmat"}}
+            };
+        };
+    };
+    class DamageZones
+    {
+        class Zone_Head
+        {
+            class Health { hitpoints = 50; };
+            componentNames[] = {"head"};  // Named selection in P3D model
+            fatalInjuryCoef = 1.0;
+        };
+    };
+};
+```
+
+You can enumerate an entity's damage zones at runtime:
+
+```c
+TStringArray zoneNames = new TStringArray;
+entity.GetDamageZones(zoneNames);
+
+for (int i = 0; i < zoneNames.Count(); i++)
+{
+    string zone = zoneNames.Get(i);
+    float hp = entity.GetHealth(zone, "Health");
+    float maxHP = entity.GetMaxHealth(zone, "Health");
+    Print(string.Format("Zone %1: %2 / %3", zone, hp, maxHP));
+}
+```
+
+#### Reading Zone Health
+
+```c
+// Get zone health (returns current HP value)
+float hp = entity.GetHealth("Zone_Head", "Health");
+
+// Get zone health as fraction (0.0 = ruined, 1.0 = pristine)
+float fraction = entity.GetHealth01("Zone_Head", "Health");
+
+// Set zone health directly
+entity.SetHealth("Zone_Head", "Health", 50.0);
+
+// Get max health for a zone
+float maxHP = entity.GetMaxHealth("Zone_Head", "Health");
+
+// Get the health level (integer 0-4, where 0 = pristine, 4 = ruined)
+int level = entity.GetHealthLevel("Zone_Head");
+
+// Shorthand for global zone
+float globalFraction = entity.GetHealth01();   // equivalent to GetHealth01("", "")
+float globalMax = entity.GetMaxHealth();       // equivalent to GetMaxHealth("", "")
+```
+
+#### EEHitBy --- Reacting to Damage
+
+```c
+override void EEHitBy(TotalDamageResult damageResult, int damageType, EntityAI source, int component, string dmgZone, string ammo, vector modelPos, float speedCoef)
+{
+    super.EEHitBy(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
+
+    float damage = damageResult.GetDamage(dmgZone, "Health");
+    Print("[MyMod] Hit in zone: " + dmgZone + " for " + damage + " damage");
+
+    // Check damage type
+    if (damageType == DamageType.FIRE_ARM)
+    {
+        Print("[MyMod] Hit by firearm, ammo: " + ammo);
+    }
+}
+```
+
+#### Practical Damage Examples
+
+**Apply environmental damage (server-side):**
+
+```c
+// Fall damage pattern (from vanilla DayZPlayerImplementFallDamage)
+player.ProcessDirectDamage(DamageType.CUSTOM, player, "", "FallDamageHealth", vector.Zero, healthCoef);
+
+// Heat/fire damage
+entity.ProcessDirectDamage(DamageType.CUSTOM, this, "", "HeatDamage", "0 0 0", 1000);
+
+// Vehicle engine wear (no transfer to attachments)
+ProcessDirectDamage(DamageType.CUSTOM, null, "Engine", "EnviroDmg", vector.Zero, dmg, ProcessDirectDamageFlags.NO_TRANSFER);
+```
+
+**Reset all damage zones to full health:**
+
+```c
+// Using DamageSystem helper (resets all zones + global Health/Shock/Blood)
+DamageSystem.ResetAllZones(entity);
 ```
 
 ### Lifecycle Events
@@ -546,6 +963,184 @@ override void InitItemVariables();     // Reads all config values (quantity, wet
 ```
 
 Items inherit CE (Central Economy) lifetime and persistence from their `types.xml` entry. Use `ECE_NOLIFETIME` flag when creating objects that should never despawn.
+
+### ItemBase Lifecycle
+
+ItemBase extends the entity lifecycle with item-specific initialization, actions, and inventory callbacks. Understanding the order of these events is essential for custom items.
+
+#### Initialization Order
+
+When an ItemBase is created, the following methods are called in order:
+
+1. **Constructor** (`void MyItem()`) --- Register net sync variables here
+2. **`InitItemVariables()`** --- Engine calls this to read config values (quantity, wetness, temperature, liquid type)
+3. **`EEInit()`** --- Called after full entity initialization (inventory ready, attachments loaded)
+4. **`SetActions()`** --- Register player actions that can be performed with this item
+
+```c
+class MyCustomItem extends ItemBase
+{
+    protected bool m_IsActivated;
+
+    void MyCustomItem()
+    {
+        // Constructor: register net sync variables
+        RegisterNetSyncVariableBool("m_IsActivated");
+    }
+
+    // Called during initialization to set up item variables
+    override void InitItemVariables()
+    {
+        super.InitItemVariables();
+        // Variables like quantity, temperature, wetness are read from config here
+        // You can override defaults after calling super
+    }
+
+    // Called after entity is fully initialized
+    override void EEInit()
+    {
+        super.EEInit();
+        // Safe to access inventory, attachments, and other subsystems here
+    }
+
+    // Register actions that players can perform with this item
+    override void SetActions()
+    {
+        super.SetActions();
+        // super.SetActions() registers: ActionTakeItem, ActionTakeItemToHands,
+        // ActionWorldCraft, ActionDropItem, ActionAttachWithSwitch
+        AddAction(ActionEat);
+        AddAction(MyCustomAction);
+    }
+}
+```
+
+#### Inventory Enter / Exit
+
+Called when an item moves into or out of a player's inventory (including being picked up or dropped):
+
+```c
+// Called when item enters any player's inventory
+override void OnInventoryEnter(Man player)
+{
+    super.OnInventoryEnter(player);
+    // player is the Man who now holds this item
+}
+
+// Called when item exits any player's inventory
+override void OnInventoryExit(Man player)
+{
+    super.OnInventoryExit(player);
+    // player is the Man who no longer holds this item
+}
+```
+
+#### Cargo & Hands Permissions
+
+Override these to control where an item can be placed:
+
+```c
+// Can this item be placed in cargo of the given parent?
+override bool CanPutInCargo(EntityAI parent)
+{
+    if (!super.CanPutInCargo(parent))
+        return false;
+
+    // Custom logic (e.g., prevent putting in infected cargo)
+    return true;
+}
+
+// Can this item be put into a player's hands?
+override bool CanPutIntoHands(EntityAI parent)
+{
+    if (!super.CanPutIntoHands(parent))
+        return false;
+
+    return true;
+}
+```
+
+#### Death & Deletion
+
+```c
+// Called when this item is destroyed (health reaches 0)
+override void EEKilled(Object killer)
+{
+    super.EEKilled(killer);
+    // Spawn debris, play effects, etc.
+}
+
+// Called before this item is deleted from the world
+override void EEDelete(EntityAI parent)
+{
+    super.EEDelete(parent);
+    // Clean up references, stop effects, etc.
+}
+```
+
+#### Complete ItemBase Lifecycle Example
+
+```c
+class MyModdedKnife extends ItemBase
+{
+    protected int m_UsesRemaining;
+
+    void MyModdedKnife()
+    {
+        RegisterNetSyncVariableInt("m_UsesRemaining", 0, 100);
+    }
+
+    override void InitItemVariables()
+    {
+        super.InitItemVariables();
+        m_UsesRemaining = 50;
+    }
+
+    override void EEInit()
+    {
+        super.EEInit();
+        // Item is fully ready
+    }
+
+    override void SetActions()
+    {
+        super.SetActions();
+        AddAction(ActionSkinning);
+        AddAction(ActionMineBush);
+    }
+
+    override void OnInventoryEnter(Man player)
+    {
+        super.OnInventoryEnter(player);
+    }
+
+    override void OnInventoryExit(Man player)
+    {
+        super.OnInventoryExit(player);
+    }
+
+    override bool CanPutInCargo(EntityAI parent)
+    {
+        return true;
+    }
+
+    override bool CanPutIntoHands(EntityAI parent)
+    {
+        return true;
+    }
+
+    override void EEKilled(Object killer)
+    {
+        super.EEKilled(killer);
+    }
+
+    override void OnVariablesSynchronized()
+    {
+        super.OnVariablesSynchronized();
+        // React to m_UsesRemaining changing (client-side)
+    }
+}
+```
 
 ---
 
@@ -925,6 +1520,41 @@ void DamageEntity(EntityAI target, float amount)
 | Deleting | `obj.Delete()` (deferred) or `GetGame().ObjectDelete(obj)` (immediate) |
 | Net Sync | `RegisterNetSyncVariable*()` in constructor, react in `OnVariablesSynchronized()` |
 | Type Check | `obj.IsKindOf("ClassName")`, `obj.IsMan()`, `obj.IsBuilding()` |
+
+---
+
+## Best Practices
+
+- **Always call `super` in lifecycle overrides.** Every `EEInit()`, `EEKilled()`, `EEHitBy()`, `EEItemAttached()`, and `OnVariablesSynchronized()` override must call `super` first, or you break the inheritance chain for vanilla and other mods.
+- **Use `CreateObjectEx()` with explicit ECE flags instead of `CreateObject()`.** The flags-based API gives you precise control over physics, AI, surface alignment, and persistence. Always include `ECE_CREATEPHYSICS` for items that need collision.
+- **Register net sync variables only in the constructor, never conditionally.** The registration order must be identical on server and client. Adding variables outside the constructor or behind `if` checks causes desync.
+- **Prefer `obj.Delete()` (deferred) over `GetGame().ObjectDelete()` (immediate).** Immediate deletion during iteration or event processing can cause null pointer crashes. Deferred deletion is safe in all contexts.
+- **Cast with `Class.CastTo()` instead of direct casts.** `Class.CastTo(result, source)` returns false on failure without crashing, while a direct cast to a wrong type produces undefined behavior.
+
+---
+
+## Compatibility & Impact
+
+> **Mod Compatibility:** The entity system is the most commonly modded layer. Multiple mods frequently override `EEInit()`, `EEKilled()`, `EEHitBy()`, and `OnVariablesSynchronized()` on `ItemBase` and `PlayerBase`.
+
+- **Load Order:** Mods loaded later override earlier mods' `modded class` declarations. If two mods both `modded class ItemBase` and override `EEInit()`, only the last-loaded mod's code runs unless both call `super`.
+- **Modded Class Conflicts:** The most common conflict is forgetting `super` calls in `EEInit()` or `SetActions()`, which silently breaks all mods loaded before yours. Always call `super` as the first line.
+- **Performance Impact:** `RegisterNetSyncVariable*()` adds network traffic per entity. Keep synced variable count low (under 8 per entity). Use RPCs for infrequent updates instead.
+- **Server/Client:** `SetHealth()`, `ProcessDirectDamage()`, and `Delete()` are server-authoritative. Calling them on the client causes desync. `GetHealth()`, `GetPosition()`, and type checks are safe on both sides.
+
+---
+
+## Observed in Real Mods
+
+> These patterns were confirmed by studying the source code of professional DayZ mods.
+
+| Pattern | Mod | File/Location |
+|---------|-----|---------------|
+| Thin `modded class ItemBase` with `super` chain for `EEInit` | COT | `4_World/entities/itembase.c` |
+| `RegisterNetSyncVariableInt` for custom state enum in constructor | Expansion | Vehicle and basebuilding entity classes |
+| `CreateObjectEx` with `ECE_NOLIFETIME` for admin-spawned persistent objects | VPP Admin Tools | Object spawner module |
+| `EEHitBy` override to log damage source and ammo type for killfeed | Dabs Framework | Player hit tracking |
+| `FindAttachmentBySlotName` to check equipped gear before granting perks | Expansion | Party/group gear checks |
 
 ---
 

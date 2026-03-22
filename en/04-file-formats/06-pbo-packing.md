@@ -1,6 +1,6 @@
 # Chapter 4.6: PBO Packing
 
-[<< Previous: DayZ Tools Workflow](05-dayz-tools.md) | **PBO Packing** | [Next: Part 5 >>](../05-config-files/01-textures.md)
+[<< Previous: DayZ Tools Workflow](05-dayz-tools.md) | **PBO Packing** | [Next: Workbench Guide >>](07-workbench-guide.md)
 
 ---
 
@@ -635,8 +635,27 @@ Development involves two testing modes. Choosing the right one for each situatio
 
 ---
 
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| 20+ PBOs per mod with fine-grained splits | Expansion (all modules) | Splits into separate PBOs for Scripts, Data, GUI, Vehicles, Book, Market, etc., enabling independent rebuilds and optional client/server separation |
+| Scripts/Data/GUI triple-split | StarDZ (Core, Missions, AI) | Each mod produces 2-3 PBOs: `_Scripts.pbo` (packonly), `_Data.pbo` (binarized models/textures), `_GUI.pbo` (packonly layouts) |
+| Single monolithic PBO | Simple retexture mods | Small mods with only a config.cpp and a few PAA textures pack everything into one PBO with binarization |
+| Key versioning per major release | Expansion | Generates new key pairs for breaking updates, forcing all clients and servers to update in sync |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** PBO prefix collisions cause the engine to load one mod's files instead of another's. Every mod must use a unique prefix. Check `$PBOPREFIX$` carefully when debugging "file not found" errors in multi-mod environments.
+- **Performance:** PBO loading is fast (sequential file reads), but mods with many large PBOs increase server startup time. Binarized content loads faster than unbinarized. Use ODOL models and PAA textures for release builds.
+- **Version:** The PBO format itself has not changed. AddonBuilder receives periodic fixes via DayZ Tools updates, but the command-line flags and packing behavior have been stable since DayZ 1.0.
+
+---
+
 ## Navigation
 
 | Previous | Up | Next |
 |----------|----|------|
-| [4.5 DayZ Tools Workflow](05-dayz-tools.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [Part 5: Config Files](../05-config-files/01-textures.md) |
+| [4.5 DayZ Tools Workflow](05-dayz-tools.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [Next: Workbench Guide](07-workbench-guide.md) |

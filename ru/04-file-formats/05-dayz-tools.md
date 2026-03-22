@@ -43,7 +43,7 @@ DayZ Tools is available as a free download on Steam under the **Tools** category
 | **Terrain Builder** | Terrain/map creation and editing | Map makers |
 | **Binarize** | Source-to-game format conversion | Build pipeline (usually automated) |
 | **AddonBuilder** | PBO packing with optional binarization | All modders |
-| **Workbench** | Script debugging, testing, profiling | Scripters |
+| **Workbench** | Отладка скриптов, testing, profiling | Scripters |
 | **DayZ Tools Launcher** | Central hub for launching tools and configuring P: drive | All modders |
 
 ### Where They Live on Disk
@@ -71,22 +71,22 @@ C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\
 
 ## Installation and Setup
 
-### Step 1: Install DayZ Tools from Steam
+### Шаг 1: Install DayZ Tools from Steam
 
 1. Open Steam Library.
 2. Enable **Tools** filter in the dropdown.
 3. Search for "DayZ Tools".
 4. Install (free, approximately 2 GB).
 
-### Step 2: Launch DayZ Tools
+### Шаг 2: Launch DayZ Tools
 
 1. Launch "DayZ Tools" from Steam.
-2. The DayZ Tools Launcher opens -- a central hub application.
+2. The DayZ Tools Launcher opens ---  central hub application.
 3. From here you can launch any individual tool and configure settings.
 
-### Step 3: Configure P: Drive
+### Шаг 3: Configure P: Drive
 
-The launcher provides a button to create and mount the P: drive (workdrive). This is the virtual drive that all DayZ tools use as their root path.
+The launcher provides a button to create and mount the P: drive (workdrive). Это virtual drive that all DayZ tools use as their root path.
 
 1. Click **Setup Workdrive** (or the P: drive configuration button).
 2. The tool creates a subst-mapped P: drive pointing to a directory on your real disk.
@@ -149,7 +149,7 @@ pause
 
 ## Object Builder
 
-Object Builder is the 3D model editor for P3D files. It is covered in detail in [Chapter 4.2: 3D Models](02-models.md). Here is a summary of its role in the toolchain.
+Object Builder is the 3D model editor for P3D files. It is covered in detail in [Chapter 4.2: 3D Модели](02-models.md). Here is a summary of its role in the toolchain.
 
 ### Key Capabilities
 
@@ -203,9 +203,9 @@ Or directly: `P:\DayZ Tools\Bin\TexView2\TexView2.exe`
 **Convert TGA to PAA:**
 1. File --> Open --> select your TGA file.
 2. Verify the image looks correct.
-3. File --> Save As --> choose PAA format.
+3. File --> Сохранить As --> choose PAA format.
 4. Select compression (DXT1 for opaque, DXT5 for alpha).
-5. Save.
+5. Сохранить.
 
 **Inspect a vanilla PAA texture:**
 1. File --> Open --> browse to `P:\DZ\...` and select a PAA file.
@@ -243,7 +243,7 @@ Terrain Builder is a specialized tool for creating custom maps (terrains). Map m
 DayZ Tools Launcher --> Terrain Builder
 ```
 
-> **Примечание:** Terrain creation is an advanced topic that warrants its own dedicated guide. This chapter covers Terrain Builder only as part of the tools overview.
+> **Примечание:** Terrain creation is an advanced topic that warrants its own dedicated guide. Эта глава охватывает Terrain Builder only as part of the tools overview.
 
 ---
 
@@ -268,7 +268,7 @@ Binarize is the core conversion engine that transforms human-readable source fil
 | Config.cpp with CfgVehicles | **Yes** | Engine requires binarized configs for item definitions |
 | Config.cpp (scripts only) | Optional | Script-only configs work unbinarized |
 | P3D models | **Yes** | ODOL is faster to load, smaller, engine-optimized |
-| Textures (TGA/PNG) | **Yes** | PAA is required at runtime |
+| Текстуры (TGA/PNG) | **Yes** | PAA is required at runtime |
 | Scripts (.c files) | **No** | Scripts are loaded as-is (text) |
 | Audio (.ogg) | **No** | OGG is already game-ready |
 | Layouts (.layout) | **No** | Loaded as-is |
@@ -279,7 +279,7 @@ Binarize is the core conversion engine that transforms human-readable source fil
 Binarize.exe -targetPath="P:\build\MyMod" -sourcePath="P:\MyMod" -noLogs
 ```
 
-In practice, you rarely call Binarize directly -- AddonBuilder wraps it as part of the PBO packing process.
+На практике you rarely call Binarize directly -- AddonBuilder wraps it as part of the PBO packing process.
 
 ---
 
@@ -315,7 +315,7 @@ Workbench is a script development environment included with DayZ Tools. It provi
 
 ### Key Capabilities
 
-- **Script editing** with syntax highlighting for Enforce Script.
+- **Редактирование скриптов** with syntax highlighting for Enforce Script.
 - **Debugging** with breakpoints, step execution, and variable inspection.
 - **Profiling** to identify performance bottlenecks in scripts.
 - **Console** for evaluating expressions and testing snippets.
@@ -339,7 +339,7 @@ Or directly: `P:\DayZ Tools\Bin\Workbench\workbenchApp.exe`
 
 ### Limitations
 
-- Workbench's Enforce Script support has some gaps -- not all engine APIs are fully documented in its autocomplete.
+- Workbench's Enforce Script support has some gaps --- нетt all engine APIs are fully documented in its autocomplete.
 - Some modders prefer external editors (VS Code with community Enforce Script extensions) for writing code and use Workbench only for debugging.
 - Workbench can be unstable with large mods or complex breakpoint configurations.
 
@@ -378,9 +378,9 @@ DayZDiag_x64.exe -filePatching -server -mod="MyMod" -config=serverDZ.cfg
 |------------|---------------------|-------|
 | Scripts (.c) | **Yes** | Fastest iteration -- edit, restart, test |
 | Layouts (.layout) | **Yes** | UI changes without rebuild |
-| Textures (.paa) | **Yes** | Swap textures without rebuild |
+| Текстуры (.paa) | **Yes** | Swap textures without rebuild |
 | Config.cpp | **Partial** | Unbinarized configs only |
-| Models (.p3d) | **Yes** | Unbinarized MLOD P3D only |
+| Модели (.p3d) | **Yes** | Unbinarized MLOD P3D only |
 | Audio (.ogg) | **Yes** | Swap sounds without rebuild |
 
 ### Workflow with File Patching
@@ -391,7 +391,7 @@ DayZDiag_x64.exe -filePatching -server -mod="MyMod" -config=serverDZ.cfg
 4. Restart the game (or reconnect) to pick up the changes.
 5. No PBO rebuild needed.
 
-> **Совет:** For script-only changes, file patching eliminates the build step entirely. You edit `.c` files, restart, and test. This is the fastest development loop available.
+> **Совет:** For script-only changes, file patching eliminates the build step entirely. You edit `.c` files, restart, and test. Это fastest development loop available.
 
 ### Limitations
 
@@ -525,7 +525,7 @@ Players subscribe to the mod on Steam Workshop, or server admins install it manu
 
 2. **Use file patching during development.** It cuts iteration time from minutes (PBO rebuild) to seconds (game restart). Only build PBOs for release testing and distribution.
 
-3. **Automate your build pipeline.** Use scripts (`build_pbos.bat`, `dev.py`) to automate the AddonBuilder invocation. Manual GUI packing is error-prone and slow for multi-PBO mods.
+3. **Automate your build pipeline.** Use scripts (`build_pbos.bat`, `dev.py`) to automate the AddonBuilder invocation. Ручное GUI packing is error-prone and slow for multi-PBO mods.
 
 4. **Keep source and output separate.** Source files live on P:. Built PBOs go to a separate output directory. Never mix them.
 

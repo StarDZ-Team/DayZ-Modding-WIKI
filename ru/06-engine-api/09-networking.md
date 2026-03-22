@@ -7,7 +7,7 @@
 ## Введение
 
 
-DayZ is a client-server game. All authoritative logic runs on the server, and clients communicate with it through Remote Procedure Calls (RPCs). The primary RPC mechanism is `ScriptRPC`, which allows you to write arbitrary data on one side and read it on the other. This chapter covers the networking API: sending and receiving RPCs, the serialization context classes, the legacy `CGame.RPC()` method, and `ScriptInputUserData` for input-verified client-to-server messages.
+DayZ is a client-server game. All authoritative logic runs on the server, and clients communicate with it through Remote Procedure Calls (RPCs). The primary RPC mechanism is `ScriptRPC`, which allows you to write arbitrary data on one side and read it on the other. Эта глава охватывает the networking API: sending and receiving RPCs, the serialization context classes, the legacy `CGame.RPC()` method, and `ScriptInputUserData` for input-verified client-to-server messages.
 
 ---
 
@@ -370,7 +370,7 @@ override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
 
 ## Network Sync Variables (Alternative to RPC)
 
-For simple state synchronization, `RegisterNetSyncVariable*()` is often simpler than RPCs. See [Chapter 6.1](01-entity-system.md) for details.
+For simple state synchronization, `RegisterNetSyncVariable*()` is often simpler than RPCs. См. [Chapter 6.1](01-entity-system.md) for details.
 
 RPCs are better when:
 - You need to send one-time events (not continuous state)
@@ -433,7 +433,7 @@ The engine has built-in rate limiting for RPCs. Sending too many RPCs per frame 
 |---------|-----------|
 | ScriptRPC | Primary RPC class: `Write()` data, then `Send(target, id, guaranteed, recipient)` |
 | OnRPC | Override on target object to receive: `OnRPC(sender, rpc_type, ctx)` |
-| Read/Write | `ctx.Write(value)` / `ctx.Read(value)` --- always check Read return value |
+| Read/Write | `ctx.Write(value)` / `ctx.Read(value)` ---- lways check Read return value |
 | Direction | Client sends to server; server sends to specific client or broadcasts |
 | Recipient | `null` = broadcast (server), ignored (client) |
 | Guaranteed | `true` = reliable delivery, `false` = unreliable (faster) |

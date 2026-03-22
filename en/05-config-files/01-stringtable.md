@@ -439,3 +439,35 @@ This breaks parsing because `Hello` and ` World` are read as separate columns. E
 ```csv
 "STR_MYMOD_MSG","Hello, World","Hello, World",...
 ```
+
+---
+
+## Best Practices
+
+- Always use the `STR_MODNAME_` prefix for every key. This prevents collisions when multiple mods are loaded together.
+- Quote every field in the CSV, even if the content has no commas. This prevents subtle parsing errors when translations in other languages contain commas or special characters.
+- Fill the `english` column for every key, even if your native language is different. English is the universal fallback and the baseline for community translators.
+- Keep one stringtable per PBO for small mods. For large mods with 500+ keys, split into per-feature stringtable files in separate PBOs (following the Expansion pattern).
+- Save files as UTF-8 without BOM. If using Excel, explicitly choose "CSV UTF-8" format on export.
+
+---
+
+## Theory vs Practice
+
+> What the documentation says versus how things actually work at runtime.
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| Column order does not matter | Engine identifies columns by header name | True, but some community tools and spreadsheet exports reorder columns. Keeping the standard order prevents confusion |
+| Fallback chain: language > english > original > raw key | Documented cascade | If both `english` and `original` are empty, the engine displays the raw key with the `#` prefix stripped -- useful for spotting missing translations in-game |
+| `Widget.TranslateString()` | Resolves at call time | The result is cached per session. Changing the game language requires a restart for stringtable lookups to update |
+| Multiple mods with same key | Last-loaded PBO wins | PBO load order is not guaranteed between mods. If two mods define `STR_CLOSE`, the displayed text depends on which mod loads last -- always use a mod prefix |
+| `#` prefix in `SetText()` | Engine auto-resolves localization keys | Works, but only on the first call. If you call `SetText("#STR_KEY")` and later call `SetText("literal text")`, switching back to `SetText("#STR_KEY")` works fine -- no caching issue at the widget level |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** String key collisions are the primary risk. Two mods defining `STR_ADMIN_PANEL` will conflict silently. Always prefix keys with your mod name (`STR_MYMOD_ADMIN_PANEL`).
+- **Performance:** Stringtable lookup is fast (hash-based). Having thousands of keys across multiple mods has no measurable performance impact. The entire stringtable is loaded into memory at startup.
+- **Version:** The CSV-based stringtable format has been unchanged since DayZ Standalone alpha. The 15-column layout and fallback behavior have remained stable across all versions.

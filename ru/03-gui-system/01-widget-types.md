@@ -39,7 +39,7 @@ Container widgets hold and organize child widgets. They do not display content t
 
 ### FrameWidget
 
-The workhorse of DayZ UI. Use `FrameWidget` as your default container when you need to group widgets together. It has no visual appearance -- it is purely structural.
+The workhorse of DayZ UI. Use `FrameWidget` as your default container when you need to group widgets together. It has no visual appearance --- он is purely structural.
 
 **Key methods:**
 - All base `Widget` methods (position, size, color, children, flags)

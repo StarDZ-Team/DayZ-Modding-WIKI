@@ -1,6 +1,6 @@
 # 3.2 Layout File Format (.layout)
 
-DayZ uses a custom text-based format for UI layout files. These `.layout` files are **NOT XML** -- they use a brace-delimited format similar to config.cpp. The DayZ Workbench editor generates them, but understanding the format lets you hand-edit layouts and debug problems.
+DayZ uses a custom text-based format for UI layout files. These `.layout` files are **NOT XML** --- y use a brace-delimited format similar to config.cpp. The DayZ Workbench editor generates them, but understanding the format lets you hand-edit layouts and debug problems.
 
 ---
 
@@ -51,7 +51,7 @@ Key rules:
 | `scaled` | `0` or `1` | Scale with DayZ UI scaling setting |
 | `priority` | integer | Z-order (higher values render on top) |
 
-The `hexactpos`, `vexactpos`, `hexactsize`, and `vexactsize` flags are the most important attributes in the entire layout system. They control whether each dimension uses proportional (0.0 - 1.0 relative to parent) or pixel (absolute screen pixels) units. See [3.3 Sizing & Positioning](03-sizing-positioning.md) for a thorough explanation.
+The `hexactpos`, `vexactpos`, `hexactsize`, and `vexactsize` flags are the most important attributes in the entire layout system. They control whether each dimension uses proportional (0.0 - 1.0 relative to parent) or pixel (absolute screen pixels) units. См. [3.3 Sizing & Positioning](03-sizing-positioning.md) for a thorough explanation.
 
 ### Visual Attributes
 
@@ -247,7 +247,7 @@ Children are always positioned relative to their parent. A child with `position 
 
 ## Complete Annotated Example
 
-Here is a fully annotated layout file for a notification panel -- the kind of UI you might build for a mod:
+Here is a fully annotated layout file for a notification panel ---  kind of UI you might build for a mod:
 
 ```
 // Root container -- invisible frame that covers 30% of screen width
@@ -308,7 +308,7 @@ FrameWidgetClass NotificationPanel {
 }
 ```
 
-And here is a more complex example -- a dialog with a title bar, scrollable content, and a close button:
+And here is a more complex example ---  dialog with a title bar, scrollable content, and a close button:
 
 ```
 WrapSpacerWidgetClass MyDialog {

@@ -10,11 +10,11 @@
 - [What We Are Building](#what-we-are-building)
 - [Prerequisites](#prerequisites)
 - [Architecture Overview](#architecture-overview)
-- [Step 1: Create the Module Class](#step-1-create-the-module-class)
-- [Step 2: Create the Layout File](#step-2-create-the-layout-file)
-- [Step 3: Bind Widgets in OnActivated](#step-3-bind-widgets-in-onactivated)
-- [Step 4: Handle Button Clicks](#step-4-handle-button-clicks)
-- [Step 5: Send an RPC to the Server](#step-5-send-an-rpc-to-the-server)
+- [Шаг 1: Create the Module Class](#step-1-create-the-module-class)
+- [Шаг 2: Create the Layout File](#step-2-create-the-layout-file)
+- [Шаг 3: Bind Widgets in OnActivated](#step-3-bind-widgets-in-onactivated)
+- [Шаг 4: Handle Button Clicks](#step-4-handle-button-clicks)
+- [Шаг 5: Send an RPC to the Server](#step-5-send-an-rpc-to-the-server)
 - [Step 6: Handle the Server-Side Response](#step-6-handle-the-server-side-response)
 - [Step 7: Update the UI with Received Data](#step-7-update-the-ui-with-received-data)
 - [Step 8: Register the Module](#step-8-register-the-module)
@@ -97,7 +97,7 @@ The RPC (Remote Procedure Call) system is how client and server communicate in D
 
 ---
 
-## Step 1: Create the Module Class
+## Шаг 1: Create the Module Class
 
 First, define the RPC identifiers in `3_Game` (the earliest layer where game types are available). RPC IDs must be defined in `3_Game` because both `4_World` (server handler) and `5_Mission` (client handler) need to reference them.
 
@@ -121,7 +121,7 @@ RPC IDs are pure data -- integers with no dependency on world entities or UI. Pl
 
 ---
 
-## Step 2: Create the Layout File
+## Шаг 2: Create the Layout File
 
 The layout file defines the visual structure of your panel. DayZ uses a custom text-based format (not XML) for `.layout` files.
 
@@ -228,7 +228,7 @@ All sizes use proportional coordinates (0.0 to 1.0 relative to parent) because `
 
 ---
 
-## Step 3: Bind Widgets in OnActivated
+## Шаг 3: Bind Widgets in OnActivated
 
 Now create the client-side panel script that loads the layout and connects widgets to variables.
 
@@ -407,7 +407,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 
 ---
 
-## Step 4: Handle Button Clicks
+## Шаг 4: Handle Button Clicks
 
 The button click handling is already implemented in Step 3's `OnClick()` method. Let us examine the pattern more closely.
 
@@ -445,13 +445,13 @@ override bool OnClick(Widget w, int x, int y, int button)
 
 ---
 
-## Step 5: Send an RPC to the Server
+## Шаг 5: Send an RPC to the Server
 
 When the admin clicks Refresh, we need to send a message from the client to the server. DayZ provides the RPC system for this.
 
 ### RPC Sending (Client to Server)
 
-The core send call from Step 3:
+The core send call from Шаг 3:
 
 ```c
 Man player = GetGame().GetPlayer();

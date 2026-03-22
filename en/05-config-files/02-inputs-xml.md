@@ -601,3 +601,46 @@ If you list an input in `<sorting>` or `<preset>` but never define it in `<actio
 ### Binding Conflicting Keys
 
 Choosing keys that conflict with vanilla bindings (like `W`, `A`, `S`, `D`, `Tab`, `I`) causes both your action and the vanilla action to fire simultaneously. Use less common keys (F5-F12, numpad keys) or modifier combos for safety.
+
+---
+
+## Best Practices
+
+- Always prefix action names with `UA` + your mod name (e.g., `UAMyModOpenMenu`). Generic names like `UAOpenMenu` will collide with other mods.
+- Provide a `loc` attribute for every visible input and define the corresponding stringtable key. Without it, the Controls menu shows the raw action name.
+- Choose uncommon default keys (F5-F12, numpad) or modifier combos (Ctrl+key) to minimize conflicts with vanilla and popular mod keybindings.
+- Always list visible inputs in the `<sorting>` block. An input defined in `<actions>` but missing from `<sorting>` is invisible to the player and cannot be rebound.
+- Cache the `UAInput` reference from `GetUApi().GetInputByName()` in a member variable rather than calling it every frame in `OnUpdate`. The string lookup has overhead.
+
+---
+
+## Theory vs Practice
+
+> What the documentation says versus how things actually work at runtime.
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `visible="false"` hides from Controls menu | Input is registered but invisible | Hidden inputs still appear in the `<sorting>` block listing in some DayZ versions. Omitting from `<sorting>` is the reliable way to hide inputs |
+| `LocalPress()` fires once per key-down | Single trigger on the frame the key is pressed | If the game hitches (low FPS), `LocalPress()` can be missed entirely. For critical actions, also check `LocalValue() > 0` as a fallback |
+| Modifier combos via nested `<btn>` | Outer is modifier, inner is trigger | The modifier key alone also registers as a press on its own input (e.g., `kLControl` is also vanilla crouch). Players holding Ctrl+Click will also crouch |
+| `ForceDisable(true)` suppresses input | Input is completely ignored | `ForceDisable` persists until explicitly re-enabled. If your mod crashes or the UI closes without calling `ForceDisable(false)`, the input stays disabled until game restart |
+| Multiple `<btn>` siblings | Both keys trigger the same action | Works correctly, but the Controls menu only displays the first key. The player can see and rebind the first key but may not realize the second default exists |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Action name collisions are the primary risk. If two mods define `UAOpenMenu`, only one works and the conflict is silent. There is no engine warning for duplicate action names across mods.
+- **Performance:** Input polling via `GetUApi().GetInputByName()` involves a string hash lookup. Polling 5-10 inputs per frame is negligible, but caching the `UAInput` reference is still recommended for mods with many inputs.
+- **Version:** The `inputs.xml` format and `<modded_inputs>` structure have been stable since DayZ 1.0. The `visible` attribute was added later (around 1.08) -- on older versions, all inputs are always visible in the Controls menu.
+
+---
+
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Modifier combo `Ctrl+Click` | Expansion AI | `eAISetWaypoint` uses nested `<btn name="kLControl"><btn name="mBLeft"/>` for Ctrl+Left Click to place AI waypoints |
+| Hidden utility inputs | Expansion Market | `UAExpansionConfirm` is `visible="false"` with dual keys (Enter + Numpad Enter) for internal confirmation logic |
+| `ForceDisable` during menu open | COT, VPP | Admin panels call `ForceDisable(true)` on gameplay inputs when the panel opens, and `ForceDisable(false)` on close to prevent character movement while typing |
+| Cached `UAInput` in member variable | DabsFramework | Stores `GetUApi().GetInputByName()` result in a class field during init, polls the cached reference in `OnUpdate` to avoid per-frame string lookup |

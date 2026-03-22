@@ -8,7 +8,7 @@
 ## Введение
 
 
-Control flow determines the order in which your code executes. Enforce Script provides the familiar `if/else`, `for`, `while`, `foreach`, and `switch` constructs -- but with several important differences from C/C++ that will catch you off guard if you are not prepared. This chapter covers every control flow mechanism available, including the pitfalls unique to DayZ's scripting engine.
+Control flow determines the order in which your code executes. Enforce Script provides the familiar `if/else`, `for`, `while`, `foreach`, and `switch` constructs -- but with several important differences from C/C++ that will catch you off guard if you are not prepared. Эта глава охватывает every control flow mechanism available, including the pitfalls unique to DayZ's scripting engine.
 
 ---
 
@@ -40,7 +40,7 @@ void CheckHealth(PlayerBase player)
 ### Проверки на null
 
 
-In Enforce Script, object references evaluate to `false` when null. This is the standard way to guard against null access:
+In Enforce Script, object references evaluate to `false` when null. Это standard way to guard against null access:
 
 ```c
 void ProcessItem(EntityAI item)

@@ -14,7 +14,7 @@ Real DayZ mods deal with collections of things: lists of players, inventories of
 - **`map<K,V>`** --- Key-value associative container (hash map)
 - **`set<T>`** --- Ordered collection with value-based removal
 
-There are also **static arrays** (`int arr[5]`) for fixed-size data known at compile time. This chapter covers all of them in depth, including every available method, iteration patterns, and the subtle pitfalls that cause real bugs in production mods.
+There are also **static arrays** (`int arr[5]`) for fixed-size data known at compile time. Эта глава охватывает all of them in depth, including every available method, iteration patterns, and the subtle pitfalls that cause real bugs in production mods.
 
 ---
 
@@ -666,7 +666,7 @@ void SetExamples()
 ### Когда использовать Set vs Array
 
 
-In practice, most DayZ modders use `array<T>` for almost everything because:
+На практике most DayZ modders use `array<T>` for almost everything because:
 - `set<T>` has fewer methods than `array<T>`
 - `array<T>` provides `Find()` for search and `RemoveItem()` for value-based removal
 - The API you need is typically on `array<T>` already
@@ -803,7 +803,7 @@ for (int k = nums3.Count() - 1; k >= 0; k--)
 
 ### 2. Array Index Out of Bounds
 
-Enforce Script does not throw exceptions for out-of-bounds access --- it silently returns garbage or crashes. Always check bounds.
+Enforce Script does not throw exceptions for out-of-bounds access ---- он silently returns garbage or crashes. Always check bounds.
 
 ```c
 // BAD: no bounds check
@@ -842,7 +842,7 @@ array<string> items3 = {"Test"};
 
 ### 4. `Insert` vs `Set` on Maps
 
-`Insert` does not update existing keys --- it returns `false` and leaves the value unchanged:
+`Insert` does not update existing keys ---- он returns `false` and leaves the value unchanged:
 
 ```c
 map<string, int> data = new map<string, int>;

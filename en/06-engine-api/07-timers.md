@@ -223,6 +223,50 @@ bool IsRunning();
 
 Returns `true` if the timer is currently active.
 
+### Pause
+
+```c
+void Pause();
+```
+
+Pauses a running timer, preserving the remaining time. The timer can be resumed with `Continue()`.
+
+### Continue
+
+```c
+void Continue();
+```
+
+Resumes a paused timer from where it left off.
+
+### IsPaused
+
+```c
+bool IsPaused();
+```
+
+Returns `true` if the timer is currently paused.
+
+**Example --- pause and resume:**
+
+```c
+ref Timer m_Timer;
+
+void StartTimer()
+{
+    m_Timer = new Timer(CALL_CATEGORY_GAMEPLAY);
+    m_Timer.Run(10.0, this, "OnTimerComplete", null, false);
+}
+
+void TogglePause()
+{
+    if (m_Timer.IsPaused())
+        m_Timer.Continue();
+    else
+        m_Timer.Pause();
+}
+```
+
 ### GetRemaining
 
 ```c
@@ -387,6 +431,25 @@ void HideNotification()
 
 ---
 
+## GetRemainingTime (CallQueue)
+
+The `ScriptCallQueue` also provides a way to query how much time is left on a scheduled `CallLater`:
+
+```c
+float GetRemainingTime(Class obj, string fnName);
+```
+
+**Example:**
+
+```c
+// Get how much time is left on a CallLater
+float remaining = GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).GetRemainingTime(this, "MyCallback");
+if (remaining > 0)
+    Print(string.Format("Callback fires in %1 ms", remaining));
+```
+
+---
+
 ## Common Patterns
 
 ### Timer Accumulator (Throttled OnUpdate)
@@ -472,6 +535,40 @@ void DelayedInit()
 | Remove calls | Always `Remove()` in destructor to prevent dangling references |
 | Timer vs CallLater | Timer is seconds + class-based; CallLater is milliseconds + functional |
 | ScriptInvoker | Insert/Remove callbacks, Invoke to fire all |
+
+---
+
+## Best Practices
+
+- **Always `Remove()` scheduled `CallLater` calls in your destructor.** If the owning object is destroyed while a `CallLater` is still pending, the engine will call a method on a deleted object and crash. Every `CallLater` must have a matching `Remove()` in the destructor.
+- **Use `Timer` (seconds) for long-lived timers with pause/resume, `CallLater` (milliseconds) for fire-and-forget delays.** Mixing them up leads to off-by-1000x timing bugs since `Timer.Run()` uses seconds but `CallLater` uses milliseconds.
+- **Throttle `OnUpdate` with a timer accumulator instead of registering a repeating `CallLater`.** A `CallLater` with repeat creates a separate tracked entry in the queue, while an accumulator pattern (`m_Acc += timeslice; if (m_Acc >= INTERVAL)`) has zero overhead and is easier to tune.
+- **Unsubscribe `ScriptInvoker` callbacks before the listener is destroyed.** Forgetting to call `Remove()` on a `ScriptInvoker` leaves a dangling function reference that crashes when `Invoke()` fires.
+- **Never call `Tick()` manually on `ScriptCallQueue`.** The engine calls it automatically each frame. Manual calls double-fire all pending callbacks.
+
+---
+
+## Compatibility & Impact
+
+> **Mod Compatibility:** Timer systems are per-instance, so mods rarely conflict on timers directly. The risk is in shared `ScriptInvoker` events where multiple mods register callbacks.
+
+- **Load Order:** Timer and CallQueue systems are load-order independent. Each mod manages its own timers.
+- **Modded Class Conflicts:** No direct conflicts, but if two mods both override `OnUpdate()` on the same class (e.g., `MissionServer`) and one forgets `super`, the other's accumulator-based timers stop working.
+- **Performance Impact:** Each active `CallLater` with `repeat = true` is checked every frame. Hundreds of repeating calls degrade server tick rate. Prefer fewer timers with longer intervals, or use the accumulator pattern in `OnUpdate`.
+- **Server/Client:** `CallLater` and `Timer` work on both sides. Use `CALL_CATEGORY_GAMEPLAY` for game logic, `CALL_CATEGORY_GUI` for UI updates (client only), and `CALL_CATEGORY_SYSTEM` for low-level operations.
+
+---
+
+## Observed in Real Mods
+
+> These patterns were confirmed by studying the source code of professional DayZ mods.
+
+| Pattern | Mod | File/Location |
+|---------|-----|---------------|
+| Destructor `Remove()` cleanup for every `CallLater` registration | COT | Module manager lifecycle |
+| `ScriptInvoker` event bus for cross-module notifications | Expansion | `ExpansionEventBus` |
+| `Timer` with `Pause()`/`Continue()` for logout countdown | Vanilla | `MissionServer` logout system |
+| Accumulator pattern in `OnUpdate` for 5-second periodic checks | Dabs Framework | Module tick scheduling |
 
 ---
 

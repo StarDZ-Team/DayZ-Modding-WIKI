@@ -286,4 +286,22 @@ Object GetObjectInCrosshair(float maxDistance)
 
 ---
 
+## Best Practices
+
+- **Cache camera position when querying multiple times per frame.** `GetGame().GetCurrentCameraPosition()` and `GetCurrentCameraDirection()` are engine calls -- store the result in a local variable if you need it in multiple calculations within the same frame.
+- **Use `GetScreenPos()` depth check before UI placement.** Always verify `screenPos[2] > 0` (in front of camera) before drawing HUD markers at world positions, or markers will appear mirrored behind the player.
+- **Avoid creating custom ScriptCamera instances for simple effects.** The FreeDebugCamera and PPE system cover most cinematic and visual needs. Custom cameras require careful input/HUD management that is easy to break.
+- **Respect the engine's camera type transitions.** Do not force camera type changes from script unless you fully handle the player controller state. Unexpected camera switches can lock the player's movement or cause desync.
+- **Guard free camera usage behind admin/debug checks.** FreeDebugCamera provides god-like world inspection. Only enable it for authenticated admins or diagnostic builds to prevent abuse.
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Camera accessors are read-only globals, so multiple mods can safely read camera state simultaneously. Conflicts arise only if two mods both try to activate FreeDebugCamera or custom ScriptCamera instances.
+- **Performance:** `GetScreenPos()` and `GetCurrentCameraPosition()` are lightweight engine calls. Raycasting from the camera (`DayZPhysics.RaycastRV`) is more expensive -- limit to once per frame, not per entity.
+- **Server/Client:** Camera state exists only on the client. All camera methods return meaningless data on a dedicated server. Never use camera queries in server-side logic.
+
+---
+
 [<< Previous: Weather](03-weather.md) | **Cameras** | [Next: Post-Process Effects >>](05-ppe.md)

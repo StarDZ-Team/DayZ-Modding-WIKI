@@ -426,3 +426,20 @@ This is ambiguous. Pick one format and use it consistently throughout the file.
 ### Encoding Issues
 
 Save the file as UTF-8. Non-ASCII characters (accented names, CJK characters) require UTF-8 encoding to display correctly in-game.
+
+---
+
+## Best Practices
+
+- Validate your JSON with an external tool before packing into a PBO -- the engine gives no useful error message for malformed JSON.
+- Use the `SectionLines` variant for consistency, since it is the format used by COT, Expansion, and DabsFramework.
+- Include a "Legal Notices" department if your mod bundles third-party assets (fonts, icons, sounds) with attribution requirements.
+- Keep the `Header` field matching your mod's `name` in `mod.cpp` and `config.cpp` for a consistent identity.
+- Use empty `DepartmentName` and `SectionName` strings sparingly for visual spacing -- overuse makes credits look fragmented.
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Each mod has its own independent `Credits.json`. There is no risk of collision -- the engine reads the file from within each mod's PBO separately.
+- **Performance:** Credits are loaded only when the player opens the mod details screen. File size has no impact on gameplay performance.

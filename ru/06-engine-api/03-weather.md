@@ -7,7 +7,7 @@
 ## Введение
 
 
-DayZ has a fully dynamic weather system controlled through the `Weather` class. The system manages overcast, rain, snowfall, fog, wind, and thunderstorms. Weather can be configured through script (the Weather API), through `cfgweather.xml` in the mission folder, or through a scripted weather state machine. This chapter covers the script API for reading and controlling weather programmatically.
+DayZ has a fully dynamic weather system controlled through the `Weather` class. The system manages overcast, rain, snowfall, fog, wind, and thunderstorms. Weather can be configured through script (the Weather API), through `cfgweather.xml` in the mission folder, or through a scripted weather state machine. Эта глава охватывает the script API for reading and controlling weather programmatically.
 
 ---
 
@@ -316,7 +316,7 @@ Key structure:
 | Read | `phenomenon.GetActual()` for current value (0.0 - 1.0) |
 | Write | `phenomenon.Set(forecast, transitionTime, holdDuration)` (server only) |
 | Storms | `SetStorm(density, threshold, timeout)` |
-| Manual mode | `MissionWeather(true)` disables automatic weather changes |
+| Ручное mode | `MissionWeather(true)` disables automatic weather changes |
 | Date/Time | `GetGame().GetWorld().GetDate()` / `SetDate()` |
 | Config file | `cfgweather.xml` in mission folder for declarative setup |
 

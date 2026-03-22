@@ -749,3 +749,46 @@ The engine requires `.edds` format for texture atlases referenced by imagesets. 
 ### Spaces in Image Names
 
 While the engine supports spaces in image names (e.g., `"Alpha 10"`), they can cause issues in some parsing contexts. Prefer underscores: `Alpha_10`.
+
+---
+
+## Best Practices
+
+- Always use a unique, mod-prefixed set name (e.g., `"mymod_icons"` instead of `"icons"`). Set name collisions between mods cause one set to silently overwrite the other.
+- Use power-of-two texture dimensions (256x256, 512x512, 1024x1024). Non-power-of-two textures work but may have reduced rendering performance on some GPUs.
+- Add 1-2 pixels of padding between icons in the atlas to prevent texture bleeding at the edges, especially when the texture is displayed at non-native sizes.
+- Prefer the native `.imageset` format over XML for production mods. It supports multi-resolution textures and tiling flags that XML format lacks.
+- Verify `RefSize` matches the actual texture dimensions exactly. A mismatch causes all icon coordinates to be wrong by a proportional factor.
+
+---
+
+## Theory vs Practice
+
+> What the documentation says versus how things actually work at runtime.
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| config.cpp registration is required | ImageSets must be listed in `class imageSets` | Correct, and this is the most common source of "blank icon" bugs. The engine gives no error if the registration is missing -- widgets simply render empty |
+| `RefSize` maps coordinates | Coordinates are in `RefSize` space | `RefSize` must match actual texture pixel dimensions. If your texture is 1024x1024 but `RefSize` says 512x512, all `Pos` values are interpreted at double scale |
+| XML format is simpler | Fewer features but works the same | XML imagesets cannot specify tiling flags or multi-resolution mip levels. For icons this is fine, but for repeating UI elements (borders, gradients) you need the native format |
+| Multiple `mpix` entries | Engine selects by quality setting | In practice, most mods ship only `mpix 1`. The engine falls back gracefully if only one mip level is provided -- no visual glitch, just no high-DPI optimization |
+| Image names are case-sensitive | `"MyIcon"` and `"myicon"` are different | True in the imageset definition, but `LoadImageFile()` in script performs case-insensitive lookup on some engine builds. Always match case exactly to be safe |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Set name collisions are the main risk. If two mods both define an imageset named `"icons"`, only one is loaded (last PBO wins). All references to `set:icons` in the losing mod break silently. Always use a mod-specific prefix.
+- **Performance:** Each unique imageset texture is one GPU texture load. Consolidating icons into fewer, larger atlases reduces draw calls. A mod with 10 separate 64x64 textures performs worse than one 512x512 atlas with 10 icons.
+- **Version:** The native `.imageset` format and `set:name image:name` reference syntax have been stable since DayZ 1.0. The XML format has been available as an alternative since early versions but is not officially documented by Bohemia.
+
+---
+
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Font Awesome icon atlases | DabsFramework / StarDZ Core | Renders Font Awesome icons to large atlases (3648x3712), providing thousands of professional icons via `set:solid`, `set:regular`, `set:brands` |
+| Freeform atlas layout | VPP Admin Tools | Icons arranged non-uniformly on a 1920x1080 atlas with varying sizes, maximizing texture space usage |
+| Per-feature small atlases | Expansion | Each Expansion sub-module has its own small imageset rather than one massive atlas, keeping PBO sizes minimal |
+| 300x300 inventory icons | SNAFU Weapons | Large icon sizes for weapon/attachment inventory slots where detail matters, unlike 64x64 UI icons |

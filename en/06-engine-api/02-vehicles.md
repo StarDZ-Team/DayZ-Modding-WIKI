@@ -180,6 +180,28 @@ car.SetHealth("Engine", "Health", 0);       // Destroy the engine
 car.SetHealth("FuelTank", "Health", 100);   // Repair the fuel tank
 ```
 
+### Damage Zone Diagram
+
+```mermaid
+graph TD
+    V[Vehicle] --> E[Engine]
+    V --> FT[FuelTank]
+    V --> R[Radiator]
+    V --> B[Battery]
+    V --> W1[Wheel_1_1]
+    V --> W2[Wheel_1_2]
+    V --> W3[Wheel_2_1]
+    V --> W4[Wheel_2_2]
+    V --> D1[Door_1_1]
+    V --> D2[Door_2_1]
+    V --> H[Hood]
+    V --> T[Trunk]
+
+    style E fill:#ff6b6b,color:#fff
+    style FT fill:#ffa07a,color:#fff
+    style R fill:#87ceeb,color:#fff
+```
+
 Common damage zones for vehicles:
 
 | Zone | Description |
@@ -350,6 +372,39 @@ void FindAllVehicles(out array<Transport> vehicles)
 | Crew | `CrewSize()`, `CrewMember(idx)`, `CrewGetOut(idx)` |
 | Parts | Standard damage zones: `"Engine"`, `"FuelTank"`, `"Radiator"`, etc. |
 | Creation | `CreateObjectEx` with `ECE_PLACE_ON_SURFACE \| ECE_INITAI \| ECE_CREATEPHYSICS` |
+
+---
+
+## Best Practices
+
+- **Always include `ECE_CREATEPHYSICS | ECE_INITAI` when spawning vehicles.** Without physics, the vehicle falls through the ground. Without AI init, the engine simulation does not start and the vehicle cannot be driven.
+- **Fill all four fluids after spawning.** A vehicle missing oil, brake fluid, or coolant will damage itself immediately when the engine starts. Use `GetFluidCapacity()` to get correct max values per vehicle type.
+- **Null-check `CrewMember()` before operating on crew.** Empty seats return `null`. Iterating `CrewSize()` without checking each index causes crashes when seats are unoccupied.
+- **Use `GetSpeedometer()` instead of computing velocity manually.** The engine's speedometer accounts for wheel contact, transmission state, and physics correctly. Manual velocity calculations from position deltas are unreliable.
+
+---
+
+## Compatibility & Impact
+
+> **Mod Compatibility:** Vehicle mods commonly extend `CarScript` with modded classes. Conflicts arise when multiple mods override the same callbacks like `OnEngineStart()` or `EOnSimulate()`.
+
+- **Load Order:** If two mods both `modded class CarScript` and override `OnEngineStart()`, only the last-loaded mod runs unless both call `super`. Vehicle overhaul mods should always call `super` in every callback.
+- **Modded Class Conflicts:** Expansion Vehicles and vanilla vehicle mods frequently conflict on `EEInit()` and fluid initialization. Test with both loaded.
+- **Performance Impact:** `EOnSimulate()` runs every physics tick for each active vehicle. Keep logic minimal in this callback; use timer accumulators for expensive operations.
+- **Server/Client:** `EngineStart()`, `EngineStop()`, `Fill()`, `Leak()`, and `CrewGetOut()` are server-authoritative. `GetSpeedometer()`, `EngineIsOn()`, and `GetFluidFraction()` are safe to read on both sides.
+
+---
+
+## Observed in Real Mods
+
+> These patterns were confirmed by studying the source code of professional DayZ mods.
+
+| Pattern | Mod | File/Location |
+|---------|-----|---------------|
+| Override `EEInit()` to set custom fluid capacities and spawn parts | Expansion Vehicles | `CarScript` subclasses |
+| `EOnSimulate` accumulator for periodic fuel consumption checks | Vanilla+ vehicle mods | `CarScript` overrides |
+| `CrewGetOut()` loop in admin eject-all command | VPP Admin Tools | Vehicle management module |
+| Custom `OnContact()` override for collision damage tuning | Expansion | `ExpansionCarScript` |
 
 ---
 

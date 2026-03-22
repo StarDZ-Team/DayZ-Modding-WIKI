@@ -1,6 +1,6 @@
 # 3.6 Event Handling
 
-Widgets generate events when the user interacts with them -- clicking buttons, typing in edit boxes, moving the mouse, dragging elements. This chapter covers how to receive and handle those events.
+Widgets generate events when the user interacts with them -- clicking buttons, typing in edit boxes, moving the mouse, dragging elements. Эта глава охватывает how to receive and handle those events.
 
 ---
 
@@ -71,7 +71,7 @@ Every event handler returns a `bool`:
 - **`return true;`** -- The event is **consumed**. No other handler will receive it. The event stops propagating up the widget hierarchy.
 - **`return false;`** -- The event is **passed through** to the parent widget's handler (if any).
 
-This is critical for building layered UIs. For example, a button click handler should return `true` to prevent the click from also triggering a panel behind it.
+This is critical for building layered UIs. Например, a button click handler should return `true` to prevent the click from also triggering a panel behind it.
 
 ---
 
@@ -475,7 +475,7 @@ class InteractivePanel : ScriptedWidgetEventHandler
 
 1. **Always return `true` when you handle an event** -- Otherwise the event propagates to parent widgets and may trigger unintended behavior.
 
-2. **Return `false` for events you do not handle** -- This allows parent widgets to process the event.
+2. **Return `false` for events you do not handle** -- Это позволяет parent widgets to process the event.
 
 3. **Cache widget references** -- Do not call `FindAnyWidget()` inside event handlers. Look up widgets once in the constructor and store references.
 

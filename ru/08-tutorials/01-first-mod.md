@@ -8,11 +8,11 @@
 
 
 - [Prerequisites](#prerequisites)
-- [Step 1: Install DayZ Tools](#step-1-install-dayz-tools)
-- [Step 2: Set Up the P: Drive (Workdrive)](#step-2-set-up-the-p-drive-workdrive)
-- [Step 3: Create the Mod Directory Structure](#step-3-create-the-mod-directory-structure)
-- [Step 4: Write mod.cpp](#step-4-write-modcpp)
-- [Step 5: Write config.cpp](#step-5-write-configcpp)
+- [Шаг 1: Install DayZ Tools](#step-1-install-dayz-tools)
+- [Шаг 2: Set Up the P: Drive (Workdrive)](#step-2-set-up-the-p-drive-workdrive)
+- [Шаг 3: Create the Mod Directory Structure](#step-3-create-the-mod-directory-structure)
+- [Шаг 4: Write mod.cpp](#step-4-write-modcpp)
+- [Шаг 5: Write config.cpp](#step-5-write-configcpp)
 - [Step 6: Write Your First Script](#step-6-write-your-first-script)
 - [Step 7: Pack the PBO with Addon Builder](#step-7-pack-the-pbo-with-addon-builder)
 - [Step 8: Load the Mod in DayZ](#step-8-load-the-mod-in-dayz)
@@ -36,7 +36,7 @@ That is everything. No programming experience is required for this tutorial -- e
 
 ---
 
-## Step 1: Install DayZ Tools
+## Шаг 1: Install DayZ Tools
 
 DayZ Tools is a free application on Steam that includes everything you need to build mods: the Workbench script editor, Addon Builder for PBO packing, Terrain Builder, and Object Builder.
 
@@ -69,7 +69,7 @@ For this tutorial, you only need **Addon Builder**. The others are useful later.
 
 ---
 
-## Step 2: Set Up the P: Drive (Workdrive)
+## Шаг 2: Set Up the P: Drive (Workdrive)
 
 DayZ modding uses a virtual drive letter **P:** as a shared workspace. All mods and game data reference paths starting from P:, which keeps paths consistent across different machines.
 
@@ -85,7 +85,7 @@ DayZ modding uses a virtual drive letter **P:** as a shared workspace. All mods 
 
 Open **File Explorer** and navigate to `P:\`. You should see a directory that contains DayZ game data. If the P: drive exists and you can browse it, you are ready to proceed.
 
-### Alternative: Manual P: Drive
+### Alternative: Ручное P: Drive
 
 If the DayZ Tools GUI does not work, you can create a P: drive manually using a Windows command prompt (run as Administrator):
 
@@ -101,7 +101,7 @@ You can develop without the P: drive by placing your mod folder directly in the 
 
 ---
 
-## Step 3: Create the Mod Directory Structure
+## Шаг 3: Create the Mod Directory Structure
 
 Every DayZ mod follows a specific folder structure. Create the following directories and files on your P: drive (or in your DayZ game directory if not using P:):
 
@@ -139,7 +139,7 @@ You need exactly **3 files**. Let us create them one by one.
 
 ---
 
-## Step 4: Write mod.cpp
+## Шаг 4: Write mod.cpp
 
 Create the file `P:\MyFirstMod\mod.cpp` in your text editor and paste this content:
 
@@ -157,11 +157,11 @@ overview = "My very first DayZ mod. Prints Hello World to the script log.";
 - **`version`** -- Any version string you like. The engine does not parse it.
 - **`overview`** -- A description shown when expanding the mod details.
 
-Save the file. That is your mod's identity card.
+Сохранить the file. That is your mod's identity card.
 
 ---
 
-## Step 5: Write config.cpp
+## Шаг 5: Write config.cpp
 
 Create the file `P:\MyFirstMod\Scripts\config.cpp` and paste this content:
 
@@ -210,7 +210,7 @@ class CfgMods
 - `class MyFirstMod_Scripts` -- A unique identifier for your mod's script package. Must not collide with any other mod.
 - `units[] = {}; weapons[] = {};` -- Lists of entities and weapons your mod adds. Empty for now.
 - `requiredVersion = 0.1;` -- Minimum game version. Always `0.1`.
-- `requiredAddons[] = { "DZ_Data" };` -- Dependencies. `DZ_Data` is the base game data. This ensures your mod loads **after** the base game.
+- `requiredAddons[] = { "DZ_Data" };` -- Dependencies. `DZ_Data` is the base game data. Это обеспечивает your mod loads **after** the base game.
 
 **CfgMods** tells the engine where your scripts live:
 
@@ -252,7 +252,7 @@ modded class MissionGameplay
 ```c
 modded class MissionServer
 ```
-The `modded` keyword is the heart of DayZ modding. It says: "Take the existing `MissionServer` class from the vanilla game and add my changes on top." You are not creating a new class -- you are extending the existing one.
+The `modded` keyword is the heart of DayZ modding. It says: "Take the existing `MissionServer` class from the vanilla game and add my changes on top." You are not creating a new class --- вы are extending the existing one.
 
 ```c
     override void OnInit()
@@ -325,7 +325,7 @@ During development, you can skip PBO packing entirely using file patching mode. 
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 ```
 
-File patching is faster for iteration because you edit a `.c` file, restart the game, and see the changes immediately. No packing step needed. However, file patching only works with the diagnostic executable (`DayZDiag_x64.exe`) and is not suitable for distribution.
+File patching is faster for iteration because you edit a `.c` file, restart the game, and см. changes immediately. No packing step needed. However, file patching only works with the diagnostic executable (`DayZDiag_x64.exe`) and is not suitable for distribution.
 
 ---
 
@@ -394,7 +394,7 @@ Look for the most recent file named like:
 script_<date>_<time>.log
 ```
 
-For example: `script_2025-01-15_14-30-22.log`
+Например: `script_2025-01-15_14-30-22.log`
 
 ### What to Search For
 
@@ -441,7 +441,7 @@ Search for your mod name. You may see messages like "Addon MyFirstMod_Scripts re
 
 ### Problem: `SCRIPT (E): Undefined variable` or `Undefined type`
 
-This means your code references something the engine does not recognize. Common causes:
+Это означает your code references something the engine does not recognize. Common causes:
 
 - **Typo in a class name.** `MisionServer` instead of `MissionServer` (note the double 's').
 - **Wrong script layer.** If you reference `PlayerBase` from `5_Mission`, it should work. But if you accidentally placed your file in `3_Game` and reference mission types, you will get this error.
@@ -554,9 +554,9 @@ modded class MissionGameplay
 Now that you have a working mod, here are the natural progressions:
 
 1. **[Chapter 8.2: Creating a Custom Item](02-custom-item.md)** -- Define a new in-game item with textures and spawning.
-2. **Add more script layers** -- Create `3_Game` and `4_World` folders to organize configuration, data classes, and entity logic. See [Chapter 2.1: The 5-Layer Script Hierarchy](../02-mod-structure/01-five-layers.md).
+2. **Add more script layers** -- Create `3_Game` and `4_World` folders to organize configuration, data classes, and entity logic. См. [Chapter 2.1: The 5-Layer Script Hierarchy](../02-mod-structure/01-five-layers.md).
 3. **Add keybindings** -- Create an `Inputs.xml` file and register custom key actions.
-4. **Create UI** -- Build in-game panels using layout files and `ScriptedWidgetEventHandler`. See [Chapter 3: GUI System](../03-gui-system/01-widget-types.md).
+4. **Create UI** -- Build in-game panels using layout files and `ScriptedWidgetEventHandler`. См. [Chapter 3: GUI System](../03-gui-system/01-widget-types.md).
 5. **Use a framework** -- Integrate with Community Framework (CF) or MyFramework for advanced features like RPC, config management, and admin panels.
 
 ---

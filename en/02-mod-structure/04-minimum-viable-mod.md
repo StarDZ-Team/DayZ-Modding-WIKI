@@ -412,6 +412,28 @@ The method or property you are calling does not exist on that class. Double-chec
 
 ---
 
+## Best Practices
+
+- Always call `super.OnInit()` before your custom code in modded mission classes -- skipping it breaks other mods' initialization.
+- Use a unique prefix in your `Print()` messages (e.g., `[HelloMod]`) so you can grep log files quickly.
+- Start with `5_Mission` only. Add `3_Game` and `4_World` layers incrementally as your mod grows.
+- Use `-filePatching` during development to avoid re-packing PBOs on every change.
+- Keep your first mod under 3 files until it works, then expand. Debugging a minimal structure is far easier.
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `Print()` outputs to log | Messages appear in script log | Output goes to the `.RPT` file, not a separate script log. On dedicated servers, check the server RPT in the profile folder |
+| `-filePatching` loads loose files | Unpacked mods work instantly | Some assets (models, textures) still require PBO packing; scripts work loose, but `.layout` files may not load from unpacked folders on all setups |
+| `modded class` patches vanilla | Your override replaces the original | Multiple mods can `modded class` the same class; they chain in load order. If one skips `super.OnInit()`, all later mods break |
+| `DZ_Data` is the only needed dependency | Minimal `requiredAddons` | Works for pure script mods, but if you reference any vanilla weapon/item class, you also need `DZ_Scripts` or the specific vanilla PBO |
+| Three files is enough | Mod loads with mod.cpp + config.cpp + one .c file | True for a script-only mod, but adding items or UI requires additional PBOs (Data, GUI) |
+
+---
+
 ## Complete File Listing
 
 For reference, here are all three files in their entirety:

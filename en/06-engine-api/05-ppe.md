@@ -314,4 +314,22 @@ Higher numbers take priority. Use `PPEManager.L_LAST` to force your effect to ov
 
 ---
 
+## Best Practices
+
+- **Always call `Stop()` to clean up your requester.** Failing to stop a PPE requester leaves its visual effect permanently active, even after the triggering condition ends.
+- **Use appropriate priority layers.** Gameplay effects should use `L_3_EFFECTS` or higher. Using `L_LAST` (100) overrides everything including vanilla unconsciousness and death effects, which can break the player experience.
+- **Prefer built-in requesters over custom ones.** The `PPERequesterBank` already contains requesters for blur, desaturation, vignette, and grain. Reuse them with adjusted parameters before creating a custom requester class.
+- **Test PPE effects under different lighting conditions.** Vignette and desaturation look drastically different at night vs daytime. Verify your effect reads well in both extremes.
+- **Avoid stacking multiple high-intensity blur effects.** Multiple active blur requesters compound, potentially rendering the screen unreadable. Check `IsActiveRequester()` before starting additional effects.
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Multiple mods can activate PPE requesters simultaneously. The engine blends them using priority layers and operators. Conflicts occur when two mods use the same priority level with `PPOperators.SET` on the same parameter -- the last to write wins.
+- **Performance:** PPE effects are GPU-bound post-processing passes. Enabling many simultaneous effects (blur + grain + chromatic aberration + vignette) can reduce frame rate on lower-end GPUs. Keep active effects minimal.
+- **Server/Client:** PPE is entirely client-side rendering. The server has no knowledge of post-process effects. Never condition server logic on PPE state.
+
+---
+
 [<< Previous: Cameras](04-cameras.md) | **Post-Process Effects** | [Next: Notifications >>](06-notifications.md)

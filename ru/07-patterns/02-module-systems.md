@@ -85,7 +85,7 @@ modded class MissionServer
 };
 ```
 
-Each module is an independent class with its own file, its own state, and its own lifecycle hooks. Adding a new feature means adding a new module --- not editing a 3000-line mission class.
+Each module is an independent class with its own file, its own state, and its own lifecycle hooks. Adding a new feature means adding a new module ---- нетt editing a 3000-line mission class.
 
 ---
 
@@ -159,7 +159,7 @@ if (lootMod)
 
 ### Key Characteristics
 
-- **Auto-discovery**: modules are instantiated by CF based on `config.cpp` declarations --- no manual `new` calls
+- **Auto-discovery**: modules are instantiated by CF based on `config.cpp` declarations ---- нет manual `new` calls
 - **Event args**: lifecycle hooks receive `CF_EventArgs` with context data
 - **Dependency on CF**: your mod requires Community Framework as a dependency
 - **Widely supported**: if your mod targets servers that already run COT or Expansion, CF is already present
@@ -232,7 +232,7 @@ GetPluginManager().RegisterPlugin(new VPPWeatherPlugin());
 
 ### Key Characteristics
 
-- **Manual registration**: each plugin is explicitly `new`-ed and registered
+- **Ручное registration**: each plugin is explicitly `new`-ed and registered
 - **Config integration**: `ConfigurablePlugin` merges config management with the module lifecycle
 - **Self-contained**: no dependency on CF; VPP's plugin manager is its own system
 - **Clear ownership**: the plugin manager holds `ref` to all plugins, controlling their lifetime
@@ -277,7 +277,7 @@ At startup, CF scans all loaded script classes for the registration attribute. F
 
 ## MyMod MyModuleManager
 
-MyFramework uses an explicit registration pattern with a static manager class. There is no instance of the manager --- it is entirely static methods and static storage.
+MyFramework uses an explicit registration pattern with a static manager class. There is no instance of the manager ---- он is entirely static methods and static storage.
 
 ### Module Base Classes
 
@@ -403,9 +403,9 @@ Despite implementation differences, all four frameworks follow the same lifecycl
 
 ### Rules
 
-1. **OnInit comes before OnMissionStart.** Never load configs or spawn entities in `OnInit()` --- the world may not be ready yet.
+1. **OnInit comes before OnMissionStart.** Never load configs or spawn entities in `OnInit()` ----  world may not be ready yet.
 2. **OnUpdate receives delta time.** Always use `dt` for time-based logic, never assume a fixed frame rate.
-3. **OnMissionFinish must clean up everything.** Every `ref` collection must be cleared. Every event subscription must be removed. Every singleton must be destroyed. This is the only reliable teardown point.
+3. **OnMissionFinish must clean up everything.** Every `ref` collection must be cleared. Every event subscription must be removed. Every singleton must be destroyed. Это only reliable teardown point.
 4. **Modules should not depend on each other's initialization order.** If Module A needs Module B, use lazy access (`GetModule()`) rather than assuming B was registered first.
 
 ---
@@ -524,13 +524,13 @@ override void OnMissionFinish()
 
 | Feature | CF_ModuleCore | VPP Plugin | Dabs Attribute | MyMod Module |
 |---------|--------------|------------|----------------|---------------|
-| **Discovery** | config.cpp + auto | Manual `Register()` | Attribute scan | Manual `Register()` |
+| **Discovery** | config.cpp + auto | Ручное `Register()` | Attribute scan | Ручное `Register()` |
 | **Base classes** | Game / World / Mission | PluginBase / ConfigurablePlugin | CF_ModuleWorld + attribute | ServerModule / ClientModule |
 | **Dependencies** | Requires CF | Self-contained | Requires CF | Self-contained |
-| **Listen-server safe** | CF handles it | Manual check | CF handles it | Typed subclasses |
+| **Listen-server safe** | CF handles it | Ручное check | CF handles it | Typed subclasses |
 | **Config integration** | Separate | Built into ConfigurablePlugin | Separate | Via MyConfigManager |
 | **Update dispatch** | Automatic | Manager calls `OnUpdate` | Automatic | Manager calls `OnUpdate` |
-| **Cleanup** | CF handles it | Manual `OnDestroy` | CF handles it | `MyModuleManager.Cleanup()` |
+| **Cleanup** | CF handles it | Ручное `OnDestroy` | CF handles it | `MyModuleManager.Cleanup()` |
 | **Cross-mod access** | `CF_Modules<T>.Get()` | `GetPluginManager().Get()` | `CF_Modules<T>.Get()` | `MyModuleManager.GetModule()` |
 
 Choose the approach that matches your mod's dependency profile. If you already depend on CF, use `CF_ModuleCore`. If you want zero external dependencies, build your own system following the MyMod or VPP pattern.

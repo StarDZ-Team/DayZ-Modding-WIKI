@@ -9,13 +9,13 @@
 
 - [What We Are Building](#what-we-are-building)
 - [Prerequisites](#prerequisites)
-- [Step 1: Define the Item Class in config.cpp](#step-1-define-the-item-class-in-configcpp)
-- [Step 2: Set Up Hidden Selections for Textures](#step-2-set-up-hidden-selections-for-textures)
-- [Step 3: Create Basic Textures](#step-3-create-basic-textures)
-- [Step 4: Add to types.xml for Server Spawning](#step-4-add-to-typesxml-for-server-spawning)
-- [Step 5: Create a Display Name with Stringtable](#step-5-create-a-display-name-with-stringtable)
+- [Шаг 1: Define the Item Class in config.cpp](#step-1-define-the-item-class-in-configcpp)
+- [Шаг 2: Set Up Hidden Selections for Текстуры](#step-2-set-up-hidden-selections-for-textures)
+- [Шаг 3: Create Basic Текстуры](#step-3-create-basic-textures)
+- [Шаг 4: Add to types.xml for Server Spawning](#step-4-add-to-typesxml-for-server-spawning)
+- [Шаг 5: Create a Display Name with Stringtable](#step-5-create-a-display-name-with-stringtable)
 - [Step 6: Test In-Game](#step-6-test-in-game)
-- [Step 7: Polish -- Model, Textures, and Sounds](#step-7-polish----model-textures-and-sounds)
+- [Step 7: Polish -- Model, Текстуры, and Sounds](#step-7-polish----model-textures-and-sounds)
 - [Complete File Reference](#complete-file-reference)
 - [Troubleshooting](#troubleshooting)
 - [Next Steps](#next-steps)
@@ -24,14 +24,14 @@
 
 ## What We Are Building
 
-We will create an item called **Field Journal** -- a small notebook that players can find in the world, pick up, and store in their inventory. It will:
+We will create an item called **Field Journal** ---  small notebook that players can find in the world, pick up, and store in their inventory. It will:
 
 - Use a vanilla model (borrowed from an existing item) so we do not need 3D modeling
 - Have a custom retextured appearance using hidden selections
 - Appear in the server's spawn table
 - Have a proper display name and description
 
-This is the standard workflow for creating any item in DayZ, whether it is food, tools, clothing, or building materials.
+Это standard workflow for creating any item in DayZ, whether it is food, tools, clothing, or building materials.
 
 ---
 
@@ -55,7 +55,7 @@ MyFirstMod/
 
 ---
 
-## Step 1: Define the Item Class in config.cpp
+## Шаг 1: Define the Item Class in config.cpp
 
 Items in DayZ are defined in the `CfgVehicles` config class. Despite the name "Vehicles", this class holds ALL entity types: items, buildings, vehicles, animals, and everything else.
 
@@ -143,7 +143,7 @@ class CfgVehicles
 | `itemSize[]` | `{ 1, 2 }` | Inventory grid size: 1 column wide, 2 rows tall. |
 | `absorbency` | `0.5` | How much the item absorbs water (0 = none, 1 = fully). Affects item when it rains. |
 | `hiddenSelections[]` | `{ "camoGround" }` | Named texture slots on the model that can be overridden. |
-| `hiddenSelectionsTextures[]` | Path to `.paa` | Your custom texture for each hidden selection. |
+| `hiddenSelectionsТекстуры[]` | Path to `.paa` | Your custom texture for each hidden selection. |
 
 ### About the Parent Class
 
@@ -182,7 +182,7 @@ The empty `{}` after each level is where you would specify damage overlay textur
 
 ---
 
-## Step 2: Set Up Hidden Selections for Textures
+## Шаг 2: Set Up Hidden Selections for Текстуры
 
 Hidden selections are the mechanism DayZ uses to swap textures on a 3D model without modifying the model file itself. The vanilla Notebook model has a hidden selection called `"camoGround"` that controls its main texture.
 
@@ -190,14 +190,14 @@ Hidden selections are the mechanism DayZ uses to swap textures on a 3D model wit
 
 1. The 3D model (`.p3d`) defines named regions called **selections**
 2. In config.cpp, `hiddenSelections[]` lists which selections you want to override
-3. `hiddenSelectionsTextures[]` provides your replacement textures, in matching order
+3. `hiddenSelectionsТекстуры[]` provides your replacement textures, in matching order
 
 ```cpp
 hiddenSelections[] = { "camoGround" };
 hiddenSelectionsTextures[] = { "MyFirstMod\Data\Textures\field_journal_co.paa" };
 ```
 
-The first entry in `hiddenSelectionsTextures` replaces the first entry in `hiddenSelections`. If you had multiple selections:
+The first entry in `hiddenSelectionsТекстуры` replaces the first entry in `hiddenSelections`. If you had multiple selections:
 
 ```cpp
 hiddenSelections[] = { "camoGround", "camoMale", "camoFemale" };
@@ -217,7 +217,7 @@ Alternatively, look at the vanilla `config.cpp` for the item you are basing your
 
 ---
 
-## Step 3: Create Basic Textures
+## Шаг 3: Create Basic Текстуры
 
 DayZ uses `.paa` format for textures. During development, you can start with a simple colored image and convert it later.
 
@@ -233,7 +233,7 @@ MyFirstMod/
 
 ### Option A: Use a Placeholder (Fastest)
 
-For initial testing, you can point `hiddenSelectionsTextures` to a vanilla texture instead of creating your own:
+For initial testing, you can point `hiddenSelectionsТекстуры` to a vanilla texture instead of creating your own:
 
 ```cpp
 hiddenSelectionsTextures[] = { "\DZ\characters\accessories\data\Notebook\notebook_co.paa" };
@@ -247,13 +247,13 @@ This uses the vanilla notebook texture. Your item will look identical to the van
    - Open any image editor (GIMP, Photoshop, Paint.NET, or even MS Paint)
    - Create a new image at **512x512 pixels** (power-of-2 dimensions are required: 256, 512, 1024, 2048)
    - Fill it with a color or design. For a field journal, try a dark brown or green.
-   - Save as `.tga` (TGA format) or `.png`
+   - Сохранить as `.tga` (TGA format) or `.png`
 
 2. **Convert to `.paa`:**
    - Open **TexView2** from DayZ Tools
    - Go to **File > Open** and select your `.tga` or `.png`
-   - Go to **File > Save As** and save as `.paa` format
-   - Save it to `MyFirstMod/Data/Textures/field_journal_co.paa`
+   - Go to **File > Сохранить As** and save as `.paa` format
+   - Сохранить it to `MyFirstMod/Data/Текстуры/field_journal_co.paa`
 
    The `_co` suffix is a naming convention meaning "color" (the diffuse/albedo texture). Other suffixes include `_nohq` (normal map), `_smdi` (specular), and `_as` (alpha/transparency).
 
@@ -271,7 +271,7 @@ For a first item, you only need the `_co` texture. The model will use default va
 
 ---
 
-## Step 4: Add to types.xml for Server Spawning
+## Шаг 4: Add to types.xml for Server Spawning
 
 The `types.xml` file controls what items spawn in the world, how many exist at once, and where they appear. This file lives in the server's **mission folder** (not in your mod).
 
@@ -340,7 +340,7 @@ Open `types.xml` and add this block inside the root `<types>` element:
 
 ---
 
-## Step 5: Create a Display Name with Stringtable
+## Шаг 5: Create a Display Name with Stringtable
 
 The string table provides localized text for item names and descriptions. DayZ reads string tables from `stringtable.csv` files.
 
@@ -354,7 +354,7 @@ Create the file `MyFirstMod/Data/Stringtable.csv` with this content:
 "STR_MFM_FieldJournal_Desc","A weathered leather journal used to record field notes and observations.","","","","","","","","","","","","",""
 ```
 
-Each row has columns for every supported language. You only need to fill in the `"English"` column. The other columns can be empty strings -- the engine falls back to English when a translation is missing.
+Each row has columns for every supported language. You only need to fill in the `"English"` column. The other columns can be empty strings ---  engine falls back to English when a translation is missing.
 
 ### How String References Work
 
@@ -373,7 +373,7 @@ The `$STR_` prefix tells the engine: "Look for a string table entry named `STR_M
 - All values must be double-quoted
 - Separate values with commas
 - No trailing comma after the last value
-- Save as UTF-8 encoding (important for non-ASCII characters in other languages)
+- Сохранить as UTF-8 encoding (important for non-ASCII characters in other languages)
 
 ---
 
@@ -436,14 +436,14 @@ GetGame().CreateObject("MFM_FieldJournal", pos, false, false, true);
 ### What to Check
 
 1. **Does the item appear?** If yes, the config.cpp class definition is correct.
-2. **Does it have the right name?** Check that "Field Journal" appears (not `$STR_MFM_FieldJournal`). If you see the raw string reference, the stringtable is not loading.
+2. **Does it have the right name?** Check that "Field Journal" appears (not `$STR_MFM_FieldJournal`). If you см. raw string reference, the stringtable is not loading.
 3. **Does it have the right texture?** If using a custom texture, verify the colors match. If the item appears all white or pink, the texture path is wrong.
 4. **Can you pick it up?** If the item spawns but cannot be picked up, check `itemSize` and `scope`.
 5. **Does the inventory icon look correct?** The size should match your `itemSize[]` definition.
 
 ---
 
-## Step 7: Polish -- Model, Textures, and Sounds
+## Step 7: Polish -- Model, Текстуры, and Sounds
 
 Once your item works with a borrowed model, you can upgrade it with custom assets.
 
@@ -459,7 +459,7 @@ Creating a custom `.p3d` model requires:
 
 This is a significant undertaking. For most items, retexturing a vanilla model (as we did above) is sufficient.
 
-### Improved Textures
+### Improved Текстуры
 
 For a professional-looking item:
 
@@ -531,7 +531,7 @@ class CfgSoundSets
 };
 ```
 
-Note: Sound file paths in `samples[]` do NOT include the `.ogg` extension.
+Примечание: Sound file paths in `samples[]` do NOT include the `.ogg` extension.
 
 ### Adding Script Behavior
 
@@ -786,7 +786,7 @@ class CfgVehicles
 
 ### Item Appears All White, Pink, or Invisible
 
-- **Texture path wrong:** Verify that `hiddenSelectionsTextures[]` points to the correct `.paa` file path. Paths use backslashes in config.cpp.
+- **Texture path wrong:** Verify that `hiddenSelectionsТекстуры[]` points to the correct `.paa` file path. Paths use backslashes in config.cpp.
 - **Hidden selection name wrong:** The selection name must match what the model defines. Check using Object Builder.
 - **Texture not in PBO:** If using packed PBOs, the texture file must be inside the PBO.
 

@@ -98,7 +98,7 @@ Two variants exist in the wild for listing names. The engine supports both.
 | `SectionName` | string | Yes | Sub-header within the department |
 | `SectionLines` | array of strings | Yes | List of contributor names or text lines |
 
-Both `Names` and `SectionLines` serve the same purpose. Use whichever you prefer --- the engine renders them identically.
+Both `Names` and `SectionLines` serve the same purpose. Use whichever you prefer ----  engine renders them identically.
 
 ---
 
@@ -400,7 +400,7 @@ Expansion demonstrates the most sophisticated use of Credits.json, including:
 ## Распространённые ошибки
 
 
-### Invalid JSON Syntax
+### Недействительная JSON Syntax
 
 The most common issue. JSON is strict about:
 - **Trailing commas**: `["a", "b",]` is invalid JSON (the trailing comma after `"b"`)
@@ -429,4 +429,4 @@ This is ambiguous. Pick one format and use it consistently throughout the file.
 
 ### Encoding Issues
 
-Save the file as UTF-8. Non-ASCII characters (accented names, CJK characters) require UTF-8 encoding to display correctly in-game.
+Сохранить the file as UTF-8. Non-ASCII characters (accented names, CJK characters) require UTF-8 encoding to display correctly in-game.

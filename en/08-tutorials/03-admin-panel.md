@@ -1204,5 +1204,39 @@ Total time: typically under 100ms on a local network.
 
 ---
 
+## Best Practices
+
+- **Validate all RPC data on the server before executing.** Never trust data from the client -- always check permissions, validate parameters, and guard against null values before performing any server action.
+- **Cache widget references in member variables instead of calling `FindAnyWidget` every frame.** Widget lookup is not free; calling it in `OnUpdate` or `OnClick` repeatedly wastes performance.
+- **Always call `SetHandler(this)` on interactive widgets.** Without it, `OnClick()` will never fire, and there is no error message -- buttons just silently do nothing.
+- **Use high, unique RPC ID numbers.** Vanilla DayZ uses low IDs. Other mods pick common ranges. Use numbers above 70000 and add your mod prefix to comments so collisions are traceable.
+- **Clean up widgets in `OnMissionFinish`.** Leaked widget roots stack up across server hops, consuming memory and causing ghost UI elements.
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `RPCSingleParam` delivery | Setting `guaranteed=true` means the RPC always arrives | RPCs can still be lost if the player disconnects mid-flight or the server crashes. Always handle the "no response" case in your UI (e.g., a timeout message). |
+| `OnClick` widget matching | Compare `w == m_Button` to identify clicks | If `FindAnyWidget` returned NULL (typo in widget name), `m_Button` is NULL and the comparison silently fails. Always log a warning if widget binding fails in `Open()`. |
+| Param type matching | Client and server use the same `Param2<int, string>` | If the types or order do not match exactly, `ctx.Read()` returns false and the data is silently lost. There is no type-checking error message at runtime. |
+| Listen server testing | Good enough for quick iteration | Listen servers run client and server in one process, so RPCs arrive instantly and never cross the network. Timing bugs, packet loss, and authority issues only appear on a real dedicated server. |
+
+---
+
+## What You Learned
+
+In this tutorial you learned:
+- How to create a UI panel with layout files and bind widgets in script
+- How to handle button clicks with `OnClick()` and `SetHandler()`
+- How to send RPCs from client to server and back using `RPCSingleParam` and `Param` classes
+- The full client-server-client roundtrip pattern used by every networked admin tool
+- How to register the panel in `MissionGameplay` with proper lifecycle management
+
+**Next:** [Chapter 8.4: Adding Chat Commands](04-chat-commands.md)
+
+---
+
 **Previous:** [Chapter 8.2: Creating a Custom Item](02-custom-item.md)
 **Next:** [Chapter 8.4: Adding Chat Commands](04-chat-commands.md)

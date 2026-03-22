@@ -896,6 +896,39 @@ classDiagram
 
 ---
 
+## Best Practices
+
+- Always call `super.MethodName()` in overrides unless you intentionally want to replace the parent behavior entirely -- DayZ's deep inheritance chains depend on it.
+- Use `protected` for member fields and expose them via getter/setter methods -- this lets you add validation or logging later without breaking callers.
+- Prefer composition over deep inheritance when combining unrelated behaviors (e.g., a flight controller inside a vehicle, not a FlyingCar multi-inherit attempt).
+- Mark owned object members with `ref` at declaration -- without it, the object may be garbage collected while your class still expects it.
+- Use the singleton pattern (`static ref` + `GetInstance()`) for manager classes that must have exactly one instance.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Singleton via `static ref` + `GetInstance()` | COT / Expansion | Every major manager (permissions, notifications, market) follows this exact pattern |
+| Constructor initializes all `ref` collections | Dabs Framework | Constructors always create `new array` / `new map` for every `ref` member |
+| `override` + `super` on every lifecycle method | VPP Admin | `OnInit`, `OnMissionStart`, `OnUpdate` always call `super` first, then add behavior |
+| Abstract base with `scope=0` in config.cpp | Expansion Vehicles | Base vehicle script class has `scope=0` (cannot spawn), concrete subclasses have `scope=2` |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| Omitting `override` keyword | Should create a new method | Often creates a subtle bug where the parent method runs instead of the child's |
+| Multiple constructors (overloading) | Standard OOP feature | Works but rarely used in DayZ mods -- most classes use a single constructor with default values |
+| `sealed` classes | Prevents inheritance | Almost never used in DayZ modding because extensibility is the whole point |
+
+---
+
 ## Common Mistakes
 
 ### 1. Forgetting `ref` for Owned Objects

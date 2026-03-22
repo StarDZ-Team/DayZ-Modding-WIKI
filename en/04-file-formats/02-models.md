@@ -576,6 +576,24 @@ Vehicles combine many systems:
 
 ---
 
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Full LOD chain with 5+ resolution levels | DayZ-Samples (Test_Weapon) | Shows complete LOD hierarchy: Resolution 1.0 through 16.0, plus Geometry, Fire Geometry, Memory, Shadow |
+| Complex skeletons with 20+ bones | Expansion Vehicles | Helicopter and boat models use extensive bone hierarchies for doors, rotors, rudders, and turrets |
+| Proxy stacking for modular weapons | Dabs Framework (RFCP weapons) | Weapons use multiple proxy slots for rail attachments, allowing optic + laser + grip combos |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Two mods can safely reference different P3D models without conflict. Conflicts arise only when both mods try to `modded class` the same entity and change its `model` path in config.cpp.
+- **Performance:** Each visible P3D adds draw calls proportional to its material count. Models with 10+ materials per LOD can be expensive in scenes with many instances. Keep material count under 4 per visual LOD when possible.
+- **Version:** The P3D format (MLOD/ODOL) has remained stable across DayZ updates. Object Builder occasionally receives minor updates via DayZ Tools, but the format itself has not changed since DayZ 1.0.
+
+---
+
 ## Navigation
 
 | Previous | Up | Next |

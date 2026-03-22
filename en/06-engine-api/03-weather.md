@@ -320,4 +320,38 @@ Key structure:
 
 ---
 
+## Best Practices
+
+- **Call `MissionWeather(true)` before setting weather in `init.c`.** Without this, the automatic weather state machine will override your `Set()` calls within seconds. Always take manual control first if you want deterministic weather.
+- **Always provide a `minDuration` parameter in `Set()`.** Setting `minDuration` to 0 means the weather system can immediately transition away from your value. Use at least 300-600 seconds to hold your desired state.
+- **Set overcast before rain.** Rain is visually tied to overcast thresholds. If overcast is below the threshold configured in `cfgweather.xml`, rain will not render even if `GetRain().GetActual()` returns a non-zero value.
+- **Use `WeatherOnBeforeChange()` for server-wide weather policy.** Override this in a `modded class ChernarusPlusData` (or the appropriate WorldData subclass) to clamp or redirect weather transitions without fighting the state machine.
+- **Read weather on both sides, write only on server.** `GetActual()` and `GetForecast()` work on client and server, but `Set()` only has effect on the server.
+
+---
+
+## Compatibility & Impact
+
+> **Mod Compatibility:** Weather mods commonly override `WeatherOnBeforeChange()` in WorldData subclasses. Only one mod's override chain runs per map's WorldData class.
+
+- **Load Order:** Multiple mods overriding `WeatherOnBeforeChange` on the same WorldData subclass (e.g., `ChernarusPlusData`) must all call `super`, or earlier mods lose their weather logic.
+- **Modded Class Conflicts:** If one mod calls `MissionWeather(true)` and another expects automatic weather, they are fundamentally incompatible. Document whether your mod takes manual weather control.
+- **Performance Impact:** Weather API calls are lightweight. The phenomena interpolation runs in the engine, not in script. Frequent `Set()` calls (every frame) are wasteful but not harmful.
+- **Server/Client:** All `Set()` calls are server-only. Clients receive weather state via engine synchronization automatically. Client-side `Set()` calls are silently ignored.
+
+---
+
+## Observed in Real Mods
+
+> These patterns were confirmed by studying the source code of professional DayZ mods.
+
+| Pattern | Mod | File/Location |
+|---------|-----|---------------|
+| `MissionWeather(true)` + scripted weather cycle with `CallLater` | Expansion | Weather controller in mission init |
+| `WeatherOnBeforeChange` override to prevent rain in specific areas | COT Weather Module | Modded `ChernarusPlusData` |
+| Admin command to force clear/storm via `Set()` with long hold duration | VPP Admin Tools | Weather admin panel |
+| `cfgweather.xml` with custom thresholds for snow-only maps | Namalsk | Mission folder config |
+
+---
+
 [<< Previous: Vehicles](02-vehicles.md) | **Weather** | [Next: Cameras >>](04-cameras.md)

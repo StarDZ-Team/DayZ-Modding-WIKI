@@ -15,7 +15,7 @@
 - [Referencing Images in Layouts](#referencing-images-in-layouts)
 - [Referencing Images in Scripts](#referencing-images-in-scripts)
 - [Image Flags](#image-flags)
-- [Multi-Resolution Textures](#multi-resolution-textures)
+- [Multi-Resolution Текстуры](#multi-resolution-textures)
 - [Creating Custom Icon Sets](#creating-custom-icon-sets)
 - [Font Awesome Integration Pattern](#font-awesome-integration-pattern)
 - [Real Examples](#real-examples)
@@ -28,7 +28,7 @@
 
 A texture atlas is a single large image (typically in `.edds` format) containing many smaller icons arranged in a grid or freeform layout. An imageset file maps human-readable names to rectangular regions within that atlas.
 
-For example, a 1024x1024 texture might contain 64 icons at 64x64 pixels each. The imageset file says "the icon named `arrow_down` is at position (128, 64) and is 64x64 pixels." Your layout files and scripts reference `arrow_down` by name, and the engine extracts the correct sub-rectangle from the atlas at render time.
+Например, a 1024x1024 texture might contain 64 icons at 64x64 pixels each. The imageset file says "the icon named `arrow_down` is at position (128, 64) and is 64x64 pixels." Your layout files and scripts reference `arrow_down` by name, and the engine extracts the correct sub-rectangle from the atlas at render time.
 
 This approach is efficient: one GPU texture load serves all icons, reducing draw calls and memory overhead.
 
@@ -38,7 +38,7 @@ This approach is efficient: one GPU texture load serves all icons, reducing draw
 
 The data flow:
 
-1. **Texture atlas** (`.edds` file) --- a single image containing all icons
+1. **Texture atlas** (`.edds` file) ----  single image containing all icons
 2. **ImageSet definition** (`.imageset` file) --- maps names to regions in the atlas
 3. **config.cpp registration** --- tells the engine to load the imageset at startup
 4. **Layout/script reference** --- uses `set:name image:iconName` syntax to render a specific icon
@@ -49,7 +49,7 @@ Once registered, any widget in any layout file can reference any image from the 
 
 ## DayZ Native ImageSet Format
 
-The native format uses the Enfusion engine's class-based syntax (similar to config.cpp). This is the format used by the vanilla game and most established mods.
+The native format uses the Enfusion engine's class-based syntax (similar to config.cpp). Это format used by the vanilla game and most established mods.
 
 ### Structure
 
@@ -80,7 +80,7 @@ ImageSetClass {
 |-------|-------------|
 | `Name` | The set name. Used in the `set:` part of image references. Must be unique across all loaded mods. |
 | `RefSize` | Reference dimensions of the texture (width height). Used for coordinate mapping. |
-| `Textures` | Contains one or more `ImageSetTextureClass` entries for different resolution mip levels. |
+| `Текстуры` | Contains one or more `ImageSetTextureClass` entries for different resolution mip levels. |
 
 ### Texture Entry Fields
 
@@ -99,7 +99,7 @@ Each image is an `ImageSetDefClass` inside the `Images` block:
 | `Name` | The image identifier. Used in the `image:` part of references. |
 | `Pos` | Top-left corner position in the atlas (x y), in pixels |
 | `Size` | Dimensions (width height), in pixels |
-| `Flags` | Tiling behavior flags (see [Image Flags](#image-flags)) |
+| `Flags` | Tiling behavior flags (см. [Image Flags](#image-flags)) |
 
 ### Full Example (DayZ Vanilla)
 
@@ -285,8 +285,8 @@ ImageWidgetClass MyIcon {
 set:SETNAME image:IMAGENAME
 ```
 
-- `SETNAME` --- the `Name` field from the imageset definition (e.g., `dayz_gui`, `solid`, `brands`)
-- `IMAGENAME` --- the `Name` field from a specific `ImageSetDefClass` entry (e.g., `icon_refresh`, `arrow_down`)
+- `SETNAME` ----  `Name` field from the imageset definition (e.g., `dayz_gui`, `solid`, `brands`)
+- `IMAGENAME` ----  `Name` field from a specific `ImageSetDefClass` entry (e.g., `icon_refresh`, `arrow_down`)
 
 ### Multiple Image States
 
@@ -382,9 +382,9 @@ Most icons use `Flags 0` (no tiling). Tiling flags are primarily for UI elements
 
 ---
 
-## Multi-Resolution Textures
+## Multi-Resolution Текстуры
 
-The native format supports multiple resolution textures for the same imageset. This allows the engine to use higher-resolution artwork on high-DPI displays.
+The native format supports multiple resolution textures for the same imageset. Это позволяет the engine to use higher-resolution artwork on high-DPI displays.
 
 ```
 Textures {
@@ -402,7 +402,7 @@ Textures {
 - `mpix 0` --- low resolution (used on low-quality settings or distant UI elements)
 - `mpix 1` --- standard/high resolution (default)
 
-The `@2x` naming convention is borrowed from Apple's Retina display system but is not enforced --- you can name the file anything.
+The `@2x` naming convention is borrowed from Apple's Retina display system but is not enforced ---- вы can name the file anything.
 
 ### In Practice
 
@@ -429,7 +429,7 @@ Use an image editor (Photoshop, GIMP, etc.) to arrange your icons on a single ca
 - Choose a power-of-two size (256x256, 512x512, 1024x1024, etc.)
 - Arrange icons in a grid for easy coordinate calculation
 - Leave some padding between icons to prevent texture bleeding
-- Save as `.tga` or `.png`
+- Сохранить as `.tga` or `.png`
 
 **2. Convert to EDDS**
 

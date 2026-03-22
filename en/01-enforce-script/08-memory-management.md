@@ -577,6 +577,39 @@ When `DestroyInstance()` is called:
 
 ---
 
+## Best Practices
+
+- Use `ref` for class members your class creates and owns; use raw pointers (no keyword) for back-references and external observations.
+- Always extend `Managed` for pure-script classes -- it ensures weak references are zeroed on delete, preventing dangling pointer crashes.
+- Break reference cycles by making the child hold a raw pointer to its parent: parent owns child (`ref`), child observes parent (raw).
+- Use `array<ref MyClass>` when the collection owns its elements; `array<MyClass>` holds weak references that will not keep objects alive.
+- Prefer ARC-driven cleanup over manual `delete` -- let the last `ref` release trigger the destructor naturally.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Parent `ref` + child raw back-pointer | COT / Expansion UI | Panels own tabs with `ref`, tabs hold raw pointer to parent panel to avoid cycles |
+| `static ref` singleton + `Destroy()` nulling | Dabs / VPP | All singletons use `s_Instance = null` in a static `Destroy()` to trigger cleanup |
+| `ref array<ref T>` for managed collections | Expansion Market | Both the array and its elements are `ref` to ensure proper ownership |
+| Raw pointer for engine entities (players, items) | COT Admin | Player references stored as raw pointers since the engine manages entity lifetime |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `autoptr` for local variables | Should auto-delete at scope exit | Locals are already implicitly strong references; `autoptr` is rarely used in practice |
+| ARC handles all cleanup | Objects freed when refcount hits zero | Reference cycles are never collected -- they leak permanently until server restart |
+| `delete` for immediate cleanup | Destroys the object right away | Can null out references held by other systems unexpectedly -- prefer letting ARC handle it |
+
+---
+
 ## Common Mistakes
 
 | Mistake | Problem | Fix |

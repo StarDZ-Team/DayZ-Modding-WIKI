@@ -152,7 +152,7 @@ string result = string.Join(", ", names);
 ### Format (статический)
 
 
-Builds a string using numbered placeholders `%1` through `%9`. This is the primary way to build formatted strings in Enforce Script.
+Builds a string using numbered placeholders `%1` through `%9`. Это primary way to build formatted strings in Enforce Script.
 
 ```c
 string name = "John";
@@ -318,7 +318,7 @@ string msg = "Player " + name + " has " + health + " HP at " + distance + "m";
 // "Player John has 75 HP at 42.5m"
 ```
 
-For complex formatting, prefer `string.Format()` over concatenation -- it is more readable and avoids multiple intermediate allocations.
+For complex formatting, prefer `string.Format()` over concatenation --- он is more readable and avoids multiple intermediate allocations.
 
 ```c
 // Prefer this:

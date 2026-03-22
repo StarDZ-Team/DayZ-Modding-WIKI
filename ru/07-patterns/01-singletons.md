@@ -9,7 +9,7 @@
 
 The singleton pattern guarantees that a class has exactly one instance, accessible globally. In DayZ modding it is the most common architectural pattern --- virtually every manager, cache, registry, and subsystem uses it. COT, VPP, Expansion, Dabs Framework, and MyMod all rely on singletons to coordinate state across the engine's script layers.
 
-This chapter covers the canonical implementation, lifecycle management, when the pattern is appropriate, and where it goes wrong.
+Эта глава охватывает the canonical implementation, lifecycle management, when the pattern is appropriate, and where it goes wrong.
 
 ---
 
@@ -92,7 +92,7 @@ class LootManager
 | Keyword | Purpose |
 |---------|---------|
 | `private` | Prevents other classes from setting `s_Instance` to null or replacing it |
-| `static` | Shared across all code --- no instance needed to access it |
+| `static` | Shared across all code ---- нет instance needed to access it |
 | `ref` | Strong reference --- keeps the object alive as long as `s_Instance` is non-null |
 
 Without `ref`, the instance would be a weak reference and could be garbage-collected while still in use.
@@ -103,7 +103,7 @@ Without `ref`, the instance would be a weak reference and could be garbage-colle
 
 ### Lazy Initialization (Recommended Default)
 
-The `GetInstance()` method creates the instance on first access. This is the approach used by most DayZ mods.
+The `GetInstance()` method creates the instance on first access. Это approach used by most DayZ mods.
 
 ```c
 static LootManager GetInstance()
@@ -247,7 +247,7 @@ static void ShutdownAll()
 | Use Case | Why Not |
 |----------|---------|
 | **Per-player data** | One instance per player, not one global instance |
-| **Temporary computations** | Create, use, discard --- no global state needed |
+| **Temporary computations** | Create, use, discard ---- нет global state needed |
 | **UI views / dialogs** | Multiple can coexist; use the view stack instead |
 | **Entity components** | Attached to individual objects, not global |
 
@@ -305,7 +305,7 @@ class ExpansionMarketModule : CF_ModuleWorld
 
 ## Thread Safety Considerations
 
-Enforce Script is single-threaded. All script execution happens on the main thread within the Enfusion engine's game loop. This means:
+Enforce Script is single-threaded. All script execution happens on the main thread within the Enfusion engine's game loop. Это означает:
 
 - There are **no race conditions** between concurrent threads
 - You do **not** need mutexes, locks, or atomic operations
@@ -491,7 +491,7 @@ class MyLog
 };
 ```
 
-This is the approach used by `MyLog`, `MyRPC`, `MyEventBus`, and `MyModuleManager` in MyFramework. It is simpler, avoids the `GetInstance()` null-check overhead, and makes the intent clear: there is no instance, only shared state.
+Это approach used by `MyLog`, `MyRPC`, `MyEventBus`, and `MyModuleManager` in MyFramework. It is simpler, avoids the `GetInstance()` null-check overhead, and makes the intent clear: there is no instance, only shared state.
 
 **Use a static-only class when:**
 - All methods are stateless or operate on static fields
@@ -514,7 +514,7 @@ Before shipping a singleton, verify:
 - [ ] `DestroyInstance()` exists and sets `s_Instance = null`
 - [ ] `DestroyInstance()` is called from `OnMissionFinish()` or a centralized shutdown method
 - [ ] The destructor cleans up owned collections (`.Clear()`, set to `null`)
-- [ ] No public fields --- all mutation goes through methods
+- [ ] No public fields ---- ll mutation goes through methods
 - [ ] The constructor does not call `GetInstance()` on other singletons (defer to `OnInit()`)
 
 ---

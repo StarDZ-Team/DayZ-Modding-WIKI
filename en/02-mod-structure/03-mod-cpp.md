@@ -461,5 +461,46 @@ type = "servermod";
 
 ---
 
+## Best Practices
+
+- Always include at least `name` and `author` -- even for server mods, it helps identify them in log output and admin tools.
+- Use `.edds` format for all image fields (`picture`, `logo`, `logoSmall`, `logoOver`). PNG and JPG are not supported.
+- Keep `mod.cpp` metadata-only. Put `CfgMods`, script modules, and `defines[]` in `config.cpp` instead.
+- Use semantic versioning (`1.2.3`) in the `version` field and update it with every Workshop release.
+- Test your mod without images first; add logos as a final polish step after functionality is confirmed.
+
+---
+
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Localized `name` field | DabsFramework | Uses `$STR_DF_NAME` stringtable reference for multi-language mod listing |
+| Script modules in mod.cpp | Some AI mods | Place `class Defs` with script module paths directly in mod.cpp instead of config.cpp |
+| Missing `name` field | VPP Admin Tools | Omits `name` entirely; launcher falls back to folder name as display text |
+| All image fields identical | Community Framework | Sets `logo`, `logoSmall`, and `logoOver` to the same `.edds` file |
+| Empty image paths | Many early-stage mods | Leave `picture=""` during development; add branding before Workshop publish |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `mod.cpp` is required | Every mod folder needs one | A mod loads fine without it, but the launcher shows no name or metadata |
+| `type` field controls loading | `"mod"` vs `"servermod"` | The launch parameter (`-mod=` vs `-servermod=`) is what actually controls loading; the `type` field is metadata only |
+| Image paths support common formats | All texture formats work | Only `.edds`, `.paa`, and `.tga` work; `.png` and `.jpg` are silently ignored |
+| `authorID` links to Steam | Steam64 ID creates a clickable link | Only works on the Workshop page; the in-game mod list does not render it as a link |
+| `version` is validated | Engine checks version format | The engine treats it as a raw string; `"banana"` is technically valid |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** `mod.cpp` has no effect on load order or dependencies. Two mods with identical field values will not conflict -- only `CfgPatches` class names in `config.cpp` can collide.
+- **Performance:** `mod.cpp` is read once at startup. Image files referenced here are loaded into memory for the launcher UI but have no in-game performance impact.
+
+---
+
 **Previous:** [Chapter 2.2: config.cpp Deep Dive](02-config-cpp.md)
 **Next:** [Chapter 2.4: Your First Mod -- Minimum Viable](04-minimum-viable-mod.md)

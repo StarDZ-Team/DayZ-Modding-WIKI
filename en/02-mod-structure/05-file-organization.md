@@ -835,5 +835,36 @@ Before publishing your mod, verify:
 
 ---
 
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Deep subsystem folders in `3_Game` | StarDZ Core | 15+ folders under `3_Game/` (Config, RPC, Events, Logging, Permissions, etc.) |
+| `Common/` shared folder | COT | Included in every script module's `files[]` to provide cross-layer utility types |
+| Lowercase folder names | DabsFramework | Uses `scripts/`, `gui/` instead of `Scripts/`, `GUI/` -- works on Windows but risks issues on Linux |
+| Separate GUI PBO | Expansion, COT | GUI resources (layouts, imagesets, styles) packed into a dedicated PBO with its own config.cpp |
+| Minimal Scripts for content mods | Weapon packs | `Data/` directory dominates; `Scripts/` has only a thin config.cpp and optional behavior overrides |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| One class per file | Each `.c` file contains one class | Small helper classes and enums are often co-located with their parent class for convenience |
+| Separate PBOs for Scripts/Data/GUI | Clean separation by concern | Small mods often merge everything into a single PBO to simplify distribution |
+| Mod subfolder prevents collisions | `3_Game/MyMod/` namespaces files | True, but class names still collide globally -- the subfolder only prevents file-level conflicts |
+| `stringtable.csv` at mod root | Engine finds it automatically | Must be at the PBO root that gets loaded; placing it inside `Scripts/` causes it to be silently ignored |
+| ServerFiles/ ships with the mod | Server admins copy types.xml | Many mod authors forget to include ServerFiles, forcing admins to create types.xml entries manually |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** File organization itself does not cause conflicts. However, two mods placing files with the same path inside their PBOs (e.g., both using `3_Game/Config.c` without a mod subfolder) will collide at the engine level, causing one to silently override the other.
+- **Performance:** Directory depth and file count have no measurable impact on script compilation time. The engine recursively scans all listed `files[]` directories regardless of nesting.
+
+---
+
 **Previous:** [Chapter 2.4: Your First Mod -- Minimum Viable](04-minimum-viable-mod.md)
-**Next:** [Part 3: GUI & Layout System](../03-gui-system/01-widget-types.md)
+**Next:** [Chapter 2.6: Server vs Client Architecture](06-server-client-split.md)

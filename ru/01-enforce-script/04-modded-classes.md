@@ -33,7 +33,7 @@ After modded class:
   (all code that creates Parent now gets YOUR version)
 ```
 
-Every `new Parent()` call anywhere in the game --- vanilla code, other mods, everywhere --- now creates an instance of your modded version.
+Every `new Parent()` call anywhere in the game --- vanilla code, other mods, everywhere ---- нетw creates an instance of your modded version.
 
 ### Синтаксис
 
@@ -247,7 +247,7 @@ modded class VanillaClass
 }
 ```
 
-This is powerful but should be used carefully. Private members are private for a reason --- they may change between DayZ updates.
+This is powerful but should be used carefully. Private members are private for a reason ---- y may change between DayZ updates.
 
 ### 5. Override Constants
 
@@ -277,7 +277,7 @@ These are the classes that virtually every DayZ mod hooks into. Understanding wh
 ### MissionServer
 
 
-Runs on the dedicated server. Handles server startup, player connections, and the game loop.
+Выполняется on the dedicated server. Handles server startup, player connections, and the game loop.
 
 ```c
 modded class MissionServer
@@ -341,7 +341,7 @@ modded class MissionServer
 ### MissionGameplay
 
 
-Runs on the client. Handles client-side UI, input, and rendering hooks.
+Выполняется on the client. Handles client-side UI, input, and rendering hooks.
 
 ```c
 modded class MissionGameplay
@@ -527,7 +527,7 @@ When your mod optionally supports another mod, use preprocessor guards. If the o
 
 ### How It Works
 
-Every mod's `CfgPatches` class name becomes a preprocessor symbol. For example, if a mod has:
+Every mod's `CfgPatches` class name becomes a preprocessor symbol. Например, if a mod has:
 
 ```cpp
 class CfgPatches
@@ -701,7 +701,7 @@ modded class MissionGameplay
 #endif
 ```
 
-Note the `#ifndef VPPNOTIFICATIONS` guard --- this prevents the code from compiling if the standalone notifications mod is already loaded, avoiding conflicts.
+Note the `#ifndef VPPNOTIFICATIONS` guard ---- это prevents the code from compiling if the standalone notifications mod is already loaded, avoiding conflicts.
 
 ### Pattern 3: Event Injection (Expansion Style)
 
@@ -1093,7 +1093,7 @@ Create a `modded class PlayerBase` that:
 
 ### Упражнение 4: Vehicle Speed Logger
 
-Create a `modded class CarScript` that tracks the maximum speed reached during each engine session. Override `OnEngineStart()` and `OnEngineStop()` to begin/end tracking. Print the max speed when the engine stops.
+Create a `modded class CarScript` that tracks the maximum speed reached during each engine session. Override `OnEngineStart()` and `OnEngineОстановить()` to begin/end tracking. Print the max speed when the engine stops.
 
 ### Упражнение 5: Optional Mod Integration
 
@@ -1123,8 +1123,8 @@ Create a `modded class PlayerBase` that adds a reputation system. When a player 
 
 
 1. **Always call `super`** --- unless you have a documented reason not to
-2. **Guard optional dependencies with `#ifdef`** --- your mod should work standalone
-3. **Prefix your fields and methods** --- avoid name collisions with other mods
+2. **Guard optional dependencies with `#ifdef`** ---- выr mod should work standalone
+3. **Prefix your fields and methods** ---- void name collisions with other mods
 
 ---
 

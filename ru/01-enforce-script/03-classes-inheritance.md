@@ -88,7 +88,7 @@ void Example()
 ## Конструкторы и деструкторы
 
 
-Constructors initialize an object when it is created. Destructors clean up when it is destroyed. In Enforce Script, both use the class name --- the destructor is prefixed with `~`.
+Constructors initialize an object when it is created. Destructors clean up when it is destroyed. In Enforce Script, both use the class name ----  destructor is prefixed with `~`.
 
 ### Конструктор
 

@@ -409,6 +409,83 @@ SimpleCodeDialog dialog = new SimpleCodeDialog("Alert", "Server restart in 5 min
 
 ---
 
+## Widget Pooling
+
+Creating and destroying widgets every frame causes performance issues. Instead, maintain a pool of reusable widgets:
+
+```c
+class WidgetPool
+{
+    protected ref array<Widget> m_Pool;
+    protected ref array<Widget> m_Active;
+    protected Widget m_Parent;
+    protected string m_LayoutPath;
+
+    void WidgetPool(Widget parent, string layoutPath, int initialSize = 10)
+    {
+        m_Pool = new array<Widget>();
+        m_Active = new array<Widget>();
+        m_Parent = parent;
+        m_LayoutPath = layoutPath;
+
+        // Pre-create widgets
+        for (int i = 0; i < initialSize; i++)
+        {
+            Widget w = GetGame().GetWorkspace().CreateWidgets(m_LayoutPath, m_Parent);
+            w.Show(false);
+            m_Pool.Insert(w);
+        }
+    }
+
+    Widget Acquire()
+    {
+        Widget w;
+        if (m_Pool.Count() > 0)
+        {
+            w = m_Pool[m_Pool.Count() - 1];
+            m_Pool.Remove(m_Pool.Count() - 1);
+        }
+        else
+        {
+            w = GetGame().GetWorkspace().CreateWidgets(m_LayoutPath, m_Parent);
+        }
+        w.Show(true);
+        m_Active.Insert(w);
+        return w;
+    }
+
+    void Release(Widget w)
+    {
+        w.Show(false);
+        int idx = m_Active.Find(w);
+        if (idx >= 0)
+            m_Active.Remove(idx);
+        m_Pool.Insert(w);
+    }
+
+    void ReleaseAll()
+    {
+        foreach (Widget w : m_Active)
+        {
+            w.Show(false);
+            m_Pool.Insert(w);
+        }
+        m_Active.Clear();
+    }
+}
+```
+
+**When to use pooling:**
+- Lists that update frequently (kill feed, chat, player list)
+- Grids with dynamic content (inventory, market)
+- Any UI that creates/destroys 10+ widgets per second
+
+**When NOT to use pooling:**
+- Static panels created once
+- Dialogs shown/hidden (just use Show/Hide)
+
+---
+
 ## Layout Files vs. Programmatic: When to Use Each
 
 | Situation | Recommendation |
@@ -428,3 +505,34 @@ In practice, most mods use **layout files** for the structure and **code** for p
 
 - [3.6 Event Handling](06-event-handling.md) -- Handle clicks, changes, and mouse events
 - [3.7 Styles, Fonts & Images](07-styles-fonts.md) -- Visual styling and image resources
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `CreateWidget()` creates any widget type | All TypeIDs work with `CreateWidget()` | `ScrollWidget` and `WrapSpacerWidget` created programmatically often need manual flag setup (`EXACTSIZE`, sizing) that layout files handle automatically |
+| `Unlink()` frees all memory | Widget and children are destroyed | References held in script variables become dangling. Always set widget refs to `null` after `Unlink()` or you risk crashes |
+| `SetHandler()` routes all events | One handler receives all widget events | The handler only receives events for widgets that have called `SetHandler(this)`. Children do not inherit the handler from their parent |
+| `CreateWidgets()` from layout is instant | Layout loads synchronously | Large layouts with many nested widgets cause a frame spike. Pre-load layouts during loading screens, not during gameplay |
+| Proportional sizing (0.0-1.0) scales to parent | Values are relative to parent dimensions | Without `EXACTSIZE` flag, even `CreateWidget()` values like `100` are treated as proportional (0-1 range), causing widgets to fill the entire parent |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Programmatically created widgets are private to the creating mod. Unlike `modded class`, there is no collision risk unless two mods attach widgets to the same vanilla parent widget by name.
+- **Performance:** Each `CreateWidgets()` call parses the layout file from disk. Cache the root widget and show/hide it rather than recreating from layout every time the UI opens.
+
+---
+
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Layout template + code population | COT, Expansion | Load a row `.layout` template via `CreateWidgets()` per list item, then populate via `FindAnyWidget()` |
+| Widget pooling for kill feed | Colorful UI | Pre-creates 20 feed entry widgets, shows/hides them instead of creating and destroying |
+| Pure code dialogs | Debug/admin tools | Simple alert dialogs built entirely with `CreateWidget()` to avoid shipping extra `.layout` files |
+| `SetHandler(this)` on every interactive child | VPP Admin Tools | Iterates all buttons after layout load and calls `SetHandler()` on each one individually |
+| `Unlink()` + null pattern | DabsFramework | Every dialog's `Close()` method calls `m_Root.Unlink(); m_Root = null;` consistently |

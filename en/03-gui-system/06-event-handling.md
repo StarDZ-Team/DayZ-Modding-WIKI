@@ -521,6 +521,39 @@ override bool OnClick(Widget w, int x, int y, int button)
 
 ---
 
+## Theory vs Practice
+
+> What the documentation says versus how things actually work at runtime.
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `OnClick` fires on any widget | Any widget can receive click events | Only `ButtonWidget` reliably fires `OnClick`. For other widget types, use `OnMouseButtonDown` / `OnMouseButtonUp` instead |
+| `SetHandler()` replaces the handler | Setting a new handler replaces the old one | Correct, but the old handler is not notified. If it held resources, they leak. Always clean up before replacing handlers |
+| `OnChange` `finished` parameter | `true` when user finishes interaction | For `EditBoxWidget`, `finished` is `true` on Enter key only -- tabbing away or clicking elsewhere does NOT set `finished` to `true` |
+| Event return value propagation | `return false` passes event to parent | Events propagate up the widget tree, not to sibling widgets. A `return false` from a child goes to its parent, never to an adjacent widget |
+| `WidgetEventHandler` callback names | Any function name works | The function must exist on the target object at registration time. If the function name is misspelled, registration silently succeeds but the callback never fires |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** `SetHandler()` allows only one handler per widget. If mod A and mod B both call `SetHandler()` on the same vanilla widget (via `modded class`), the last one wins and the other silently stops receiving events. Use `WidgetEventHandler.RegisterOnClick()` for additive multi-mod compatibility.
+- **Performance:** Event handlers fire on the game's main thread. A slow `OnClick` handler (e.g., file I/O or complex calculations) causes visible frame hitching. Defer heavy work with `GetGame().GetCallQueue(CALL_CATEGORY_GUI).CallLater()`.
+- **Version:** The `ScriptedWidgetEventHandler` API has been stable since DayZ 1.0. `WidgetEventHandler` singleton callbacks are vanilla patterns present since early Enforce Script versions and remain unchanged.
+
+---
+
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Single handler for entire panel | COT, VPP Admin Tools | One `ScriptedWidgetEventHandler` subclass handles all buttons in a panel, dispatching by comparing `w` against cached widget references |
+| `WidgetEventHandler.RegisterOnClick` for modular buttons | Expansion Market | Each dynamically created buy/sell button registers its own callback, allowing per-item handler functions |
+| `OnMouseEnter` / `OnMouseLeave` for hover tooltips | DayZ Editor | Hover events trigger tooltip widgets that follow cursor position via `GetMousePos()` |
+| `CallLater` deferral in `OnClick` | DabsFramework | Heavy operations (config save, RPC send) are deferred by 0ms via `CallLater` to avoid blocking the UI thread during the event |
+
+---
+
 ## Next Steps
 
 - [3.7 Styles, Fonts & Images](07-styles-fonts.md) -- Visual styling with styles, fonts, and imageset references

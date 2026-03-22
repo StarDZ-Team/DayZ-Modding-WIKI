@@ -7,7 +7,7 @@
 ## Введение
 
 
-DayZ provides several mechanisms for deferred and repeating function calls: `ScriptCallQueue` (the primary system), `Timer`, `ScriptInvoker`, and `WidgetFadeTimer`. These are essential for scheduling delayed logic, creating update loops, and managing timed events without blocking the main thread. This chapter covers each mechanism with full API signatures and usage patterns.
+DayZ provides several mechanisms for deferred and repeating function calls: `ScriptCallQueue` (the primary system), `Timer`, `ScriptInvoker`, and `WidgetFadeTimer`. These are essential for scheduling delayed logic, creating update loops, and managing timed events without blocking the main thread. Эта глава охватывает each mechanism with full API signatures and usage patterns.
 
 ---
 
@@ -209,13 +209,13 @@ void StopUpdateLoop()
 }
 ```
 
-### Stop
+### Остановить
 
 ```c
 void Stop();
 ```
 
-Stops the timer. Can be restarted with another `Run()` call.
+Остановитьs the timer. Can be restarted with another `Run()` call.
 
 ### IsRunning
 

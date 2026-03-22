@@ -7,9 +7,9 @@
 ## Введение
 
 
-A **PBO** (Packed Bank of Objects) is DayZ's archive format -- the equivalent of a `.zip` file for game content. Every mod the game loads is delivered as one or more PBO files. When a player subscribes to a mod on Steam Workshop, they download PBOs. When a server loads mods, it reads PBOs. The PBO is the final deliverable of the entire modding pipeline.
+A **PBO** (Packed Bank of Objects) is DayZ's archive format ---  equivalent of a `.zip` file for game content. Every mod the game loads is delivered as one or more PBO files. When a player subscribes to a mod on Steam Workshop, they download PBOs. When a server loads mods, it reads PBOs. The PBO is the final deliverable of the entire modding pipeline.
 
-Understanding how to create PBOs correctly -- when to binarize, how to set prefixes, how to structure the output, and how to automate the process -- is the last step between your source files and a working mod. This chapter covers everything from the basic concept through advanced automated build workflows.
+Understanding how to create PBOs correctly -- when to binarize, how to set prefixes, how to structure the output, and how to automate the process -- is the last step between your source files and a working mod. Эта глава охватывает everything from the basic concept through advanced automated build workflows.
 
 ---
 
@@ -86,7 +86,7 @@ MyMod.pbo
 
 ### $PBOPREFIX$
 
-The `$PBOPREFIX$` file is a tiny text file at the root of the PBO that declares the mod's path prefix. For example:
+The `$PBOPREFIX$` file is a tiny text file at the root of the PBO that declares the mod's path prefix. Например:
 
 ```
 MyMod
@@ -164,7 +164,7 @@ The `-packonly` flag is one of the most important options in AddonBuilder. It te
 | Audio only (.ogg) | **Yes** | OGG is already game-ready |
 | Pre-converted textures (.paa) | **Yes** | Already in final format |
 | Config.cpp (no CfgVehicles) | **Yes** | Simple configs work unbinarized |
-| Config.cpp (with CfgVehicles) | **No** | Item definitions require binarized config |
+| Config.cpp (с CfgVehicles) | **No** | Item definitions require binarized config |
 | P3D models (MLOD) | **No** | Should be binarized to ODOL for performance |
 | TGA/PNG textures (need conversion) | **No** | Must be converted to PAA |
 
@@ -186,7 +186,7 @@ AddonBuilder.exe "P:\MyItemMod" "P:\output" -prefix="MyItemMod" -sign="P:\keys\M
 
 ## The -prefix Flag
 
-The `-prefix` flag sets the PBO's internal path prefix, which is written to the `$PBOPREFIX$` file inside the PBO. This prefix is critical -- it determines how the engine resolves paths to content inside the PBO.
+The `-prefix` flag sets the PBO's internal path prefix, which is written to the `$PBOPREFIX$` file inside the PBO. This prefix is critical --- он determines how the engine resolves paths to content inside the PBO.
 
 ### How Prefix Works
 
@@ -379,7 +379,7 @@ The `@` folder must be in the game's root directory, or an absolute path must be
 
 ## Automated Build Scripts
 
-Manual PBO packing through AddonBuilder's GUI is acceptable for small, simple mods. For larger projects with multiple PBOs, automated build scripts are essential.
+Ручное PBO packing through AddonBuilder's GUI is acceptable for small, simple mods. For larger projects with multiple PBOs, automated build scripts are essential.
 
 ### Batch Script Pattern
 
@@ -619,11 +619,11 @@ Development involves two testing modes. Choosing the right one for each situatio
 
 2. **Always set a prefix.** Without a prefix, the engine cannot resolve paths to your mod's content. Every PBO must have a correct `-prefix`.
 
-3. **Automate your builds.** Create a build script (batch or Python) from day one. Manual packing does not scale and is error-prone.
+3. **Automate your builds.** Create a build script (batch or Python) from day one. Ручное packing does not scale and is error-prone.
 
 4. **Keep source and output separate.** Source on P:, built PBOs in a separate output directory or `@mod/addons/`. Never pack from the output directory.
 
-5. **Sign your PBOs for any multiplayer testing.** Unsigned PBOs are rejected by servers with signature verification enabled. Sign during development even if it seems unnecessary -- it prevents "works for me" issues when others test.
+5. **Sign your PBOs for any multiplayer testing.** Unsigned PBOs are rejected by servers with signature verification enabled. Sign during development even if it seems unnecessary --- он prevents "works for me" issues when others test.
 
 6. **Version your keys.** When you make breaking changes, generate a new key pair. This forces all clients and servers to update together.
 

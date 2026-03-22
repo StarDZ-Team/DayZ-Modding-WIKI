@@ -1,6 +1,6 @@
 # Chapter 6.10: Central Economy
 
-[<< Previous: Networking & RPC](09-networking.md) | **Central Economy** | [Home](../../README.md)
+[<< Previous: Networking & RPC](09-networking.md) | **Central Economy** | [Next: Mission Hooks >>](11-mission-hooks.md) | [Home](../../README.md)
 
 ---
 
@@ -37,6 +37,27 @@ All CE files live in the mission folder (e.g., `dayzOffline.chernarusplus/`).
 | `cfgeventspawns.xml` | World coordinates for event spawn positions |
 | `cfglimitsdefinition.xml` | All valid category, usage, and value flag names |
 | `cfgplayerspawnpoints.xml` | Fresh spawn locations |
+
+---
+
+## Spawn Cycle
+
+```mermaid
+flowchart TD
+    A[CE Startup] --> B[Load types.xml]
+    B --> C[For each item type]
+    C --> D{Current count < nominal?}
+    D -->|Yes| E{Restock timer elapsed?}
+    E -->|Yes| F[Spawn item at valid position]
+    E -->|No| G[Wait for restock interval]
+    D -->|No| H{Current count > nominal?}
+    H -->|Yes| I[Mark excess for cleanup]
+    H -->|No| J[Item count balanced]
+    F --> K{Lifetime expired?}
+    K -->|Yes| L[Delete item]
+    K -->|No| M[Item persists]
+    L --> C
+```
 
 ---
 
@@ -509,4 +530,22 @@ Add a new `<event>` block in `events.xml` and corresponding spawn positions in `
 
 ---
 
-[<< Previous: Networking & RPC](09-networking.md) | **Central Economy** | [Home](../../README.md)
+## Best Practices
+
+- **Set `count_in_hoarder="1"` for high-value items.** Without this flag, players can hoard rare weapons in stashes without reducing the world spawn count, leading to item duplication in practice.
+- **Keep `restock` at 0 for most items.** Non-zero restock values delay respawning after an item is picked up. Use it only for items that should not immediately reappear (e.g., rare military gear).
+- **Test nominal/min ratios on a live server with players.** Static testing does not reveal real CE behavior. Items interact with player movement patterns, container storage, and cleanup timers in ways that are only visible under real load.
+- **Always define new items in both `config.cpp` and `types.xml`.** A config entry without a types.xml entry means the item will never spawn naturally. A types.xml entry without a config class causes CE errors.
+- **Use `cfgspawnabletypes.xml` to create weapon variety.** Instead of spawning naked weapons, define attachment presets so players find weapons with random stocks, handguards, and magazines -- this dramatically improves loot quality perception.
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Multiple mods can add entries to `types.xml`. If two mods define the same `<type name="">`, the last loaded file wins. Use unique class names to avoid collisions. Merge types.xml entries carefully on community servers.
+- **Performance:** High `nominal` values (200+) for many item types strain the CE's spawn loop. The CE runs periodic scans that scale with total tracked entity count. Keep nominals realistic -- 5-20 for weapons, 20-100 for common items.
+- **Server/Client:** The CE runs entirely on the server. Clients have no visibility into CE state. All XML files are server-side only and are not distributed to clients.
+
+---
+
+[<< Previous: Networking & RPC](09-networking.md) | **Central Economy** | [Next: Mission Hooks >>](11-mission-hooks.md) | [Home](../../README.md)

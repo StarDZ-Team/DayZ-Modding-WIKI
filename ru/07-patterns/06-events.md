@@ -7,9 +7,9 @@
 ## Введение
 
 
-Event-driven architecture decouples the producer of an event from its consumers. When a player connects, the connection handler does not need to know about the killfeed, the admin panel, the mission system, or the logging module --- it fires a "player connected" event, and each interested system subscribes independently. This is the foundation of extensible mod design: new features subscribe to existing events without modifying the code that fires them.
+Event-driven architecture decouples the producer of an event from its consumers. When a player connects, the connection handler does not need to know about the killfeed, the admin panel, the mission system, or the logging module ---- он fires a "player connected" event, and each interested system subscribes independently. Это foundation of extensible mod design: new features subscribe to existing events without modifying the code that fires them.
 
-DayZ provides `ScriptInvoker` as its built-in event primitive. On top of it, professional mods build event buses with named topics, typed handlers, and lifecycle management. This chapter covers all three major patterns and the critical discipline of memory-leak prevention.
+DayZ provides `ScriptInvoker` as its built-in event primitive. On top of it, professional mods build event buses with named topics, typed handlers, and lifecycle management. Эта глава охватывает all three major patterns and the critical discipline of memory-leak prevention.
 
 ---
 
@@ -28,7 +28,7 @@ DayZ provides `ScriptInvoker` as its built-in event primitive. On top of it, pro
 
 ## ScriptInvoker Pattern
 
-`ScriptInvoker` is the engine's built-in pub/sub primitive. It holds a list of function callbacks and invokes all of them when an event fires. This is the lowest-level event mechanism in DayZ.
+`ScriptInvoker` is the engine's built-in pub/sub primitive. It holds a list of function callbacks and invokes all of them when an event fires. Это lowest-level event mechanism in DayZ.
 
 ### Creating an Event
 
@@ -107,7 +107,7 @@ mgr.OnWeatherChanged.Remove(OnWeatherChanged);
 ref ScriptInvoker OnWeatherChanged = new ScriptInvoker();
 ```
 
-If a subscriber has the wrong signature, the behavior is undefined at runtime --- it may crash, receive garbage values, or silently do nothing. Always match the documented signature exactly.
+If a subscriber has the wrong signature, the behavior is undefined at runtime ---- он may crash, receive garbage values, or silently do nothing. Always match the documented signature exactly.
 
 ### ScriptInvoker on Vanilla Classes
 
@@ -291,9 +291,9 @@ class MyModule : CF_ModuleWorld
 | **Discovery** | Read comments | Override named methods |
 | **Subscription** | `Insert()` / `Remove()` | Override virtual methods |
 | **Custom data** | Param wrappers | Custom EventArgs subclasses |
-| **Cleanup** | Manual `Remove()` | Automatic (method override, no registration) |
+| **Cleanup** | Ручное `Remove()` | Automatic (method override, no registration) |
 
-CF's approach eliminates the need to manually subscribe and unsubscribe --- you simply override the handler method. This removes an entire class of bugs (forgotten `Remove()` calls) at the cost of requiring CF as a dependency.
+CF's approach eliminates the need to manually subscribe and unsubscribe ---- вы simply override the handler method. This removes an entire class of bugs (forgotten `Remove()` calls) at the cost of requiring CF as a dependency.
 
 ---
 
@@ -398,7 +398,7 @@ class PlayerTracker : Managed
 
 ### Pattern: EventBus Cleanup Nulls Everything
 
-MyMod's `MyEventBus.Cleanup()` sets all invokers to `null`, which drops all subscriber references at once. This is the nuclear option --- it guarantees no stale subscribers survive across mission restarts:
+MyMod's `MyEventBus.Cleanup()` sets all invokers to `null`, which drops all subscriber references at once. Это nuclear option ---- он guarantees no stale subscribers survive across mission restarts:
 
 ```c
 static void Cleanup()

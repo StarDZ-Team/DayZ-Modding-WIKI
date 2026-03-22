@@ -1,6 +1,6 @@
 # Chapter 5.2: inputs.xml --- Custom Keybindings
 
-> **Summary:** The `inputs.xml` file lets your mod register custom keybindings that appear in the player's Controls settings menu. Players can view, rebind, and toggle these inputs just like vanilla actions. This is the standard mechanism for adding hotkeys to DayZ mods.
+> **Summary:** The `inputs.xml` file lets your mod register custom keybindings that appear in the player's Controls settings menu. Players can view, rebind, and toggle these inputs just like vanilla actions. Это standard mechanism for adding hotkeys to DayZ mods.
 
 ---
 
@@ -28,7 +28,7 @@
 ## Обзор
 
 
-When your mod needs the player to press a key --- opening a menu, toggling a feature, commanding an AI unit --- you register a custom input action in `inputs.xml`. The engine reads this file at startup and integrates your actions into the universal input system. Players see your keybindings in the game's Settings > Controls menu, grouped under a heading you define.
+When your mod needs the player to press a key --- opening a menu, toggling a feature, commanding an AI unit ---- вы register a custom input action in `inputs.xml`. The engine reads this file at startup and integrates your actions into the universal input system. Players see your keybindings in the game's Settings > Controls menu, grouped under a heading you define.
 
 Custom inputs are identified by a unique action name (conventionally prefixed with `UA` for "User Action") and can have default keybindings that players can rebind at will.
 
@@ -50,7 +50,7 @@ Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
         5_Mission/
 ```
 
-Some mods place it directly in the `Scripts/` folder. Both locations work. The engine discovers the file automatically --- no config.cpp registration is needed.
+Some mods place it directly in the `Scripts/` folder. Both locations work. The engine discovers the file automatically ---- нет config.cpp registration is needed.
 
 ---
 
@@ -99,7 +99,7 @@ The `<actions>` block declares every input action your mod provides. Each action
 | Attribute | Required | Description |
 |-----------|----------|-------------|
 | `name` | Yes | Unique action identifier. Convention: prefix with `UA` (User Action). Used in scripts to poll this input. |
-| `loc` | No | Stringtable key for the display name in the Controls menu. **No `#` prefix** --- the system adds it. |
+| `loc` | No | Stringtable key for the display name in the Controls menu. **No `#` prefix** ----  system adds it. |
 | `visible` | No | Set to `"false"` to hide from the Controls menu. Defaults to `true`. |
 
 ### Naming Convention
@@ -532,7 +532,7 @@ A minimal inputs.xml for a hidden utility input with multiple default keys:
 Key observations:
 - Hidden input (`visible="false"`) with empty `loc` --- never shown in settings
 - Two default keys: both Enter and Numpad Enter trigger the same action
-- No `<sorting>` block --- not needed since the input is hidden
+- No `<sorting>` block ---- нетt needed since the input is hidden
 
 ### Complete Starter Template
 

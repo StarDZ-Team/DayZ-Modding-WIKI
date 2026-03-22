@@ -225,7 +225,7 @@ if (obj.IsKindOf("DayZAnimal"))
 }
 ```
 
-**Important:** `IsKindOf` checks the full inheritance chain, just like `IsInherited`. A `Mag_STANAG_30Rnd` returns `true` for `IsKindOf("Magazine_Base")`, `IsKindOf("InventoryItem")`, `IsKindOf("EntityAI")`, etc.
+**Важно:** `IsKindOf` checks the full inheritance chain, just like `IsInherited`. A `Mag_STANAG_30Rnd` returns `true` for `IsKindOf("Magazine_Base")`, `IsKindOf("InventoryItem")`, `IsKindOf("EntityAI")`, etc.
 
 ### IsInherited vs IsKindOf
 

@@ -10,11 +10,11 @@
 - [What We Are Building](#what-we-are-building)
 - [Prerequisites](#prerequisites)
 - [Architecture Overview](#architecture-overview)
-- [Step 1: Hook Into Chat Input](#step-1-hook-into-chat-input)
-- [Step 2: Parse Command Prefix and Arguments](#step-2-parse-command-prefix-and-arguments)
-- [Step 3: Check Admin Permissions](#step-3-check-admin-permissions)
-- [Step 4: Execute the Server-Side Action](#step-4-execute-the-server-side-action)
-- [Step 5: Send Feedback to the Admin](#step-5-send-feedback-to-the-admin)
+- [Шаг 1: Hook Into Chat Input](#step-1-hook-into-chat-input)
+- [Шаг 2: Parse Command Prefix and Arguments](#step-2-parse-command-prefix-and-arguments)
+- [Шаг 3: Check Admin Permissions](#step-3-check-admin-permissions)
+- [Шаг 4: Execute the Server-Side Action](#step-4-execute-the-server-side-action)
+- [Шаг 5: Send Feedback to the Admin](#step-5-send-feedback-to-the-admin)
 - [Step 6: Register Commands](#step-6-register-commands)
 - [Step 7: Add to an Admin Panel Command List](#step-7-add-to-an-admin-panel-command-list)
 - [Complete Working Code: /heal Command](#complete-working-code-heal-command)
@@ -90,7 +90,7 @@ CLIENT                                  SERVER
 
 ---
 
-## Step 1: Hook Into Chat Input
+## Шаг 1: Hook Into Chat Input
 
 We need to intercept chat messages before they are sent as regular chat. DayZ provides the `ChatInputMenu` class for this purpose.
 
@@ -180,7 +180,7 @@ We check if the message starts with `/`. If it does, we forward the entire strin
 
 ---
 
-## Step 2: Parse Command Prefix and Arguments
+## Шаг 2: Parse Command Prefix and Arguments
 
 On the server side, we need to break a command string like `/heal PlayerName` into its parts: the command name (`heal`) and the arguments (`["PlayerName"]`).
 
@@ -417,7 +417,7 @@ The command name is converted to lowercase so `/Heal`, `/HEAL`, and `/heal` all 
 
 ---
 
-## Step 3: Check Admin Permissions
+## Шаг 3: Check Admin Permissions
 
 Admin permission checking prevents regular players from executing admin commands. DayZ does not have a built-in admin permission system in scripts, so we check against a simple admin list.
 
@@ -461,7 +461,7 @@ In a real mod, you would:
 
 ---
 
-## Step 4: Execute the Server-Side Action
+## Шаг 4: Execute the Server-Side Action
 
 Now we create the actual `/heal` command and the server handler that processes incoming command RPCs.
 
@@ -603,7 +603,7 @@ The base class `CCmdBase` lives in `3_Game` because it does not reference any wo
 
 ---
 
-## Step 5: Send Feedback to the Admin
+## Шаг 5: Send Feedback to the Admin
 
 Feedback is handled by the `SendFeedback()` method in `CCmdBase`. Let us trace the complete feedback path:
 

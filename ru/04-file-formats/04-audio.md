@@ -9,7 +9,7 @@
 
 Sound design is one of the most immersive aspects of DayZ modding. From the crack of a rifle to the ambient wind in a forest, audio brings the game world to life. DayZ uses **OGG Vorbis** as its primary audio format and configures sound playback through a layered system of **CfgSoundShaders** and **CfgSoundSets** defined in `config.cpp`. Understanding this pipeline -- from raw audio file to spatialized in-game sound -- is essential for any mod that introduces custom weapons, vehicles, ambient effects, or UI feedback.
 
-This chapter covers audio formats, the config-driven sound system, 3D positional audio, volume and distance attenuation, looping, and the complete workflow for adding custom sounds to a DayZ mod.
+Эта глава охватывает audio formats, the config-driven sound system, 3D positional audio, volume and distance attenuation, looping, and the complete workflow for adding custom sounds to a DayZ mod.
 
 ---
 
@@ -287,7 +287,7 @@ Player-related sounds include:
 - **Footsteps** -- varies by surface material (concrete, grass, wood, metal)
 - **Breathing** -- stamina-dependent
 - **Voice** -- emotes and commands
-- **Inventory** -- item manipulation sounds
+- **Inventory** --- онem manipulation sounds
 
 ---
 
@@ -440,14 +440,14 @@ For seamless looping, the audio file itself must loop cleanly:
 
 ### Complete Workflow
 
-**Step 1: Prepare audio files**
+**Шаг 1: Prepare audio files**
 - Record or source your audio.
 - Edit in Audacity (or your preferred audio editor).
 - For 3D sounds: convert to mono.
 - Export as OGG Vorbis (quality 5-7).
 - Name files descriptively: `rifle_shot_01.ogg`, `rifle_shot_02.ogg`.
 
-**Step 2: Organize in mod directory**
+**Шаг 2: Organize in mod directory**
 
 ```
 MyMod/
@@ -466,7 +466,7 @@ MyMod/
   config.cpp
 ```
 
-**Step 3: Define SoundShaders in config.cpp**
+**Шаг 3: Define SoundShaders in config.cpp**
 
 ```cpp
 class CfgPatches
@@ -510,7 +510,7 @@ class CfgSoundSets
 };
 ```
 
-**Step 4: Reference from weapon/item config**
+**Шаг 4: Reference from weapon/item config**
 
 For weapons, the SoundSet is referenced in the weapon's config class:
 
@@ -532,7 +532,7 @@ class CfgWeapons
 };
 ```
 
-**Step 5: Build and test**
+**Шаг 5: Build and test**
 - Pack the PBO (use `-packonly` since OGG files do not need binarization).
 - Launch the game with the mod loaded.
 - Test the sound in-game at various distances.
@@ -638,7 +638,7 @@ frequencyRandomizer = 0.05;    // +/- 5% pitch variation
 
 ## Best Practices
 
-1. **Always export 3D sounds as mono OGG.** This is the single most important rule. Stereo files will not spatialize.
+1. **Always export 3D sounds as mono OGG.** Это single most important rule. Stereo files will not spatialize.
 
 2. **Provide 3-5 sample variants** for frequently heard sounds (gunshots, footsteps, impacts). Random selection prevents the "machine gun effect" of identical repeated audio.
 

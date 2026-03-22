@@ -1028,6 +1028,18 @@ It works, but is poor practice. Keep item/entity definitions in a separate PBO (
 
 ---
 
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| One config.cpp per PBO | Each PBO has exactly one | True, but the engine merges all CfgPatches/CfgMods across PBOs, so class names must be globally unique |
+| `requiredAddons` enforces load order | Listed addons load first | Missing a dependency does not always crash -- it silently compiles with undefined types, causing random errors later |
+| `files[]` paths are validated | Engine reports bad paths | Wrong paths cause scripts to silently not compile; no error appears in RPT unless you look for missing classes |
+| `defines[]` are simple feature flags | Preprocessor symbols for `#ifdef` | Defines are global across all mods, so a generic name like `"DEBUG"` can collide with other mods |
+| `value` field sets custom entry point | Engine calls the named function | Almost no mods use this; CF is the notable exception with `CF_CreateGame`. Leaving it empty is the safe default |
+
+---
+
 ## Complete Template
 
 Here is a production-ready `Scripts/config.cpp` template you can copy and modify:

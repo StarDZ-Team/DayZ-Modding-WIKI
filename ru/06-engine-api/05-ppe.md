@@ -7,7 +7,7 @@
 ## Введение
 
 
-DayZ's Post-Process Effects (PPE) system controls visual effects applied after scene rendering: blur, color grading, vignette, chromatic aberration, night vision, and more. The system is built around `PPERequester` classes that can request specific visual effects. Multiple requesters can be active simultaneously, and the engine blends their contributions. This chapter covers how to use the PPE system in mods.
+DayZ's Post-Process Effects (PPE) system controls visual effects applied after scene rendering: blur, color grading, vignette, chromatic aberration, night vision, and more. The system is built around `PPERequester` classes that can request specific visual effects. Multiple requesters can be active simultaneously, and the engine blends their contributions. Эта глава охватывает how to use the PPE system in mods.
 
 ---
 
@@ -147,7 +147,7 @@ Effects target specific post-processing materials. Common material IDs:
 
 ### Inventory Blur
 
-The simplest example --- the blur that appears when the inventory opens:
+The simplest example ----  blur that appears when the inventory opens:
 
 ```c
 // Start blur
@@ -180,7 +180,7 @@ void StopFlashbang()
 
 To create custom post-process effects, extend `PPERequester` and register it.
 
-### Step 1: Define the Requester
+### Шаг 1: Define the Requester
 
 ```c
 class MyCustomPPERequester extends PPERequester
@@ -211,9 +211,9 @@ class MyCustomPPERequester extends PPERequester
 }
 ```
 
-### Step 2: Register and Use
+### Шаг 2: Register and Use
 
-Registration is handled by adding the requester to the bank. In practice, most modders use the built-in requesters and modify their parameters rather than creating fully custom ones.
+Registration is handled by adding the requester to the bank. На практике most modders use the built-in requesters and modify their parameters rather than creating fully custom ones.
 
 ---
 
@@ -306,13 +306,13 @@ Higher numbers take priority. Use `PPEManager.L_LAST` to force your effect to ov
 | Concept | Key Point |
 |---------|-----------|
 | Access | `PPERequesterBank.GetRequester(CONSTANT)` |
-| Start/Stop | `requester.Start()` / `requester.Stop()` |
+| Start/Остановить | `requester.Start()` / `requester.Остановить()` |
 | Parameters | `SetTargetValueFloat(material, param, relative, value, layer, operator)` |
 | Operators | `PPOperators.SET`, `ADD`, `MULTIPLY`, `HIGHEST`, `LOWEST`, `OVERRIDE` |
 | Common effects | Blur, vignette, saturation, NVG, flashbang, grain, chromatic aberration |
 | NVG | `REQ_CAMERANV` requester |
 | Priority | Layers 0-100; higher number wins conflicts |
-| Custom | Extend `PPERequester`, override `OnStart()` / `OnStop()` |
+| Custom | Extend `PPERequester`, override `OnStart()` / `OnОстановить()` |
 
 ---
 

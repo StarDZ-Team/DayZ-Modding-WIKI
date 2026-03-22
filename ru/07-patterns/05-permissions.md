@@ -9,7 +9,7 @@
 
 Every admin tool, every privileged action, and every moderation feature in DayZ needs a permission system. The question is not whether to check permissions but how to structure them. The DayZ modding community has settled on three major patterns: hierarchical dot-separated permissions (MyMod), user-group role assignment (VPP), and framework-level role-based access (CF/COT). Each has different trade-offs in granularity, complexity, and server-owner experience.
 
-This chapter covers all three patterns, the permission-checking flow, storage formats, and wildcard/superadmin handling.
+Эта глава охватывает all three patterns, the permission-checking flow, storage formats, and wildcard/superadmin handling.
 
 ---
 
@@ -136,7 +136,7 @@ bool HasPermission(string plainId, string permission)
 - **Fine-grained:** you can grant exactly the permissions each admin needs
 - **Hierarchical:** wildcards grant entire subtrees without listing every permission
 - **Self-documenting:** the permission string tells you what it controls
-- **Extensible:** new permissions are just new strings --- no schema changes
+- **Extensible:** new permissions are just new strings ---- нет schema changes
 
 ### Weaknesses
 
@@ -478,7 +478,7 @@ All three systems store permissions in JSON. The differences are structural:
 
 ### Full Wildcard: `"*"`
 
-Grants all permissions. This is the superadmin pattern. A player with `"*"` can do anything.
+Grants all permissions. Это superadmin pattern. A player with `"*"` can do anything.
 
 ```c
 if (granted == "*")
@@ -489,7 +489,7 @@ if (granted == "*")
 
 ### Prefix Wildcard: `"MyMod.Admin.*"`
 
-Grants all permissions that start with `"MyMod.Admin."`. This allows granting an entire subsystem without listing every permission:
+Grants all permissions that start with `"MyMod.Admin."`. Это позволяет granting an entire subsystem without listing every permission:
 
 ```c
 // "MyMod.Admin.*" matches:

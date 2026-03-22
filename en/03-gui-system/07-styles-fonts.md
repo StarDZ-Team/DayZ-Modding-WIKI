@@ -511,5 +511,25 @@ This pattern (used by Colorful UI, MyMod, and others) means changing the entire 
 
 ## Next Steps
 
+- [3.8 Dialogs & Modals](08-dialogs-modals.md) -- Popup windows, confirmation prompts, and overlay panels
 - [3.1 Widget Types](01-widget-types.md) -- Review the full widget catalog
 - [3.6 Event Handling](06-event-handling.md) -- Make your styled widgets interactive
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| SDF fonts scale to any size | `sdf_MetronBook24` is crisp at all sizes | True for sizes above ~10px. Below that, SDF fonts can appear blurry compared to bitmap fonts at their native size |
+| `"exact text" 1` gives pixel-perfect sizing | Font renders at the exact pixel size specified | DayZ applies internal scaling, so `"exact text size" 16` may render slightly differently across resolutions. Test on 1080p and 1440p |
+| Built-in styles cover all needs | `Default`, `blank`, `Colorable` are sufficient | Most professional mods define their own `.styles` files because built-in styles have limited visual variety |
+| Imageset XML and native formats are equivalent | Both define sprite regions | The native brace format is what the engine processes fastest. XML format works but adds a parsing step; use native format for production |
+| `SetColor()` overrides layout color | Runtime color replaces the layout value | `SetColor()` tints the widget's existing visual. On styled widgets, the tint multiplies with the style's base color, producing unexpected results |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Style names are global. If two mods register a `.styles` file defining the same style name, the last-loaded mod wins. Prefix custom style names with your mod identifier (e.g., `MyMod_PanelDark`).
+- **Performance:** Imagesets are loaded once into GPU memory at startup. Adding large sprite atlases (2048x2048+) increases VRAM usage. Keep atlases at 512x512 or 1024x1024 and split across multiple imagesets if needed.

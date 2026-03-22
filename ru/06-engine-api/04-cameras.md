@@ -7,7 +7,7 @@
 ## Введение
 
 
-DayZ uses a multi-layered camera system. The player camera is managed by the engine through `DayZPlayerCamera` subclasses. For modding and debugging, the `FreeDebugCamera` allows free-flight. The engine also provides global accessors for the current camera state. This chapter covers camera types, how to access camera data, and how to use the scripted camera tools.
+DayZ uses a multi-layered camera system. The player camera is managed by the engine through `DayZPlayerCamera` subclasses. For modding and debugging, the `FreeDebugCamera` allows free-flight. The engine also provides global accessors for the current camera state. Эта глава охватывает camera types, how to access camera data, and how to use the scripted camera tools.
 
 ---
 
@@ -135,7 +135,7 @@ float GetFlySpeed();
 vector GetDirection();
 ```
 
-**Example --- activate free camera and teleport it:**
+**Example ---- ctivate free camera and teleport it:**
 
 ```c
 void ActivateDebugCamera(vector pos)
@@ -183,7 +183,7 @@ class MyCustomCamera extends DayZPlayerCamera1stPerson
 
 ## Depth of Field (DOF)
 
-Depth of field is controlled through the Post-Process Effects system (see [Chapter 6.5](05-ppe.md)). However, the camera system works with DOF through these mechanisms:
+Depth of field is controlled through the Post-Process Effects system (см. [Chapter 6.5](05-ppe.md)). However, the camera system works with DOF through these mechanisms:
 
 ### Setting DOF via World
 
@@ -213,7 +213,7 @@ if (world)
 
 **File:** `2_GameLib/entities/scriptcamera.c`
 
-A lower-level scripted camera entity from the GameLib layer. This is the base for custom camera implementations.
+A lower-level scripted camera entity from the GameLib layer. Это base for custom camera implementations.
 
 ### Creating a Camera
 

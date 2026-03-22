@@ -9,7 +9,7 @@
 
 Remote Procedure Calls (RPCs) are the only way to send data between client and server in DayZ. Every admin panel, every synced UI, every server-to-client notification, and every client-to-server action request flows through RPCs. Understanding how to build them correctly --- with proper serialization order, permission checks, and error handling --- is essential for any mod that does more than add items to CfgVehicles.
 
-This chapter covers the fundamental `ScriptRPC` pattern, the client-server roundtrip lifecycle, error handling, and then compares the three major RPC routing approaches used in the DayZ modding community.
+Эта глава охватывает the fundamental `ScriptRPC` pattern, the client-server roundtrip lifecycle, error handling, and then compares the three major RPC routing approaches used in the DayZ modding community.
 
 ---
 
@@ -81,7 +81,7 @@ rpc.Send(object, rpcId, guaranteed, identity);
 
 ### When to Use `guaranteed`
 
-- **`true` (reliable):** Config changes, permission grants, teleport commands, ban actions --- anything where a dropped packet would leave client and server out of sync.
+- **`true` (reliable):** Config changes, permission grants, teleport commands, ban actions ---- nything where a dropped packet would leave client and server out of sync.
 - **`false` (unreliable):** Rapid position updates, visual effects, HUD state that refreshes every few seconds anyway. Lower overhead, no retransmit queue.
 
 ---
@@ -411,7 +411,7 @@ void RPC_SpawnItem(CallType type, ParamsReadContext ctx, PlayerIdentity sender, 
 **Pros:**
 - String-based routing is human-readable and collision-free
 - Namespace grouping (`"MyMod"`) prevents name clashes between mods
-- Widely used --- if you integrate with COT/Expansion, you use this
+- Widely used ---- если you integrate with COT/Expansion, you use this
 
 **Cons:**
 - Requires CF as a dependency
@@ -460,7 +460,7 @@ modded class DayZGame
 
 **Cons:**
 - **ID collision risk**: two mods picking the same integer range will silently intercept each other's RPCs
-- Manual dispatch logic (switch/case) gets unwieldy with many RPCs
+- Ручное dispatch logic (switch/case) gets unwieldy with many RPCs
 - No namespace isolation
 - No built-in registry or discoverability
 
@@ -516,7 +516,7 @@ void RPC_SpawnItem(PlayerIdentity sender, Object target, ParamsReadContext ctx)
 | **Discoverability** | CF registry | None | `MyRPC.s_Handlers` |
 | **Dispatch overhead** | String lookup | Integer switch | String lookup |
 | **Payload style** | Param wrappers | Raw Write/Read | Raw Write/Read |
-| **CF bridge** | Native | Manual | Automatic (`#ifdef`) |
+| **CF bridge** | Native | Ручное | Automatic (`#ifdef`) |
 
 ### Which Should You Use?
 
@@ -565,7 +565,7 @@ The most common RPC bug. The sender writes `(string, int, float)` but the receiv
 
 ### 3. Sending Client-Only Data to the Server
 
-The server cannot read client-side widget state, input state, or local variables. If you need to send a UI selection to the server, serialize the relevant value (a string, an index, an ID) --- not the widget object itself.
+The server cannot read client-side widget state, input state, or local variables. If you need to send a UI selection to the server, serialize the relevant value (a string, an index, an ID) ---- нетt the widget object itself.
 
 ### 4. Broadcasting When You Meant Unicast
 

@@ -474,6 +474,22 @@ All three systems store permissions in JSON. The differences are structural:
 
 ## Wildcard and Superadmin Patterns
 
+```mermaid
+graph TD
+    ROOT["*  (superadmin)"] --> A["MyMod.*"]
+    A --> B["MyMod.Admin.*"]
+    B --> C["MyMod.Admin.Kick"]
+    B --> D["MyMod.Admin.Ban"]
+    B --> E["MyMod.Admin.Teleport"]
+    A --> F["MyMod.Player.*"]
+    F --> G["MyMod.Player.Shop"]
+    F --> H["MyMod.Player.Trade"]
+
+    style ROOT fill:#ff4444,color:#fff
+    style A fill:#ff8844,color:#fff
+    style B fill:#ffaa44,color:#fff
+```
+
 ### Full Wildcard: `"*"`
 
 Grants all permissions. This is the superadmin pattern. A player with `"*"` can do anything.
@@ -602,6 +618,38 @@ This is a common pattern used to migrate from its original flat `AdminUIDs` arra
 9. **Implement migration from day one.** When your permission format changes (and it will), automatic migration prevents support tickets.
 
 10. **Sync permissions to the client on connect.** The client needs to know its own permissions for UI purposes (showing/hiding admin buttons). Send a summary on connect; do not send the entire server permissions file.
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Each mod can define its own permission namespace (`"ModA.Admin.Kick"`, `"ModB.Build.Spawn"`). The `"*"` wildcard grants superadmin across *all* mods that share the same permission store. If mods use independent permission files, `"*"` only applies within that mod's scope.
+- **Load Order:** Permission files are loaded once during server startup. No cross-mod ordering issues as long as each mod reads its own file. If a shared framework (CF/COT) manages permissions, all mods using that framework share the same permission tree.
+- **Listen Server:** Permission checks should always run server-side. On listen servers, client-side code may call `HasPermission()` for UI gating (showing/hiding admin buttons), but the server-side check is the authoritative one.
+- **Performance:** Permission checks are a string-array linear scan per player. With typical admin counts (1--20 admins, 5--30 permissions each), this is negligible. For extremely large permission sets, consider a `set<string>` instead of an array for O(1) lookups.
+- **Migration:** Adding new permission strings is non-breaking --- existing admins simply do not have the new permission until granted. Renaming permissions breaks existing grants silently. Use config versioning to auto-migrate renamed permission strings.
+
+---
+
+## Common Mistakes
+
+| Mistake | Impact | Fix |
+|---------|--------|-----|
+| Trusting client-sent permission data | Exploited clients send `"I am admin"` and the server believes them; full server compromise | Never read permissions from an RPC payload; always look up `sender.GetPlainId()` in the server-side permission store |
+| Missing default deny | A missing permission check grants access to everyone; accidental privilege escalation | Every RPC handler for a privileged action must check `HasPermission()` and return early on failure |
+| Typo in permission string fails silently | `"MyMod.Amin.Kick"` (typo) never matches --- admin cannot kick, no error is logged | Define permission strings as `static const` variables; reference the constant, never a raw string literal |
+| Sending the full permissions file to the client | Exposes all admin Steam64 IDs and their permission sets to any connected client | Send only the requesting player's own permission list, never the full server file |
+| No wildcard support in HasPermission | Server owners must list every single permission per admin; tedious and error-prone | Implement prefix wildcards (`"MyMod.Admin.*"`) and full wildcard (`"*"`) from day one |
+
+---
+
+## Theory vs Practice
+
+| Textbook Says | DayZ Reality |
+|---------------|-------------|
+| Use RBAC (role-based access control) with group inheritance | Only CF/COT supports three-state permissions; most mods use flat per-player grants for simplicity |
+| Permissions should be stored in a database | No database access; JSON files in `$profile:` are the only option |
+| Use cryptographic tokens for authorization | No crypto libraries in Enforce Script; trust is based on `PlayerIdentity.GetPlainId()` (Steam64 ID) verified by the engine |
 
 ---
 

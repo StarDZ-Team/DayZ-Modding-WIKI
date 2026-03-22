@@ -639,4 +639,24 @@ Or use a centralized `Cleanup()` that clears the entire handler map (as `MyRPC.C
 
 ---
 
+## Compatibility & Impact
+
+- **Multi-Mod:** Integer-range RPCs are collision-prone --- two mods choosing the same ID silently intercept each other's messages. String-routed or CF-named RPCs avoid this by using namespace + function name as the key.
+- **Load Order:** RPC handler registration order matters only when multiple mods `modded class DayZGame` and override `OnRPC`. Each must call `super.OnRPC()` for unhandled IDs, or downstream mods never receive their RPCs. String-routed systems avoid this by using a single engine ID.
+- **Listen Server:** On listen servers, both client and server run in the same process. An RPC sent with `identity = null` from the server side will also be received locally. Guard handlers with `if (type != CallType.Server) return;` or check `GetGame().IsServer()` / `GetGame().IsClient()` as appropriate.
+- **Performance:** RPC dispatch overhead is minimal (string lookup or integer switch). The bottleneck is payload size --- DayZ has a practical per-RPC limit (~64 KB). For large data (config sync), paginate across multiple RPCs.
+- **Migration:** RPC IDs are a mod-internal detail and unaffected by DayZ version updates. If you change your RPC wire format (add/remove fields), old clients talking to a new server will silently desync. Version your RPC payloads or force client updates.
+
+---
+
+## Theory vs Practice
+
+| Textbook Says | DayZ Reality |
+|---------------|-------------|
+| Use protocol buffers or schema-based serialization | Enforce Script has no protobuf support; you manually `Write`/`Read` primitives in matched order |
+| Validate all inputs with schema enforcement | No schema validation exists; every `ctx.Read()` return value must be checked individually |
+| RPCs should be idempotent | Practical in DayZ only for query RPCs; mutation RPCs (spawn, delete, teleport) are inherently non-idempotent --- guard with permission checks instead |
+
+---
+
 [<< Previous: Module Systems](02-module-systems.md) | [Home](../../README.md) | [Next: Config Persistence >>](04-config-persistence.md)

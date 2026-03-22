@@ -9,7 +9,7 @@
 
 A material in DayZ is the bridge between a 3D model and its visual appearance. While textures provide raw image data, the **RVMAT** (Real Virtuality Material) file defines how those textures are combined, which shader interprets them, and what surface properties the engine should simulate -- shininess, transparency, self-illumination, and more. Every face on every P3D model in the game references an RVMAT file, and understanding how to create and configure them is essential for any visual mod.
 
-This chapter covers the RVMAT file format, shader types, texture stage configuration, material properties, the damage-level material swap system, and practical examples drawn from DayZ-Samples.
+Эта глава охватывает the RVMAT file format, shader types, texture stage configuration, material properties, the damage-level material swap system, and practical examples drawn from DayZ-Samples.
 
 ---
 
@@ -22,7 +22,7 @@ This chapter covers the RVMAT file format, shader types, texture stage configura
 - [Texture Stages](#texture-stages)
 - [Material Properties](#material-properties)
 - [Health Levels (Damage Material Swaps)](#health-levels-damage-material-swaps)
-- [How Materials Reference Textures](#how-materials-reference-textures)
+- [How Materials Reference Текстуры](#how-materials-reference-textures)
 - [Creating an RVMAT from Scratch](#creating-an-rvmat-from-scratch)
 - [Real Examples](#real-examples)
 - [Common Mistakes](#common-mistakes)
@@ -121,7 +121,7 @@ These are declared before the Stage classes and control the material's overall b
 | `ambient[]` | float[4] | Ambient light color multiplier. `{1,1,1,1}` = full, `{0,0,0,0}` = no ambient. |
 | `diffuse[]` | float[4] | Diffuse light color multiplier. Usually `{1,1,1,1}`. |
 | `forcedDiffuse[]` | float[4] | Additive override to diffuse. Usually `{0,0,0,0}`. |
-| `emmisive[]` | float[4] | Self-illumination color. Non-zero values make the surface glow. Note: Bohemia uses the misspelling `emmisive`, not `emissive`. |
+| `emmisive[]` | float[4] | Self-illumination color. Non-zero values make the surface glow. Примечание: Bohemia uses the misspelling `emmisive`, not `emissive`. |
 | `specular[]` | float[4] | Specular highlight color and intensity. |
 | `specularPower` | float | Sharpness of specular highlights. Range 1-200. Higher = tighter, more focused reflection. |
 | `PixelShaderID` | string | Name of the pixel shader program. |
@@ -358,7 +358,7 @@ healthLevels[] =
 
 ---
 
-## How Materials Reference Textures
+## How Materials Reference Текстуры
 
 The connection between models, materials, and textures forms a chain:
 
@@ -404,7 +404,7 @@ class MyItem_Green: MyItem
 };
 ```
 
-This allows creating item variants (color schemes, camo patterns) that share the same P3D model but use different materials.
+Это позволяет creating item variants (color schemes, camo patterns) that share the same P3D model but use different materials.
 
 ---
 
@@ -624,4 +624,4 @@ VertexShaderID = "Super";
 
 | Предыдущая | Вверх | Следующая |
 |----------|----|------|
-| [4.2 3D Models](02-models.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.4 Audio](04-audio.md) |
+| [4.2 3D Модели](02-models.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.4 Audio](04-audio.md) |

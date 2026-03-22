@@ -11,11 +11,11 @@
 
 - [What You Need](#what-you-need)
 - [The Goal](#the-goal)
-- [Step 1: Create the Directory Structure](#step-1-create-the-directory-structure)
-- [Step 2: Create mod.cpp](#step-2-create-modcpp)
-- [Step 3: Create config.cpp](#step-3-create-configcpp)
-- [Step 4: Create Your First Script](#step-4-create-your-first-script)
-- [Step 5: Pack and Test](#step-5-pack-and-test)
+- [Шаг 1: Create the Directory Structure](#step-1-create-the-directory-structure)
+- [Шаг 2: Create mod.cpp](#step-2-create-modcpp)
+- [Шаг 3: Create config.cpp](#step-3-create-configcpp)
+- [Шаг 4: Create Your First Script](#step-4-create-your-first-script)
+- [Шаг 5: Pack and Test](#step-5-pack-and-test)
 - [Step 6: Verify It Works](#step-6-verify-it-works)
 - [Understanding What Happened](#understanding-what-happened)
 - [Next Steps](#next-steps)
@@ -40,7 +40,7 @@ We will create a mod called **HelloMod** that:
 2. Prints `"[HelloMod] Mission started!"` to the script log
 3. Uses the correct standard structure
 
-This is the DayZ equivalent of "Hello World."
+Это DayZ equivalent of "Hello World."
 
 ---
 
@@ -75,7 +75,7 @@ version = "1.0";
 overview = "My first DayZ mod - prints a message on mission start.";
 ```
 
-This is the minimum metadata. The DayZ launcher will show "Hello Mod" in the mod list.
+Это minimum metadata. The DayZ launcher will show "Hello Mod" in the mod list.
 
 ---
 
@@ -159,7 +159,7 @@ What this does:
 
 - `modded class MissionServer` extends the vanilla server mission class. When the server starts a mission, `OnInit()` fires and our message prints.
 - `modded class MissionGameplay` does the same for the client side.
-- `super.OnInit()` calls the original (vanilla) implementation first -- this is critical. Never skip it.
+- `super.OnInit()` calls the original (vanilla) implementation first --- это is critical. Never skip it.
 - `Print()` writes to the DayZ script log file.
 
 ---
@@ -171,7 +171,7 @@ You have two options for testing:
 
 ### Option A: File Patching (No PBO Required -- Development Only)
 
-DayZ supports loading unpacked mods during development. This is the fastest way to iterate.
+DayZ supports loading unpacked mods during development. Это fastest way to iterate.
 
 1. Place your `HelloMod/` folder inside your DayZ installation directory (or use the P: drive with workbench)
 2. Launch DayZ with the `-filePatching` parameter and load your mod:
@@ -248,12 +248,12 @@ or (if you joined as a client):
 [HelloMod] Mission started! Client is running.
 ```
 
-If you see this message, congratulations -- your mod is working.
+If you see this message, congratulations --- выr mod is working.
 
 ### Если вы видите ошибки
 
 
-If the log contains lines starting with `SCRIPT (E):`, something went wrong. See the [Troubleshooting](#troubleshooting) section below.
+If the log contains lines starting with `SCRIPT (E):`, something went wrong. См. [Troubleshooting](#troubleshooting) section below.
 
 ---
 

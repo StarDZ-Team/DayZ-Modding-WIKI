@@ -454,6 +454,25 @@ Terrain textures tile across the landscape. The `_mc` macro texture adds large-s
 
 ---
 
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Atlas `_co` textures for icon grids | Colorful UI | Packs multiple UI icons into a single 512x512 `_co.paa` atlas referenced by imagesets |
+| Market icon sprite sheets | Expansion Market | Uses large atlas PAA textures with dozens of item thumbnails for the trader UI |
+| hiddenSelections retexture without new P3D | DayZ-Samples (Test_ClothingRetexture) | Swaps `_co.paa` via `hiddenSelectionsTextures[]` to create color variants from one model |
+| ARGB4444 for small HUD elements | VPP Admin Tools | Uses ARGB4444-compressed 64x64 PAA files for toolbar and panel icons to minimize file size |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Texture path collisions are rare because each mod uses its own PBO prefix, but two mods retexturing the same vanilla item via `hiddenSelectionsTextures[]` will conflict -- last loaded wins.
+- **Performance:** A single 4096x4096 DXT5 texture uses ~21 MB of GPU memory with mipmaps. Overuse of large textures across many mod items can exhaust VRAM on lower-end hardware. Prefer 1024 or 2048 for most items.
+- **Version:** The PAA format and TexView2 pipeline have been stable since DayZ 1.0. No breaking changes have occurred between DayZ versions.
+
+---
+
 ## Navigation
 
 | Previous | Up | Next |

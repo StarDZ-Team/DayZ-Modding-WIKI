@@ -342,6 +342,34 @@ This is primarily useful for `ImageWidget` to prevent image distortion.
 
 ---
 
+## Z-Order and Priority
+
+The `priority` attribute controls which widgets render on top when they overlap. Higher values render on top of lower values.
+
+| Priority Range | Typical Use |
+|----------------|-------------|
+| 0-5 | Background elements, decorative panels |
+| 10-50 | Normal UI elements, HUD components |
+| 50-100 | Overlay elements, floating panels |
+| 100-200 | Notifications, tooltips |
+| 998-999 | Modal dialogs, blocking overlays |
+
+```
+FrameWidget myBackground {
+    priority 1
+    // ...
+}
+
+FrameWidget myDialog {
+    priority 999
+    // ...
+}
+```
+
+**Important:** Priority only affects rendering order among siblings within the same parent. Nested children are always drawn on top of their parent regardless of priority values.
+
+---
+
 ## Debugging Sizing Issues
 
 When a widget is not appearing where you expect:
@@ -352,6 +380,38 @@ When a widget is not appearing where you expect:
 4. **Check `visible`** -- Widgets default to visible, but if a parent is hidden, all children are too.
 5. **Check `priority`** -- A widget with lower priority may be hidden behind another.
 6. **Use `clipchildren`** -- If a parent has `clipchildren 1`, children outside its bounds are not visible.
+
+---
+
+## Best Practices
+
+- Always specify all four exact flags explicitly (`hexactpos`, `vexactpos`, `hexactsize`, `vexactsize`). Omitting them leads to unpredictable behavior because defaults vary between widget types.
+- Use the proportional-width + pixel-height pattern for rows and bars. This is the most resolution-safe combination and the standard across professional mods.
+- Center dialogs with `halign center_ref` + `valign center_ref` + pixel position `0 0`, not with proportional position `0.5 0.5`. The alignment reference approach remains centered regardless of widget size.
+- Avoid pixel sizes for full-screen or near-full-screen elements. Use proportional sizing so the UI adapts to any resolution (1080p, 1440p, 4K).
+- When using `SetScreenPos()` / `SetScreenSize()` in code, call them after the widget is attached to its parent. Calling before attachment can produce incorrect coordinates.
+
+---
+
+## Theory vs Practice
+
+> What the documentation says versus how things actually work at runtime.
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| Proportional sizing | Values 0.0-1.0 scale relative to parent | If the parent has a pixel size, child proportional values are relative to that pixel value, not the screen -- a child of a 200px-wide parent at `size 0.5` is 100px |
+| `center_ref` alignment | Widget centers itself within parent | The widget's top-left corner is placed at the center point -- the widget hangs right and down from center unless position is `0 0` with pixel mode |
+| `priority` z-ordering | Higher values render on top | Priority only affects siblings within the same parent. A child always renders on top of its parent regardless of priority values |
+| `scaled` attribute | Widget respects HUD Size setting | Only affects pixel-mode dimensions. Proportional dimensions already scale with the parent and ignore the `scaled` flag |
+| Negative position values | Should offset in reverse direction | Works for position (offset left/up from reference), but negative size values cause undefined rendering behavior -- never use them |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Sizing and positioning are per-widget and cannot conflict between mods. However, mods that use full-screen overlays (`size 1 1` on root) with `priority 999` can block other mods' UI elements from receiving input.
+- **Performance:** Proportional sizing requires parent-relative recalculation each frame for animated or dynamic widgets. For static layouts, there is no measurable difference between proportional and pixel modes.
+- **Version:** The dual coordinate system (proportional vs pixel) has been stable since DayZ 0.63 Experimental. The `scaled` attribute behavior was refined in DayZ 1.14 to better respect the HUD Size slider.
 
 ---
 

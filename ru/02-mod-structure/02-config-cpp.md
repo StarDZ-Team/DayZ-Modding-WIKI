@@ -38,7 +38,7 @@ A DayZ mod typically has one or more PBO files, each containing a `config.cpp` a
 
 A mod usually has separate PBOs for different concerns:
 - `MyMod/Scripts/config.cpp` -- script definitions and module paths
-- `MyMod/Data/config.cpp` -- item/vehicle/weapon definitions
+- `MyMod/Data/config.cpp` --- онem/vehicle/weapon definitions
 - `MyMod/GUI/config.cpp` -- imageset and style declarations
 
 ---
@@ -54,7 +54,7 @@ A mod usually has separate PBOs for different concerns:
     MyMod_GUI.pbo             --> contains GUI/config.cpp (imagesets, styles)
 ```
 
-Each PBO has its own `config.cpp`. The engine reads them all. Multiple PBOs from the same mod are common -- this is standard practice, not an exception.
+Each PBO has its own `config.cpp`. The engine reads them all. Multiple PBOs from the same mod are common --- это is standard practice, not an exception.
 
 ---
 
@@ -85,7 +85,7 @@ class CfgPatches
 ### requiredAddons: цепочка зависимостей
 
 
-This is the most critical field in the entire config. `requiredAddons` tells the engine:
+Это most critical field in the entire config. `requiredAddons` tells the engine:
 
 1. **Load order:** Your PBO's scripts compile AFTER all listed addons
 2. **Hard dependency:** If a listed addon is missing, your mod fails to load
@@ -637,7 +637,7 @@ class CfgAddons
 };
 ```
 
-In practice, most mods declare this with an empty `list[]`. It ensures the engine recognizes the mod during the preload phase. Some mods skip it entirely without issues.
+На практике most mods declare this with an empty `list[]`. It ensures the engine recognizes the mod during the preload phase. Some mods skip it entirely without issues.
 
 ---
 
@@ -979,7 +979,7 @@ class defs
 };
 ```
 
-**Symptom:** Classes you defined simply do not exist. No error -- they are silently not compiled.
+**Symptom:** Classes you defined simply do not exist. No error --- y are silently not compiled.
 
 ### 3. Wrong File Paths (Case Sensitivity)
 

@@ -510,4 +510,38 @@ Print("MaxPlayers: " + parsed.MaxPlayers);
 
 ---
 
+## Best Practices
+
+- **Always wrap file operations in existence checks and close handles in all code paths.** An unclosed `FileHandle` leaks resources and can prevent the file from being written to disk. Use guard patterns: check `fh != 0`, do work, then `CloseFile(fh)` before every `return`.
+- **Use the modern `JsonFileLoader<T>.LoadFile()` (returns bool) instead of the legacy `JsonLoadFile()` (returns void).** The legacy API cannot report errors, and attempting to use its void return in a condition silently fails.
+- **Create directories with `MakeDirectory()` in order from parent to child.** `MakeDirectory` only creates the final directory segment. `MakeDirectory("$profile:A/B/C")` fails if `A/B` does not exist. Create each level sequentially.
+- **Use `CopyFile()` to create backups before overwriting config files.** JSON parse errors from corrupted saves are unrecoverable. A `.bak` copy lets server owners restore the last good state.
+- **Remember that `FindFile()` returns only filenames, not full paths.** You must concatenate the directory prefix yourself when loading files found via `FindFile`/`FindNextFile`.
+
+---
+
+## Compatibility & Impact
+
+> **Mod Compatibility:** File I/O is inherently isolated per mod when each mod uses its own `$profile:` subdirectory. Conflicts occur only when two mods read/write the same file path.
+
+- **Load Order:** File I/O has no load-order dependency. Mods read and write independently.
+- **Modded Class Conflicts:** No class conflicts. The risk is two mods using the same `$profile:` subdirectory name or filename, causing data corruption.
+- **Performance Impact:** JSON serialization via `JsonFileLoader` is synchronous and blocks the main thread. Loading large JSON files (>100KB) during gameplay causes frame hitches. Load configs in `OnInit()` or `OnMissionStart()`, never in `OnUpdate()`.
+- **Server/Client:** File writes are restricted to `$profile:` and `$saves:`. On clients, `$profile:` points to the client profile directory. On dedicated servers, it points to the server profile. `$mission:` is typically read-only on both sides.
+
+---
+
+## Observed in Real Mods
+
+> These patterns were confirmed by studying the source code of professional DayZ mods.
+
+| Pattern | Mod | File/Location |
+|---------|-----|---------------|
+| `MakeDirectory` chain + `FileExist` check + `LoadFile` with fallback to defaults | Expansion | Settings manager (`ExpansionSettings`) |
+| `CopyFile` backup before config save | COT | Permission file management |
+| `FindFile`/`FindNextFile` to enumerate per-player JSON files in `$profile:` | VPP Admin Tools | Player data loader |
+| `JsonSerializer.WriteToString()` for RPC payload serialization (no file) | Dabs Framework | Network config sync |
+
+---
+
 [<< Previous: Timers & CallQueue](07-timers.md) | **File I/O & JSON** | [Next: Networking & RPC >>](09-networking.md)

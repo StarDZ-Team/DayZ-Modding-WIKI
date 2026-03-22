@@ -654,4 +654,28 @@ If your "constants" reference any game type, they cannot go in `1_Core`. Even so
 
 ---
 
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| All 5 layers used | DabsFramework | One of the few mods using `2_GameLib` for low-level MVC view binding |
+| `Common/` folder shared across layers | COT | Same directory included in every script module's `files[]` to share types |
+| `1_Core` for module registration | Community Framework | `CF_ModuleCoreManager` lives in `1_Core` so all layers can register modules |
+| Most code in `3_Game` + `4_World` | VPP Admin Tools | No `1_Core` usage; configs and commands in `3_Game`, managers in `4_World` |
+| `3_Game` casting workaround | Expansion Market | Uses `Man` type in `3_Game` data classes, casts to `PlayerBase` in `4_World` |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| Use `1_Core` for shared constants | Constants available to all layers | Most mods put constants in `3_Game` since they rarely need them before game init |
+| `2_GameLib` for engine bindings | Available for low-level engine work | Only DabsFramework uses it in practice; virtually all mods skip layer 2 entirely |
+| One class per layer | Each class lives in its correct layer | Complex features often split one logical system across `3_Game` (data), `4_World` (logic), and `5_Mission` (UI) |
+| Layer errors are clear | Compiler explains the issue | Error says "Undefined type" with no mention of layers; you must figure out the layer mismatch yourself |
+| Static init runs at compile time | Static code executes during linking | Static arrays and maps initialized in `3_Game` can cause crashes if they reference types from higher layers |
+
+---
+
 **Next:** [Chapter 2.2: config.cpp Deep Dive](02-config-cpp.md)

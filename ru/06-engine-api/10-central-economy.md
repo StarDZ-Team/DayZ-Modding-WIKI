@@ -7,7 +7,7 @@
 ## Введение
 
 
-The Central Economy (CE) is DayZ's server-side system for managing all spawnable entities in the world: loot, vehicles, infected, animals, and dynamic events. It is configured entirely through XML files in the mission folder. While the CE itself is an engine system (not directly scriptable), understanding its configuration files is essential for any server mod. This chapter covers all CE configuration files, their structure, key parameters, and how they interact.
+The Central Economy (CE) is DayZ's server-side system for managing all spawnable entities in the world: loot, vehicles, infected, animals, and dynamic events. It is configured entirely through XML files in the mission folder. While the CE itself is an engine system (not directly scriptable), understanding its configuration files is essential for any server mod. Эта глава охватывает all CE configuration files, their structure, key parameters, and how they interact.
 
 ---
 
@@ -98,7 +98,7 @@ The most critical CE file. Every item that can exist in the world must have an e
 
 An item can have multiple `<usage>` and `<value>` tags to spawn in multiple locations and tiers.
 
-**Example --- add a custom item to the economy:**
+**Example ---- dd a custom item to the economy:**
 
 ```xml
 <type name="MyCustomRifle">
@@ -167,7 +167,7 @@ Global CE parameters that affect all items.
 | `SpawnInitial` | Number of spawn attempts on startup |
 | `LootDamageMin` / `LootDamageMax` | Damage range applied to spawned loot (0-4: Pristine to Ruined) |
 | `RespawnAttempt` | Seconds between respawn checks |
-| `FlagRefreshFrequency` | Territory flag refresh interval (seconds) |
+| `FlagRefreshFrequency` | Интервал обновления флага территории (seconds) |
 | `TimeLogin` / `TimeLogout` | Login/logout timer (seconds) |
 
 ---

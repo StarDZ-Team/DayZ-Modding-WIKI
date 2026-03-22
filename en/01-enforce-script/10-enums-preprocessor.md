@@ -470,6 +470,39 @@ class MissionHandler
 
 ---
 
+## Best Practices
+
+- Add a `COUNT` sentinel value as the last enum entry to easily iterate or validate ranges (e.g., `for (int i = 0; i < EMode.COUNT; i++)`).
+- Use power-of-2 values for bitflag enums and combine them with `|`; test with `&`; remove with `& ~FLAG`.
+- Use `const` instead of `#define` for numeric constants -- Enforce Script `#define` only creates existence flags, not value macros.
+- Define a `defines[]` array in your mod's `config.cpp` to expose cross-mod detection symbols (e.g., `"STARDZ_CORE"`).
+- Always validate enum values loaded from external data (configs, RPCs) -- Enforce Script accepts any `int` as an enum with no range check.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| `#ifdef` for optional mod integration | Expansion / COT | Checks `#ifdef JM_CF` or `#ifdef EXPANSIONMOD` before calling cross-mod APIs |
+| Bitflag enums for spawn options | Vanilla DayZ | `ECE_PLACE_ON_SURFACE`, `ECE_CREATEPHYSICS` etc. combined with `\|` for `CreateObjectEx` |
+| `typename.EnumToString` for logging | Expansion / Dabs | Damage states and event types are logged as readable strings instead of raw ints |
+| `defines[]` in config.cpp | StarDZ Core / Expansion | Each mod declares its own symbol so other mods can detect it with `#ifdef` |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| Enum assignment validation | Expect compiler to reject invalid values | `EDamageState state = 999` compiles fine -- no range checking whatsoever |
+| `#define MAX_HP 100` | Works like C/C++ macro | Enforce Script `#define` creates only existence flags; use `const int` for values |
+| `switch` case stacking | Multiple cases sharing one handler | No fall-through in Enforce Script -- each `case` is independent; use `if`/`\|\|` instead |
+
+---
+
 ## Common Mistakes
 
 ### 1. Using enums as validated types

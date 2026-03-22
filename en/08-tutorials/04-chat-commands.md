@@ -1550,4 +1550,38 @@ The exact implementation depends on the DayZ version and how `ChatInputMenu` exp
 
 ---
 
+## Best Practices
+
+- **Always check permissions before executing admin commands.** A missing permission check means any player can `/heal` or `/kill` anyone. Validate the caller's Steam64 ID (via `GetPlainId()`) on the server before processing.
+- **Send feedback to the admin even for failed commands.** Silent failures make debugging impossible. Always send a chat message explaining what went wrong ("Player not found", "Permission denied").
+- **Use `GetPlainId()` for admin checks, not `GetId()`.** `GetId()` returns a session-specific DayZ ID that changes every reconnect. `GetPlainId()` returns the permanent Steam64 ID.
+- **Store admin IDs in a JSON config file, not in code.** Hardcoded IDs require a PBO rebuild to change. A `$profile:` JSON file can be edited by server admins without modding knowledge.
+- **Convert command names to lowercase before matching.** Players may type `/Heal`, `/HEAL`, or `/heal`. Normalizing to lowercase prevents frustrating "unknown command" errors.
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| Chat hook via `OnEvent` | Intercept the message and handle it as a command | The message still appears in chat for all players. Suppressing it requires modding `ChatInputMenu`, which varies by DayZ version. |
+| `GetGame().Chat()` | Displays a message in the player's chat window | Only works when the chat UI is active. On the loading screen or in certain menu states, the message is silently dropped. |
+| Command registry pattern | Clean architecture with one class per command | Each command class file must go in the correct script layer. `CCmdBase` in `3_Game`, concrete commands referencing `PlayerBase` in `4_World`. Wrong layer placement causes "Undefined type" at load time. |
+| Player lookup by name | `FindPlayerByName` matches partial names | Partial matching can target the wrong player on a server with similar names. In production, prefer Steam64 ID targeting or add a confirmation step. |
+
+---
+
+## What You Learned
+
+In this tutorial you learned:
+- How to hook into chat input using `MissionGameplay.OnEvent` with `ChatMessageEventTypeID`
+- How to parse command prefixes and arguments from chat text
+- How to check admin permissions on the server using Steam64 IDs
+- How to send command feedback back to the player via RPC and `GetGame().Chat()`
+- How to build a reusable command registry pattern for adding new commands
+
+**Next:** [Chapter 8.6: Debugging & Testing Your Mod](06-debugging-testing.md)
+
+---
+
 **Previous:** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)

@@ -50,7 +50,7 @@ Enforce Script has **no exception handling**. There is no `try`, no `catch`, no 
 2. **Logs a script error** — visible in the `.RPT` log file
 3. **Crashes the server/client** — in severe cases
 
-This means **every potential failure point must be guarded manually**. The primary defense is the **guard clause pattern**.
+Это означает **every potential failure point must be guarded manually**. The primary defense is the **guard clause pattern**.
 
 ---
 

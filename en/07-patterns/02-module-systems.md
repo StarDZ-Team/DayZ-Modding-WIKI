@@ -535,4 +535,37 @@ Choose the approach that matches your mod's dependency profile. If you already d
 
 ---
 
+## Compatibility & Impact
+
+- **Multi-Mod:** Multiple mods can each register their own modules with the same manager (CF, VPP, or custom). Name collisions only happen if two mods register the same class type --- use unique class names prefixed with your mod tag.
+- **Load Order:** CF auto-discovers modules from `config.cpp`, so load order follows `requiredAddons`. Custom managers register modules in `OnInit()`, where the `modded class` chain determines order. Modules should not depend on registration order --- use lazy access patterns.
+- **Listen Server:** On listen servers, both `MissionServer` and `MissionGameplay` run in the same process. If your module manager dispatches `OnUpdate` from both, modules receive double ticks. Use typed subclasses (`ServerModule` / `ClientModule`) that return `IsServer()` or `IsClient()` to prevent this.
+- **Performance:** Module dispatch adds one loop iteration per registered module per lifecycle call. With 10--20 modules this is negligible. Ensure individual module `OnUpdate` methods are cheap (see Chapter 7.7).
+- **Migration:** When upgrading DayZ versions, module systems are stable as long as the base class API (`CF_ModuleWorld`, `PluginBase`, etc.) does not change. Pin your CF dependency version to avoid breakage.
+
+---
+
+## Common Mistakes
+
+| Mistake | Impact | Fix |
+|---------|--------|-----|
+| Missing `OnMissionFinish` cleanup in a module | Collections, timers, and event subscriptions survive across mission restarts, causing stale data or crashes | Override `OnMissionFinish`, clear all `ref` collections, unsubscribe all events |
+| Dispatching lifecycle events twice on listen servers | Server modules run client logic and vice versa; duplicate spawns, double RPC sends | Use `IsServer()` / `IsClient()` guards or typed module subclasses that enforce the split |
+| Registering RPCs in `OnMissionStart` instead of `OnInit` | Clients that connect during mission setup can send RPCs before handlers are ready --- messages are silently dropped | Always register RPC handlers in `OnInit()`, which runs during module registration before any client connects |
+| One "God module" handling everything | Impossible to debug, test, or extend; merge conflicts when multiple developers work on it | Split into focused modules with a single responsibility each |
+| Holding direct `ref` to another module instance | Creates hard coupling and potential ref-cycle memory leaks | Use the module manager's lookup (`GetModule()`, `CF_Modules<T>.Get()`) for cross-module access |
+
+---
+
+## Theory vs Practice
+
+| Textbook Says | DayZ Reality |
+|---------------|-------------|
+| Module discovery should be automatic via reflection | Enforce Script reflection is limited; `config.cpp`-based discovery (CF) or explicit `Register()` calls are the only reliable approaches |
+| Modules should be hot-swappable at runtime | DayZ does not support hot-reloading scripts; modules live for the entire mission lifecycle |
+| Use interfaces for module contracts | Enforce Script has no `interface` keyword; use base class virtual methods (`override`) instead |
+| Dependency injection decouples modules | No DI framework exists; use manager lookups and `#ifdef` guards for optional cross-mod dependencies |
+
+---
+
 [<< Previous: Singleton Pattern](01-singletons.md) | [Home](../../README.md) | [Next: RPC Patterns >>](03-rpc-patterns.md)

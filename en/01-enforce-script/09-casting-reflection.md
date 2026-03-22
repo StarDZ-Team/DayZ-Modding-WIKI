@@ -532,6 +532,39 @@ class EventDispatcher
 
 ---
 
+## Best Practices
+
+- Always null-check after every cast -- both `Class.CastTo` and `Type.Cast` return null on failure, and using the result unchecked causes crashes.
+- Use `Class.CastTo` when you need to branch on success/failure; use `Type.Cast` for concise one-liner assignments followed by a null check.
+- Prefer `IsInherited(typename)` over `IsKindOf(string)` when the type is known at compile time -- it is faster and catches typos at compile time.
+- Cast to `EntityAI` before calling `IsAlive()` -- the base `Object` class does not have this method.
+- Validate variable names with `GetVariableCount`/`GetVariableName` before using `EnScript.GetClassVar` -- it fails silently on wrong names.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| `Class.CastTo` + `continue` in entity loops | COT / Expansion | Every loop over `Object` arrays uses cast-and-continue to skip non-matching types |
+| `IsKindOf` for config-driven type checks | Expansion Market | Item categories loaded from JSON use string-based `IsKindOf` because types are data |
+| `EnScript.GetClassVar`/`SetClassVar` for admin panels | Dabs Framework | Generic config editors read/write fields by name so one UI works for all config classes |
+| `obj.Type().ToString()` for logging | VPP Admin | Debug logs always include `entity.Type().ToString()` to identify what was processed |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `Object.IsAlive()` | Expect it to exist on `Object` | Only available on `EntityAI` and subclasses -- calling it on `Object` crashes |
+| `EnScript.SetClassVar` returns `bool` | Should indicate success/failure | Returns `false` silently on wrong field name with no error message -- easy to miss |
+| `typename.Spawn()` | Creates any class instance | Only works for classes with a parameterless constructor; for game entities use `CreateObject` |
+
+---
+
 ## Common Mistakes
 
 ### 1. Forgetting to null-check after cast

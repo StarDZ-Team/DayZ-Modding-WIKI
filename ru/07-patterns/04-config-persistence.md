@@ -9,7 +9,7 @@
 
 Almost every DayZ mod needs to save and load configuration data: server settings, spawn tables, ban lists, player data, teleport locations. The engine provides `JsonFileLoader` for simple JSON serialization and raw file I/O (`FileHandle`, `FPrintln`) for everything else. Professional mods layer config versioning and auto-migration on top.
 
-This chapter covers the standard patterns for config persistence, from basic JSON load/save through versioned migration systems, directory management, and auto-save timers.
+Эта глава охватывает the standard patterns for config persistence, from basic JSON load/save through versioned migration systems, directory management, and auto-save timers.
 
 ---
 
@@ -17,12 +17,12 @@ This chapter covers the standard patterns for config persistence, from basic JSO
 
 
 - [JsonFileLoader Pattern](#jsonfileloader-pattern)
-- [Manual JSON Writing (FPrintln)](#manual-json-writing-fprintln)
+- [Ручное JSON Writing (FPrintln)](#manual-json-writing-fprintln)
 - [The $profile Path](#the-profile-path)
 - [Directory Creation](#directory-creation)
 - [Config Data Classes](#config-data-classes)
 - [Config Versioning and Migration](#config-versioning-and-migration)
-- [Auto-Save Timers](#auto-save-timers)
+- [Auto-Сохранить Timers](#auto-save-timers)
 - [Common Mistakes](#common-mistakes)
 - [Best Practices](#best-practices)
 
@@ -30,11 +30,11 @@ This chapter covers the standard patterns for config persistence, from basic JSO
 
 ## JsonFileLoader Pattern
 
-`JsonFileLoader` is the engine's built-in serializer. It converts between Enforce Script objects and JSON files using reflection --- it reads the public fields of your class and maps them to JSON keys automatically.
+`JsonFileLoader` is the engine's built-in serializer. It converts between Enforce Script objects and JSON files using reflection ---- он reads the public fields of your class and maps them to JSON keys automatically.
 
 ### Critical Gotcha
 
-**`JsonFileLoader<T>.JsonLoadFile()` and `JsonFileLoader<T>.JsonSaveFile()` return `void`.** You cannot check their return value. You cannot assign them to a `bool`. You cannot use them in an `if` condition. This is one of the most common mistakes in DayZ modding.
+**`JsonFileLoader<T>.JsonLoadFile()` and `JsonFileLoader<T>.JsonСохранитьFile()` return `void`.** You cannot check their return value. You cannot assign them to a `bool`. You cannot use them in an `if` condition. This is one of the most common mistakes in DayZ modding.
 
 ```c
 // WRONG — will not compile
@@ -55,7 +55,7 @@ if (config.m_ServerName != "")
 }
 ```
 
-### Basic Load/Save
+### Basic Load/Сохранить
 
 ```c
 // Data class — public fields are serialized to/from JSON
@@ -163,7 +163,7 @@ Produces:
 
 ---
 
-## Manual JSON Writing (FPrintln)
+## Ручное JSON Writing (FPrintln)
 
 Sometimes `JsonFileLoader` is not flexible enough: it cannot handle arrays of mixed types, custom formatting, or non-class data structures. In those cases, use raw file I/O.
 
@@ -212,7 +212,7 @@ void ReadCustomData(string path)
 }
 ```
 
-### When to Use Manual I/O
+### When to Use Ручное I/O
 
 - Writing log files (append mode)
 - Writing CSV or plain-text exports
@@ -295,7 +295,7 @@ void EnsureDirectories()
 }
 ```
 
-### Important: MakeDirectory Is Not Recursive
+### Важно: MakeDirectory Is Not Recursive
 
 `MakeDirectory` creates only the final directory in the path. If the parent does not exist, it fails silently. You must create each level:
 
@@ -364,7 +364,7 @@ class MyModConfig
 
 ### MyMod ConfigBase Pattern
 
-MyMod uses a reflective config system where each config class declares its fields as descriptors. This allows the admin panel to auto-generate UI for any config without hardcoded field names:
+MyMod uses a reflective config system where each config class declares its fields as descriptors. Это позволяет the admin panel to auto-generate UI for any config without hardcoded field names:
 
 ```c
 // Conceptual pattern (simplified from MyMod):
@@ -515,15 +515,15 @@ Expansion is known for aggressive config evolution. Some Expansion configs have 
 3. Each migration only changes what is necessary for that version step
 4. The final version number is written to disk after all migrations complete
 
-This is the gold standard for config versioning in DayZ mods.
+Это gold standard for config versioning in DayZ mods.
 
 ---
 
-## Auto-Save Timers
+## Auto-Сохранить Timers
 
 For configs that change at runtime (admin edits, player data accumulation), implement an auto-save timer to prevent data loss on crashes.
 
-### Timer-Based Auto-Save
+### Timer-Based Auto-Сохранить
 
 ```c
 class MyDataManager
@@ -578,7 +578,7 @@ void UpdateSetting(string key, string value)
 }
 ```
 
-### Save on Critical Events
+### Сохранить on Critical Events
 
 In addition to timed saves, save immediately after critical operations:
 
@@ -621,7 +621,7 @@ JsonFileLoader<MyConfig>.JsonLoadFile("$profile:MyMod/Config.json", config);
 
 ### 3. Forgetting to Create Directories
 
-`JsonSaveFile` fails silently if the directory does not exist. Always ensure directories before saving.
+`JsonСохранитьFile` fails silently if the directory does not exist. Always ensure directories before saving.
 
 ### 4. Public Fields You Did Not Intend to Serialize
 
@@ -660,7 +660,7 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 2. **Create directories before writing files.** Check with `FileExist()`, create with `MakeDirectory()`, one level at a time.
 
-3. **Always provide default values in your config class constructor or field initializers.** This ensures first-run configs are sensible.
+3. **Always provide default values in your config class constructor or field initializers.** Это обеспечивает first-run configs are sensible.
 
 4. **Version your configs from day one.** Adding a `ConfigVersion` field costs nothing and saves hours of debugging later.
 
@@ -668,7 +668,7 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 6. **Use auto-save with a dirty flag.** Do not write to disk every time a value changes --- batch writes on a timer.
 
-7. **Save on mission finish.** The auto-save timer is a safety net, not the primary save. Always save during `OnMissionFinish()`.
+7. **Сохранить on mission finish.** The auto-save timer is a safety net, not the primary save. Always save during `OnMissionFinish()`.
 
 8. **Define path constants in one place.** A `MyModConst` class with all paths prevents string duplication and makes path changes trivial.
 

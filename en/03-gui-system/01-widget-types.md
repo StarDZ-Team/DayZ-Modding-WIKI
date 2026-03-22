@@ -1,3 +1,5 @@
+[Home](../../README.md) | **Widget Types** | [Next: Layout Files >>](02-layout-files.md)
+
 # 3.1 Widget Types
 
 DayZ's GUI system is built on widgets -- reusable UI components that range from simple containers to complex interactive controls. Every visible element on screen is a widget, and understanding the full catalog is essential for building mod UIs.
@@ -427,3 +429,32 @@ ScrollWidgetTypeID
 
 - [3.2 Layout File Format](02-layout-files.md) -- Learn how to define widget trees in `.layout` files
 - [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Create widgets from code instead of layout files
+
+---
+
+## Best Practices
+
+- Use `FrameWidget` as your default container. Only use `PanelWidget` when you need a visible colored background.
+- Prefer `RichTextWidget` over `TextWidget` when you might need inline icons later -- switching types in an existing layout is tedious.
+- Always null-check after `FindAnyWidget()` and `Cast()`. Missing widget names silently return `null` and cause crashes on the next method call.
+- Use `WrapSpacerWidget` for dynamic lists and `GridSpacerWidget` for fixed grids. Do not manually position children in a flow layout.
+- Avoid `CanvasWidget` for production UI -- it redraws every frame and has no batching. Use it only for debug overlays.
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `ScrollWidget` auto-scrolls to content | Scrollbar appears when content exceeds bounds | You must call `VScrollToPos()` manually to scroll to new content; the widget does not auto-scroll on child addition |
+| `SliderWidget` fires continuous events | `OnChange` fires on every pixel of drag | `finished` parameter is `false` during drag and `true` on release; update heavy logic only when `finished == true` |
+| `XComboBoxWidget` supports many items | Dropdown works with any count | Performance degrades noticeably with 100+ items; use `TextListboxWidget` for long lists instead |
+| `ItemPreviewWidget` shows any item | Pass any classname for 3D preview | The widget requires the item's `.p3d` model to be loaded; modded items need their Data PBO present |
+| `MapWidget` is a simple display | Just shows the map | It intercepts all mouse input by default; you must manage `IGNOREPOINTER` flags carefully or it blocks clicks on overlapping widgets |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Widget type IDs are engine constants shared across all mods. Two mods creating widgets with the same name under the same parent will collide. Use unique widget names with your mod prefix.
+- **Performance:** `TextListboxWidget` and `ScrollWidget` with hundreds of children cause frame drops. Pool and recycle widgets for lists exceeding 50 items.

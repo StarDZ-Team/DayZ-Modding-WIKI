@@ -657,6 +657,39 @@ array<vector> GetSpawnRing(vector center, float radius, int count)
 
 ---
 
+## Best Practices
+
+- Use `vector.DistanceSq()` and compare against `radius * radius` in tight loops -- it avoids the expensive `sqrt` inside `Distance()`.
+- Always multiply by `Math.DEG2RAD` before passing angles to `Sin()`/`Cos()` -- all trig functions work in radians.
+- Check `v.Length() > 0` before calling `Normalize()` -- normalizing a zero-length vector produces `NaN` values.
+- Use `Math.Clamp()` to bound health, damage, and UI values rather than writing manual `if` chains.
+- Prefer `Math.RandomIntInclusive()` when the max value should be reachable (e.g., dice rolls) -- `RandomInt()` max is exclusive.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| `DistanceSq` with pre-squared threshold | Expansion / COT | Proximity checks store `float maxDistSq = range * range` and compare with `DistanceSq` |
+| `Math.Atan2(dx, dz) * RAD2DEG` for heading | Expansion AI | Direction-to-target computed as angle in degrees for orientation assignment |
+| `Math.RandomFloat(0, Math.PI2)` for spawn ring | Dabs / Expansion | Random angle + `Cos`/`Sin` to generate circular spawn positions |
+| `Math.Clamp` on health/damage values | VPP / COT | Every damage application clamps result to `[0, maxHealth]` to prevent negative or overflow values |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `Math.RandomInt(0, 10)` | Might expect 0-10 inclusive | Max is exclusive -- returns 0-9; use `RandomIntInclusive` for inclusive max |
+| `vector[1]` is Y axis | Standard XYZ mapping | In DayZ, Y is vertical height -- easy to confuse with Z-up conventions from other engines |
+| `Math.SqrFloat` vs `Math.Sqrt` | Names look similar | `SqrFloat(5)` = 25 (squares the value), `Sqrt(25)` = 5 (square root) -- opposite operations |
+
+---
+
 ## Common Mistakes
 
 | Mistake | Problem | Fix |

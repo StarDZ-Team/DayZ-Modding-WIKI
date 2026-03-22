@@ -23,7 +23,7 @@
 ## Каноническая структура каталогов
 
 
-This is the standard layout used by professional DayZ mods. Not every folder is required -- only create what you need.
+Это standard layout used by professional DayZ mods. Not every folder is required -- only create what you need.
 
 ```
 MyMod/                                    <-- Project root (development)
@@ -372,7 +372,7 @@ MyMod/                                    <-- Project root (development repo)
 2. **The server package is loaded only by the server** (via `-servermod=`)
 3. **The server package depends on the client package** (via `requiredAddons`)
 4. **Never put UI code in the server package** -- clients will not receive it
-5. **Keep secure/private logic in the server package** -- it is never sent to clients
+5. **Keep secure/private logic in the server package** --- он is never sent to clients
 
 ### Цепочка зависимостей
 
@@ -715,7 +715,7 @@ DabsFramework/
     5_Mission/
 ```
 
-Note: DabsFramework uses lowercase folder names (`scripts/`, `gui/`). This works because Windows is case-insensitive, but may cause issues on Linux. The convention is to use the canonical casing (`Scripts/`, `GUI/`).
+Примечание: DabsFramework uses lowercase folder names (`scripts/`, `gui/`). This works because Windows is case-insensitive, but may cause issues on Linux. The convention is to use the canonical casing (`Scripts/`, `GUI/`).
 
 ---
 

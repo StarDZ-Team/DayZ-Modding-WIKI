@@ -436,6 +436,39 @@ string GetFileName(string path)
 
 ---
 
+## Best Practices
+
+- Use `string.Format()` with `%1`..`%9` placeholders for all formatted output -- it is more readable and avoids type-conversion pitfalls of `+` concatenation.
+- Remember that `ToLower()`, `ToUpper()`, and `Replace()` modify the string in place -- copy the string first if you need to preserve the original.
+- Always allocate the target array with `new TStringArray` before calling `Split()` -- passing a null array causes a crash.
+- Use `Contains()` for simple substring checks and `IndexOf()` only when you need the position.
+- For case-insensitive comparisons, copy both strings and call `ToLower()` on each before comparing -- there is no built-in case-insensitive compare.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| `Split(" ", parts)` for chat command parsing | VPP / COT | All chat command systems split by space, then switch on `parts.Get(0)` |
+| `string.Format` with `[TAG]` prefix | Expansion / Dabs | Log messages always use `string.Format("[%1] %2", tag, msg)` rather than concatenation |
+| `"$profile:ModName/"` path convention | COT / Expansion | File paths built with `+` use forward slashes and `$profile:` prefix to avoid backslash issues |
+| `ToLower()` before command matching | VPP Admin | User input is lowered before `switch`/comparison to handle mixed-case input |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `ToLower()` / `Replace()` return value | Expected to return a new string (like C#) | They modify in place and return `void` or count -- a constant source of bugs |
+| `string.Format` placeholders | `%d`, `%f`, `%s` like C printf | Only `%1` through `%9` work; C-style specifiers are silently ignored |
+| Backslash `\\` in strings | Standard escape character | Can break DayZ's CParser in JSON contexts -- prefer forward slashes for paths |
+
+---
+
 ## Common Mistakes
 
 | Mistake | Problem | Fix |

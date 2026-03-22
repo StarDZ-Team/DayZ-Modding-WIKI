@@ -162,7 +162,7 @@ authorID = "76561198000000000";
 
 ### version
 
-A version string. Can be any format -- the engine does not parse or validate it.
+A version string. Can be any format ---  engine does not parse or validate it.
 
 ```cpp
 version = "1.0.0";
@@ -215,7 +215,7 @@ type = "mod";
 
 ### Server Mod (`-servermod=`)
 
-- Runs ONLY on the dedicated server
+- Выполняется ONLY on the dedicated server
 - Clients never download it
 - Cannot include client-side UI or `5_Mission` client code
 - No key signing required
@@ -231,7 +231,7 @@ type = "servermod";
 ### Паттерн разделения модов
 
 
-Many mods ship as TWO packages -- a client mod and a server mod:
+Many mods ship as TWO packages ---  client mod and a server mod:
 
 ```
 @MyMissions/           <-- Client mod (-mod=)
@@ -387,7 +387,7 @@ overview = "V++ Admin Tools built for the DayZ community servers!";
 action = "https://discord.dayzvpp.com";
 ```
 
-Note: VPP omits `name` and `author` -- it still works, but the mod name defaults to the folder name in the launcher.
+Примечание: VPP omits `name` and `author` --- он still works, but the mod name defaults to the folder name in the launcher.
 
 ### DabsFramework (With Localization)
 
@@ -439,7 +439,7 @@ class Defs
 };
 ```
 
-Note: This mod places script module definitions in `mod.cpp` rather than `config.cpp`. Both locations work -- the engine reads both files. However, the standard convention is to put `CfgMods` and script module definitions in `config.cpp`. Placing them in `mod.cpp` is an alternative approach used by some mods.
+Примечание: This mod places script module definitions in `mod.cpp` rather than `config.cpp`. Both locations work ---  engine reads both files. However, the standard convention is to put `CfgMods` and script module definitions in `config.cpp`. Placing them in `mod.cpp` is an alternative approach used by some mods.
 
 ---
 
@@ -468,7 +468,7 @@ During development, leave image paths empty. Add logos last, after everything wo
 
 ### 6. Server Mods Need Less
 
-Server-only mods need minimal mod.cpp since players never see them in a launcher:
+Server-only mods need minimal mod.cpp since players never см.m in a launcher:
 
 ```cpp
 name = "My Server Mod";

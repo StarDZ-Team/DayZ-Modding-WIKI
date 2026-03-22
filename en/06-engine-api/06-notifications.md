@@ -320,4 +320,22 @@ The CF API adds color and localization support. Use whichever system your mod st
 
 ---
 
+## Best Practices
+
+- **Use the `Extended` variants for custom notifications.** `SendNotificationToPlayerExtended` gives you full control over title, body, and icon. The typed `NotificationType` variants are limited to vanilla presets.
+- **Respect the 5-notification stack limit.** Sending many notifications in rapid succession pushes older ones off screen before players can read them. Batch related messages or use longer display times.
+- **Always guard server notifications with `GetGame().IsServer()`.** Calling `SendNotificationToPlayerExtended` on the client has no effect and wastes a method call.
+- **Pass `null` as the identity for true broadcasts.** `SendNotificationToPlayerIdentityExtended(null, ...)` delivers to all connected players. Do not loop through players manually to send the same message.
+- **Keep notification text concise.** The toast popup has limited display width. Long titles or bodies will be clipped. Aim for titles under 30 characters and body text under 80 characters.
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** The vanilla `NotificationSystem` is shared by all mods. Multiple mods sending notifications simultaneously can overflow the 5-notification stack. CF provides a separate notification channel that does not conflict with vanilla notifications.
+- **Performance:** Notifications are lightweight (a single RPC per notification). However, broadcasting to all players every few seconds generates measurable network traffic on servers with 60+ players.
+- **Server/Client:** `SendNotificationToPlayer*` methods are server-to-client RPCs. `AddNotificationExtended` is client-only (local). The `Update()` tick runs on the client mission loop.
+
+---
+
 [<< Previous: Post-Process Effects](05-ppe.md) | **Notifications** | [Next: Timers & CallQueue >>](07-timers.md)

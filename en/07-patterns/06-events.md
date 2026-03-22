@@ -530,4 +530,26 @@ OnKillEvent.Invoke(killData);
 
 ---
 
+## Compatibility & Impact
+
+- **Multi-Mod:** Multiple mods can subscribe to the same EventBus topics without conflict. Each subscriber is called independently. However, if one subscriber throws an unrecoverable error (e.g., null reference), subsequent subscribers on that invoker may not execute.
+- **Load Order:** Subscription order equals call order on `Invoke()`. Mods that load earlier register first and receive events first. Do not depend on this order --- if execution order matters, use direct calls instead.
+- **Listen Server:** On listen servers, events fired from server-side code are visible to client-side subscribers if they share the same static `ScriptInvoker`. Use separate EventBus fields for server-only and client-only events, or guard handlers with `GetGame().IsServer()` / `GetGame().IsClient()`.
+- **Performance:** `ScriptInvoker.Invoke()` iterates all subscribers linearly. With 5--15 subscribers per event, this is negligible. Avoid subscribing per-entity (100+ entities each subscribing to the same event) --- use a manager pattern instead.
+- **Migration:** `ScriptInvoker` is a stable vanilla API unlikely to change between DayZ versions. Custom EventBus wrappers are your own code and migrate with your mod.
+
+---
+
+## Common Mistakes
+
+| Mistake | Impact | Fix |
+|---------|--------|-----|
+| Subscribing with `Insert()` but never calling `Remove()` | Memory leak: the invoker holds a reference to the dead object; on `Invoke()`, calls into freed memory (crash) or no-ops with wasted iteration | Pair every `Insert()` with a `Remove()` in `OnMissionFinish` or the destructor |
+| Calling `Remove()` on a null EventBus invoker during shutdown | `MyEventBus.Cleanup()` may have already nulled the invoker; calling `.Remove()` on null crashes | Always null-check the invoker before `Remove()`: `if (MyEventBus.OnPlayerConnected) MyEventBus.OnPlayerConnected.Remove(handler);` |
+| Double `Insert()` of the same handler | Handler is called twice per `Invoke()`; one `Remove()` only removes one entry, leaving a stale subscription | Check before inserting, or ensure `Insert()` is only called once (e.g., in `OnInit` with a guard flag) |
+| Using anonymous/lambda functions as handlers | Cannot be removed because there is no reference to pass to `Remove()` | Always use named methods as event handlers |
+| Firing events with mismatched argument signatures | Subscribers receive garbage data or crash at runtime; no compile-time check | Document the expected signature above every `ScriptInvoker` declaration and match it exactly in all handlers |
+
+---
+
 [<< Previous: Permission Systems](05-permissions.md) | [Home](../../README.md) | [Next: Performance Optimization >>](07-performance.md)

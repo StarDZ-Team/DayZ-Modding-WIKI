@@ -26,7 +26,7 @@
 
 DayZ uses a CSV-based localization system. When the engine encounters a string key prefixed with `#` (for example, `#STR_MYMOD_HELLO`), it looks up that key in all loaded stringtable files and returns the translation matching the player's current language. If no match is found for the active language, the engine falls back through a defined chain.
 
-The stringtable file must be named exactly `stringtable.csv` and placed inside your mod's PBO structure. The engine discovers it automatically --- no config.cpp registration is required.
+The stringtable file must be named exactly `stringtable.csv` and placed inside your mod's PBO structure. The engine discovers it automatically ---- нет config.cpp registration is required.
 
 ---
 
@@ -52,12 +52,12 @@ Each row starts with the string key (no `#` prefix in the CSV), followed by the 
 
 ### Trailing Comma
 
-Many stringtable files include a trailing comma after the last column. This is conventional and safe --- the engine tolerates it.
+Many stringtable files include a trailing comma after the last column. This is conventional and safe ----  engine tolerates it.
 
 ### Quoting Rules
 
 - Fields **must** be quoted with double quotes if they contain commas, newlines, or double quotes.
-- In practice, most mods quote every field for consistency.
+- На практике most mods quote every field for consistency.
 - Some mods (like MyMissions Mod) omit quotes entirely; the engine handles both styles as long as the field content does not contain commas.
 
 ---
@@ -111,11 +111,11 @@ STR_MODNAME_CATEGORY_ELEMENT
 
 ### Rules
 
-1. **Always start with `STR_`** --- this is a universal DayZ convention
+1. **Always start with `STR_`** ---- это is a universal DayZ convention
 2. **Mod prefix** --- uniquely identifies your mod (e.g., `MYMOD`, `COT`, `EXPANSION`, `VPP`)
 3. **Category** --- groups related strings (e.g., `INPUT`, `TAB`, `CONFIG`, `DIR`)
-4. **Element** --- the specific string (e.g., `ADMIN_PANEL`, `NORTH`, `SAVE`)
-5. **Use UPPERCASE** --- the convention across all major mods
+4. **Element** ----  specific string (e.g., `ADMIN_PANEL`, `NORTH`, `SAVE`)
+5. **Use UPPERCASE** ----  convention across all major mods
 6. **Use underscores** as separators, never spaces or hyphens
 
 ### Examples from Real Mods
@@ -190,7 +190,7 @@ Use the `loc` attribute **without** the `#` prefix.
 <input name="UAMyAction" loc="STR_MYMOD_INPUT_MY_ACTION" />
 ```
 
-This is the one place where you omit the `#`. The input system adds it internally.
+Это one place where you omit the `#`. The input system adds it internally.
 
 ### Summary Table
 
@@ -205,7 +205,7 @@ This is the one place where you omit the `#`. The input system adds it internall
 
 ## Creating a New Stringtable
 
-### Step 1: Create the File
+### Шаг 1: Create the File
 
 Create `stringtable.csv` at the root of your mod's PBO content directory. The engine scans all loaded PBOs for files named exactly `stringtable.csv`.
 
@@ -223,7 +223,7 @@ Typical placement:
         5_Mission/
 ```
 
-### Step 2: Write the Header
+### Шаг 2: Write the Header
 
 Start with the full 15-column header:
 
@@ -231,7 +231,7 @@ Start with the full 15-column header:
 "Language","original","english","czech","german","russian","polish","hungarian","italian","spanish","french","chinese","japanese","portuguese","chinesesimp",
 ```
 
-### Step 3: Add Your Strings
+### Шаг 3: Add Your Strings
 
 Add one row per translatable string. Start with English, fill in other languages as translations become available:
 
@@ -241,7 +241,7 @@ Add one row per translatable string. Start with English, fill in other languages
 "STR_MYMOD_OPEN","Open","Open","Otevřít","Öffnen","Открыть","Otwórz","Megnyitás","Apri","Abrir","Ouvrir","打开","開く","Abrir","打开",
 ```
 
-### Step 4: Pack and Test
+### Шаг 4: Pack and Test
 
 Build your PBO. Launch the game. Verify that `Widget.TranslateString("#STR_MYMOD_TITLE")` returns "My Cool Mod" in your script logs. Change the game language in settings to verify fallback behavior.
 
@@ -252,11 +252,11 @@ Build your PBO. Launch the game. Verify that `Widget.TranslateString("#STR_MYMOD
 When the engine looks up a string key for the player's current language and finds an empty cell, it follows a fallback chain:
 
 1. **Player's selected language column** --- checked first
-2. **`english` column** --- if the player's language cell is empty
-3. **`original` column** --- if `english` is also empty
-4. **Raw key name** --- if all columns are empty, the engine displays the key itself (e.g., `STR_MYMOD_TITLE`)
+2. **`english` column** ---- если the player's language cell is empty
+3. **`original` column** ---- если `english` is also empty
+4. **Raw key name** ---- если all columns are empty, the engine displays the key itself (e.g., `STR_MYMOD_TITLE`)
 
-This means you can safely leave non-English columns empty during development. English-speaking players see the `english` column, and other players see the English fallback until a proper translation is added.
+Это означает you can safely leave non-English columns empty during development. English-speaking players см. `english` column, and other players см. English fallback until a proper translation is added.
 
 ### Practical Implication
 
@@ -284,14 +284,14 @@ Players whose language is German will see "Hello" (the English fallback) until a
 1. Maintain the CSV in a shared repository or spreadsheet.
 2. Assign one translator per language.
 3. Use the `original` column for the author's native language (e.g., Portuguese for Brazilian developers).
-4. The `english` column is always filled --- it is the international baseline.
+4. The `english` column is always filled ---- он is the international baseline.
 5. Use a diff tool to track which keys have been added since the last translation pass.
 
 ### Using Spreadsheet Software
 
 CSV files open naturally in Excel, Google Sheets, or LibreOffice Calc. Be aware of these pitfalls:
 
-- **Excel may add BOM (Byte Order Mark)** to UTF-8 files. DayZ handles BOM, but it can cause issues with some tools. Save as "CSV UTF-8" to be safe.
+- **Excel may add BOM (Byte Order Mark)** to UTF-8 files. DayZ handles BOM, but it can cause issues with some tools. Сохранить as "CSV UTF-8" to be safe.
 - **Excel auto-formatting** can mangle fields that look like dates or numbers.
 - **Line endings**: DayZ accepts both `\r\n` (Windows) and `\n` (Unix).
 

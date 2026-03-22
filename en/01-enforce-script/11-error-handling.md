@@ -690,6 +690,39 @@ bool TransferItem(PlayerBase fromPlayer, PlayerBase toPlayer, EntityAI item)
 
 ---
 
+## Best Practices
+
+- Use flat guard clauses (`if (!x) return;`) at the top of every function instead of deeply nested `if` blocks -- it keeps code readable and the happy path un-nested.
+- Always log a message inside guard clauses -- silent `return` makes failures invisible and extremely hard to debug.
+- Use `ErrorEx` with appropriate severity levels (`INFO`, `WARNING`, `ERROR`) for messages that should appear in `.RPT` logs; use `Print` for script-log output.
+- Wrap heavy debug logging in `#ifdef DIAG_DEVELOPER` or a custom define so it compiles out of release builds and does not hurt performance.
+- Validate config data after loading with `JsonFileLoader` -- it returns `void` and silently leaves default values on parse failure.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| Stacked guard clauses with log messages | COT / VPP | Every RPC handler checks sender, params, permissions, and logs on each failure |
+| Static logger class with level filtering | Expansion / Dabs | A single `Log` class routes `Info`/`Warning`/`Error` to console, file, and optionally Discord |
+| `DumpStackString()` in critical guards | COT Admin | Captures call stack on unexpected null to trace which caller passed bad data |
+| `#ifdef DIAG_DEVELOPER` around debug prints | Vanilla DayZ / Expansion | All per-frame debug output is wrapped so it never runs in release builds |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `try`/`catch` | Standard in most languages | Does not exist in Enforce Script -- every failure point must be guarded manually |
+| `JsonFileLoader.JsonLoadFile` | Expected to return success/failure | Returns `void`; on bad JSON the object keeps its default values with no error |
+| `ErrorEx` | Sounds like it throws an error | It only writes to the `.RPT` log -- execution continues normally |
+
+---
+
 ## Common Mistakes
 
 ### 1. Assuming a function ran successfully

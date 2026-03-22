@@ -493,6 +493,49 @@ FrameWidgetClass SettingsPanel {
 
 ---
 
+## Best Practices
+
+- Always call `Update()` on a `WrapSpacerWidget` or `GridSpacerWidget` after adding or removing children programmatically. Without this call, the spacer does not recalculate its layout and children may overlap or be invisible.
+- Use `ScrollWidget` + `WrapSpacerWidget` as the standard pattern for any dynamic list. Set the scroll to a fixed pixel height and the inner spacer to `"Size To Content V" 1`.
+- Prefer `WrapSpacerWidget` with full-width children over `GridSpacerWidget Columns 1` for vertical lists where items have varying heights. GridSpacer forces uniform cell sizes.
+- Always set `clipchildren 1` on the `ScrollWidget`. Without it, overflowing content renders outside the scroll viewport bounds.
+- Avoid nesting more than 4-5 container levels deep. Each level adds layout computation cost and makes debugging significantly harder.
+
+---
+
+## Theory vs Practice
+
+> What the documentation says versus how things actually work at runtime.
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `WrapSpacerWidget.Update()` | Layout auto-recalculates when children change | You must call `Update()` manually after `CreateWidgets()` or `Unlink()`. Forgetting this is the most common spacer bug |
+| `"Size To Content V"` | Spacer grows to fit children | Only works if children have explicit sizes (pixel height or known proportional parent). If children are also `Size To Content`, you get zero height |
+| `GridSpacerWidget` cell sizing | Grid controls cell size uniformly | Children's own size attributes are ignored -- the grid overrides them. Setting `size` on a grid child has no effect |
+| `ScrollWidget` scroll position | `VScrollToPos(0)` scrolls to top | After adding children, you may need to defer `VScrollToPos()` by one frame (via `CallLater`) because the content height has not yet been recalculated |
+| Nested spacers | Spacers can nest freely | A `WrapSpacer` inside a `WrapSpacer` works, but `Size To Content` on both levels can cause infinite layout loops that freeze the UI |
+
+---
+
+## Compatibility & Impact
+
+- **Multi-Mod:** Container widgets are per-layout and do not conflict between mods. However, if two mods inject children into the same vanilla `ScrollWidget` (via `modded class`), child ordering is unpredictable.
+- **Performance:** `WrapSpacerWidget.Update()` recalculates all children's positions. For lists with 100+ items, call `Update()` once after batch operations, not after each individual add. GridSpacer is faster for uniform grids because cell positions are computed arithmetically.
+- **Version:** `WrapSpacerWidget` and `GridSpacerWidget` have been available since DayZ 1.0. The `"Size To Content H/V"` attributes were present from the start but their behavior with deeply nested layouts was stabilized around DayZ 1.10.
+
+---
+
+## Observed in Real Mods
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| `ScrollWidget` + `WrapSpacerWidget` for dynamic lists | DabsFramework, Expansion, COT | Fixed-height scroll viewport with auto-growing inner spacer -- the universal scrollable list pattern |
+| `GridSpacerWidget Columns 10` for inventory | Vanilla DayZ | Inventory grid uses GridSpacer with fixed column count matching slot layout |
+| Pooled children in WrapSpacer | VPP Admin Tools | Pre-creates a pool of list-item widgets, shows/hides them instead of creating/destroying to avoid `Update()` overhead |
+| `WrapSpacerWidget` as dialog root | COT, DayZ Editor | Dialog root uses `Size To Content V/H` so the dialog auto-sizes around its content without hardcoded dimensions |
+
+---
+
 ## Next Steps
 
 - [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Create widgets from code

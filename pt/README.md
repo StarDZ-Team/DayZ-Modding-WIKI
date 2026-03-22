@@ -2,7 +2,7 @@
 
 > A documentacao mais abrangente de modding para DayZ disponivel. Do zero ao mod publicado.
 
-[![English](https://flagsapi.com/US/flat/48.png)](../en/README.md) [![Português](https://flagsapi.com/BR/flat/48.png)](README.md) [![Deutsch](https://flagsapi.com/DE/flat/48.png)](../de/README.md) [![Русский](https://flagsapi.com/RU/flat/48.png)](../ru/README.md) [![Čeština](https://flagsapi.com/CZ/flat/48.png)](../cs/README.md) [![Polski](https://flagsapi.com/PL/flat/48.png)](../pl/README.md) [![Magyar](https://flagsapi.com/HU/flat/48.png)](../hu/README.md) [![Italiano](https://flagsapi.com/IT/flat/48.png)](../it/README.md) [![Español](https://flagsapi.com/ES/flat/48.png)](../es/README.md) [![Français](https://flagsapi.com/FR/flat/48.png)](../fr/README.md) [![中文](https://flagsapi.com/CN/flat/48.png)](../zh/README.md) [![日本語](https://flagsapi.com/JP/flat/48.png)](../ja/README.md)
+[![English](https://flagsapi.com/US/flat/48.png)](../en/README.md) [![Português](https://flagsapi.com/BR/flat/48.png)](README.md) [![Deutsch](https://flagsapi.com/DE/flat/48.png)](../de/README.md) [![Русский](https://flagsapi.com/RU/flat/48.png)](../ru/README.md) [![Čeština](https://flagsapi.com/CZ/flat/48.png)](../cs/README.md) [![Polski](https://flagsapi.com/PL/flat/48.png)](../pl/README.md) [![Magyar](https://flagsapi.com/HU/flat/48.png)](../hu/README.md) [![Italiano](https://flagsapi.com/IT/flat/48.png)](../it/README.md) [![Español](https://flagsapi.com/ES/flat/48.png)](../es/README.md) [![Français](https://flagsapi.com/FR/flat/48.png)](../fr/README.md) [![日本語](https://flagsapi.com/JP/flat/48.png)](../ja/README.md) [![简体中文](https://flagsapi.com/CN/flat/48.png)](../zh-hans/README.md)
 
 ---
 
@@ -25,6 +25,7 @@ Aprenda a linguagem de script do DayZ desde o basico.
 | [1.10](../pt/01-enforce-script/10-enums-preprocessor.md) | Enums & Preprocessador | ✅ |
 | [1.11](../pt/01-enforce-script/11-error-handling.md) | Tratamento de Erros | ✅ |
 | [1.12](../pt/01-enforce-script/12-gotchas.md) | O Que NAO Existe | ✅ |
+| [1.13](../en/01-enforce-script/13-functions-methods.md) | Functions & Methods (English) | 🔄 |
 
 ### Parte 2: Estrutura de Mod
 Entenda como mods de DayZ sao organizados.
@@ -36,6 +37,7 @@ Entenda como mods de DayZ sao organizados.
 | [2.3](../pt/02-mod-structure/03-mod-cpp.md) | mod.cpp & Workshop | ✅ |
 | [2.4](../pt/02-mod-structure/04-minimum-viable-mod.md) | Seu Primeiro Mod | ✅ |
 | [2.5](../pt/02-mod-structure/05-file-organization.md) | Organizacao de Arquivos | ✅ |
+| [2.6](../en/02-mod-structure/06-server-client-split.md) | Server/Client Architecture (English) | 🔄 |
 
 ### Parte 3: Sistema GUI & Layout
 Construa interfaces de usuario para DayZ.
@@ -49,6 +51,9 @@ Construa interfaces de usuario para DayZ.
 | [3.5](../pt/03-gui-system/05-programmatic-widgets.md) | Criacao Programatica | ✅ |
 | [3.6](../pt/03-gui-system/06-event-handling.md) | Tratamento de Eventos | ✅ |
 | [3.7](../pt/03-gui-system/07-styles-fonts.md) | Estilos, Fontes & Imagens | ✅ |
+| [3.8](../en/03-gui-system/08-dialogs-modals.md) | Dialogs & Modals (English) | 🔄 |
+| [3.9](../en/03-gui-system/09-real-mod-patterns.md) | Real Mod UI Patterns (English) | 🔄 |
+| [3.10](../en/03-gui-system/10-advanced-widgets.md) | Advanced Widgets (English) | 🔄 |
 
 ### Parte 4: Formatos de Arquivo & Ferramentas
 Trabalhando com o pipeline de assets do DayZ.
@@ -61,6 +66,7 @@ Trabalhando com o pipeline de assets do DayZ.
 | [4.4](../pt/04-file-formats/04-audio.md) | Audio (.ogg, .wss) | ✅ |
 | [4.5](../pt/04-file-formats/05-dayz-tools.md) | Fluxo de Trabalho DayZ Tools | ✅ |
 | [4.6](../pt/04-file-formats/06-pbo-packing.md) | Empacotamento PBO | ✅ |
+| [4.7](../en/04-file-formats/07-workbench-guide.md) | Workbench Guide (English) | 🔄 |
 
 ### Parte 5: Arquivos de Configuracao
 Arquivos de configuracao essenciais para todo mod.
@@ -71,6 +77,8 @@ Arquivos de configuracao essenciais para todo mod.
 | [5.2](../pt/05-config-files/02-inputs-xml.md) | Inputs.xml (Keybindings) | ✅ |
 | [5.3](../pt/05-config-files/03-credits-json.md) | Credits.json | ✅ |
 | [5.4](../pt/05-config-files/04-imagesets.md) | Formato ImageSet | ✅ |
+| [5.5](../en/05-config-files/05-server-configs.md) | Server Configuration Files (English) | 🔄 |
+| [5.6](../en/05-config-files/06-spawning-gear.md) | Spawning Gear Configuration (English) | 🔄 |
 
 ### Parte 6: Referencia da API do Motor
 APIs do motor DayZ para desenvolvedores de mods.
@@ -87,6 +95,18 @@ APIs do motor DayZ para desenvolvedores de mods.
 | [6.8](../pt/06-engine-api/08-file-io.md) | File I/O & JSON | ✅ |
 | [6.9](../pt/06-engine-api/09-networking.md) | Networking & RPC | ✅ |
 | [6.10](../pt/06-engine-api/10-central-economy.md) | Economia Central | ✅ |
+| [6.11](../en/06-engine-api/11-mission-hooks.md) | Mission Hooks (English) | 🔄 |
+| [6.12](../en/06-engine-api/12-action-system.md) | Action System (English) | 🔄 |
+| [6.13](../en/06-engine-api/13-input-system.md) | Input System (English) | 🔄 |
+| [6.14](../en/06-engine-api/14-player-system.md) | Player System (English) | 🔄 |
+| [6.15](../en/06-engine-api/15-sound-system.md) | Sound System (English) | 🔄 |
+| [6.16](../en/06-engine-api/16-crafting-system.md) | Crafting System (English) | 🔄 |
+| [6.17](../en/06-engine-api/17-construction-system.md) | Construction System (English) | 🔄 |
+| [6.18](../en/06-engine-api/18-animation-system.md) | Animation System (English) | 🔄 |
+| [6.19](../en/06-engine-api/19-terrain-queries.md) | Terrain & World Queries (English) | 🔄 |
+| [6.20](../en/06-engine-api/20-particle-effects.md) | Particle & Effect System (English) | 🔄 |
+| [6.21](../en/06-engine-api/21-zombie-ai-system.md) | Zombie & AI System (English) | 🔄 |
+| [6.22](../en/06-engine-api/22-admin-server.md) | Admin & Server Management (English) | 🔄 |
 
 ### Parte 7: Padroes & Boas Praticas
 Padroes testados em batalha de mods profissionais.
@@ -110,6 +130,15 @@ Guias passo a passo.
 | [8.2](../pt/08-tutorials/02-custom-item.md) | Criando um Item Personalizado | ✅ |
 | [8.3](../pt/08-tutorials/03-admin-panel.md) | Construindo um Painel Admin | ✅ |
 | [8.4](../pt/08-tutorials/04-chat-commands.md) | Adicionando Comandos de Chat | ✅ |
+| [8.5](../en/08-tutorials/05-mod-template.md) | Using the DayZ Mod Template (English) | 🔄 |
+| [8.6](../en/08-tutorials/06-debugging-testing.md) | Debugging & Testing (English) | 🔄 |
+| [8.7](../en/08-tutorials/07-publishing-workshop.md) | Publishing to Steam Workshop (English) | 🔄 |
+| [8.8](../en/08-tutorials/08-hud-overlay.md) | Building a HUD Overlay (English) | 🔄 |
+| [8.9](../en/08-tutorials/09-professional-template.md) | Professional Mod Template (English) | 🔄 |
+| [8.10](../en/08-tutorials/10-vehicle-mod.md) | Creating a Vehicle Mod (English) | 🔄 |
+| [8.11](../en/08-tutorials/11-clothing-mod.md) | Creating a Clothing Mod (English) | 🔄 |
+| [8.12](../en/08-tutorials/12-trading-system.md) | Building a Trading System (English) | 🔄 |
+| [8.13](../en/08-tutorials/13-diag-menu.md) | Diag Menu Reference (English) | 🔄 |
 
 ---
 
@@ -127,7 +156,6 @@ Guias passo a passo.
 | Italiano | `it` | Planejado |
 | Espanol | `es` | Planejado |
 | Francais | `fr` | Planejado |
-| Zhongwen | `zh` | Planejado |
 | Nihongo | `ja` | Planejado |
 | Jiantizi Zhongwen | `zh-hans` | Planejado |
 
@@ -139,6 +167,9 @@ Guias passo a passo.
 - [Referencia de Tipos de Widget](../pt/03-gui-system/01-widget-types.md)
 - [Referencia Rapida da API](../pt/06-engine-api/quick-reference.md)
 - [Armadilhas Comuns](../pt/01-enforce-script/12-gotchas.md)
+- [Glossary (English)](../en/glossary.md) 🔄
+- [FAQ (English)](../en/faq.md) 🔄
+- [Troubleshooting Guide (English)](../en/troubleshooting.md) 🔄
 
 ---
 
@@ -161,7 +192,9 @@ Pull requests sao bem-vindos! Veja [CONTRIBUTING.md](../CONTRIBUTING.md) para di
 - **InclementDab** -- Dabs Framework & DayZ Editor
 - **DaOne & GravityWolf** -- VPP Admin Tools
 - **DayZ Expansion Team** -- Expansion Scripts
-- **MyMod Team** -- Compilacao & documentacao
+- **Brian Orr (DrkDevil)** -- Colorful UI, sistema de temas de cores
+- **lothsun** -- Colorful UI, sistemas de cores de UI
+- **StarDZ Team** -- Compilacao, traducao & organizacao da documentacao
 
 ## Licenca
 

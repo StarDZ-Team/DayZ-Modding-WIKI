@@ -7,7 +7,7 @@
 ## Введение
 
 
-DayZ includes a built-in notification system for displaying toast-style popup messages to players. The `NotificationSystem` class provides static methods for sending notifications both locally (client-side) and from server to client via RPC. This chapter covers the full API for sending, customizing, and managing notifications.
+DayZ includes a built-in notification system for displaying toast-style popup messages to players. The `NotificationSystem` class provides static methods for sending notifications both locally (client-side) and from server to client via RPC. Эта глава охватывает the full API for sending, customizing, and managing notifications.
 
 ---
 
@@ -44,7 +44,7 @@ static void SendNotificationToPlayerExtended(
 );
 ```
 
-**Example --- notify a specific player:**
+**Example ---- нетtify a specific player:**
 
 ```c
 void NotifyPlayer(PlayerBase player, string message)
@@ -303,7 +303,7 @@ NotificationSystem.Create(
 );
 ```
 
-The CF API adds color and localization support. Use whichever system your mod stack requires --- they are functionally similar but use different internal RPCs.
+The CF API adds color and localization support. Use whichever system your mod stack requires ---- y are functionally similar but use different internal RPCs.
 
 ---
 

@@ -21,6 +21,8 @@
 - [Math Constants & Methods](#math-constants--methods)
 - [Vector Methods](#vector-methods)
 - [Global Functions](#global-functions)
+- [Mission Hooks](#mission-hooks)
+- [Action System](#action-system)
 
 ---
 
@@ -355,6 +357,7 @@
 | `CallByName` | `void CallByName(Class obj, string fnName, int delay = 0, bool repeat = false, Param par = null)` | Call method by string name |
 | `Remove` | `void Remove(func fn)` | Cancel scheduled call |
 | `RemoveByName` | `void RemoveByName(Class obj, string fnName)` | Cancel by string name |
+| `GetRemainingTime` | `float GetRemainingTime(Class obj, string fnName)` | Get remaining time on CallLater |
 
 ### Timer Class
 
@@ -365,6 +368,7 @@
 | `Stop` | `void Stop()` | Stop timer |
 | `Pause` | `void Pause()` | Pause timer |
 | `Continue` | `void Continue()` | Resume timer |
+| `IsPaused` | `bool IsPaused()` | Timer paused? |
 | `IsRunning` | `bool IsRunning()` | Timer active? |
 | `GetRemaining` | `float GetRemaining()` | Seconds remaining |
 
@@ -525,6 +529,20 @@
 | `Math.Acos` | `float Acos(float val)` | Arc cosine |
 | `Math.Atan2` | `float Atan2(float y, float x)` | Angle from components |
 
+### Smooth Damping
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `Math.SmoothCD` | `float SmoothCD(float val, float target, inout float velocity, float smoothTime, float maxSpeed, float dt)` | Smooth damp toward target (like Unity's SmoothDamp) |
+
+```c
+// Smooth damping usage
+// val: current value, target: target value, velocity: ref velocity (persisted between calls)
+// smoothTime: smoothing time, maxSpeed: speed cap, dt: delta time
+float m_Velocity = 0;
+float result = Math.SmoothCD(current, target, m_Velocity, 0.3, 1000.0, dt);
+```
+
 ### Angle
 
 | Method | Signature | Description |
@@ -564,6 +582,9 @@
 | `GetGame().GetTickTime()` | `float GetTickTime()` | Server time (seconds) |
 | `GetGame().GetWorkspace()` | `WorkspaceWidget GetWorkspace()` | UI workspace |
 | `GetGame().SurfaceY(x, z)` | `float SurfaceY(float x, float z)` | Terrain height at position |
+| `GetGame().SurfaceGetType(x, z)` | `string SurfaceGetType(float x, float z)` | Surface material type |
+| `GetGame().GetObjectsAtPosition(pos, radius, objects, proxyCargo)` | `void GetObjectsAtPosition(vector pos, float radius, out array<Object> objects, out array<CargoBase> proxyCargo)` | Find objects near position |
+| `GetScreenSize(w, h)` | `void GetScreenSize(out int w, out int h)` | Get screen resolution |
 | `GetGame().IsServer()` | `bool IsServer()` | Server check |
 | `GetGame().IsClient()` | `bool IsClient()` | Client check |
 | `GetGame().IsMultiplayer()` | `bool IsMultiplayer()` | Multiplayer check |
@@ -574,4 +595,61 @@
 
 ---
 
-*Full documentation: [Home](../../README.md) | [Cheat Sheet](../cheatsheet.md) | [Entity System](01-entity-system.md) | [Vehicles](02-vehicles.md) | [Weather](03-weather.md) | [Timers](07-timers.md) | [File I/O](08-file-io.md) | [Networking](09-networking.md)*
+## Mission Hooks
+
+*Full reference: [Chapter 6.11: Mission Hooks](11-mission-hooks.md)*
+
+### Server-side (modded MissionServer)
+
+| Method | Description |
+|--------|-------------|
+| `override void OnInit()` | Initialize managers, register RPCs |
+| `override void OnMissionStart()` | After all mods loaded |
+| `override void OnUpdate(float timeslice)` | Per-frame (use accumulator!) |
+| `override void OnMissionFinish()` | Cleanup singletons, unsubscribe events |
+| `override void OnEvent(EventType eventTypeId, Param params)` | Chat, voice events |
+| `override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)` | Player joined |
+| `override void InvokeOnDisconnect(PlayerBase player)` | Player left |
+| `override void OnClientReadyEvent(int peerId, PlayerIdentity identity)` | Client ready for data |
+| `override void PlayerRegistered(int peerId)` | Identity registered |
+
+### Client-side (modded MissionGameplay)
+
+| Method | Description |
+|--------|-------------|
+| `override void OnInit()` | Initialize client managers, create HUD |
+| `override void OnUpdate(float timeslice)` | Per-frame client update |
+| `override void OnMissionFinish()` | Cleanup |
+| `override void OnKeyPress(int key)` | Key pressed |
+| `override void OnKeyRelease(int key)` | Key released |
+
+---
+
+## Action System
+
+*Full reference: [Chapter 6.12: Action System](12-action-system.md)*
+
+### Register Actions on an Item
+
+```c
+override void SetActions()
+{
+    super.SetActions();
+    AddAction(MyAction);           // Add custom action
+    RemoveAction(ActionEat);       // Remove vanilla action
+}
+```
+
+### ActionBase Key Methods
+
+| Method | Description |
+|--------|-------------|
+| `override void CreateConditionComponents()` | Set CCINone/CCTNone distance conditions |
+| `override bool ActionCondition(...)` | Custom validation logic |
+| `override void OnExecuteServer(ActionData action_data)` | Server-side execution |
+| `override void OnExecuteClient(ActionData action_data)` | Client-side effects |
+| `override string GetText()` | Display name (supports `#STR_` keys) |
+
+---
+
+*Full documentation: [Home](../../README.md) | [Cheat Sheet](../cheatsheet.md) | [Entity System](01-entity-system.md) | [Vehicles](02-vehicles.md) | [Weather](03-weather.md) | [Timers](07-timers.md) | [File I/O](08-file-io.md) | [Networking](09-networking.md) | [Mission Hooks](11-mission-hooks.md) | [Action System](12-action-system.md)*

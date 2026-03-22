@@ -263,7 +263,7 @@ void ClearChildren(Widget parent)
 }
 ```
 
-**Important:** You must get `GetSibling()` **before** calling `Unlink()`, because unlinking invalidates the widget's sibling chain.
+**Важно:** You must get `GetSibling()` **before** calling `Unlink()`, because unlinking invalidates the widget's sibling chain.
 
 ### Null Checks
 
@@ -420,7 +420,7 @@ SimpleCodeDialog dialog = new SimpleCodeDialog("Alert", "Server restart in 5 min
 | Rapid prototyping | `CreateWidget()` |
 | Production mod UI | Layout file + code configuration |
 
-In practice, most mods use **layout files** for the structure and **code** for populating data, showing/hiding elements, and handling events. Purely programmatic UIs are rare outside of debug tools.
+На практике most mods use **layout files** for the structure and **code** for populating data, showing/hiding elements, and handling events. Purely programmatic UIs are rare outside of debug tools.
 
 ---
 

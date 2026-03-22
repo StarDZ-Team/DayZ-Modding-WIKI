@@ -689,6 +689,63 @@ void SiblingTrap()
 
 ---
 
+## Operator Precedence
+
+From highest to lowest precedence:
+
+| Priority | Operator | Description | Associativity |
+|----------|----------|-------------|---------------|
+| 1 | `()` `[]` `.` | Grouping, array access, member access | Left to right |
+| 2 | `!` `-` (unary) `~` | Logical NOT, negation, bitwise NOT | Right to left |
+| 3 | `*` `/` `%` | Multiplication, division, modulo | Left to right |
+| 4 | `+` `-` | Addition, subtraction | Left to right |
+| 5 | `<<` `>>` | Bitwise shift | Left to right |
+| 6 | `<` `<=` `>` `>=` | Relational | Left to right |
+| 7 | `==` `!=` | Equality | Left to right |
+| 8 | `&` | Bitwise AND | Left to right |
+| 9 | `^` | Bitwise XOR | Left to right |
+| 10 | `\|` | Bitwise OR | Left to right |
+| 11 | `&&` | Logical AND | Left to right |
+| 12 | `\|\|` | Logical OR | Left to right |
+| 13 | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | Assignment | Right to left |
+
+> **Tip:** When in doubt, use parentheses. Enforce Script follows C-like precedence rules, but explicit grouping prevents bugs and improves readability.
+
+---
+
+## Best Practices
+
+- Always initialize variables explicitly at declaration, even when the default value matches your intent -- it communicates intent to future readers.
+- Use `const` for any value that should never change; place constants at file or class scope with `UPPER_SNAKE_CASE` naming.
+- Prefer `string.Format()` over `+` concatenation when mixing types -- it avoids implicit conversion issues and is easier to read.
+- Use `vector.DistanceSq()` instead of `vector.Distance()` when comparing distances -- it avoids an expensive square root.
+- Never compare floats with `==`; always use an epsilon tolerance via `Math.AbsFloat(a - b) < 0.001`.
+
+---
+
+## Observed in Real Mods
+
+> Patterns confirmed by studying professional DayZ mod source code.
+
+| Pattern | Mod | Detail |
+|---------|-----|--------|
+| `const string LOG_PREFIX` at class scope | COT / Expansion | Every module defines a string constant for log prefixes to avoid typos |
+| `m_PascalCase` member naming | VPP / Dabs Framework | All member variables use `m_` prefix consistently, even for primitives |
+| `string.Format` for all log output | Expansion Market | Never uses `+` concatenation with numbers -- always `%1`..`%9` placeholders |
+| `vector.Zero` instead of `"0 0 0"` literal | COT Admin Tools | Uses named constants for readability and to avoid string-parse overhead |
+
+---
+
+## Theory vs Practice
+
+| Concept | Theory | Reality |
+|---------|--------|---------|
+| `auto` keyword | Should infer any type | Works for simple assignments but can confuse readers -- most mods declare types explicitly |
+| `float`-to-`int` truncation | Documented as "rounds toward zero" | Catches nearly everyone at least once; `3.99` becomes `3`, not `4` |
+| `string` is a value type | Passed by copy like `int` | Surprises C#/Java developers who expect reference semantics; modifications to a copy never affect the original |
+
+---
+
 ## Common Mistakes
 
 ### 1. Uninitialized Variables Used in Logic

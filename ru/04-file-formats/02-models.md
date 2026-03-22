@@ -1,4 +1,4 @@
-# Chapter 4.2: 3D Models (.p3d)
+# Chapter 4.2: 3D Модели (.p3d)
 
 [<< Предыдущая: Textures](01-textures.md) | **3D Models** | [Следующая: Materials >>](03-materials.md)
 
@@ -9,7 +9,7 @@
 
 Every physical object in DayZ -- weapons, clothing, buildings, vehicles, trees, rocks -- is a 3D model stored in Bohemia's proprietary **P3D** format. The P3D format is far more than a mesh container: it encodes multiple levels of detail, collision geometry, animation selections, memory points for attachments and effects, and proxy positions for mountable items. Understanding how P3D files work and how to create them with **Object Builder** is essential for any mod that adds physical items to the game world.
 
-This chapter covers the P3D format structure, the LOD system, named selections, memory points, the proxy system, animation configuration via `model.cfg`, and the import workflow from standard 3D formats.
+Эта глава охватывает the P3D format structure, the LOD system, named selections, memory points, the proxy system, animation configuration via `model.cfg`, and the import workflow from standard 3D formats.
 
 ---
 
@@ -32,7 +32,7 @@ This chapter covers the P3D format structure, the LOD system, named selections, 
 
 ## P3D Format Overview
 
-**P3D** (Point 3D) is Bohemia Interactive's binary 3D model format, inherited from the Real Virtuality engine and carried forward into Enfusion. It is a compiled, engine-ready format -- you do not write P3D files by hand.
+**P3D** (Point 3D) is Bohemia Interactive's binary 3D model format, inherited from the Real Virtuality engine and carried forward into Enfusion. It is a compiled, engine-ready format --- вы do not write P3D files by hand.
 
 ### Key Characteristics
 
@@ -46,7 +46,7 @@ This chapter covers the P3D format structure, the LOD system, named selections, 
 | Extension | Description |
 |-----------|-------------|
 | `.p3d` | 3D model (both MLOD source and ODOL binarized) |
-| `.rtm` | Runtime Motion -- animation keyframe data |
+| `.rtm` | Runtime Motion --- nimation keyframe data |
 | `.bisurf` | Surface properties file (used alongside P3D) |
 
 ### MLOD vs. ODOL
@@ -95,18 +95,18 @@ P:\
         my_item_co.paa
 ```
 
-All paths in P3D files and materials are relative to the P: drive root. For example, a material reference inside the model would be `MyMod\data\textures\my_item_co.paa`.
+All paths in P3D files and materials are relative to the P: drive root. Например, a material reference inside the model would be `MyMod\data\textures\my_item_co.paa`.
 
 ### Basic Workflow in Object Builder
 
 1. **Create or import** your mesh geometry.
-2. **Define LODs** -- at minimum, create Resolution, Geometry, and Fire Geometry LODs.
+2. **Define LODs** --- t minimum, create Resolution, Geometry, and Fire Geometry LODs.
 3. **Assign materials** to faces in the Resolution LOD.
 4. **Name selections** for any parts that animate, swap textures, or need code interaction.
 5. **Place memory points** for attachments, muzzle flash positions, ejection ports, etc.
 6. **Add proxies** for items that can be attached (optics, magazines, suppressors).
 7. **Validate** using Object Builder's built-in validation (Structure --> Validate).
-8. **Save** as P3D.
+8. **Сохранить** as P3D.
 9. **Build** via Binarize or AddonBuilder.
 
 ---
@@ -185,13 +185,13 @@ Named selections are groups of vertices, edges, or faces within a LOD that are t
 
 ### hiddenSelections (Texture Swaps)
 
-The most common use of named selections for modders is **hiddenSelections** -- the ability to swap textures at runtime via config.cpp.
+The most common use of named selections for modders is **hiddenSelections** ---  ability to swap textures at runtime via config.cpp.
 
 **In the P3D model (Resolution LOD):**
 1. Select the faces that should be retexturable.
 2. Name the selection (e.g., `camo`).
 
-**In config.cpp:**
+**В config.cpp:**
 ```cpp
 class MyRifle: Rifle_Base
 {
@@ -201,7 +201,7 @@ class MyRifle: Rifle_Base
 };
 ```
 
-This allows different variants of the same model with different textures without duplicating the P3D file.
+Это позволяет different variants of the same model with different textures without duplicating the P3D file.
 
 ### Creating Named Selections
 
@@ -225,7 +225,7 @@ Named selections must be consistent across LODs for animations to work:
 
 ## Memory Points
 
-Memory points are named positions defined in the **Memory LOD**. They have no visual representation in-game -- they define spatial coordinates that the engine and scripts reference for positioning effects, attachments, sounds, and more.
+Memory points are named positions defined in the **Memory LOD**. They have no visual representation in-game --- y define spatial coordinates that the engine and scripts reference for positioning effects, attachments, sounds, and more.
 
 ### Common Memory Points
 
@@ -433,7 +433,7 @@ Most modders create 3D models in external tools (Blender, 3ds Max, Maya) and imp
 
 ### Import Workflow
 
-**Step 1: Prepare in your 3D software**
+**Шаг 1: Prepare in your 3D software**
 - Model should be centered at origin.
 - Apply all transforms (location, rotation, scale).
 - Scale: 1 unit = 1 meter. DayZ uses meters.
@@ -441,7 +441,7 @@ Most modders create 3D models in external tools (Blender, 3ds Max, Maya) and imp
 - UV unwrap the model.
 - Export as FBX (binary, no animation, Y-up or Z-up -- Object Builder handles both).
 
-**Step 2: Import into Object Builder**
+**Шаг 2: Import into Object Builder**
 1. Open Object Builder.
 2. **File --> Import --> FBX** (or OBJ/3DS).
 3. Review the import settings:
@@ -449,7 +449,7 @@ Most modders create 3D models in external tools (Blender, 3ds Max, Maya) and imp
    - Axis conversion (Z-up to Y-up if needed).
 4. The mesh appears in a new Resolution LOD.
 
-**Step 3: Post-import setup**
+**Шаг 3: Post-import setup**
 1. Assign materials to faces (select faces, right-click --> **Face Properties**).
 2. Create additional LODs (Geometry, Fire Geometry, Memory, Shadow).
 3. Simplify geometry for collision LODs (remove small details, ensure convexity).
@@ -458,7 +458,7 @@ Most modders create 3D models in external tools (Blender, 3ds Max, Maya) and imp
 
 ### Blender-Specific Tips
 
-- Use the **Blender DayZ Toolbox** community addon if available -- it streamlines export settings.
+- Use the **Blender DayZ Toolbox** community addon if available --- он streamlines export settings.
 - Export with: **Apply Modifiers**, **Triangulate Faces**, **Apply Scale**.
 - Set **Forward: -Z Forward**, **Up: Y Up** in the FBX export dialog.
 - Name mesh objects in Blender to match intended named selections -- some importers preserve object names.
@@ -565,4 +565,4 @@ Vehicles combine many systems:
 
 | Предыдущая | Вверх | Следующая |
 |----------|----|------|
-| [4.1 Textures](01-textures.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.3 Materials](03-materials.md) |
+| [4.1 Текстуры](01-textures.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.3 Materials](03-materials.md) |

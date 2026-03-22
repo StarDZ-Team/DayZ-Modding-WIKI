@@ -39,7 +39,7 @@ Scripts/
   5_Mission/       --> missionScriptModule
 ```
 
-Each layer builds on top of the previous ones. The numbers are not arbitrary -- they define a strict compilation and dependency order enforced by the engine.
+Each layer builds on top of the previous ones. The numbers are not arbitrary --- y define a strict compilation and dependency order enforced by the engine.
 
 ---
 
@@ -91,7 +91,7 @@ Each layer builds on top of the previous ones. The numbers are not arbitrary -- 
 ### Назначение
 
 
-The absolute foundation. Code here runs at the engine level before any game systems exist. This is the earliest point where mod code can execute.
+The absolute foundation. Code here runs at the engine level before any game systems exist. Это earliest point where mod code can execute.
 
 ### Что размещать здесь
 
@@ -183,7 +183,7 @@ Almost never. Unless you are building a framework that needs engine-level bindin
 ### Назначение
 
 
-The workhorse layer for configuration, data definitions, and systems that do not interact directly with world entities. This is the first layer where game types are available.
+The workhorse layer for configuration, data definitions, and systems that do not interact directly with world entities. Это first layer where game types are available.
 
 ### Что размещать здесь
 
@@ -238,7 +238,7 @@ class ChatCommandBase
 ### Когда использовать
 
 
-**If in doubt, put it in `3_Game`.** This is the default layer for most non-entity code. Configuration classes, enums, constants, RPC definitions, data classes -- all belong here.
+**If in doubt, put it in `3_Game`.** Это default layer for most non-entity code. Configuration classes, enums, constants, RPC definitions, data classes --- ll belong here.
 
 ---
 
@@ -331,7 +331,7 @@ The highest layer. Mission lifecycle, UI panels, HUD overlays, and the final ini
 - Menu screens
 - Mod registration and initialization (the "boot" sequence)
 - Client-side rendering overlays
-- Server startup/shutdown handlers
+- Запуск/остановка сервера handlers
 
 ### Реальные примеры
 
@@ -395,7 +395,7 @@ UI, HUD, menu screens, and mod initialization that depends on the mission being 
 
 > **Lower layers CANNOT reference types from higher layers.**
 
-This is the single most important rule in DayZ script architecture. The engine enforces this at compile time.
+Это single most important rule in DayZ script architecture. The engine enforces this at compile time.
 
 ```
 ALLOWED:
@@ -506,7 +506,7 @@ After compilation, the runtime initialization follows a different sequence:
 | `4_World` | Fourth | After world loads | Entities start spawning |
 | `5_Mission` | Fifth (last) | After mission starts | `MissionServer.OnInit()` / `MissionGameplay.OnInit()` |
 
-**Important:** Static variables and global-scope code in each layer execute during the compilation/linking phase, before `OnInit()` is ever called. Do not put complex initialization logic in static initializers.
+**Важно:** Static variables and global-scope code in each layer execute during the compilation/linking phase, before `OnInit()` is ever called. Do not put complex initialization logic in static initializers.
 
 ---
 
@@ -515,7 +515,7 @@ After compilation, the runtime initialization follows a different sequence:
 
 ### "If in Doubt, Put It in 3_Game"
 
-This is the most common layer for mod code. Unless your code:
+Это most common layer for mod code. Unless your code:
 - Needs to be available before game types exist --> `1_Core`
 - Extends an entity/item/vehicle/player --> `4_World`
 - Touches UI, HUD, or mission lifecycle --> `5_Mission`

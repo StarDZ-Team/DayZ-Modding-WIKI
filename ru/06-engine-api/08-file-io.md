@@ -7,7 +7,7 @@
 ## Введение
 
 
-DayZ provides file I/O operations for reading and writing text files, JSON serialization/deserialization, directory management, and file enumeration. All file operations use special path prefixes (`$profile:`, `$saves:`, `$mission:`) rather than absolute filesystem paths. This chapter covers every file operation available in Enforce Script.
+DayZ provides file I/O operations for reading and writing text files, JSON serialization/deserialization, directory management, and file enumeration. All file operations use special path prefixes (`$profile:`, `$saves:`, `$mission:`) rather than absolute filesystem paths. Эта глава охватывает every file operation available in Enforce Script.
 
 ---
 
@@ -16,7 +16,7 @@ DayZ provides file I/O operations for reading and writing text files, JSON seria
 | Prefix | Location | Writable |
 |--------|----------|----------|
 | `$profile:` | Server/client profile directory (e.g., `DayZServer/profiles/`) | Yes |
-| `$saves:` | Save directory | Yes |
+| `$saves:` | Сохранить directory | Yes |
 | `$mission:` | Current mission folder (e.g., `mpmissions/dayzOffline.chernarusplus/`) | Read typically |
 | `$CurrentDir:` | Current working directory | Depends |
 | No prefix | Relative to game root | Read only |
@@ -390,7 +390,7 @@ This produces JSON:
 }
 ```
 
-### Complete Load/Save Example
+### Complete Load/Сохранить Example
 
 ```c
 class MyModConfig
@@ -499,7 +499,7 @@ Print("MaxPlayers: " + parsed.MaxPlayers);
 | Copy | `CopyFile(src, dst)` | -- |
 | Find files | `FindFile(pattern, ...)` | Returns handle, iterate with `FindNextFile` |
 | JSON load | `JsonFileLoader<T>.LoadFile(path, data, error)` | Modern API, returns bool |
-| JSON save | `JsonFileLoader<T>.SaveFile(path, data, error)` | Modern API, returns bool |
+| JSON save | `JsonFileLoader<T>.СохранитьFile(path, data, error)` | Modern API, returns bool |
 | JSON string | `JsonSerializer.WriteToString()` / `ReadFromString()` | Direct string operations |
 
 | Concept | Key Point |

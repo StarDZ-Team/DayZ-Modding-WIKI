@@ -675,4 +675,24 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 ---
 
+## Compatibility & Impact
+
+- **Multi-Mod:** Each mod writes to its own `$profile:ModName/` directory. Conflicts only happen if two mods use the same directory name. Use a unique, recognizable prefix for your mod's folder.
+- **Load Order:** Config loading happens in `OnInit` or `OnMissionStart`, both controlled by the mod's own lifecycle. No cross-mod load-order issues unless two mods try to read/write the same file (which they should never do).
+- **Listen Server:** Config files are server-side only (`$profile:` resolves on the server). On listen servers, client-side code can technically access `$profile:`, but configs should only be loaded by server modules to avoid ambiguity.
+- **Performance:** `JsonFileLoader` is synchronous and blocks the main thread. For large configs (100+ KB), load during `OnInit` (before gameplay starts). Auto-save timers prevent repeated writes; the dirty-flag pattern ensures disk I/O only happens when data has actually changed.
+- **Migration:** Adding new fields to a config class is safe --- `JsonFileLoader` ignores missing JSON keys and leaves the class default value. Removing or renaming fields requires a versioned migration step to avoid silent data loss.
+
+---
+
+## Theory vs Practice
+
+| Textbook Says | DayZ Reality |
+|---------------|-------------|
+| Use async file I/O to avoid blocking | Enforce Script has no async file I/O; all reads/writes are synchronous. Load at startup, save on timers. |
+| Validate JSON with a schema | No JSON schema validation exists; validate fields in `OnAfterLoad()` or with guard clauses after loading. |
+| Use a database for structured data | No database access from Enforce Script; JSON files in `$profile:` are the only persistence mechanism. |
+
+---
+
 [<< Previous: RPC Patterns](03-rpc-patterns.md) | [Home](../../README.md) | [Next: Permission Systems >>](05-permissions.md)

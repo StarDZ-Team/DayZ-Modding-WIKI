@@ -1,4 +1,4 @@
-# Chapter 4.1: Textures (.paa, .edds, .tga)
+# Chapter 4.1: Текстуры (.paa, .edds, .tga)
 
 [Главная](../../README.md) | **Textures** | [Следующая: 3D Models >>](02-models.md)
 
@@ -9,7 +9,7 @@
 
 Every surface you see in DayZ -- weapon skins, clothing, terrain, UI icons -- is defined by texture files. The engine uses a proprietary compressed format called **PAA** at runtime, but during development you work with several source formats that are converted during the build process. Understanding these formats, the naming conventions that bind them to materials, and the resolution rules the engine enforces is fundamental to creating visual content for DayZ mods.
 
-This chapter covers every texture format you will encounter, the suffix naming system that tells the engine how to interpret each texture, resolution and alpha channel requirements, and the practical workflow for converting between formats.
+Эта глава охватывает every texture format you will encounter, the suffix naming system that tells the engine how to interpret each texture, resolution and alpha channel requirements, and the practical workflow for converting between formats.
 
 ---
 
@@ -54,16 +54,16 @@ The general workflow is: **Source (TGA/PNG) --> DayZ Tools conversion --> PAA (g
 ### Characteristics
 
 - **Compressed:** Uses DXT1, DXT5, or ARGB8888 compression internally depending on alpha channel presence and quality settings.
-- **Mipmapped:** PAA files contain a full mipmap chain, generated automatically during conversion. This is critical for rendering performance -- the engine selects the appropriate mip level based on distance.
+- **Mipmapped:** PAA files contain a full mipmap chain, generated automatically during conversion. This is critical for rendering performance ---  engine selects the appropriate mip level based on distance.
 - **Power-of-two dimensions:** The engine requires PAA textures to have dimensions that are powers of 2 (256, 512, 1024, 2048, 4096).
-- **Read-only at runtime:** The engine loads PAA files directly from PBOs. You never edit a PAA file -- you edit the source and re-convert.
+- **Read-only at runtime:** The engine loads PAA files directly from PBOs. You never edit a PAA file --- вы edit the source and re-convert.
 
 ### Internal Compression Types
 
 | Type | Alpha | Quality | Use Case |
 |------|-------|---------|----------|
 | **DXT1** | No (1-bit) | Good, 6:1 ratio | Opaque textures, terrain |
-| **DXT5** | Full 8-bit | Good, 4:1 ratio | Textures with smooth alpha (glass, foliage) |
+| **DXT5** | Full 8-bit | Good, 4:1 ratio | Текстуры with smooth alpha (glass, foliage) |
 | **ARGB4444** | Full 4-bit | Medium | UI textures, small icons |
 | **ARGB8888** | Full 8-bit | Lossless | Debug, highest quality (large file size) |
 | **AI88** | Grayscale + alpha | Good | Normal maps, grayscale masks |
@@ -85,7 +85,7 @@ The general workflow is: **Source (TGA/PNG) --> DayZ Tools conversion --> PAA (g
 
 - **Preview format:** Object Builder can display EDDS textures directly, making them useful during model creation.
 - **Auto-converts to PAA:** When you run Binarize or AddonBuilder (without `-packonly`), EDDS files in your source tree are automatically converted to PAA.
-- **Larger than PAA:** EDDS files are not optimized for distribution -- they exist for editor convenience.
+- **Larger than PAA:** EDDS files are not optimized for distribution --- y exist for editor convenience.
 - **DayZ-Samples format:** The official DayZ-Samples provided by Bohemia use EDDS textures extensively.
 
 ### Workflow with EDDS
@@ -125,7 +125,7 @@ When exporting TGA for DayZ conversion:
 - **Bit depth:** 32-bit (if alpha is needed) or 24-bit (opaque textures)
 - **Compression:** None (uncompressed)
 - **Orientation:** Bottom-left origin (standard TGA orientation)
-- **Resolution:** Must be power of 2 (see [Resolution Requirements](#resolution-requirements))
+- **Resolution:** Must be power of 2 (см. [Resolution Requirements](#resolution-requirements))
 
 ---
 
@@ -146,7 +146,7 @@ When exporting TGA for DayZ conversion:
 - **Simple retextures:** When you only need a color/diffuse map with no complex alpha.
 - **Cross-tool workflows:** PNG is universally supported across image editors, web tools, and scripts.
 
-> **Примечание:** PNG is not an official Bohemia source format -- they prefer TGA. However, the conversion tools handle PNG without issues and many modders use it successfully.
+> **Примечание:** PNG is not an official Bohemia source format --- y prefer TGA. However, the conversion tools handle PNG without issues and many modders use it successfully.
 
 ---
 
@@ -221,7 +221,7 @@ The Enfusion engine requires all textures to have **power-of-two dimensions**. B
 | **2048x2048** | High-detail weapons, character models |
 | **4096x4096** | Terrain textures, large vehicle textures |
 
-### Non-Square Textures
+### Non-Square Текстуры
 
 Non-square power-of-two textures are valid:
 
@@ -259,7 +259,7 @@ The alpha channel in a texture carries additional data beyond color. How it is i
 | `_smdi` | Usually unused |
 | `_li` | Emissive intensity mask |
 
-### Creating Textures with Alpha
+### Creating Текстуры with Alpha
 
 In your image editor (Photoshop, GIMP, Krita):
 
@@ -267,7 +267,7 @@ In your image editor (Photoshop, GIMP, Krita):
 2. Add an alpha channel.
 3. Paint white (255) where you want full opacity/effect, black (0) where you want none.
 4. Export as 32-bit TGA or PNG.
-5. Convert to PAA using TexView2 -- it will detect the alpha channel automatically.
+5. Convert to PAA using TexView2 --- он will detect the alpha channel automatically.
 
 ### Verifying Alpha in TexView2
 
@@ -292,13 +292,13 @@ Open the PAA in TexView2 and use the channel display buttons:
 
 **Converting to PAA:**
 1. Open the source texture in TexView2.
-2. Go to **File --> Save As**.
+2. Go to **File --> Сохранить As**.
 3. Select **PAA** as the output format.
 4. Choose the compression type:
    - **DXT1** for opaque textures (no alpha needed)
    - **DXT5** for textures with alpha transparency
    - **ARGB4444** for small UI textures where file size matters
-5. Click **Save**.
+5. Click **Сохранить**.
 
 **Batch conversion via command line:**
 
@@ -321,15 +321,15 @@ source/mod_name/data/texture_co.tga
             --> Output: build/mod_name/data/texture_co.paa
 ```
 
-### Manual Conversion Table
+### Ручное Conversion Table
 
 | From | To | Tool | Notes |
 |------|----|------|-------|
 | TGA --> PAA | TexView2 | Standard workflow |
 | PNG --> PAA | TexView2 | Works identically to TGA |
 | EDDS --> PAA | TexView2 or Binarize | Automatic during build |
-| PAA --> TGA | TexView2 (Save As TGA) | For editing existing textures |
-| PAA --> PNG | TexView2 (Save As PNG) | For extracting to portable format |
+| PAA --> TGA | TexView2 (Сохранить As TGA) | For editing existing textures |
+| PAA --> PNG | TexView2 (Сохранить As PNG) | For extracting to portable format |
 | PSD --> TGA/PNG | Photoshop/GIMP | Export from editor, then convert |
 
 ---
@@ -360,7 +360,7 @@ ARGB4444       8.0 MB    (2:1 compression)
 
 ### In-Game Quality Settings
 
-Players can adjust texture quality in DayZ's video settings. The engine selects lower mip levels when quality is reduced, so your textures will look progressively blurrier at lower settings. This is automatic -- you do not need to create separate quality levels.
+Players can adjust texture quality in DayZ's video settings. The engine selects lower mip levels when quality is reduced, so your textures will look progressively blurrier at lower settings. This is automatic --- вы do not need to create separate quality levels.
 
 ---
 
@@ -390,7 +390,7 @@ MyFramework/data/gui/icons/
 
 UI textures are often packed into a single atlas (imageset) and referenced by name in layout files. ARGB4444 compression is common for UI because it preserves clean edges while keeping file sizes small.
 
-### Terrain Textures
+### Terrain Текстуры
 
 ```
 terrain/
@@ -431,7 +431,7 @@ Terrain textures tile across the landscape. The `_mc` macro texture adds large-s
 ### 5. Incorrect Normal Map Format
 
 **Symptom:** Lighting on the model looks inverted or flat.
-**Fix:** Ensure your normal map is in tangent-space format with DirectX-style Y-axis convention (green channel: up = lighter). Some tools export OpenGL-style (inverted Y) -- you need to invert the green channel.
+**Fix:** Ensure your normal map is in tangent-space format with DirectX-style Y-axis convention (green channel: up = lighter). Some tools export OpenGL-style (inverted Y) --- вы need to invert the green channel.
 
 ### 6. Path Mismatch After Conversion
 
@@ -442,7 +442,7 @@ Terrain textures tile across the landscape. The `_mc` macro texture adds large-s
 
 ## Best Practices
 
-1. **Keep source files in version control.** Store TGA/PNG masters alongside your mod. The PAA files are generated output -- the sources are what matter.
+1. **Keep source files in version control.** Store TGA/PNG masters alongside your mod. The PAA files are generated output ---  sources are what matter.
 
 2. **Match resolution to importance.** A rifle the player stares at for hours deserves 2048x2048. A can of beans in the back of a shelf can use 512x512.
 
@@ -463,4 +463,4 @@ Terrain textures tile across the landscape. The `_mc` macro texture adds large-s
 
 | Предыдущая | Вверх | Следующая |
 |----------|----|------|
-| [Part 3: GUI System](../03-gui-system/07-styles-fonts.md) | [Part 4: File Formats & DayZ Tools](../04-file-formats/01-textures.md) | [4.2 3D Models](02-models.md) |
+| [Part 3: GUI System](../03-gui-system/07-styles-fonts.md) | [Part 4: File Formats & DayZ Tools](../04-file-formats/01-textures.md) | [4.2 3D Модели](02-models.md) |

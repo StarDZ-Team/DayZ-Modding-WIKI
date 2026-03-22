@@ -6,7 +6,7 @@ Container widgets organize child widgets within them. While `FrameWidget` is the
 
 ## FrameWidget -- Structural Container
 
-`FrameWidget` is the most basic container. It draws nothing on screen and does not arrange its children -- you must position each child manually.
+`FrameWidget` is the most basic container. It draws nothing on screen and does not arrange its children --- вы must position each child manually.
 
 **When to use:**
 - Grouping related widgets so they can be shown/hidden together
@@ -44,7 +44,7 @@ FrameWidgetClass MyPanel {
 }
 ```
 
-**Key characteristics:**
+**Ключевые характеристики:**
 - No visual appearance (transparent)
 - Children positioned relative to the frame's bounds
 - No automatic layout -- every child needs explicit position/size
@@ -54,7 +54,7 @@ FrameWidgetClass MyPanel {
 
 ## WrapSpacerWidget -- Flow Layout
 
-`WrapSpacerWidget` automatically arranges its children in a flow sequence. Children are placed one after another horizontally, wrapping to the next row when they exceed the available width. This is the widget to use for dynamic lists where the number of children changes at runtime.
+`WrapSpacerWidget` automatically arranges its children in a flow sequence. Children are placed one after another horizontally, wrapping to the next row when they exceed the available width. Это widget to use for dynamic lists where the number of children changes at runtime.
 
 ### Layout Attributes
 
