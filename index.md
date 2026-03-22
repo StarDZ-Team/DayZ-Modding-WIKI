@@ -6,7 +6,7 @@ hero:
   text: The Complete Guide
   tagline: 92 chapters covering everything from Enforce Script to published mods — in 12 languages.
   image:
-    src: /images/wiki-logo.png
+    src: /DayZ-Modding-Wiki/images/wiki-logo.png
     alt: DayZ Modding Wiki
   actions:
     - theme: brand
@@ -47,6 +47,27 @@ features:
 ---
 
 <div style="text-align: center; padding: 2rem 0;">
+
+## 🌍 Choose Your Language
+
+<p style="font-size: 1.2rem; line-height: 2.5;">
+  <a href="/DayZ-Modding-Wiki/en/" style="margin: 0 0.3rem;">🇺🇸 English</a> ·
+  <a href="/DayZ-Modding-Wiki/pt/" style="margin: 0 0.3rem;">🇧🇷 Português</a> ·
+  <a href="/DayZ-Modding-Wiki/de/" style="margin: 0 0.3rem;">🇩🇪 Deutsch</a> ·
+  <a href="/DayZ-Modding-Wiki/ru/" style="margin: 0 0.3rem;">🇷🇺 Русский</a> ·
+  <a href="/DayZ-Modding-Wiki/es/" style="margin: 0 0.3rem;">🇪🇸 Español</a> ·
+  <a href="/DayZ-Modding-Wiki/fr/" style="margin: 0 0.3rem;">🇫🇷 Français</a> ·
+  <a href="/DayZ-Modding-Wiki/ja/" style="margin: 0 0.3rem;">🇯🇵 日本語</a> ·
+  <a href="/DayZ-Modding-Wiki/zh-hans/" style="margin: 0 0.3rem;">🇨🇳 简体中文</a> ·
+  <a href="/DayZ-Modding-Wiki/cs/" style="margin: 0 0.3rem;">🇨🇿 Čeština</a> ·
+  <a href="/DayZ-Modding-Wiki/pl/" style="margin: 0 0.3rem;">🇵🇱 Polski</a> ·
+  <a href="/DayZ-Modding-Wiki/hu/" style="margin: 0 0.3rem;">🇭🇺 Magyar</a> ·
+  <a href="/DayZ-Modding-Wiki/it/" style="margin: 0 0.3rem;">🇮🇹 Italiano</a>
+</p>
+
+</div>
+
+<div style="text-align: center; padding: 1rem 0;">
 
 ## Built by Reverse Engineering
 
