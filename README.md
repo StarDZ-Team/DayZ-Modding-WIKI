@@ -1,7 +1,7 @@
 <h1 align="center">DayZ Modding Complete Guide</h1>
 
 <p align="center">
-  <img src="./images/logo.png" alt="DayZ Modding Wiki" />
+  <img src="./images/wiki-logo.png" alt="DayZ Modding Wiki" width="600" />
 </p>
 
 ---
