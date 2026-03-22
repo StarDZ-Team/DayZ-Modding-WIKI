@@ -171,6 +171,7 @@ export default withMermaid(
     lastUpdated: true,
     ignoreDeadLinks: [
       /LICENCE/,
+      /CONTRIBUTING/,
       /04-scripting-guide/,
     ],
 
