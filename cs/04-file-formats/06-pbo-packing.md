@@ -1,64 +1,64 @@
-# Chapter 4.6: PBO Packing
+# Kapitola 4.6: Balení PBO
 
-[Domů](../../README.md) | [<< Předchozí: DayZ Tools Workflow](05-dayz-tools.md) | **Balení PBO** | [Další: Průvodce Workbench >>](07-workbench-guide.md)
+[Domů](../../README.md) | [<< Předchozí: Pracovní postup s DayZ Tools](05-dayz-tools.md) | **Balení PBO** | [Další: Průvodce Workbench >>](07-workbench-guide.md)
 
 ---
 
 ## Úvod
 
-A **PBO** (Packed Bank of Objects) is DayZ's archive format -- the equivalent of a `.zip` file for game content. Every mod the game loads is delivered as one or more PBO files. When hráč subscribes to a mod on Steam Workshop, they download PBOs. Když server loads mods, it reads PBOs. The PBO is the final deliverable of the celý modding pipeline.
+**PBO** (Packed Bank of Objects) je archivní formát DayZ -- ekvivalent souboru `.zip` pro herní obsah. Každý mod, který hra načítá, je dodáván jako jeden nebo více souborů PBO. Když se hráč přihlásí k odběru modu na Steam Workshopu, stahuje PBO. Když server načítá mody, čte PBO. PBO je konečný výstup celé moddingové pipeline.
 
-Understanding how to create PBOs správně -- when to binarize, how to set prefixes, how to structure the output, and how to automate the process -- is the last step mezi your zdrojový soubors and a working mod. This chapter covers každýthing from the basic concept through advanced automated build workflows.
+Pochopení, jak správně vytvářet PBO -- kdy binarizovat, jak nastavit prefixy, jak strukturovat výstup a jak automatizovat proces -- je posledním krokem mezi vašimi zdrojovými soubory a funkčním modem. Tato kapitola pokrývá vše od základního konceptu po pokročilé automatizované build postupy.
 
 ---
 
 ## Obsah
 
-- [What is a PBO?](#what-is-a-pbo)
-- [PBO Internal Structure](#pbo-interní-structure)
-- [AddonBuilder: The Packing Tool](#addonbuilder-the-packing-tool)
-- [The -packonly Flag](#the--packonly-flag)
-- [The -prefix Flag](#the--prefix-flag)
-- [Binarization: When Needed vs. Not](#binarization-when-needed-vs-not)
-- [Key Signing](#key-signing)
-- [@mod Folder Structure](#mod-folder-structure)
-- [Automated Sestavte Scripts](#automated-build-scripts)
-- [Multi-PBO Mod Builds](#multi-pbo-mod-builds)
-- [Běžné Sestavte Errors and Solutions](#common-build-errors-and-solutions)
-- [Testing: File Patching vs. PBO Loading](#testing-file-patching-vs-pbo-loading)
-- [Best Practices](#best-practices)
+- [Co je PBO?](#co-je-pbo)
+- [Interní struktura PBO](#interní-struktura-pbo)
+- [AddonBuilder: Nástroj pro balení](#addonbuilder-nástroj-pro-balení)
+- [Příznak -packonly](#příznak--packonly)
+- [Příznak -prefix](#příznak--prefix)
+- [Binarizace: kdy je potřeba a kdy ne](#binarizace-kdy-je-potřeba-a-kdy-ne)
+- [Podepisování klíčem](#podepisování-klíčem)
+- [Struktura složky @mod](#struktura-složky-mod)
+- [Automatizované build skripty](#automatizované-build-skripty)
+- [Buildy modů s více PBO](#buildy-modů-s-více-pbo)
+- [Časté chyby buildu a řešení](#časté-chyby-buildu-a-řešení)
+- [Testování: File Patching vs. načítání PBO](#testování-file-patching-vs-načítání-pbo)
+- [Osvědčené postupy](#osvědčené-postupy)
 
 ---
 
-## What is a PBO?
+## Co je PBO?
 
-A PBO is a flat archive file that contains a directory tree of game assets. It has no compression (unlike ZIP) -- files inside are stored at their original size. The "packing" is purely organizational: mnoho files become one file with an interní path structure.
+PBO je plochý archivní soubor, který obsahuje adresářový strom herních assetů. Neobsahuje kompresi (na rozdíl od ZIP) -- soubory uvnitř jsou uloženy v původní velikosti. "Balení" je čistě organizační: mnoho souborů se stane jedním souborem s interní strukturou cest.
 
-### Key Characteristics
+### Klíčové charakteristiky
 
-- **No compression:** Files are stored verbatim. The PBO's size equals the sum of its contents plus a small header.
-- **Flat header:** A list of file entries with paths, sizes, and offsets.
-- **Prefix metadata:** Each PBO declares an interní path prefix that maps its contents into engine's virtual filesystem.
-- **Read-only za běhu:** Engine reads from PBOs but nikdy writes to them.
-- **Signed for multiplayer:** PBOs can be signed with a Bohemia-style key pair for server signature verification.
+- **Bez komprese:** Soubory jsou uloženy doslovně. Velikost PBO se rovná součtu jeho obsahu plus malé záhlaví.
+- **Ploché záhlaví:** Seznam položek souborů s cestami, velikostmi a offsety.
+- **Metadata prefixu:** Každé PBO deklaruje interní prefix cesty, který mapuje jeho obsah do virtuálního souborového systému enginu.
+- **Pouze ke čtení za běhu:** Engine čte z PBO, ale nikdy do nich nezapisuje.
+- **Podepsané pro multiplayer:** PBO mohou být podepsány párem klíčů ve stylu Bohemia pro ověření podpisů serverem.
 
-### Why PBOs Instead of Loose Files
+### Proč PBO místo volných souborů
 
-- **Distribution:** One file per mod component is simpler than thousands of loose files.
-- **Integrity:** Key signing ensures the mod has not been tampered with.
-- **Výkon:** Engine's file I/O is optimized for reading from PBOs.
-- **Organization:** The prefix system ensures no path collisions mezi mods.
+- **Distribuce:** Jeden soubor na komponentu modu je jednodušší než tisíce volných souborů.
+- **Integrita:** Podepisování klíčem zajišťuje, že mod nebyl pozměněn.
+- **Výkon:** I/O operace enginu jsou optimalizovány pro čtení z PBO.
+- **Organizace:** Systém prefixů zajišťuje, že nedojde ke kolizím cest mezi mody.
 
 ---
 
-## PBO Internal Structure
+## Interní struktura PBO
 
-Když open a PBO (using a přílišl like PBO Manager or MikeroTools), you viz a directory tree:
+Když otevřete PBO (pomocí nástroje jako PBO Manager nebo MikeroTools), uvidíte adresářový strom:
 
 ```
 MyMod.pbo
-  $PBOPREFIX$                    <-- Text file containing the prefix path
-  config.bin                      <-- Binarized config.cpp (or config.cpp if -packonly)
+  $PBOPREFIX$                    <-- Textový soubor obsahující cestu prefixu
+  config.bin                      <-- Binarizovaný config.cpp (nebo config.cpp při -packonly)
   Scripts/
     3_Game/
       MyConstants.c
@@ -68,7 +68,7 @@ MyMod.pbo
       MyUI.c
   data/
     models/
-      my_item.p3d                 <-- Binarized ODOL (or MLOD if -packonly)
+      my_item.p3d                 <-- Binarizovaný ODOL (nebo MLOD při -packonly)
     textures/
       my_item_co.paa
       my_item_nohq.paa
@@ -84,47 +84,47 @@ MyMod.pbo
 
 ### $PBOPREFIX$
 
-The `$PBOPREFIX$` file is a tiny text file at the root of the PBO that declares the mod's path prefix. Například:
+Soubor `$PBOPREFIX$` je malý textový soubor v kořenu PBO, který deklaruje prefix cesty modu. Například:
 
 ```
 MyMod
 ```
 
-This tells engine: "When některéthing references `MyMod\data\textures\my_item_co.paa`, look inside this PBO at `data\textures\my_item_co.paa`."
+To říká enginu: "Když něco odkazuje na `MyMod\data\textures\my_item_co.paa`, hledej uvnitř tohoto PBO na `data\textures\my_item_co.paa`."
 
 ### config.bin vs. config.cpp
 
-- **config.bin:** Binarized (binary) version of config.cpp, created by Binarize. Faster to parse at load time.
-- **config.cpp:** The original text-format configuration. Works in engine but is slightly slower to parse.
+- **config.bin:** Binarizovaná (binární) verze config.cpp, vytvořená Binarize. Rychlejší parsování při načítání.
+- **config.cpp:** Původní textový formát konfigurace. Funguje v enginu, ale je mírně pomalejší na parsování.
 
-Když build with binarization, config.cpp becomes config.bin. Když use `-packonly`, config.cpp is included as-is.
+Když buildíte s binarizací, config.cpp se stane config.bin. Když použijete `-packonly`, config.cpp je zahrnut tak, jak je.
 
 ---
 
-## AddonBuilder: The Packing Tool
+## AddonBuilder: Nástroj pro balení
 
-**AddonBuilder** is Bohemia's official PBO packing přílišl, included with DayZ Tools. It can operate in GUI mode or command-line mode.
+**AddonBuilder** je oficiální nástroj Bohemia pro balení PBO, zahrnutý v DayZ Tools. Může pracovat v GUI režimu nebo v režimu příkazového řádku.
 
-### GUI Mode
+### GUI režim
 
-1. Spusťte AddonBuilder from DayZ Tools Launcher.
-2. **Source directory:** Browse to your mod folder on P: (e.g., `P:\MyMod`).
-3. **Output directory:** Browse to your output folder (e.g., `P:\output`).
+1. Spusťte AddonBuilder z DayZ Tools Launcheru.
+2. **Source directory:** Procházejte do složky vašeho modu na P: (např. `P:\MyMod`).
+3. **Output directory:** Procházejte do vaší výstupní složky (např. `P:\output`).
 4. **Options:**
-   - **Binarize:** Zkontrolujte to run Binarize on content (converts P3D, textures, configs).
-   - **Sign:** Zkontrolujte and select a key to sign the PBO.
-   - **Prefix:** Enter the mod prefix (e.g., `MyMod`).
-5. Klikněte **Pack**.
+   - **Binarize:** Zaškrtněte pro spuštění Binarize na obsahu (konvertuje P3D, textury, configy).
+   - **Sign:** Zaškrtněte a vyberte klíč pro podepsání PBO.
+   - **Prefix:** Zadejte prefix modu (např. `MyMod`).
+5. Klikněte na **Pack**.
 
-### Command-Line Mode
+### Režim příkazového řádku
 
-Command-line mode is preferred for automated builds:
+Režim příkazového řádku je preferován pro automatizované buildy:
 
 ```bash
 AddonBuilder.exe [source_path] [output_path] [options]
 ```
 
-**Full example:**
+**Kompletní příklad:**
 ```bash
 "P:\DayZ Tools\Bin\AddonBuilder\AddonBuilder.exe" ^
     "P:\MyMod" ^
@@ -133,166 +133,166 @@ AddonBuilder.exe [source_path] [output_path] [options]
     -sign="P:\keys\MyKey"
 ```
 
-### Command-Line Options
+### Možnosti příkazového řádku
 
-| Flag | Description |
-|------|-------------|
-| `-prefix=<path>` | Nastavte the PBO interní prefix (critical for path resolution) |
-| `-packonly` | Skip binarization, pack files as-is |
-| `-sign=<key_path>` | Sign the PBO with the specified BI key (private key path, no extension) |
-| `-include=<path>` | Zahrňte file list -- pouze pack files matching this filter |
-| `-exclude=<path>` | Exclude file list -- skip files matching this filter |
-| `-binarize=<path>` | Path to Binarize.exe (if not in výchozí location) |
-| `-temp=<path>` | Temporary directory for Binarize output |
-| `-clear` | Clear output directory before packing |
-| `-project=<path>` | Project drive path (usually `P:\`) |
+| Příznak | Popis |
+|---------|-------|
+| `-prefix=<path>` | Nastaví interní prefix PBO (kritický pro rozlišení cest) |
+| `-packonly` | Přeskočí binarizaci, zabalí soubory tak, jak jsou |
+| `-sign=<key_path>` | Podepíše PBO specifikovaným BI klíčem (cesta k privátnímu klíči, bez přípony) |
+| `-include=<path>` | Seznam zahrnutých souborů -- zabalí pouze soubory odpovídající tomuto filtru |
+| `-exclude=<path>` | Seznam vyloučených souborů -- přeskočí soubory odpovídající tomuto filtru |
+| `-binarize=<path>` | Cesta k Binarize.exe (pokud není ve výchozím umístění) |
+| `-temp=<path>` | Dočasný adresář pro výstup Binarize |
+| `-clear` | Vyčistí výstupní adresář před balením |
+| `-project=<path>` | Cesta k projektovému disku (obvykle `P:\`) |
 
 ---
 
-## The -packonly Flag
+## Příznak -packonly
 
-The `-packonly` flag is one of the většina důležitý options in AddonBuilder. It tells the přílišl to skip all binarization and pack the zdrojový soubors exactly as they are.
+Příznak `-packonly` je jednou z nejdůležitějších možností v AddonBuilderu. Říká nástroji, aby přeskočil veškerou binarizaci a zabalil zdrojové soubory přesně tak, jak jsou.
 
-### When to Use -packonly
+### Kdy použít -packonly
 
-| Mod Content | Use -packonly? | Reason |
-|-------------|---------------|--------|
-| Scripts pouze (.c files) | **Yes** | Scripts are nikdy binarized |
-| UI layouts (.layout) | **Yes** | Layouts are nikdy binarized |
-| Audio pouze (.ogg) | **Yes** | OGG is již game-ready |
-| Pre-converted textures (.paa) | **Yes** | Already in final format |
-| Config.cpp (no CfgVehicles) | **Yes** | Simple configs work unbinarized |
-| Config.cpp (with CfgVehicles) | **No** | Item definitions require binarized config |
-| P3D models (MLOD) | **No** | Should be binarized to ODOL for performance |
-| TGA/PNG textures (need conversion) | **No** | Must be converted to PAA |
+| Obsah modu | Použít -packonly? | Důvod |
+|------------|-------------------|-------|
+| Pouze skripty (.c soubory) | **Ano** | Skripty se nikdy nebinarizují |
+| UI layouty (.layout) | **Ano** | Layouty se nikdy nebinarizují |
+| Pouze audio (.ogg) | **Ano** | OGG je již připravený pro hru |
+| Předem konvertované textury (.paa) | **Ano** | Již v konečném formátu |
+| Config.cpp (bez CfgVehicles) | **Ano** | Jednoduché configy fungují nebinarizované |
+| Config.cpp (s CfgVehicles) | **Ne** | Definice předmětů vyžadují binarizovaný config |
+| P3D modely (MLOD) | **Ne** | Měly by být binarizovány do ODOL pro výkon |
+| TGA/PNG textury (potřebují konverzi) | **Ne** | Musí být konvertovány do PAA |
 
-### Practical Guidance
+### Praktické vodítko
 
-For a **script-only mod** (like a framework or utility mod with no vlastní items):
+Pro **mod obsahující pouze skripty** (jako framework nebo utilitní mod bez vlastních předmětů):
 ```bash
 AddonBuilder.exe "P:\MyScriptMod" "P:\output" -prefix="MyScriptMod" -packonly
 ```
 
-For an **item mod** (weapons, clothing, vehicles with models and textures):
+Pro **mod předmětů** (zbraně, oblečení, vozidla s modely a texturami):
 ```bash
 AddonBuilder.exe "P:\MyItemMod" "P:\output" -prefix="MyItemMod" -sign="P:\keys\MyKey"
 ```
 
-> **Tip:** Many mods split into více PBOs precisely to optimize the build process. Script PBOs use `-packonly` (fast), while data PBOs with models and textures get plný binarization (slower but nutný).
+> **Tip:** Mnoho modů se dělí do více PBO právě kvůli optimalizaci procesu buildu. Skriptová PBO používají `-packonly` (rychlé), zatímco datová PBO s modely a texturami procházejí plnou binarizací (pomalejší, ale nezbytná).
 
 ---
 
-## The -prefix Flag
+## Příznak -prefix
 
-The `-prefix` flag sets the PBO's interní path prefix, which is written to the `$PBOPREFIX$` file inside the PBO. This prefix is critical -- it determines how engine resolves paths to content inside the PBO.
+Příznak `-prefix` nastavuje interní prefix cesty PBO, který je zapsán do souboru `$PBOPREFIX$` uvnitř PBO. Tento prefix je kritický -- určuje, jak engine rozlišuje cesty k obsahu uvnitř PBO.
 
-### How Prefix Works
+### Jak prefix funguje
 
 ```
-Source: P:\MyMod\data\textures\item_co.paa
+Zdroj: P:\MyMod\data\textures\item_co.paa
 Prefix: MyMod
-PBO internal path: data\textures\item_co.paa
+Interní cesta PBO: data\textures\item_co.paa
 
-Engine resolution: MyMod\data\textures\item_co.paa
-  --> Looks in MyMod.pbo for: data\textures\item_co.paa
-  --> Found!
+Rozlišení enginem: MyMod\data\textures\item_co.paa
+  --> Hledá v MyMod.pbo: data\textures\item_co.paa
+  --> Nalezeno!
 ```
 
-### Multi-Level Prefixes
+### Víceúrovňové prefixy
 
-For mods that use a subfolder structure, the prefix can include více levels:
+Pro mody, které používají strukturu podsložek, může prefix obsahovat více úrovní:
 
 ```bash
-# Source on P: drive
+# Zdroj na disku P:
 P:\MyMod\MyMod\Scripts\3_Game\MyClass.c
 
-# If prefix is "MyMod\MyMod\Scripts"
-# PBO internal: 3_Game\MyClass.c
-# Engine path: MyMod\MyMod\Scripts\3_Game\MyClass.c
+# Pokud je prefix "MyMod\MyMod\Scripts"
+# Interní PBO: 3_Game\MyClass.c
+# Cesta enginu: MyMod\MyMod\Scripts\3_Game\MyClass.c
 ```
 
-### Prefix Must Match References
+### Prefix musí odpovídat referencím
 
-Pokud váš config.cpp references `MyMod\data\texture_co.paa`, then the PBO containing that texture must have prefix `MyMod` and soubor must be at `data\texture_co.paa` inside the PBO. A mismatch causes engine to fail to find soubor.
+Pokud váš config.cpp odkazuje na `MyMod\data\texture_co.paa`, pak PBO obsahující tuto texturu musí mít prefix `MyMod` a soubor musí být na `data\texture_co.paa` uvnitř PBO. Nesoulad způsobí, že engine soubor nenajde.
 
-### Běžné Prefix Patterns
+### Běžné vzory prefixů
 
-| Mod Structure | Source Path | Prefix | Config Reference |
-|---------------|-------------|--------|-----------------|
-| Simple mod | `P:\MyMod\` | `MyMod` | `MyMod\data\item.p3d` |
-| Namespaced mod | `P:\MyMod_Weapons\` | `MyMod_Weapons` | `MyMod_Weapons\data\rifle.p3d` |
-| Script sub-package | `P:\MyFramework\MyMod\Scripts\` | `MyFramework\MyMod\Scripts` | (referenced via config.cpp `CfgMods`) |
-
----
-
-## Binarization: When Needed vs. Not
-
-Binarization is the conversion of human-readable zdrojový formáts into engine-optimized binary formats. It is the většina time-consuming step in the build process and the většina common source of build errors.
-
-### What Gets Binarized
-
-| File Type | Binarized To | Required? |
-|-----------|-------------|-----------|
-| `config.cpp` | `config.bin` | Required for mods defining items (CfgVehicles, CfgWeapons) |
-| `.p3d` (MLOD) | `.p3d` (ODOL) | Recommended -- ODOL loads faster and is smaller |
-| `.tga` / `.png` | `.paa` | Required -- engine needs PAA za běhu |
-| `.edds` | `.paa` | Required -- stejný as výše |
-| `.rvmat` | `.rvmat` (processed) | Paths resolved, minor optimization |
-| `.wrp` | `.wrp` (optimized) | Required for terrain/map mods |
-
-### What is NOT Binarized
-
-| File Type | Reason |
-|-----------|--------|
-| `.c` scripts | Scripts are loaded as text by engine |
-| `.ogg` audio | Already in game-ready format |
-| `.layout` files | Already in game-ready format |
-| `.paa` textures | Already in final format (pre-converted) |
-| `.json` data | Přečtěte as text by script code |
-
-### Config.cpp Binarization Details
-
-Config.cpp binarization is the step většina modders encounter issues with. The binarizer parses the config.cpp text, platnýates its structure, resolves inheritance chains, and outputs a binary config.bin.
-
-**When binarization je povinný for config.cpp:**
-- The config defines `CfgVehicles` entries (items, weapons, vehicles, buildings).
-- The config defines `CfgWeapons` entries.
-- The config defines entries that reference models or textures.
-
-**When binarization is NOT povinný:**
-- The config pouze defines `CfgPatches` and `CfgMods` (mod registration).
-- The config pouze defines sound configurations.
-- Script-only mods with minimal config.
-
-> **Rule of thumb:** Pokud váš config.cpp adds physical items to the herní svět, potřebujete binarization. If it pouze registers scripts and defines non-item data, `-packonly` works fine.
+| Struktura modu | Zdrojová cesta | Prefix | Reference v configu |
+|----------------|----------------|--------|---------------------|
+| Jednoduchý mod | `P:\MyMod\` | `MyMod` | `MyMod\data\item.p3d` |
+| Mod s prostorem jmen | `P:\MyMod_Weapons\` | `MyMod_Weapons` | `MyMod_Weapons\data\rifle.p3d` |
+| Skriptový pod-balíček | `P:\MyFramework\MyMod\Scripts\` | `MyFramework\MyMod\Scripts` | (odkazováno přes config.cpp `CfgMods`) |
 
 ---
 
-## Key Signing
+## Binarizace: kdy je potřeba a kdy ne
 
-PBOs can be signed with a cryptographic key pair. Servers use signature verification to ensure all connected clients have the stejný (unmodified) mod files.
+Binarizace je konverze lidsky čitelných zdrojových formátů do binárních formátů optimalizovaných pro engine. Je to nejčasově náročnější krok v procesu buildu a nejčastější zdroj chyb buildu.
 
-### Key Pair Components
+### Co se binarizuje
 
-| File | Extension | Purpose | Who Has It |
-|------|-----------|---------|------------|
-| Private key | `.biprivatekey` | Signs PBOs during build | Mod author pouze (KEEP SECRET) |
-| Public key | `.bikey` | Verifies signatures | Server admins, distributed with mod |
+| Typ souboru | Binarizuje se na | Povinné? |
+|-------------|------------------|----------|
+| `config.cpp` | `config.bin` | Povinné pro mody definující předměty (CfgVehicles, CfgWeapons) |
+| `.p3d` (MLOD) | `.p3d` (ODOL) | Doporučeno -- ODOL se načítá rychleji a je menší |
+| `.tga` / `.png` | `.paa` | Povinné -- engine potřebuje PAA za běhu |
+| `.edds` | `.paa` | Povinné -- stejné jako výše |
+| `.rvmat` | `.rvmat` (zpracovaný) | Vyřešení cest, menší optimalizace |
+| `.wrp` | `.wrp` (optimalizovaný) | Povinné pro mody terénů/map |
 
-### Generating Keys
+### Co se NEBINARIZUJE
 
-Use DayZ Tools' **DSSignFile** or **DSCreateKey** utilities:
+| Typ souboru | Důvod |
+|-------------|-------|
+| `.c` skripty | Skripty se načítají jako text enginem |
+| `.ogg` audio | Již ve formátu připraveném pro hru |
+| `.layout` soubory | Již ve formátu připraveném pro hru |
+| `.paa` textury | Již v konečném formátu (předem konvertované) |
+| `.json` data | Čteny jako text skriptovým kódem |
+
+### Detaily binarizace Config.cpp
+
+Binarizace config.cpp je krok, se kterým se většina modderů setkává s problémy. Binarizér parsuje text config.cpp, validuje jeho strukturu, řeší řetězce dědičnosti a výstupem je binární config.bin.
+
+**Kdy je binarizace povinná pro config.cpp:**
+- Config definuje položky `CfgVehicles` (předměty, zbraně, vozidla, budovy).
+- Config definuje položky `CfgWeapons`.
+- Config definuje položky, které odkazují na modely nebo textury.
+
+**Kdy binarizace NENÍ povinná:**
+- Config pouze definuje `CfgPatches` a `CfgMods` (registrace modu).
+- Config pouze definuje zvukové konfigurace.
+- Mody obsahující pouze skripty s minimálním configem.
+
+> **Pravidlo:** Pokud váš config.cpp přidává fyzické předměty do herního světa, potřebujete binarizaci. Pokud pouze registruje skripty a definuje data, která nejsou předměty, `-packonly` funguje bez problémů.
+
+---
+
+## Podepisování klíčem
+
+PBO mohou být podepsány kryptografickým párem klíčů. Servery používají ověření podpisů k zajištění, že všichni připojení klienti mají stejné (nemodifikované) soubory modů.
+
+### Komponenty páru klíčů
+
+| Soubor | Přípona | Účel | Kdo ho má |
+|--------|---------|------|-----------|
+| Privátní klíč | `.biprivatekey` | Podepisuje PBO během buildu | Pouze autor modu (UCHOVÁVEJTE V TAJNOSTI) |
+| Veřejný klíč | `.bikey` | Ověřuje podpisy | Administrátoři serverů, distribuováno s modem |
+
+### Generování klíčů
+
+Použijte utility **DSSignFile** nebo **DSCreateKey** z DayZ Tools:
 
 ```bash
-# Generate a key pair
+# Generování páru klíčů
 DSCreateKey.exe MyModKey
 
-# This creates:
-#   MyModKey.biprivatekey   (keep secret, do not distribute)
-#   MyModKey.bikey          (distribute to server admins)
+# Toto vytvoří:
+#   MyModKey.biprivatekey   (uchovávejte v tajnosti, nedistribuujte)
+#   MyModKey.bikey          (distribuujte administrátorům serverů)
 ```
 
-### Signing Během Build
+### Podepisování během buildu
 
 ```bash
 AddonBuilder.exe "P:\MyMod" "P:\output" ^
@@ -300,42 +300,42 @@ AddonBuilder.exe "P:\MyMod" "P:\output" ^
     -sign="P:\keys\MyModKey"
 ```
 
-This produces:
+Toto vytvoří:
 ```
 P:\output\
   MyMod.pbo
-  MyMod.pbo.MyModKey.bisign    <-- Signature file
+  MyMod.pbo.MyModKey.bisign    <-- Soubor podpisu
 ```
 
-### Server-Side Key Installation
+### Instalace klíče na straně serveru
 
-Server admins place the public key (`.bikey`) in server's `keys/` directory:
+Administrátoři serverů umístí veřejný klíč (`.bikey`) do adresáře `keys/` serveru:
 
 ```
 DayZServer/
   keys/
-    MyModKey.bikey             <-- Allows clients with this mod to connect
+    MyModKey.bikey             <-- Povolí klientům s tímto modem připojení
 ```
 
 ---
 
-## @mod Folder Structure
+## Struktura složky @mod
 
-DayZ expects mods to be organized in a specifický directory structure using the `@` prefix convention:
+DayZ očekává, že mody budou organizovány ve specifické adresářové struktuře s konvencí prefixu `@`:
 
 ```
 @MyMod/
   addons/
-    MyMod.pbo                  <-- Packed mod content
-    MyMod.pbo.MyKey.bisign     <-- PBO signature (optional)
+    MyMod.pbo                  <-- Zabalený obsah modu
+    MyMod.pbo.MyKey.bisign     <-- Podpis PBO (volitelné)
   keys/
-    MyKey.bikey                <-- Public key for servers (optional)
-  mod.cpp                      <-- Mod metadata
+    MyKey.bikey                <-- Veřejný klíč pro servery (volitelné)
+  mod.cpp                      <-- Metadata modu
 ```
 
 ### mod.cpp
 
-The `mod.cpp` file provides metadata displayed in the DayZ launcher:
+Soubor `mod.cpp` poskytuje metadata zobrazená v launcheru DayZ:
 
 ```cpp
 name = "My Awesome Mod";
@@ -344,44 +344,44 @@ version = "1.0.0";
 url = "https://steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXX";
 ```
 
-### Multi-PBO Mods
+### Mody s více PBO
 
-Large mods často split into více PBOs within a jeden `@mod` folder:
+Velké mody se často dělí do více PBO v rámci jedné složky `@mod`:
 
 ```
 @MyFramework/
   addons/
-    MyMod_Core_Scripts.pbo        <-- Script layer
-    MyMod_Core_Data.pbo           <-- Textures, models, materials
-    MyMod_Core_GUI.pbo            <-- Layout files, imagesets
+    MyMod_Core_Scripts.pbo        <-- Vrstva skriptů
+    MyMod_Core_Data.pbo           <-- Textury, modely, materiály
+    MyMod_Core_GUI.pbo            <-- Soubory layoutů, imagesety
   keys/
     MyMod.bikey
   mod.cpp
 ```
 
-### Loading Mods
+### Načítání modů
 
-Mods are loaded via the `-mod` parameter:
+Mody se načítají přes parametr `-mod`:
 
 ```bash
-# Single mod
+# Jeden mod
 DayZDiag_x64.exe -mod="@MyMod"
 
-# Multiple mods (semicolon-separated)
+# Více modů (oddělené středníkem)
 DayZDiag_x64.exe -mod="@MyFramework;@MyMod_Weapons;@MyMod_Missions"
 ```
 
-The `@` folder musí být in the game's root directory, or an absolute path musí být provided.
+Složka `@` musí být v kořenovém adresáři hry, nebo musí být poskytnuta absolutní cesta.
 
 ---
 
-## Automated Sestavte Scripts
+## Automatizované build skripty
 
-Manual PBO packing through AddonBuilder's GUI is acceptable for small, simple mods. For larger projects with více PBOs, automated build scripts are essential.
+Ruční balení PBO přes GUI AddonBuilderu je přijatelné pro malé, jednoduché mody. Pro větší projekty s více PBO jsou automatizované build skripty nezbytné.
 
-### Batch Script Pattern
+### Vzor batch skriptu
 
-A typical `build_pbos.bat`:
+Typický `build_pbos.bat`:
 
 ```batch
 @echo off
@@ -401,9 +401,9 @@ echo === Build Complete ===
 pause
 ```
 
-### Python Sestavte Script Pattern (dev.py)
+### Vzor Python build skriptu (dev.py)
 
-For more sophisticated builds, a Python script provides better error handling, logging, and conditional logic:
+Pro sofistikovanější buildy poskytuje Python skript lepší zpracování chyb, logování a podmíněnou logiku:
 
 ```python
 import subprocess
@@ -472,190 +472,190 @@ if __name__ == "__main__":
     main()
 ```
 
-### Integration with dev.py
+### Integrace s dev.py
 
-The MyMod project uses `dev.py` as the central build orchestrator:
+Projekt MyMod používá `dev.py` jako centrální build orchestrátor:
 
 ```bash
-python dev.py build          # Build all PBOs
-python dev.py server         # Build + launch server + monitor logs
-python dev.py full           # Build + server + client
+python dev.py build          # Build všech PBO
+python dev.py server         # Build + spuštění serveru + monitoring logů
+python dev.py full           # Build + server + klient
 ```
 
-This pattern je doporučeno for jakýkoli multi-mod workspace. A jeden command builds každýthing, launches server, and starts monitoring -- eliminating manual steps and reducing human error.
+Tento vzor je doporučen pro jakýkoli workspace s více mody. Jeden příkaz buildí vše, spustí server a zahájí monitoring -- eliminuje ruční kroky a snižuje lidské chyby.
 
 ---
 
-## Multi-PBO Mod Builds
+## Buildy modů s více PBO
 
-Large mods benefit from splitting into více PBOs. This has several advantages:
+Velké mody těží z rozdělení do více PBO. To má několik výhod:
 
-### Why Split into Multiple PBOs
+### Proč dělit do více PBO
 
-1. **Faster rebuilds.** Pokud change pouze a script, rebuild pouze the script PBO (with `-packonly`, which takes seconds). The data PBO (with binarization) takes minutes and ne need rebuilding.
-2. **Modular loading.** Server-only PBOs can be excluded from client downloads.
-3. **Cleaner organization.** Scripts, data, and GUI are clearly oddělenýd.
-4. **Parallel builds.** Independent PBOs can be built současně.
+1. **Rychlejší rebuildy.** Pokud změníte pouze skript, rebuildíte pouze skriptové PBO (s `-packonly`, což trvá sekundy). Datové PBO (s binarizací) trvá minuty a nepotřebuje rebuilding.
+2. **Modulární načítání.** Serverová PBO mohou být vyloučena ze stahování klienty.
+3. **Čistší organizace.** Skripty, data a GUI jsou jasně odděleny.
+4. **Paralelní buildy.** Nezávislá PBO mohou být buildována současně.
 
-### Typical Split Pattern
+### Typický vzor rozdělení
 
 ```
 @MyMod/
   addons/
-    MyMod_Core.pbo           <-- config.cpp, CfgPatches (binarized)
-    MyMod_Scripts.pbo         <-- All .c script files (-packonly)
-    MyMod_Data.pbo            <-- Models, textures, materials (binarized)
-    MyMod_GUI.pbo             <-- Layouts, imagesets (-packonly)
-    MyMod_Sounds.pbo          <-- OGG audio files (-packonly)
+    MyMod_Core.pbo           <-- config.cpp, CfgPatches (binarizované)
+    MyMod_Scripts.pbo         <-- Všechny .c skriptové soubory (-packonly)
+    MyMod_Data.pbo            <-- Modely, textury, materiály (binarizované)
+    MyMod_GUI.pbo             <-- Layouty, imagesety (-packonly)
+    MyMod_Sounds.pbo          <-- OGG audio soubory (-packonly)
 ```
 
-### Dependency Mezi PBOs
+### Závislosti mezi PBO
 
-When one PBO depends on další (e.g., scripts reference items defined in the config PBO), the `povinnýAddons[]` in `CfgPatches` ensures correct pořadí načítání:
+Když jedno PBO závisí na jiném (např. skripty odkazují na předměty definované v config PBO), `requiredAddons[]` v `CfgPatches` zajišťuje správné pořadí načítání:
 
 ```cpp
-// In MyMod_Scripts config.cpp
+// V MyMod_Scripts config.cpp
 class CfgPatches
 {
     class MyMod_Scripts
     {
-        requiredAddons[] = {"MyMod_Core"};   // Load after the core PBO
+        requiredAddons[] = {"MyMod_Core"};   // Načíst po core PBO
     };
 };
 ```
 
 ---
 
-## Běžné Sestavte Errors and Solutions
+## Časté chyby buildu a řešení
 
-### Error: "Zahrňte file not found"
+### Chyba: "Include file not found"
 
-**Cause:** Config.cpp references a file (model, texture) that ne exist at the expected path.
-**Solution:** Ověřte soubor exists on P: at the exact path referenced. Zkontrolujte spelling and capitalization.
+**Příčina:** Config.cpp odkazuje na soubor (model, texturu), který neexistuje na očekávané cestě.
+**Řešení:** Ověřte, že soubor existuje na P: na přesné odkazované cestě. Zkontrolujte pravopis a velikost písmen.
 
-### Error: "Binarize failed" with no details
+### Chyba: "Binarize failed" bez detailů
 
-**Cause:** Binarize crashed on a corrupted or neplatný zdrojový soubor.
-**Solution:**
-1. Zkontrolujte which file Binarize was processing (look at its log output).
-2. Otevřete the problematic file in the appropriate přílišl (Object Builder for P3D, TexView2 for textures).
-3. Validate soubor.
-4. Běžné culprits: non-power-of-2 textures, corrupted P3D files, neplatný config.cpp syntax.
+**Příčina:** Binarize havaroval na poškozeném nebo neplatném zdrojovém souboru.
+**Řešení:**
+1. Zkontrolujte, který soubor Binarize zpracovával (podívejte se na výstup logu).
+2. Otevřete problematický soubor v příslušném nástroji (Object Builder pro P3D, TexView2 pro textury).
+3. Zvalidujte soubor.
+4. Běžní viníci: textury, které nejsou mocninou 2, poškozené soubory P3D, neplatná syntaxe config.cpp.
 
-### Error: "Addon requires addon X"
+### Chyba: "Addon requires addon X"
 
-**Cause:** CfgPatches `povinnýAddons[]` lists an addon that is not present.
-**Solution:** Either install the povinný addon, add it to the build, or remove the requirement if it is not actually needed.
+**Příčina:** `requiredAddons[]` v CfgPatches uvádí addon, který není přítomen.
+**Řešení:** Buď nainstalujte požadovaný addon, přidejte ho do buildu, nebo odstraňte požadavek, pokud není skutečně potřebný.
 
-### Error: Config.cpp parse error (line X)
+### Chyba: Chyba parsování Config.cpp (řádek X)
 
-**Cause:** Syntax error in config.cpp.
-**Solution:** Otevřete config.cpp in a text editor and check line X. Běžné issues:
-- Missing semicolons after class definitions.
-- Unclosed braces `{}`.
-- Missing quotes around string values.
-- Backslash at end of line (line continuation is not podporovaný).
+**Příčina:** Syntaktická chyba v config.cpp.
+**Řešení:** Otevřete config.cpp v textovém editoru a zkontrolujte řádek X. Běžné problémy:
+- Chybějící středníky po definicích tříd.
+- Neuzavřené závorky `{}`.
+- Chybějící uvozovky kolem řetězcových hodnot.
+- Zpětné lomítko na konci řádku (pokračování řádku není podporováno).
 
-### Error: PBO prefix mismatch
+### Chyba: Nesoulad prefixu PBO
 
-**Cause:** The prefix in the PBO ne match cestas used in config.cpp or materials.
-**Solution:** Zajistěte `-prefix` matches cesta structure expected by all references. If config.cpp references `MyMod\data\item.p3d`, the PBO prefix must be `MyMod` and soubor must be at `data\item.p3d` inside the PBO.
+**Příčina:** Prefix v PBO neodpovídá cestám použitým v config.cpp nebo materiálech.
+**Řešení:** Zajistěte, aby `-prefix` odpovídal struktuře cest očekávané všemi referencemi. Pokud config.cpp odkazuje na `MyMod\data\item.p3d`, prefix PBO musí být `MyMod` a soubor musí být na `data\item.p3d` uvnitř PBO.
 
-### Error: "Signature check failed" on server
+### Chyba: "Signature check failed" na serveru
 
-**Cause:** Client's PBO ne match server's expected signature.
-**Solution:**
-1. Zajistěte oba server and client have the stejný PBO version.
-2. Re-sign the PBO with a fresh key if needed.
-3. Aktualizujte the `.bikey` on server.
+**Příčina:** PBO klienta neodpovídá očekávanému podpisu serveru.
+**Řešení:**
+1. Zajistěte, aby server i klient měli stejnou verzi PBO.
+2. V případě potřeby znovu podepište PBO novým klíčem.
+3. Aktualizujte `.bikey` na serveru.
 
-### Error: "Cannot open file" during Binarize
+### Chyba: "Cannot open file" během Binarize
 
-**Cause:** P: drive is not mounted or soubor path is incorrect.
-**Solution:** Mount P: drive and verify the source path exists.
+**Příčina:** Disk P: není připojen nebo je cesta k souboru nesprávná.
+**Řešení:** Připojte disk P: a ověřte, že zdrojová cesta existuje.
 
 ---
 
-## Testing: File Patching vs. PBO Loading
+## Testování: File Patching vs. načítání PBO
 
-Development involves two testing modes. Choosing the right one for každý situation saves significant time.
+Vývoj zahrnuje dva testovací režimy. Volba správného pro každou situaci šetří značný čas.
 
-### File Patching (Development)
+### File Patching (Vývoj)
 
-| Aspect | Detail |
+| Aspekt | Detail |
 |--------|--------|
-| **Speed** | Instant -- edit file, restart game |
-| **Setup** | Mount P: drive, launch with `-filePatching` flag |
-| **Executable** | `DayZDiag_x64.exe` (Diag build povinný) |
-| **Signing** | Not applicable (no PBOs to sign) |
-| **Limitations** | No binarized configs, Diag build pouze |
-| **Best for** | Script development, UI iteration, rapid prototyping |
+| **Rychlost** | Okamžité -- editace souboru, restart hry |
+| **Nastavení** | Připojit disk P:, spustit s příznakem `-filePatching` |
+| **Spustitelný soubor** | `DayZDiag_x64.exe` (vyžadován Diag build) |
+| **Podepisování** | Neaplikuje se (žádná PBO k podepsání) |
+| **Omezení** | Žádné binarizované configy, pouze Diag build |
+| **Nejlepší pro** | Vývoj skriptů, iterace UI, rychlé prototypování |
 
-### PBO Loading (Release Testing)
+### Načítání PBO (Testování vydání)
 
-| Aspect | Detail |
+| Aspekt | Detail |
 |--------|--------|
-| **Speed** | Slower -- must rebuild PBO for každý change |
-| **Setup** | Sestavte PBO, place in `@mod/addons/` |
-| **Executable** | `DayZDiag_x64.exe` or retail `DayZ_x64.exe` |
-| **Signing** | Supported (povinný for multiplayer) |
-| **Limitations** | Rebuild povinný for každý change |
-| **Best for** | Final testing, multiplayer testing, release platnýation |
+| **Rychlost** | Pomalejší -- musí se rebuildovat PBO pro každou změnu |
+| **Nastavení** | Buildnout PBO, umístit do `@mod/addons/` |
+| **Spustitelný soubor** | `DayZDiag_x64.exe` nebo retailový `DayZ_x64.exe` |
+| **Podepisování** | Podporováno (povinné pro multiplayer) |
+| **Omezení** | Rebuild vyžadován pro každou změnu |
+| **Nejlepší pro** | Finální testování, multiplayerové testování, validace vydání |
 
-### Recommended Workflow
+### Doporučený pracovní postup
 
-1. **Develop with file patching:** Zapište scripts, adjust layouts, iterate on textures. Restart the game to test. No build step.
-2. **Sestavte PBOs periodically:** Testujte the binarized build to catch binarization-specific issues (config parse errors, texture conversion problems).
-3. **Final test with PBO pouze:** Před release, test exclusively from PBOs to ensure the packed mod works identicky to soubor-patched version.
-4. **Sign and distribute PBOs:** Generate signatures for multiplayer compatibility.
+1. **Vývoj s file patching:** Pište skripty, upravujte layouty, iterujte na texturách. Restartujte hru pro test. Žádný krok buildu.
+2. **Pravidelné buildy PBO:** Testujte binarizovaný build pro zachycení problémů specifických pro binarizaci (chyby parsování configu, problémy s konverzí textur).
+3. **Finální test pouze s PBO:** Před vydáním testujte výhradně z PBO, abyste zajistili, že zabalený mod funguje identicky jako file-patchovaná verze.
+4. **Podepište a distribuujte PBO:** Vygenerujte podpisy pro kompatibilitu s multiplayerem.
 
 ---
 
 ## Osvědčené postupy
 
-1. **Use `-packonly` for script PBOs.** Scripts are nikdy binarized, so `-packonly` is vždy correct and much faster.
+1. **Používejte `-packonly` pro skriptová PBO.** Skripty se nikdy nebinarizují, takže `-packonly` je vždy správné a mnohem rychlejší.
 
-2. **Vždy set a prefix.** Bez a prefix, engine cannot resolve paths to your mod's content. Every PBO must have a correct `-prefix`.
+2. **Vždy nastavte prefix.** Bez prefixu engine nemůže rozlišit cesty k obsahu vašeho modu. Každé PBO musí mít správný `-prefix`.
 
-3. **Automate your builds.** Vytvořte a build script (batch or Python) from day one. Manual packing ne scale and is error-prone.
+3. **Automatizujte vaše buildy.** Vytvořte build skript (batch nebo Python) od prvního dne. Ruční balení se neškáluje a je náchylné k chybám.
 
-4. **Udržujte source and output oddělený.** Source on P:, built PBOs in a oddělený output directory or `@mod/addons/`. Nikdy pack from the output directory.
+4. **Udržujte zdroj a výstup odděleně.** Zdroj na P:, buildnutá PBO v odděleném výstupním adresáři nebo `@mod/addons/`. Nikdy nebalte z výstupního adresáře.
 
-5. **Sign your PBOs for jakýkoli multiplayer testing.** Unsigned PBOs are rejected by servers with signature verification enabled. Sign during development dokonce if it seems unnecessary -- it prevents "works for me" issues when jinýs test.
+5. **Podepisujte vaše PBO pro jakékoli multiplayerové testování.** Nepodepsaná PBO jsou odmítnuta servery s povoleným ověřením podpisů. Podepisujte při vývoji, i když se to zdá zbytečné -- předchází problémům "u mě to funguje", když ostatní testují.
 
-6. **Version your keys.** Když make breaking changes, generate a nový key pair. This forces all clients and servers to update together.
+6. **Verzujte vaše klíče.** Když provádíte zásadní změny, vygenerujte nový pár klíčů. To donutí všechny klienty a servery aktualizovat společně.
 
-7. **Testujte oba file patching and PBO modes.** Some bugs pouze appear in one mode. Binarized configs behave odlišnýly from text configs in edge cases.
+7. **Testujte oba režimy -- file patching i PBO.** Některé chyby se objeví pouze v jednom režimu. Binarizované configy se chovají odlišně od textových configů v okrajových případech.
 
-8. **Clean your output directory regularly.** Stale PBOs from previous builds can cause confusing behavior. Use the `-clear` flag or ručně clean before building.
+8. **Pravidelně čistěte výstupní adresář.** Zastaralá PBO z předchozích buildů mohou způsobit matoucí chování. Používejte příznak `-clear` nebo ručně čistěte před buildem.
 
-9. **Split large mods into více PBOs.** The time saved on incremental rebuilds pays for itself within the first day of development.
+9. **Dělte velké mody do více PBO.** Ušetřený čas na inkrementálních rebuildech se vyplatí již během prvního dne vývoje.
 
-10. **Přečtěte the build logs.** Binarize and AddonBuilder produce log files. When některéthing goes wrong, the answer is almost vždy in the logs. Zkontrolujte `%TEMP%\AddonBuilder\` and `%TEMP%\Binarize\` for detailed output.
+10. **Čtěte logy buildu.** Binarize a AddonBuilder produkují log soubory. Když se něco pokazí, odpověď je téměř vždy v logách. Zkontrolujte `%TEMP%\AddonBuilder\` a `%TEMP%\Binarize\` pro podrobný výstup.
 
 ---
 
 ## Pozorováno v reálných modech
 
 | Vzor | Mod | Detail |
-|---------|-----|--------|
-| 20+ PBOs per mod with fine-grained splits | Expansion (all modules) | Splits into oddělený PBOs for Scripts, Data, GUI, Vehicles, Book, Market, etc., enabling nezávislý rebuilds and volitelný client/server separation |
-| Scripts/Data/GUI triple-split | StarDZ (Core, Missions, AI) | Každý mod produces 2-3 PBOs: `_Scripts.pbo` (packonly), `_Data.pbo` (binarized models/textures), `_GUI.pbo` (packonly layouts) |
-| Single monolithic PBO | Simple retexture mods | Small mods with pouze a config.cpp and a few PAA textures pack každýthing into one PBO with binarization |
-| Key versioning per major release | Expansion | Generates nový key pairs for breaking updates, forcing all clients and servers to update in sync |
+|------|-----|--------|
+| 20+ PBO na mod s jemným dělením | Expansion (všechny moduly) | Dělí se do oddělených PBO pro Scripts, Data, GUI, Vehicles, Book, Market atd., umožňující nezávislé rebuildy a volitelné oddělení klient/server |
+| Trojité dělení Scripts/Data/GUI | StarDZ (Core, Missions, AI) | Každý mod produkuje 2-3 PBO: `_Scripts.pbo` (packonly), `_Data.pbo` (binarizované modely/textury), `_GUI.pbo` (packonly layouty) |
+| Jedno monolitické PBO | Jednoduché retexture mody | Malé mody s pouze config.cpp a několika PAA texturami zabalí vše do jednoho PBO s binarizací |
+| Verzování klíčů per hlavní vydání | Expansion | Generuje nové páry klíčů pro zásadní aktualizace, čímž nutí všechny klienty a servery aktualizovat synchronně |
 
 ---
 
 ## Kompatibilita a dopad
 
-- **Více modů:** PBO prefix collisions cause engine to load one mod's files místo další's. Every mod must use a unique prefix. Zkontrolujte `$PBOPREFIX$` carefully when debugging "file not found" errors in multi-mod environments.
-- **Výkon:** PBO loading is fast (sequential file reads), but mods with mnoho large PBOs increase server startup time. Binarized content loads faster than unbinarized. Use ODOL models and PAA textures for release builds.
-- **Verze:** The PBO format itself has not changed. AddonBuilder receives periodic fixes via DayZ Tools updates, but the command-line flags and packing behavior have been stable since DayZ 1.0.
+- **Více modů:** Kolize prefixů PBO způsobí, že engine načte soubory jednoho modu místo druhého. Každý mod musí používat unikátní prefix. Pečlivě kontrolujte `$PBOPREFIX$` při ladění chyb "file not found" v prostředí s více mody.
+- **Výkon:** Načítání PBO je rychlé (sekvenční čtení souborů), ale mody s mnoha velkými PBO zvyšují dobu startu serveru. Binarizovaný obsah se načítá rychleji než nebinarizovaný. Používejte ODOL modely a PAA textury pro release buildy.
+- **Verze:** Formát PBO sám o sobě se nezměnil. AddonBuilder dostává periodické opravy přes aktualizace DayZ Tools, ale příznaky příkazového řádku a chování balení jsou stabilní od DayZ 1.0.
 
 ---
 
 ## Navigace
 
-| Previous | Up | Next |
-|----------|----|------|
-| [4.5 DayZ Tools Workflow](05-dayz-tools.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [Další: Workbench Guide](07-workbench-guide.md) |
+| Předchozí | Nahoru | Další |
+|-----------|--------|-------|
+| [4.5 Pracovní postup s DayZ Tools](05-dayz-tools.md) | [Část 4: Formáty souborů a DayZ Tools](01-textures.md) | [Další: Průvodce Workbench](07-workbench-guide.md) |

@@ -1,77 +1,77 @@
-# Chapter 4.7: Workbench Guide
+# Capitolo 4.7: Guida a Workbench
 
-[Home](../../README.md) | [<< Previous: PBO Packing](06-pbo-packing.md) | **Workbench Guide** | [Next: Building Modeling >>](08-building-modeling.md)
+[Home](../../README.md) | [<< Precedente: Impacchettamento PBO](06-pbo-packing.md) | **Guida a Workbench** | [Successivo: Modellazione di Edifici >>](08-building-modeling.md)
 
 ---
 
 ## Introduzione
 
-Workbench is Bohemia Interactive's integrated development environment for the Enfusion engine. It ships with DayZ Tools and is the only official tool that understands Enforce Script at a language level. While many modders write code in VS Code or other editors, Workbench remains indispensable for tasks no other tool can perform: attaching a debugger to a running DayZ instance, setting breakpoints, stepping through code, inspecting variables at runtime, previewing `.layout` UI files, browsing game resources, and running live script commands through the built-in console.
+Workbench è l'ambiente di sviluppo integrato di Bohemia Interactive per il motore Enfusion. È distribuito con DayZ Tools ed è l'unico strumento ufficiale che comprende l'Enforce Script a livello di linguaggio. Mentre molti modder scrivono codice in VS Code o altri editor, Workbench rimane indispensabile per compiti che nessun altro strumento può eseguire: collegare un debugger a un'istanza di DayZ in esecuzione, impostare breakpoint, avanzare nel codice passo passo, ispezionare le variabili a runtime, visualizzare l'anteprima dei file `.layout` dell'UI, esplorare le risorse di gioco ed eseguire comandi script live attraverso la console integrata.
 
 ---
 
-## Indice
+## Indice dei Contenuti
 
-- [What is Workbench?](#what-is-workbench)
-- [Installation and Setup](#installation-and-setup)
-- [Project Files (.gproj)](#project-files-gproj)
-- [The Workbench Interface](#the-workbench-interface)
-- [Script Editing](#script-editing)
-- [Debugging Scripts](#debugging-scripts)
-- [Script Console -- Live Testing](#script-console----live-testing)
-- [UI / Layout Preview](#ui--layout-preview)
-- [Resource Browser](#resource-browser)
-- [Performance Profiling](#performance-profiling)
-- [Integration with File Patching](#integration-with-file-patching)
-- [Common Workbench Issues](#common-workbench-issues)
-- [Tips and Best Practices](#tips-and-best-practices)
+- [Cos'è Workbench?](#cosè-workbench)
+- [Installazione e Configurazione](#installazione-e-configurazione)
+- [File di Progetto (.gproj)](#file-di-progetto-gproj)
+- [L'Interfaccia di Workbench](#linterfaccia-di-workbench)
+- [Modifica degli Script](#modifica-degli-script)
+- [Debug degli Script](#debug-degli-script)
+- [Console degli Script -- Test in Tempo Reale](#console-degli-script----test-in-tempo-reale)
+- [Anteprima UI / Layout](#anteprima-ui--layout)
+- [Browser delle Risorse](#browser-delle-risorse)
+- [Profilazione delle Prestazioni](#profilazione-delle-prestazioni)
+- [Integrazione con il File Patching](#integrazione-con-il-file-patching)
+- [Problemi Comuni di Workbench](#problemi-comuni-di-workbench)
+- [Suggerimenti e Buone Pratiche](#suggerimenti-e-buone-pratiche)
 
 ---
 
-## Cos'e Workbench?
+## Cos'è Workbench?
 
-Workbench is Bohemia's IDE for Enfusion engine development. It is the only tool in the DayZ Tools suite that can compile, analyze, and debug Enforce Script. It serves six purposes:
+Workbench è l'IDE di Bohemia per lo sviluppo con il motore Enfusion. È l'unico strumento nella suite DayZ Tools in grado di compilare, analizzare e fare il debug di Enforce Script. Serve a sei scopi:
 
 | Scopo | Descrizione |
-|---------|-------------|
-| **Script editing** | Sintassi highlighting, code completion, and error checking for `.c` files |
-| **Script debugging** | Breakpoints, variable inspection, call stack, step-through execution |
-| **Resource browsing** | Navigate and preview game assets -- models, textures, configs, layouts |
-| **UI / layout preview** | Visual preview of `.layout` widget hierarchies with property inspection |
-| **Performance profiling** | Script profiling, frame time analysis, memory monitoring |
-| **Script console** | Execute Enforce Script commands live against a running game instance |
+|-------|-------------|
+| **Modifica script** | Evidenziazione della sintassi, completamento del codice e controllo degli errori per i file `.c` |
+| **Debug degli script** | Breakpoint, ispezione delle variabili, stack delle chiamate, esecuzione passo passo |
+| **Esplorazione delle risorse** | Navigazione e anteprima delle risorse di gioco -- modelli, texture, config, layout |
+| **Anteprima UI / layout** | Anteprima visiva delle gerarchie di widget `.layout` con ispezione delle proprietà |
+| **Profilazione delle prestazioni** | Profilazione degli script, analisi del tempo per frame, monitoraggio della memoria |
+| **Console degli script** | Esecuzione di comandi Enforce Script dal vivo su un'istanza di gioco in esecuzione |
 
-Workbench uses the same Enfusion script compiler as DayZ itself. When Workbench reports a errore di compilazione, that error will also occur in-game -- making it a reliable pre-flight check before launching.
+Workbench utilizza lo stesso compilatore Enfusion Script di DayZ stesso. Quando Workbench segnala un errore di compilazione, quell'errore si verificherà anche in gioco -- rendendolo un controllo pre-volo affidabile prima del lancio.
 
-### Cosa NON e Workbench
+### Cosa NON è Workbench
 
-- **Not a general-purpose code editor.** It lacks refactoring tools, Git integration, multi-cursor editing, and the extension ecosystem of VS Code.
-- **Not a game launcher.** You still run `DayZDiag_x64.exe` separately; Workbench connects to it.
-- **Not required for building PBOs.** AddonBuilder and build scripts handle PBO packing independently.
+- **Non è un editor di codice generico.** Manca di strumenti di refactoring, integrazione Git, editing multi-cursore e l'ecosistema di estensioni di VS Code.
+- **Non è un launcher del gioco.** Si esegue comunque `DayZDiag_x64.exe` separatamente; Workbench si connette ad esso.
+- **Non è necessario per costruire i PBO.** AddonBuilder e gli script di build gestiscono l'impacchettamento dei PBO in modo indipendente.
 
 ---
 
 ## Installazione e Configurazione
 
-### Step 1: Install DayZ Tools
+### Passo 1: Installa DayZ Tools
 
-Workbench is included with DayZ Tools, distributed free through Steam. Open Steam Library, enable the **Tools** filter, search for **DayZ Tools**, and install (~2 GB).
+Workbench è incluso con DayZ Tools, distribuito gratuitamente tramite Steam. Apri la Libreria Steam, abilita il filtro **Strumenti**, cerca **DayZ Tools** e installa (~2 GB).
 
-### Step 2: Locate Workbench
+### Passo 2: Trova Workbench
 
 ```
 Steam\steamapps\common\DayZ Tools\Bin\Workbench\
-  workbenchApp.exe          <-- The Workbench executable
-  dayz.gproj                <-- Default project file
+  workbenchApp.exe          <-- L'eseguibile di Workbench
+  dayz.gproj                <-- File di progetto predefinito
 ```
 
-### Step 3: Mount the P: Drive
+### Passo 3: Monta il Drive P:
 
-Workbench requires the P: drive (workdrive) to be mounted. Without it, Workbench fails to start or shows an empty resource browser. Mount via DayZ Tools Launcher, your project's `SetupWorkdrive.bat`, or manually: `subst P: "D:\YourWorkDir"`.
+Workbench richiede che il drive P: (workdrive) sia montato. Senza di esso, Workbench non si avvia o mostra un browser delle risorse vuoto. Montalo tramite il DayZ Tools Launcher, il `SetupWorkdrive.bat` del tuo progetto, o manualmente: `subst P: "D:\TuaCartellaLavoro"`.
 
-### Step 4: Extract Vanilla Scripts
+### Passo 4: Estrai gli Script Vanilla
 
-Workbench needs vanilla DayZ scripts on P: to compile your mod (since your code extends vanilla classes):
+Workbench ha bisogno degli script vanilla di DayZ su P: per compilare la tua mod (poiché il tuo codice estende le classi vanilla):
 
 ```
 P:\scripts\
@@ -82,38 +82,38 @@ P:\scripts\
   5_Mission\
 ```
 
-Extract these via the DayZ Tools Launcher, or create a symbolic link to the extracted scripts directory.
+Estraili tramite il DayZ Tools Launcher, oppure crea un collegamento simbolico alla directory degli script estratti.
 
-### Step 4b: Link Game Install to Project Drive (for Live Hotloading)
+### Passo 4b: Collega l'Installazione del Gioco al Drive di Progetto (per l'Hotloading in Tempo Reale)
 
-To allow DayZDiag to load scripts directly from your Project Drive (enabling live editing without PBO rebuilds), create a symbolic link from the DayZ installation folder to `P:\scripts`:
+Per permettere a DayZDiag di caricare gli script direttamente dal tuo Drive di Progetto (abilitando la modifica live senza ricostruzioni PBO), crea un collegamento simbolico dalla cartella di installazione di DayZ a `P:\scripts`:
 
-1. Navigate to your DayZ installation folder (typically `Steam\steamapps\common\DayZ`).
-2. Delete any existing `scripts` folder inside it.
-3. Open a command prompt **as Administrator** and run:
+1. Naviga alla cartella di installazione di DayZ (tipicamente `Steam\steamapps\common\DayZ`).
+2. Elimina qualsiasi cartella `scripts` esistente al suo interno.
+3. Apri un prompt dei comandi **come Amministratore** ed esegui:
 
 ```batch
 mklink /J "C:\...\steamapps\common\DayZ\scripts" "P:\scripts"
 ```
 
-Replace the first path with your actual DayZ installation path. After this, the DayZ install folder will contain a `scripts` junction that points to `P:\scripts`. Any changes you make on the Project Drive are immediately visible to the game.
+Sostituisci il primo percorso con il tuo percorso effettivo di installazione di DayZ. Dopo questo, la cartella di installazione di DayZ conterrà una junction `scripts` che punta a `P:\scripts`. Qualsiasi modifica fatta sul Drive di Progetto sarà immediatamente visibile al gioco.
 
-### Step 5: Configure Source Data Directory
+### Passo 5: Configura la Directory dei Dati Sorgente
 
-1. Launch `workbenchApp.exe`.
-2. Click **Workbench > Options** in the menu bar.
-3. Set **Source data directory** to `P:\`.
-4. Click **OK** and allow Workbench to restart.
+1. Avvia `workbenchApp.exe`.
+2. Clicca **Workbench > Options** nella barra dei menu.
+3. Imposta **Source data directory** su `P:\`.
+4. Clicca **OK** e consenti a Workbench di riavviarsi.
 
 ---
 
-## Project Files (.gproj)
+## File di Progetto (.gproj)
 
-The `.gproj` file is Workbench's project configuration. It tells Workbench where to find scripts, which image sets to load for layout preview, and which widget styles are available.
+Il file `.gproj` è la configurazione del progetto di Workbench. Dice a Workbench dove trovare gli script, quali set di immagini caricare per l'anteprima dei layout e quali stili dei widget sono disponibili.
 
-### File Location
+### Posizione del File
 
-Convention is to place it in a `Workbench/` directory inside your mod:
+La convenzione è posizionarlo in una directory `Workbench/` all'interno della tua mod:
 
 ```
 P:\MyMod\
@@ -126,9 +126,9 @@ P:\MyMod\
   config.cpp
 ```
 
-### Struttura Overview
+### Panoramica della Struttura
 
-A `.gproj` uses a proprietary text format (not JSON, not XML):
+Un `.gproj` usa un formato di testo proprietario (non JSON, non XML):
 
 ```
 GameProjectClass {
@@ -150,7 +150,7 @@ GameProjectClass {
                 "gui/imagesets/ccgui_enforce.imageset"
                 "gui/imagesets/dayz_gui.imageset"
                 "gui/imagesets/dayz_inventory.imageset"
-                // ... other vanilla image sets ...
+                // ... altri image set vanilla ...
                 "MyMod/gui/imagesets/my_imageset.imageset"
             }
 
@@ -211,22 +211,22 @@ GameProjectClass {
 }
 ```
 
-### Key Sections Explained
+### Spiegazione delle Sezioni Chiave
 
-**FileSystem** -- Root directories where Workbench searches for files. At minimum, include `P:/`. You can add additional paths (e.g., Steam DayZ install directory) if files live outside the workdrive.
+**FileSystem** -- Directory radice dove Workbench cerca i file. Come minimo, includi `P:/`. Puoi aggiungere percorsi aggiuntivi (es. la directory di installazione Steam di DayZ) se i file si trovano fuori dal workdrive.
 
-**ScriptModules** -- The most important section. Maps each engine layer to script directories:
+**ScriptModules** -- La sezione più importante. Mappa ogni layer del motore alle directory degli script:
 
 | Modulo | Layer | Punto di Ingresso | Scopo |
-|--------|-------|------------|---------|
-| `core` | `1_Core` | `""` | Engine core, basic types |
-| `gameLib` | `2_GameLib` | `""` | Game library utilities |
-| `game` | `3_Game` | `"CreateGame"` | Enums, constants, game init |
-| `world` | `4_World` | `""` | Entities, managers |
-| `mission` | `5_Mission` | `"CreateMission"` | Mission hooks, UI panels |
-| `workbench` | (tools) | `""` | Workbench plugins |
+|--------|-------|-------------------|-------|
+| `core` | `1_Core` | `""` | Core del motore, tipi base |
+| `gameLib` | `2_GameLib` | `""` | Utilità della libreria di gioco |
+| `game` | `3_Game` | `"CreateGame"` | Enum, costanti, inizializzazione del gioco |
+| `world` | `4_World` | `""` | Entità, manager |
+| `mission` | `5_Mission` | `"CreateMission"` | Hook della missione, pannelli UI |
+| `workbench` | (strumenti) | `""` | Plugin di Workbench |
 
-Vanilla paths come first, then your mod paths. If your mod depends on other mods (like Community Framework), add their paths too:
+I percorsi vanilla vengono prima, poi i percorsi della tua mod. Se la tua mod dipende da altre mod (come Community Framework), aggiungi anche i loro percorsi:
 
 ```
 ScriptModulePathClass {
@@ -234,36 +234,36 @@ ScriptModulePathClass {
     Paths {
         "scripts/3_Game"              // Vanilla
         "JM/CF/Scripts/3_Game"        // Community Framework
-        "MyMod/Scripts/3_Game"        // Your mod
+        "MyMod/Scripts/3_Game"        // La tua mod
     }
     EntryPoint "CreateGame"
 }
 ```
 
-Some frameworks override entry points (CF uses `"CF_CreateGame"`).
+Alcuni framework sovrascrivono i punti di ingresso (CF usa `"CF_CreateGame"`).
 
-**imageSets / widgetStyles** -- Required for layout preview. Without vanilla image sets, layout files show missing images. Always include the standard 14 vanilla image sets listed in the example above.
+**imageSets / widgetStyles** -- Necessari per l'anteprima dei layout. Senza i set di immagini vanilla, i file di layout mostrano immagini mancanti. Includi sempre i 14 set di immagini vanilla standard elencati nell'esempio sopra.
 
-### Path Prefix Resolution
+### Risoluzione del Prefisso del Percorso
 
-When Workbench auto-resolves script paths from a mod's `config.cpp`, the FileSystem path is prepended. If your mod is at `P:\OtherMods\MyMod` and config.cpp declares `MyMod/scripts/3_Game`, the FileSystem must include `P:\OtherMods` for correct resolution.
+Quando Workbench risolve automaticamente i percorsi degli script dal `config.cpp` di una mod, il percorso del FileSystem viene anteposto. Se la tua mod si trova in `P:\OtherMods\MyMod` e il config.cpp dichiara `MyMod/scripts/3_Game`, il FileSystem deve includere `P:\OtherMods` per una corretta risoluzione.
 
-### Creating and Launching
+### Creazione e Lancio
 
-**Create a .gproj:** Copy the default `dayz.gproj` from `DayZ Tools\Bin\Workbench\`, update `ID`/`TITLE`, and add your mod's script paths to each module.
+**Crea un .gproj:** Copia il `dayz.gproj` predefinito da `DayZ Tools\Bin\Workbench\`, aggiorna `ID`/`TITLE` e aggiungi i percorsi degli script della tua mod a ogni modulo.
 
-**Launch with custom project:**
+**Avvia con un progetto personalizzato:**
 ```batch
 workbenchApp.exe -project="P:\MyMod\Workbench\dayz.gproj"
 ```
 
-**Launch with -mod (auto-configure from config.cpp):**
+**Avvia con -mod (auto-configurazione dal config.cpp):**
 ```batch
 workbenchApp.exe -mod=P:\MyMod
 workbenchApp.exe -mod=P:\CommunityFramework;P:\MyMod
 ```
 
-The `-mod` approach is simpler but gives less control. For complex multi-mod setups, a custom `.gproj` is more reliable.
+L'approccio `-mod` è più semplice ma dà meno controllo. Per configurazioni multi-mod complesse, un `.gproj` personalizzato è più affidabile.
 
 ---
 
@@ -272,22 +272,22 @@ The `-mod` approach is simpler but gives less control. For complex multi-mod set
 ### Barra del Menu Principale
 
 | Menu | Elementi Chiave |
-|------|-----------|
-| **File** | Open project, recent projects, save |
-| **Edit** | Cut, copy, paste, find, replace |
-| **View** | Toggle panels on/off, reset layout |
-| **Workbench** | Options (source data directory, preferences) |
-| **Debug** | Start/stop debugging, client/server toggle, breakpoint management |
-| **Plugins** | Installed Workbench plugins and tool addons |
+|------|-----------------|
+| **File** | Apri progetto, progetti recenti, salva |
+| **Edit** | Taglia, copia, incolla, trova, sostituisci |
+| **View** | Attiva/disattiva pannelli, ripristina layout |
+| **Workbench** | Opzioni (directory dati sorgente, preferenze) |
+| **Debug** | Avvia/ferma debug, toggle client/server, gestione breakpoint |
+| **Plugins** | Plugin di Workbench e tool addon installati |
 
 ### Pannelli
 
-- **Resource Browser** (left) -- File tree of the P: drive. Double-click `.c` files to edit, `.layout` files to preview, `.p3d` to view models, `.paa` to view textures.
-- **Script Editor** (center) -- Code editing area with syntax highlighting, code completion, error underlines, line numbers, breakpoint markers, and tabbed multi-file editing.
-- **Output** (bottom) -- Compiler errors/warnings, `Print()` output from a connected game, debug messages. When connected to DayZDiag, this window streams all text that the diagnostic executable prints for debug purposes in real time -- the same output you would see in script logs. Double-click errors to navigate to the source line.
-- **Properties** (right) -- Properties of the selected object. Most useful in the Layout Editor for widget inspection.
-- **Console** -- Live Enforce Script command execution.
-- **Debug panels** (when debugging) -- **Locals** (current scope variables), **Watch** (user expressions), **Call Stack** (function chain), **Breakpoints** (list with enable/disable toggles).
+- **Resource Browser** (sinistra) -- Albero dei file del drive P:. Doppio clic sui file `.c` per modificare, sui file `.layout` per l'anteprima, sui `.p3d` per visualizzare i modelli, sui `.paa` per visualizzare le texture.
+- **Script Editor** (centro) -- Area di modifica del codice con evidenziazione della sintassi, completamento del codice, sottolineatura degli errori, numeri di riga, indicatori dei breakpoint e modifica multi-file a schede.
+- **Output** (in basso) -- Errori/avvisi del compilatore, output di `Print()` da un gioco connesso, messaggi di debug. Quando connesso a DayZDiag, questa finestra trasmette in tempo reale tutto il testo che l'eseguibile diagnostico stampa per scopi di debug -- lo stesso output che vedresti nei log degli script. Doppio clic sugli errori per navigare alla riga sorgente.
+- **Properties** (destra) -- Proprietà dell'oggetto selezionato. Più utile nel Layout Editor per l'ispezione dei widget.
+- **Console** -- Esecuzione live di comandi Enforce Script.
+- **Pannelli di debug** (durante il debug) -- **Locals** (variabili dello scope corrente), **Watch** (espressioni dell'utente), **Call Stack** (catena delle funzioni), **Breakpoints** (elenco con toggle abilita/disabilita).
 
 ---
 
@@ -295,132 +295,132 @@ The `-mod` approach is simpler but gives less control. For complex multi-mod set
 
 ### Apertura dei File
 
-1. **Resource Browser:** Double-click a `.c` file. This automatically opens the Script Editor module and loads the file.
-2. **Script Editor Resource Browser:** The Script Editor has its own built-in Resource Browser panel, separate from the main Workbench Resource Browser. You can use either to navigate and open script files.
-3. **File > Open:** Standard file dialog.
-4. **Error output:** Double-click a compiler error to jump to the file and line.
+1. **Resource Browser:** Doppio clic su un file `.c`. Questo apre automaticamente il modulo Script Editor e carica il file.
+2. **Resource Browser dello Script Editor:** Lo Script Editor ha il proprio pannello Resource Browser integrato, separato dal Resource Browser principale di Workbench. Puoi usare entrambi per navigare e aprire i file script.
+3. **File > Open:** Finestra di dialogo standard per l'apertura file.
+4. **Output degli errori:** Doppio clic su un errore del compilatore per saltare al file e alla riga.
 
 ### Evidenziazione della Sintassi
 
-| Element | Highlighted |
-|---------|-------------|
-| Keywords (`class`, `if`, `while`, `return`, `modded`, `override`) | Bold / keyword color |
-| Types (`int`, `float`, `string`, `bool`, `vector`, `void`) | Tipo color |
-| Strings, comments, preprocessor directives | Distinct colors |
+| Elemento | Evidenziato |
+|----------|-------------|
+| Parole chiave (`class`, `if`, `while`, `return`, `modded`, `override`) | Grassetto / colore parola chiave |
+| Tipi (`int`, `float`, `string`, `bool`, `vector`, `void`) | Colore tipo |
+| Stringhe, commenti, direttive del preprocessore | Colori distinti |
 
 ### Completamento del Codice
 
-Type a class name followed by `.` to see methods and fields, or press `Ctrl+Space` for suggestions. Completion is based on the compiled script context. It is functional but limited compared to VS Code -- best for quick API lookups.
+Digita il nome di una classe seguito da `.` per vedere metodi e campi, oppure premi `Ctrl+Space` per i suggerimenti. Il completamento è basato sul contesto degli script compilati. È funzionale ma limitato rispetto a VS Code -- ideale per rapide consultazioni delle API.
 
 ### Feedback del Compilatore
 
-Workbench compiles on save. Common errors:
+Workbench compila al salvataggio. Errori comuni:
 
 | Messaggio | Significato |
-|---------|---------|
-| `Undefiniscid variable 'xyz'` | Not declared or typo |
-| `Method 'Foo' not found in class 'Bar'` | Wrong method name or class |
-| `Cannot convert 'string' to 'int'` | Tipo mismatch |
-| `Type 'MyClass' not found` | File not in project |
+|-----------|-------------|
+| `Undefined variable 'xyz'` | Non dichiarata o errore di battitura |
+| `Method 'Foo' not found in class 'Bar'` | Nome del metodo o classe errati |
+| `Cannot convert 'string' to 'int'` | Incompatibilità di tipo |
+| `Type 'MyClass' not found` | File non nel progetto |
 
-### Find, Replace, and Go-to-Definition
+### Trova, Sostituisci e Vai alla Definizione
 
-- `Ctrl+F` / `Ctrl+H` -- find/replace in current file.
-- `Ctrl+Shift+F` -- search across all project files.
-- Right-click a symbol and select **Go to Definition** to jump to its declaration, even into vanilla scripts.
+- `Ctrl+F` / `Ctrl+H` -- trova/sostituisci nel file corrente.
+- `Ctrl+Shift+F` -- cerca in tutti i file del progetto.
+- Clic destro su un simbolo e seleziona **Go to Definition** per saltare alla sua dichiarazione, anche negli script vanilla.
 
 ---
 
 ## Debug degli Script
 
-Debugging is Workbench's most powerful feature -- pause a running DayZ instance, inspect every variable, and step through code line by line.
+Il debug è la funzionalità più potente di Workbench -- mette in pausa un'istanza di DayZ in esecuzione, ispeziona ogni variabile e avanza nel codice riga per riga.
 
 ### Prerequisiti
 
-- **DayZDiag_x64.exe** (not retail DayZ) -- only the Diag build supports debugging.
-- **P: drive mounted** with vanilla scripts extracted.
-- **Scripts must match** -- if you edit after game loads, line numbers will not align.
+- **DayZDiag_x64.exe** (non il DayZ retail) -- solo la build Diag supporta il debug.
+- **Drive P: montato** con gli script vanilla estratti.
+- **Gli script devono corrispondere** -- se modifichi dopo il caricamento del gioco, i numeri di riga non si allineeranno.
 
 ### Configurazione di una Sessione di Debug
 
-1. Open Workbench and load your project.
-2. Open the **Script Editor** module (from the menu bar or by double-clicking any `.c` file in the Resource Browser -- this automatically opens the Script Editor and loads the file).
-3. Launch DayZDiag separately:
+1. Apri Workbench e carica il tuo progetto.
+2. Apri il modulo **Script Editor** (dalla barra dei menu o facendo doppio clic su qualsiasi file `.c` nel Resource Browser -- questo apre automaticamente lo Script Editor e carica il file).
+3. Avvia DayZDiag separatamente:
 
 ```batch
 DayZDiag_x64.exe -filePatching -mod=P:\MyMod -connect=127.0.0.1 -port=2302
 ```
 
-4. Workbench auto-detects DayZDiag and connects. A brief popup appears in the lower-right corner of the screen confirming the connection.
+4. Workbench rileva automaticamente DayZDiag e si connette. Appare un breve popup nell'angolo inferiore destro dello schermo che conferma la connessione.
 
-> **Suggerimento:** If you only need to see console output (no breakpoints or stepping), you do not need to extract PBOs or load scripts into Workbench. The Script Editor will still connect to DayZDiag and display the Output stream. Tuttavia, breakpoints and code navigation require the matching script files to be loaded in the project.
+> **Suggerimento:** Se hai bisogno solo di vedere l'output della console (senza breakpoint o avanzamento passo passo), non è necessario estrarre i PBO o caricare gli script in Workbench. Lo Script Editor si connetterà comunque a DayZDiag e mostrerà lo stream di Output. Tuttavia, i breakpoint e la navigazione del codice richiedono che i file script corrispondenti siano caricati nel progetto.
 
-### Punti di Interruzione
+### Breakpoint
 
-Click the left margin next to a line number. A red dot appears.
+Clicca il margine sinistro accanto a un numero di riga. Appare un punto rosso.
 
 | Marcatore | Significato |
-|--------|---------|
-| Red dot | Active breakpoint -- execution pauses here |
-| Yellow exclamation | Invalid -- this line never executes |
-| Blue dot | Bookmark -- navigation marker only |
+|-----------|-------------|
+| Punto rosso | Breakpoint attivo -- l'esecuzione si ferma qui |
+| Esclamativo giallo | Non valido -- questa riga non viene mai eseguita |
+| Punto blu | Segnalibro -- solo indicatore di navigazione |
 
-Toggle with `F9`. You can also left-click directly in the margin area (where the red dots appear) to add or remove breakpoints. Right-clicking in the margin adds a blue **Bookmark** instead -- bookmarks have no effect on execution but mark places you want to revisit. Right-click a breakpoint to set a **condition** (e.g., `i == 10` or `player.GetIdentity().GetName() == "TestPlayer"`).
+Attiva/disattiva con `F9`. Puoi anche cliccare direttamente nell'area del margine (dove appaiono i punti rossi) per aggiungere o rimuovere breakpoint. Il clic destro nel margine aggiunge un **Segnalibro** blu -- i segnalibri non hanno effetto sull'esecuzione ma segnano i punti che vuoi rivisitare. Clic destro su un breakpoint per impostare una **condizione** (es. `i == 10` o `player.GetIdentity().GetName() == "TestPlayer"`).
 
 ### Esecuzione Passo Passo
 
 | Azione | Scorciatoia | Descrizione |
-|--------|----------|-------------|
-| Continue | `F5` | Run until next breakpoint |
-| Step Over | `F10` | Execute current line, move to next |
-| Step Into | `F11` | Enter the called function |
-| Step Out | `Shift+F11` | Run until current function returns |
-| Stop | `Shift+F5` | Disconnect and resume game |
+|--------|-------------|-------------|
+| Continua | `F5` | Esegui fino al prossimo breakpoint |
+| Step Over | `F10` | Esegui la riga corrente, passa alla successiva |
+| Step Into | `F11` | Entra nella funzione chiamata |
+| Step Out | `Shift+F11` | Esegui fino al ritorno della funzione corrente |
+| Stop | `Shift+F5` | Disconnetti e riprendi il gioco |
 
 ### Ispezione delle Variabili
 
-The **Locals** panel shows all variables in scope -- primitives with values, objects with class names (expandable), arrays with lengths, and NULL references clearly marked. The **Watch** panel evaluates custom expressions at each pause. The **Call Stack** shows la funzione chain; click entries to navigate.
+Il pannello **Locals** mostra tutte le variabili nello scope -- primitive con valori, oggetti con nomi di classe (espandibili), array con lunghezze e riferimenti NULL chiaramente contrassegnati. Il pannello **Watch** valuta espressioni personalizzate ad ogni pausa. Il **Call Stack** mostra la catena delle funzioni; clicca le voci per navigare.
 
 ### Debug Client vs Server
 
-`DayZDiag_x64.exe` can act as either a client or a server (by adding the `-server` launch parameter). It accepts all the same parameters as the retail executable. Workbench can connect to either instance.
+`DayZDiag_x64.exe` può agire sia come client che come server (aggiungendo il parametro di lancio `-server`). Accetta tutti gli stessi parametri dell'eseguibile retail. Workbench può connettersi a entrambe le istanze.
 
-Use **Debug > Debug Client** or **Debug > Debug Server** in the Script Editor menu to choose which side to debug. On a listen server, you can switch freely. The stepping controls, breakpoints, and variable inspection all apply to whichever side is currently selected.
+Usa **Debug > Debug Client** o **Debug > Debug Server** nel menu dello Script Editor per scegliere quale lato debuggare. Su un listen server, puoi passare liberamente da uno all'altro. I controlli di avanzamento, i breakpoint e l'ispezione delle variabili si applicano tutti al lato attualmente selezionato.
 
 ### Limitazioni
 
-- Only `DayZDiag_x64.exe` supports debugging, not retail builds.
-- Engine-internal C++ functions cannot be stepped into.
-- Many breakpoints in high-frequency functions (`OnUpdate`) cause severe lag.
-- Large mod projects may slow Workbench indexing.
+- Solo `DayZDiag_x64.exe` supporta il debug, non le build retail.
+- Le funzioni C++ interne al motore non possono essere seguite con step-into.
+- Molti breakpoint in funzioni ad alta frequenza (`OnUpdate`) causano lag severo.
+- Progetti di mod grandi possono rallentare l'indicizzazione di Workbench.
 
 ---
 
 ## Console degli Script -- Test in Tempo Reale
 
-The Script Console lets you execute Enforce Script commands against a running game instance -- invaluable for API experimentation without editing files.
+La Console degli Script ti permette di eseguire comandi Enforce Script su un'istanza di gioco in esecuzione -- inestimabile per la sperimentazione delle API senza modificare i file.
 
-### Opening
+### Apertura
 
-Look for the **Console** tab in the bottom panel, or enable via **View > Console**.
+Cerca la scheda **Console** nel pannello inferiore, oppure abilitala tramite **View > Console**.
 
 ### Comandi Comuni
 
 ```c
-// Print player position
+// Stampa la posizione del giocatore
 Print(GetGame().GetPlayer().GetPosition().ToString());
 
-// Spawn an item at player feet
+// Genera un oggetto ai piedi del giocatore
 GetGame().CreateObject("AKM", GetGame().GetPlayer().GetPosition(), false, false, true);
 
-// Test math
+// Testa la matematica
 float dist = vector.Distance("0 0 0", "100 0 100");
 Print("Distance: " + dist.ToString());
 
-// Teleport player
+// Teletrasporta il giocatore
 GetGame().GetPlayer().SetPosition("6737 0 2505");
 
-// Spawn zombies nearby
+// Genera zombie nelle vicinanze
 vector pos = GetGame().GetPlayer().GetPosition();
 for (int i = 0; i < 5; i++)
 {
@@ -431,210 +431,210 @@ for (int i = 0; i < 5; i++)
 
 ### Limitazioni
 
-- **Client-side only** per impostazione predefinita (server-side code needs a listen server).
-- **No persistent state** -- variables do not carry between executions.
-- **Some APIs unavailable** until the game reaches a specific state (player spawned, mission loaded).
-- **No error recovery** -- null pointers simply fail silently.
+- **Solo lato client** per impostazione predefinita (il codice lato server necessita di un listen server).
+- **Nessuno stato persistente** -- le variabili non si conservano tra le esecuzioni.
+- **Alcune API non disponibili** finché il gioco non raggiunge uno stato specifico (giocatore generato, missione caricata).
+- **Nessun recupero dagli errori** -- i puntatori null falliscono semplicemente in silenzio.
 
 ---
 
 ## Anteprima UI / Layout
 
-Workbench can open `.layout` files for visual inspection.
+Workbench può aprire i file `.layout` per l'ispezione visiva.
 
 ### Cosa Puoi Fare
 
-- **View widget hierarchy** -- see parent-child nesting and widget names.
-- **Inspect properties** -- position, size, color, alpha, alignment, image source, text, font.
-- **Find widget names** used by `FindAnyWidget()` in script code.
-- **Check image references** -- which image set entries or textures a widget uses.
+- **Visualizzare la gerarchia dei widget** -- vedere l'annidamento genitore-figlio e i nomi dei widget.
+- **Ispezionare le proprietà** -- posizione, dimensione, colore, alfa, allineamento, sorgente immagine, testo, font.
+- **Trovare i nomi dei widget** usati da `FindAnyWidget()` nel codice script.
+- **Controllare i riferimenti alle immagini** -- quali voci degli image set o texture usa un widget.
 
 ### Cosa Non Puoi Fare
 
-- **No runtime behavior** -- ScriptClass handlers and dynamic content do not execute.
-- **Rendering differences** -- transparency, layering, and resolution may differ from in-game.
-- **Limited editing** -- Workbench is primarily a viewer, not a visual designer.
+- **Nessun comportamento a runtime** -- I gestori ScriptClass e il contenuto dinamico non vengono eseguiti.
+- **Differenze di rendering** -- trasparenza, stratificazione e risoluzione possono differire dal gioco.
+- **Modifica limitata** -- Workbench è principalmente un visualizzatore, non un designer visuale.
 
-**Buona pratica:** Use the Layout Editor for inspection. Build and edit `.layout` files in a text editor. Test in-game with file patching.
+**Buona pratica:** Usa il Layout Editor per l'ispezione. Costruisci e modifica i file `.layout` in un editor di testo. Testa in gioco con il file patching.
 
 ---
 
 ## Browser delle Risorse
 
-The Resource Browser navigates the P: drive with game-aware file previews.
+Il Resource Browser naviga il drive P: con anteprime dei file consapevoli del gioco.
 
-### Funzionalita
+### Funzionalità
 
-| Tipo di File | Azione on Double-Click |
-|-----------|----------------------|
-| `.c` | Opens in Script Editor |
-| `.layout` | Opens in Layout Editor |
-| `.p3d` | 3D model preview (rotate, zoom, inspect LODs) |
-| `.paa` / `.edds` | Texture viewer with channel inspection (R, G, B, A) |
-| Config classes | Browse parsed CfgVehicles, CfgWeapons hierarchies |
+| Tipo di File | Azione al Doppio Clic |
+|-------------|----------------------|
+| `.c` | Si apre nello Script Editor |
+| `.layout` | Si apre nel Layout Editor |
+| `.p3d` | Anteprima del modello 3D (rotazione, zoom, ispezione dei LOD) |
+| `.paa` / `.edds` | Visualizzatore texture con ispezione dei canali (R, G, B, A) |
+| Classi di config | Esplora le gerarchie CfgVehicles, CfgWeapons analizzate |
 
 ### Trovare Risorse Vanilla
 
-One of the most valuable uses -- study how Bohemia structures assets:
+Uno degli usi più preziosi -- studiare come Bohemia struttura le risorse:
 
 ```
-P:\DZ\weapons\        <-- Vanilla weapon models and textures
-P:\DZ\characters\     <-- Character models and clothing
-P:\scripts\4_World\   <-- Vanilla world scripts
-P:\scripts\5_Mission\  <-- Vanilla mission scripts
+P:\DZ\weapons\        <-- Modelli e texture delle armi vanilla
+P:\DZ\characters\     <-- Modelli dei personaggi e vestiti
+P:\scripts\4_World\   <-- Script del mondo vanilla
+P:\scripts\5_Mission\  <-- Script delle missioni vanilla
 ```
 
 ---
 
 ## Profilazione delle Prestazioni
 
-When connected to DayZDiag, Workbench can profile script execution.
+Quando connesso a DayZDiag, Workbench può profilare l'esecuzione degli script.
 
 ### Cosa Mostra il Profiler
 
-- **Function call counts** -- how often each function runs per frame.
-- **Execution time** -- milliseconds per function.
-- **Call hierarchy** -- which functions call which, with time attribution.
-- **Frame time breakdown** -- script time vs engine time. At 60 FPS, each frame has ~16.6ms budget.
-- **Memory** -- allocation counts by class, detection of ref-cycle leaks.
+- **Conteggio chiamate funzione** -- quante volte ogni funzione viene eseguita per frame.
+- **Tempo di esecuzione** -- millisecondi per funzione.
+- **Gerarchia delle chiamate** -- quali funzioni chiamano quali, con attribuzione del tempo.
+- **Ripartizione del tempo per frame** -- tempo degli script vs tempo del motore. A 60 FPS, ogni frame ha un budget di ~16.6ms.
+- **Memoria** -- conteggi di allocazione per classe, rilevamento di leak da cicli di riferimenti.
 
-### In-Game Script Profiler (Diag Menu)
+### Script Profiler In-Game (Menu Diag)
 
-In addition to Workbench's profiler, `DayZDiag_x64.exe` has a built-in Script Profiler accessible through the Diag Menu (under Statistics). It shows top-20 lists for time per class, time per function, class allocations, count per function, and class instance counts. Use the `-profile` launch parameter to enable profiling from startup. The profiler only measures Enforce Script -- proto (engine) methods are not measured as separate entries, but their execution time is included in the total time of the script method that calls them. See `EnProfiler.c` in vanilla scripts for the programmatic API (`EnProfiler.Enable`, `EnProfiler.SetModule`, flag constants).
+Oltre al profiler di Workbench, `DayZDiag_x64.exe` ha uno Script Profiler integrato accessibile tramite il Menu Diag (sotto Statistics). Mostra le top-20 per tempo per classe, tempo per funzione, allocazioni per classe, conteggio per funzione e conteggio delle istanze per classe. Usa il parametro di lancio `-profile` per abilitare la profilazione dall'avvio. Il profiler misura solo Enforce Script -- i metodi proto (del motore) non vengono misurati come voci separate, ma il loro tempo di esecuzione è incluso nel tempo totale del metodo script che li chiama. Vedi `EnProfiler.c` negli script vanilla per l'API programmatica (`EnProfiler.Enable`, `EnProfiler.SetModule`, costanti dei flag).
 
 ### Colli di Bottiglia Comuni
 
-| Problema | Sintomo del Profiler | Soluzione |
-|---------|-----------------|-----|
-| Expensive per-frame code | High time in `OnUpdate` | Move to timers, reduce frequency |
-| Excessive iteration | Loop with thousands of calls | Cache results, use spatial queries |
-| String concatenation in loops | High allocation count | Reduce logging, batch strings |
+| Problema | Sintomo nel Profiler | Soluzione |
+|----------|---------------------|----------|
+| Codice costoso eseguito ogni frame | Alto tempo in `OnUpdate` | Sposta sui timer, riduci la frequenza |
+| Iterazione eccessiva | Loop con migliaia di chiamate | Metti in cache i risultati, usa query spaziali |
+| Concatenazione di stringhe nei loop | Alto conteggio di allocazioni | Riduci il logging, raggruppa le stringhe |
 
 ---
 
 ## Integrazione con il File Patching
 
-The fastest development workflow combines Workbench with file patching, eliminating PBO rebuilds for script changes.
+Il flusso di lavoro di sviluppo più veloce combina Workbench con il file patching, eliminando le ricostruzioni PBO per le modifiche agli script.
 
 ### Configurazione
 
-1. Scripts on P: drive as loose files (not in PBOs).
-2. Symlink DayZ install scripts: `mklink /J "...\DayZ\scripts" "P:\scripts"`
-3. Launch with `-filePatching`: both client and server use `DayZDiag_x64.exe`.
+1. Script sul drive P: come file sciolti (non nei PBO).
+2. Collegamento simbolico degli script di installazione di DayZ: `mklink /J "...\DayZ\scripts" "P:\scripts"`
+3. Avvia con `-filePatching`: sia il client che il server usano `DayZDiag_x64.exe`.
 
 ### Il Ciclo di Iterazione Rapida
 
 ```
-1. Edit .c file in your editor
-2. Save (file is already on P: drive)
-3. Restart mission in DayZDiag (no PBO rebuild)
-4. Test in-game
-5. Set breakpoints in Workbench if needed
-6. Repeat
+1. Modifica il file .c nel tuo editor
+2. Salva (il file è già sul drive P:)
+3. Riavvia la missione in DayZDiag (nessuna ricostruzione PBO)
+4. Testa in gioco
+5. Imposta breakpoint in Workbench se necessario
+6. Ripeti
 ```
 
 ### Cosa Deve Essere Ricostruito?
 
 | Modifica | Ricostruire? |
-|--------|----------|
-| Script logica (`.c`) | No -- restart mission |
-| Layout files (`.layout`) | No -- restart mission |
-| Config.cpp (script-only) | No -- restart mission |
-| Config.cpp (with CfgVehicles) | Yes -- binarized configs require PBO |
-| Textures (`.paa`) | No -- engine reloads from P: |
-| Models (`.p3d`) | Maybe -- unbinarized MLOD only |
+|----------|-------------|
+| Logica script (`.c`) | No -- riavvia la missione |
+| File layout (`.layout`) | No -- riavvia la missione |
+| Config.cpp (solo script) | No -- riavvia la missione |
+| Config.cpp (con CfgVehicles) | Sì -- i config binarizzati richiedono PBO |
+| Texture (`.paa`) | No -- il motore ricarica da P: |
+| Modelli (`.p3d`) | Forse -- solo MLOD non binarizzati |
 
 ---
 
 ## Problemi Comuni di Workbench
 
-### Workbench Crashes on Startup
+### Workbench Va in Crash all'Avvio
 
-**Cause:** P: drive not mounted or `.gproj` references nonexistent paths.
-**Fix:** Mount P: first. Check **Workbench > Options** source directory. Verify `.gproj` FileSystem paths exist.
+**Causa:** Drive P: non montato oppure il `.gproj` fa riferimento a percorsi inesistenti.
+**Soluzione:** Monta prima il P:. Controlla la directory sorgente in **Workbench > Options**. Verifica che i percorsi FileSystem del `.gproj` esistano.
 
-### No Code Completion
+### Nessun Completamento del Codice
 
-**Cause:** Project misconfigured -- Workbench cannot compile scripts.
-**Fix:** Verify `.gproj` ScriptModules include vanilla paths (`scripts/1_Core`, etc.). Check Output for compiler errori. Ensure vanilla scripts are on P:.
+**Causa:** Progetto mal configurato -- Workbench non riesce a compilare gli script.
+**Soluzione:** Verifica che gli ScriptModules del `.gproj` includano i percorsi vanilla (`scripts/1_Core`, ecc.). Controlla l'Output per errori del compilatore. Assicurati che gli script vanilla siano su P:.
 
-### Scripts Do Not Compile
+### Gli Script Non Compilano
 
-**Fix:** Check Output panel for exact errori. Verify all dependency mod paths are in ScriptModules. Ensure no cross-layer references (3_Game cannot use 4_World types).
+**Soluzione:** Controlla il pannello Output per gli errori esatti. Verifica che tutti i percorsi delle mod dipendenti siano in ScriptModules. Assicurati che non ci siano riferimenti tra layer (3_Game non può usare tipi di 4_World).
 
-### Punti di Interruzione Not Hitting
+### I Breakpoint Non Si Attivano
 
-**Checklist:**
-1. Connected to DayZDiag (not retail)?
-2. Red dot (valid) or yellow exclamation (invalid)?
-3. Scripts match between Workbench and game?
-4. Debugging the right side (client vs server)?
-5. Code path actually reached? (Add `Print()` to verify.)
+**Lista di controllo:**
+1. Connesso a DayZDiag (non retail)?
+2. Punto rosso (valido) o esclamativo giallo (non valido)?
+3. Gli script corrispondono tra Workbench e gioco?
+4. Stai facendo il debug del lato giusto (client vs server)?
+5. Il percorso del codice viene effettivamente raggiunto? (Aggiungi `Print()` per verificare.)
 
-### Cannot Find Files in Resource Browser
+### Non Si Trovano i File nel Resource Browser
 
-**Fix:** Check `.gproj` FileSystem includes the directory where your files live. Restart Workbench after modifying `.gproj`.
+**Soluzione:** Controlla che il FileSystem del `.gproj` includa la directory dove si trovano i tuoi file. Riavvia Workbench dopo aver modificato il `.gproj`.
 
-### "Plugin Not Found" Errors
+### Errori "Plugin Not Found"
 
-**Fix:** Verify DayZ Tools integrity via Steam (right-click > Properties > Installed Files > Verify). Reinstall if needed.
+**Soluzione:** Verifica l'integrità di DayZ Tools tramite Steam (clic destro > Proprietà > File installati > Verifica). Reinstalla se necessario.
 
-### Connection to DayZDiag Fails
+### La Connessione a DayZDiag Fallisce
 
-**Fix:** Both processes must be on the same machine. Check firewalls. Ensure Script Editor module is open before launching DayZDiag. Try restarting both.
+**Soluzione:** Entrambi i processi devono essere sulla stessa macchina. Controlla i firewall. Assicurati che il modulo Script Editor sia aperto prima di avviare DayZDiag. Prova a riavviare entrambi.
 
 ---
 
 ## Suggerimenti e Buone Pratiche
 
-1. **Use Workbench for debugging, VS Code for writing.** Workbench's editor is basic. Use external editors for daily coding; switch to Workbench for debugging and layout preview.
+1. **Usa Workbench per il debug, VS Code per scrivere.** L'editor di Workbench è basilare. Usa editor esterni per la programmazione quotidiana; passa a Workbench per il debug e l'anteprima dei layout.
 
-2. **Keep a .gproj per mod.** Each mod should have its own project file to compile exactly the right script context without indexing unrelated mods.
+2. **Mantieni un .gproj per mod.** Ogni mod dovrebbe avere il proprio file di progetto per compilare esattamente il contesto script corretto senza indicizzare mod non correlate.
 
-3. **Use the console for API experimentation.** Test API calls in the console before writing them into files. Faster than edit-restart-test cycles.
+3. **Usa la console per sperimentare con le API.** Testa le chiamate API nella console prima di scriverle nei file. Più veloce dei cicli modifica-riavvio-test.
 
-4. **Profile before optimizing.** Do not guess bottlenecks. The profiler shows where time is actually spent.
+4. **Profila prima di ottimizzare.** Non indovinare i colli di bottiglia. Il profiler mostra dove il tempo viene effettivamente speso.
 
-5. **Set breakpoints strategically.** Avoid `OnUpdate()` breakpoints unless conditional. They fire ogni frame and freeze the game constantly.
+5. **Imposta i breakpoint in modo strategico.** Evita breakpoint in `OnUpdate()` a meno che non siano condizionali. Si attivano ogni frame e congelano il gioco costantemente.
 
-6. **Use bookmarks for navigation.** Blue bookmark dots mark interesting vanilla script locations you reference frequently.
+6. **Usa i segnalibri per la navigazione.** I punti blu dei segnalibri segnano posizioni interessanti negli script vanilla che consulti frequentemente.
 
-7. **Check compiler output before launching.** If Workbench reports errors, the game will fail too. Fix errors in Workbench first -- faster than waiting for game boot.
+7. **Controlla l'output del compilatore prima di lanciare.** Se Workbench segnala errori, il gioco fallirà anch'esso. Correggi gli errori in Workbench prima -- più veloce che aspettare l'avvio del gioco.
 
-8. **Use -mod for simple setups, .gproj for complex.** Single-mod with no dependencies: `-mod=P:\MyMod`. Multi-mod with CF/Dabs: custom `.gproj`.
+8. **Usa -mod per configurazioni semplici, .gproj per complesse.** Singola mod senza dipendenze: `-mod=P:\MyMod`. Multi-mod con CF/Dabs: `.gproj` personalizzato.
 
-9. **Keep Workbench updated.** Update DayZ Tools through Steam when DayZ updates. Mismatched versions cause compilation failures.
+9. **Tieni Workbench aggiornato.** Aggiorna DayZ Tools tramite Steam quando DayZ viene aggiornato. Versioni non corrispondenti causano errori di compilazione.
 
 ---
 
-## Riferimento Rapido: Keyboard Shortcuts
+## Riferimento Rapido: Scorciatoie da Tastiera
 
 | Scorciatoia | Azione |
-|----------|--------|
-| `F5` | Start / Continue debugging |
-| `Shift+F5` | Stop debugging |
-| `F9` | Toggle breakpoint |
+|-------------|--------|
+| `F5` | Avvia / Continua il debug |
+| `Shift+F5` | Ferma il debug |
+| `F9` | Attiva/disattiva breakpoint |
 | `F10` | Step Over |
 | `F11` | Step Into |
 | `Shift+F11` | Step Out |
-| `Ctrl+F` | Find in file |
-| `Ctrl+H` | Find and replace |
-| `Ctrl+Shift+F` | Find in project |
-| `Ctrl+S` | Save |
-| `Ctrl+Space` | Code completion |
+| `Ctrl+F` | Trova nel file |
+| `Ctrl+H` | Trova e sostituisci |
+| `Ctrl+Shift+F` | Trova nel progetto |
+| `Ctrl+S` | Salva |
+| `Ctrl+Space` | Completamento del codice |
 
-## Riferimento Rapido: Launch Parameters
+## Riferimento Rapido: Parametri di Lancio
 
 | Parametro | Descrizione |
 |-----------|-------------|
-| `-project="path/dayz.gproj"` | Load specific project file |
-| `-mod=P:\MyMod` | Auto-configure from mod's config.cpp |
-| `-mod=P:\ModA;P:\ModB` | Multiple mods (semicolon-separated) |
+| `-project="percorso/dayz.gproj"` | Carica un file di progetto specifico |
+| `-mod=P:\MyMod` | Auto-configurazione dal config.cpp della mod |
+| `-mod=P:\ModA;P:\ModB` | Mod multiple (separate da punto e virgola) |
 
 ---
 
 ## Navigazione
 
 | Precedente | Su | Successivo |
-|----------|----|------|
-| [4.6 PBO Packing](06-pbo-packing.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.8 Building Modeling](08-building-modeling.md) |
+|------------|-----|-----------|
+| [4.6 Impacchettamento PBO](06-pbo-packing.md) | [Parte 4: Formati di File e DayZ Tools](01-textures.md) | [4.8 Modellazione di Edifici](08-building-modeling.md) |
