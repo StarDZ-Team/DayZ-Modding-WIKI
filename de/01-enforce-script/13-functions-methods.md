@@ -4,9 +4,9 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
-Funktionen sind die grundlegende Verhaltenseinheit in Enforce Script. Jede Aktion, die ein Mod ausfuehrt --- einen Gegenstand spawnen, die Gesundheit eines Spielers pruefen, einen RPC senden, ein UI-Element zeichnen --- lebt in einer Funktion. Zu verstehen, wie man sie deklariert, Daten hinein- und herausgibt und mit den speziellen Modifikatoren der Engine arbeitet, ist fuer das Schreiben korrekter DayZ-Mods unerlaeaesslich.
+Funktionen sind die grundlegende Verhaltenseinheit in Enforce Script. Jede Aktion, die ein Mod ausführt --- einen Gegenstand spawnen, die Gesundheit eines Spielers prüfen, einen RPC senden, ein UI-Element zeichnen --- lebt in einer Funktion. Zu verstehen, wie man sie deklariert, Daten hinein- und herausgibt und mit den speziellen Modifikatoren der Engine arbeitet, ist für das Schreiben korrekter DayZ-Mods unerlässlich.
 
 Dieses Kapitel behandelt function mechanics in depth: declaration syntax, parameter passing modes, return values, default parameters, proto native bindings, static vs instance methods, overriding, the `thread` keyword, and the `event` keyword. If Chapter 1.3 (Classes) taught you where functions live, this chapter teaches you how they work.
 
@@ -351,9 +351,9 @@ GetTimeComponents(3725, h, m, s);
 // h == 1, m == 2, s == 5
 ```
 
-### GOTCHA: JsonFileLoader Gibt zurueck void
+### GOTCHA: JsonFileLoader Gibt zurück void
 
-Ein haeufiger Fallstrick: `JsonFileLoader<T>.JsonLoadFile()` returns `void`, not the loaded object. You must pass a pre-created object as a `ref` parameter.
+Ein häufiger Fallstrick: `JsonFileLoader<T>.JsonLoadFile()` returns `void`, not the loaded object. You must pass a pre-created object as a `ref` parameter.
 
 ```c
 // WRONG — will not compile
@@ -406,7 +406,7 @@ static bool FloatOverride(string id, inout float value, float min, float max,
 proto native external bool ActivateAction(string actionName, int duration = 0);
 ```
 
-### Einschraenkungen
+### Einschränkungen
 
 1. **Literal values only** --- you cannot use expressions, function calls, or other variables as defaults:
 
@@ -448,14 +448,14 @@ Proto native methods are declared in script but **implemented in the C++ engine*
 | Modifier | Meaning | Example |
 |----------|---------|---------|
 | `proto native` | Implementiert in C++ engine code | `proto native void SetPosition(vector pos);` |
-| `proto native owned` | Gibt zurueck a value der Aufrufer owns (manages memory) | `proto native owned string GetType();` |
+| `proto native owned` | Gibt zurück a value der Aufrufer owns (manages memory) | `proto native owned string GetType();` |
 | `proto native external` | Definiert in another module | `proto native external bool AddSettings(typename cls);` |
 | `proto volatile` | Has side effects; compiler must not optimize away | `proto volatile int Call(Class inst, string fn, void parm);` |
 | `proto` (without `native`) | Internal function, may or may not be native | `proto int ParseString(string input, out string tokens[]);` |
 
 ### proto native
 
-Am haeufigsten modifier. These are straightforward engine calls.
+Am häufigsten modifier. These are straightforward engine calls.
 
 ```c
 // Setting/getting position (Object)
@@ -470,7 +470,7 @@ proto native bool SampleNavmeshPosition(vector position, float maxDistance, PGFi
 
 ### proto native owned
 
-The `owned` modifier means der Rueckgabewert is allocated by die Engine and **ownership is transferred to the script**. This is primarily used for `string` returns, where die Engine creates a new string that the script's garbage collector must later free.
+The `owned` modifier means der Rückgabewert is allocated by die Engine and **ownership is transferred to the script**. This is primarily used for `string` returns, where die Engine creates a new string that the script's garbage collector must later free.
 
 ```c
 // From Class (enscript.c) — returns a string the script now owns
@@ -720,7 +720,7 @@ class Calculator
 
 ### Workaround 1: Different Method Names
 
-Am haeufigsten approach is to use descriptive names:
+Am häufigsten approach is to use descriptive names:
 
 ```c
 class Calculator
@@ -920,7 +920,7 @@ g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).Remove(FunctionToCall);
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 1. **Keep functions short** --- aim for under 50 lines. If a function is longer, extract helper methods.
 
@@ -977,7 +977,7 @@ void ProcessPlayer(PlayerBase player)
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Forgetting override When Replacing a Parent Method
 
@@ -1113,6 +1113,6 @@ class MyMission extends MissionServer
 
 ## Navigation
 
-| Vorheriges | Up | Naechstes |
+| Vorheriges | Up | Nächstes |
 |----------|----|------|
 | [1.12 Gotchas](12-gotchas.md) | [Part 1: Enforce Script](../README.md) | -- |

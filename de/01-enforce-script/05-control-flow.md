@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Control flow determines the order in which your code executes. Enforce Script provides the familiar `if/else`, `for`, `while`, `foreach`, and `switch` constructs -- but with several important differences from C/C++ that will catch you off guard if you are not prepared. This chapter covers every control flow mechanism available, including the pitfalls unique to DayZ's scripting engine.
 
@@ -531,7 +531,7 @@ void FindItemInGrid(array<array<string>> grid, string target)
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|

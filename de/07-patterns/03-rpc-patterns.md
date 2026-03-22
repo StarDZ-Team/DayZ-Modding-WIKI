@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Remote Procedure Calls (RPCs) are the only way to send data between client and server in DayZ. Every admin panel, every synced UI, every server-to-client notification, and every client-to-server action request flows through RPCs. Understanding how to build them correctly --- with proper serialization order, permission checks, and error handling --- is essential for any mod that does more than add items to CfgVehicles.
 
@@ -525,7 +525,7 @@ void RPC_SpawnItem(PlayerIdentity sender, Object target, ParamsReadContext ctx)
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Forgetting to Register the Handler
 
@@ -611,4 +611,4 @@ Or use a centralized `Cleanup()` that clears the entire handler map (as `MyRPC.C
 
 ---
 
-[<< Zurueck: Module Systems](02-module-systems.md) | [Startseite](../../README.md) | [Next: Config Persistence >>](04-config-persistence.md)
+[<< Zurück: Module Systems](02-module-systems.md) | [Startseite](../../README.md) | [Next: Config Persistence >>](04-config-persistence.md)

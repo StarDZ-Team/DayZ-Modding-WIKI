@@ -18,7 +18,7 @@
 
 ---
 
-## Ueberblick
+## Überblick
 
 `mod.cpp` sits at the root of your mod folder (next to the `Addons/` directory). The DayZ launcher reads it to display your mod's name, logo, description, and author in the mod selection screen.
 
@@ -461,5 +461,5 @@ type = "servermod";
 
 ---
 
-**Zurueck:** [Chapter 2.2: config.cpp Deep Dive](02-config-cpp.md)
+**Zurück:** [Chapter 2.2: config.cpp Deep Dive](02-config-cpp.md)
 **Weiter:** [Chapter 2.4: Your First Mod -- Minimum Viable](04-minimum-viable-mod.md)

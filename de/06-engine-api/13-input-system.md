@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 The DayZ input system connects hardware inputs --- keyboard, mouse, and gamepad --- to named actions that scripts can query. It operates in two layers:
 
@@ -121,7 +121,7 @@ Both classes also provide `_ID` variants that accept integer action IDs stattdes
 
 ### UAInput Methods
 
-| Method | Gibt zurueck | When True | Use Case |
+| Method | Gibt zurück | When True | Use Case |
 |--------|---------|-----------|----------|
 | `LocalPress()` | `bool` | First frame the key goes down | Toggle actions, one-shot triggers |
 | `LocalRelease()` | `bool` | First frame the key comes up | End continuous actions |
@@ -133,7 +133,7 @@ Both classes also provide `_ID` variants that accept integer action IDs stattdes
 
 ### Input Class Methods
 
-| Method | Gibt zurueck | Signature | Equivalent UAInput Method |
+| Method | Gibt zurück | Signature | Equivalent UAInput Method |
 |--------|---------|-----------|--------------------------|
 | `LocalPress()` | `bool` | `LocalPress(string action, bool check_focus = true)` | `UAInput.LocalPress()` |
 | `LocalRelease()` | `bool` | `LocalRelease(string action, bool check_focus = true)` | `UAInput.LocalRelease()` |
@@ -245,7 +245,7 @@ modded class MissionGameplay
 | Feature | UAInput (GetUApi) | OnKeyPress |
 |---------|-------------------|------------|
 | Player can rebind | Yes | No |
-| Unterstuetzt modifiers | Yes (Ctrl+Key combos via inputs.xml) | Manual checking erforderlich |
+| Unterstützt modifiers | Yes (Ctrl+Key combos via inputs.xml) | Manual checking erforderlich |
 | Gamepad support | Yes | No |
 | Appears in Steuert menu | Yes | No |
 | Analog values | Yes | No |
@@ -412,7 +412,7 @@ The `bForceSupress` parameter on `RemoveActiveInputExcludes` calls `SupressNextF
 Expansion uses its own custom exclude group registered with the engine:
 
 ```c
-GetUApi().ActivateExclude("menuexpansion");
+GetUApi().ActivateExclude("menüxpansion");
 GetUApi().UpdateControls();
 ```
 
@@ -478,7 +478,7 @@ This is rarely used. The inputs.xml approach is preferred because it integrates 
 
 ---
 
-## Gaengige Muster
+## Gängige Muster
 
 ### Toggle Panel Open/Close
 
@@ -637,7 +637,7 @@ This is a reference-counted system. Multiple systems can request focus changes, 
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### Polling Input on the Server
 
@@ -843,7 +843,7 @@ string name = InputUtils.GetButtonNameFromInput("UAMyAction", EUAINPUT_DEVICE_KE
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Always use `UAInput` via inputs.xml for player-facing keybindings.** Dies erlaubt players to rebind keys, shows actions in the Steuert menu, and supports gamepad input. Reserve `OnKeyPress` for debug shortcuts only.
 - **Call `AddActiveInputExcludes({"menu"})` when opening full-screen UI.** Without this, player movement keys (WASD), mouse aiming, and weapon firing remain active behind your menu, causing accidental actions.

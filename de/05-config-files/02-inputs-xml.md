@@ -24,7 +24,7 @@
 
 ---
 
-## Ueberblick
+## Überblick
 
 When your mod needs the player to press a key --- opening a menu, toggling a feature, commanding an AI unit --- you register a custom input action in `inputs.xml`. The engine reads this file at startup and integrates your actions into the universal input system. Players see your keybindings in the game's Settings > Controls menu, grouped under a heading you define.
 
@@ -567,7 +567,7 @@ With a corresponding stringtable.csv:
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### Using `#` in the loc Attribute
 

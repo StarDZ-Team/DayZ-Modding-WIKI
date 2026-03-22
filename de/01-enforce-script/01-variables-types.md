@@ -4,9 +4,9 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
-Enforce Script ist die Skriptsprache der Enfusion-Engine, die von DayZ Standalone verwendet wird. Es handelt sich um eine objektorientierte Sprache mit C-aehnlicher Syntax, die in vielen Aspekten C# aehnelt, aber ihre eigenen, speziellen Typen, Regeln und Einschraenkungen mitbringt. Wenn Sie Erfahrung mit C#, Java oder C++ haben, werden Sie sich schnell zurechtfinden --- achten Sie jedoch genau auf die Unterschiede, denn genau dort, wo Enforce Script von diesen Sprachen abweicht, verbergen sich die Fehlerquellen.
+Enforce Script ist die Skriptsprache der Enfusion-Engine, die von DayZ Standalone verwendet wird. Es handelt sich um eine objektorientierte Sprache mit C-ähnlicher Syntax, die in vielen Aspekten C# ähnelt, aber ihre eigenen, speziellen Typen, Regeln und Einschränkungen mitbringt. Wenn Sie Erfahrung mit C#, Java oder C++ haben, werden Sie sich schnell zurechtfinden --- achten Sie jedoch genau auf die Unterschiede, denn genau dort, wo Enforce Script von diesen Sprachen abweicht, verbergen sich die Fehlerquellen.
 
 Dieses Kapitel behandelt die grundlegenden Bausteine: primitive Typen, wie Variablen deklariert und initialisiert werden und wie die Typkonvertierung funktioniert. Jede Zeile DayZ-Mod-Code beginnt hier.
 
@@ -14,21 +14,21 @@ Dieses Kapitel behandelt die grundlegenden Bausteine: primitive Typen, wie Varia
 
 ## Primitive Typen
 
-Enforce Script besitzt eine kleine, feste Menge primitiver Typen. Sie koennen keine neuen Werttypen definieren --- nur Klassen (behandelt in [Kapitel 1.3](03-classes-inheritance.md)).
+Enforce Script besitzt eine kleine, feste Menge primitiver Typen. Sie können keine neuen Werttypen definieren --- nur Klassen (behandelt in [Kapitel 1.3](03-classes-inheritance.md)).
 
-| Typ | Groesse | Standardwert | Beschreibung |
+| Typ | Größe | Standardwert | Beschreibung |
 |------|------|---------------|-------------|
 | `int` | 32-Bit vorzeichenbehaftet | `0` | Ganzzahlen von -2.147.483.648 bis 2.147.483.647 |
 | `float` | 32-Bit IEEE 754 | `0.0` | Gleitkommazahlen |
 | `bool` | 1 Bit logisch | `false` | `true` oder `false` |
-| `string` | Variabel | `""` (leer) | Text. Unveraenderlicher Werttyp --- wird als Wert uebergeben, nicht als Referenz |
-| `vector` | 3x float | `"0 0 0"` | Drei-Komponenten-Float (x, y, z). Wird als Wert uebergeben |
-| `typename` | Engine-Referenz | `null` | Eine Referenz auf einen Typ selbst, verwendet fuer Reflexion |
-| `void` | N/A | N/A | Wird nur als Rueckgabetyp verwendet, um "gibt nichts zurueck" anzuzeigen |
+| `string` | Variabel | `""` (leer) | Text. Unveränderlicher Werttyp --- wird als Wert übergeben, nicht als Referenz |
+| `vector` | 3x float | `"0 0 0"` | Drei-Komponenten-Float (x, y, z). Wird als Wert übergeben |
+| `typename` | Engine-Referenz | `null` | Eine Referenz auf einen Typ selbst, verwendet für Reflexion |
+| `void` | N/A | N/A | Wird nur als Rückgabetyp verwendet, um "gibt nichts zurück" anzuzeigen |
 
 ### Typ-Konstanten
 
-Einige Typen stellen nuetzliche Konstanten bereit:
+Einige Typen stellen nützliche Konstanten bereit:
 
 ```c
 // int-Grenzen
@@ -37,7 +37,7 @@ int minInt = int.MIN;    // -2147483648
 
 // float-Grenzen
 float smallest = float.MIN;     // kleinster positiver float (~1.175e-38)
-float largest  = float.MAX;     // groesster float (~3.403e+38)
+float largest  = float.MAX;     // größter float (~3.403e+38)
 float lowest   = float.LOWEST;  // negativster float (-3.403e+38)
 ```
 
@@ -45,7 +45,7 @@ float lowest   = float.LOWEST;  // negativster float (-3.403e+38)
 
 ## Variablen deklarieren
 
-Variablen werden deklariert, indem der Typ gefolgt vom Namen geschrieben wird. Sie koennen in einer Anweisung deklarieren und zuweisen oder beides getrennt tun.
+Variablen werden deklariert, indem der Typ gefolgt vom Namen geschrieben wird. Sie können in einer Anweisung deklarieren und zuweisen oder beides getrennt tun.
 
 ```c
 void MyFunction()
@@ -64,9 +64,9 @@ void MyFunction()
 }
 ```
 
-### Das `auto`-Schluesselwort
+### Das `auto`-Schlüsselwort
 
-Wenn der Typ offensichtlich aus der rechten Seite hervorgeht, koennen Sie `auto` verwenden, damit der Compiler ihn ableitet:
+Wenn der Typ offensichtlich aus der rechten Seite hervorgeht, können Sie `auto` verwenden, damit der Compiler ihn ableitet:
 
 ```c
 void Example()
@@ -74,15 +74,15 @@ void Example()
     auto count = 10;           // int
     auto ratio = 0.75;         // float
     auto label = "Hello";      // string
-    auto player = GetGame().GetPlayer();  // DayZPlayer (oder was GetPlayer zurueckgibt)
+    auto player = GetGame().GetPlayer();  // DayZPlayer (oder was GetPlayer zurückgibt)
 }
 ```
 
-Dies ist rein eine Erleichterung --- der Compiler loest den Typ zur Kompilierzeit auf. Es gibt keinen Leistungsunterschied.
+Dies ist rein eine Erleichterung --- der Compiler löst den Typ zur Kompilierzeit auf. Es gibt keinen Leistungsunterschied.
 
 ### Konstanten
 
-Verwenden Sie das `const`-Schluesselwort fuer Werte, die nach der Initialisierung nie geaendert werden sollen:
+Verwenden Sie das `const`-Schlüsselwort für Werte, die nach der Initialisierung nie geändert werden sollen:
 
 ```c
 const int MAX_SQUAD_SIZE = 8;
@@ -102,7 +102,7 @@ Konstanten werden typischerweise auf Dateiebene (ausserhalb einer Funktion) oder
 
 ## Arbeiten mit `int`
 
-Ganzzahlen sind der Arbeitstiertyp. DayZ verwendet sie fuer Artikelanzahlen, Spieler-IDs, Gesundheitswerte (wenn diskretisiert), Enum-Werte, Bitflags und mehr.
+Ganzzahlen sind der Arbeitstiertyp. DayZ verwendet sie für Artikelanzahlen, Spieler-IDs, Gesundheitswerte (wenn diskretisiert), Enum-Werte, Bitflags und mehr.
 
 ```c
 void IntExamples()
@@ -125,7 +125,7 @@ void IntExamples()
     // Ganzzahldivision schneidet ab (keine Rundung)
     int result = 7 / 2;    // result == 3, nicht 3.5
 
-    // Bitweise Operationen (fuer Flags verwendet)
+    // Bitweise Operationen (für Flags verwendet)
     int flags = 0;
     flags = flags | 0x01;   // Bit 0 setzen
     flags = flags | 0x04;   // Bit 2 setzen
@@ -149,7 +149,7 @@ void PrintPlayerCount()
 
 ## Arbeiten mit `float`
 
-Gleitkommazahlen repraesentieren Dezimalzahlen. DayZ verwendet sie umfangreich fuer Positionen, Entfernungen, Gesundheitsprozente, Schadenswerte und Timer.
+Gleitkommazahlen repräsentieren Dezimalzahlen. DayZ verwendet sie umfangreich für Positionen, Entfernungen, Gesundheitsprozente, Schadenswerte und Timer.
 
 ```c
 void FloatExamples()
@@ -165,7 +165,7 @@ void FloatExamples()
     // Float-Division liefert Dezimalergebnisse
     float ratio = 7.0 / 2.0;   // 3.5
 
-    // Nuetzliche Mathematik
+    // Nützliche Mathematik
     float dist = 150.7;
     float rounded = Math.Round(dist);    // 151
     float floored = Math.Floor(dist);    // 150
@@ -218,18 +218,18 @@ void BoolExamples()
 
 ### Wahrheitswerte in Bedingungen
 
-In Enforce Script koennen Sie Nicht-Bool-Werte in Bedingungen verwenden. Die folgenden gelten als `false`:
+In Enforce Script können Sie Nicht-Bool-Werte in Bedingungen verwenden. Die folgenden gelten als `false`:
 - `0` (int)
 - `0.0` (float)
 - `""` (leerer String)
 - `null` (Null-Objektreferenz)
 
-Alles andere ist `true`. Dies wird haeufig fuer Null-Pruefungen verwendet:
+Alles andere ist `true`. Dies wird häufig für Null-Pruefungen verwendet:
 
 ```c
 void SafeCheck(PlayerBase player)
 {
-    // Diese beiden sind aequivalent:
+    // Diese beiden sind äquivalent:
     if (player != null)
         Print("Spieler existiert");
 
@@ -249,7 +249,7 @@ void SafeCheck(PlayerBase player)
 
 ## Arbeiten mit `string`
 
-Strings in Enforce Script sind **Werttypen** --- sie werden beim Zuweisen oder Uebergeben an Funktionen kopiert, genau wie `int` oder `float`. Dies unterscheidet sich von C# oder Java, wo Strings Referenztypen sind.
+Strings in Enforce Script sind **Werttypen** --- sie werden beim Zuweisen oder Übergeben an Funktionen kopiert, genau wie `int` oder `float`. Dies unterscheidet sich von C# oder Java, wo Strings Referenztypen sind.
 
 ```c
 void StringExamples()
@@ -264,7 +264,7 @@ void StringExamples()
     string formatted = string.Format("Player %1 has %2 health", name, 75);
     // Ergebnis: "Player Survivor has 75 health"
 
-    // Laenge
+    // Länge
     int len = message.Length();    // 17
 
     // Vergleich
@@ -281,17 +281,17 @@ void StringExamples()
 
 ### Escape-Sequenzen
 
-Strings unterstuetzen Standard-Escape-Sequenzen:
+Strings unterstützen Standard-Escape-Sequenzen:
 
 | Sequenz | Bedeutung |
 |----------|---------|
 | `\n` | Zeilenumbruch |
-| `\r` | Wagenruecklauf |
+| `\r` | Wagenrücklauf |
 | `\t` | Tabulator |
 | `\\` | Literaler Backslash |
-| `\"` | Literales Anfuehrungszeichen |
+| `\"` | Literales Anführungszeichen |
 
-**Warnung:** Obwohl diese dokumentiert sind, verursachen Backslash (`\\`) und escapte Anfuehrungszeichen (`\"`) bekanntermaassen Probleme mit dem CParser in bestimmten Kontexten, insbesondere bei JSON-bezogenen Operationen. Wenn Sie mit Dateipfaden oder JSON-Strings arbeiten, vermeiden Sie Backslashes wenn moeglich. Verwenden Sie fuer Pfade Schraegstriche --- DayZ akzeptiert sie auf allen Plattformen.
+**Warnung:** Obwohl diese dokumentiert sind, verursachen Backslash (`\\`) und escapte Anführungszeichen (`\"`) bekanntermaassen Probleme mit dem CParser in bestimmten Kontexten, insbesondere bei JSON-bezogenen Operationen. Wenn Sie mit Dateipfaden oder JSON-Strings arbeiten, vermeiden Sie Backslashes wenn möglich. Verwenden Sie für Pfade Schrägstriche --- DayZ akzeptiert sie auf allen Plattformen.
 
 ### Praxisbeispiel: Chat-Nachricht
 
@@ -307,11 +307,11 @@ void SendAdminMessage(string adminName, string text)
 
 ## Arbeiten mit `vector`
 
-Der `vector`-Typ haelt drei `float`-Komponenten (x, y, z). Er ist DayZ's grundlegender Typ fuer Positionen, Richtungen, Rotationen und Geschwindigkeiten. Wie Strings und Primitive sind Vektoren **Werttypen** --- sie werden bei der Zuweisung kopiert.
+Der `vector`-Typ hält drei `float`-Komponenten (x, y, z). Er ist DayZ's grundlegender Typ für Positionen, Richtungen, Rotationen und Geschwindigkeiten. Wie Strings und Primitive sind Vektoren **Werttypen** --- sie werden bei der Zuweisung kopiert.
 
 ### Initialisierung
 
-Vektoren koennen auf zwei Arten initialisiert werden:
+Vektoren können auf zwei Arten initialisiert werden:
 
 ```c
 void VectorInit()
@@ -327,11 +327,11 @@ void VectorInit()
 }
 ```
 
-**Wichtig:** Das String-Initialisierungsformat verwendet **Leerzeichen** als Trennzeichen, nicht Kommas. `"1 2 3"` ist gueltig; `"1,2,3"` ist es nicht.
+**Wichtig:** Das String-Initialisierungsformat verwendet **Leerzeichen** als Trennzeichen, nicht Kommas. `"1 2 3"` ist gültig; `"1,2,3"` ist es nicht.
 
 ### Komponentenzugriff
 
-Greifen Sie auf einzelne Komponenten ueber Array-aehnliche Indizierung zu:
+Greifen Sie auf einzelne Komponenten über Array-ähnliche Indizierung zu:
 
 ```c
 void VectorComponents()
@@ -340,17 +340,17 @@ void VectorComponents()
 
     // Komponenten lesen
     float x = pos[0];   // 100.5  (Ost/West)
-    float y = pos[1];   // 25.0   (Oben/Unten, Hoehe)
+    float y = pos[1];   // 25.0   (Oben/Unten, Höhe)
     float z = pos[2];   // 200.3  (Nord/Sued)
 
     // Komponenten schreiben
-    pos[1] = 50.0;      // Hoehe auf 50 aendern
+    pos[1] = 50.0;      // Höhe auf 50 ändern
 }
 ```
 
 DayZ-Koordinatensystem:
 - `[0]` = X = Ost(+) / West(-)
-- `[1]` = Y = Oben(+) / Unten(-) (Hoehe ueber Meeresspiegel)
+- `[1]` = Y = Oben(+) / Unten(-) (Höhe über Meeresspiegel)
 - `[2]` = Z = Nord(+) / Sued(-)
 
 ### Statische Konstanten
@@ -362,7 +362,7 @@ vector right   = vector.Aside;     // "1 0 0"
 vector forward = vector.Forward;   // "0 0 1"
 ```
 
-### Haeufige Vektor-Operationen
+### Häufige Vektor-Operationen
 
 ```c
 void VectorOps()
@@ -373,16 +373,16 @@ void VectorOps()
     // Entfernung zwischen zwei Punkten
     float dist = vector.Distance(pos1, pos2);
 
-    // Quadrierte Entfernung (schneller, gut fuer Vergleiche)
+    // Quadrierte Entfernung (schneller, gut für Vergleiche)
     float distSq = vector.DistanceSq(pos1, pos2);
 
     // Richtung von pos1 nach pos2
     vector dir = vector.Direction(pos1, pos2);
 
-    // Vektor normalisieren (Laenge = 1 machen)
+    // Vektor normalisieren (Länge = 1 machen)
     vector norm = dir.Normalized();
 
-    // Laenge eines Vektors
+    // Länge eines Vektors
     float len = dir.Length();
 
     // Lineare Interpolation (50% zwischen pos1 und pos2)
@@ -400,11 +400,11 @@ void VectorOps()
 vector GetGroundPosition(float x, float z)
 {
     vector pos = Vector(x, 0, z);
-    pos[1] = GetGame().SurfaceY(x, z);  // Y auf Gelaendehoehe setzen
+    pos[1] = GetGame().SurfaceY(x, z);  // Y auf Geländehöhe setzen
     return pos;
 }
 
-// Eine zufaellige Position innerhalb eines Radius um einen Mittelpunkt erhalten
+// Eine zufällige Position innerhalb eines Radius um einen Mittelpunkt erhalten
 vector GetRandomPositionAround(vector center, float radius)
 {
     float angle = Math.RandomFloat(0, Math.PI2);
@@ -421,7 +421,7 @@ vector GetRandomPositionAround(vector center, float radius)
 
 ## Arbeiten mit `typename`
 
-Der `typename`-Typ haelt eine Referenz auf einen Typ selbst. Er wird fuer Reflexion verwendet --- das Untersuchen und Arbeiten mit Typen zur Laufzeit. Sie werden ihm begegnen, wenn Sie generische Systeme, Config-Loader und Factory-Muster schreiben.
+Der `typename`-Typ hält eine Referenz auf einen Typ selbst. Er wird für Reflexion verwendet --- das Untersuchen und Arbeiten mit Typen zur Laufzeit. Sie werden ihm begegnen, wenn Sie generische Systeme, Config-Loader und Factory-Muster schreiben.
 
 ```c
 void TypenameExamples()
@@ -438,10 +438,10 @@ void TypenameExamples()
 
     // Den typename einer Objektinstanz erhalten
     PlayerBase player;
-    // ... angenommen player ist gueltig ...
+    // ... angenommen player ist gültig ...
     typename objType = player.Type();
 
-    // Vererbung pruefen
+    // Vererbung prüfen
     bool isMan = objType.IsInherited(Man);
 
     // typename in String umwandeln
@@ -479,7 +479,7 @@ void EnumConvert()
 
 ## Typkonvertierung
 
-Enforce Script unterstuetzt sowohl implizite als auch explizite Konvertierungen zwischen Typen.
+Enforce Script unterstützt sowohl implizite als auch explizite Konvertierungen zwischen Typen.
 
 ### Implizite Konvertierungen
 
@@ -535,7 +535,7 @@ void ExplicitConversions()
 
 ### Objekt-Casting
 
-Fuer Klassentypen verwenden Sie `Class.CastTo()` oder `ClassName.Cast()`. Dies wird ausfuehrlich in [Kapitel 1.3](03-classes-inheritance.md) behandelt, aber hier ist das wesentliche Muster:
+Für Klassentypen verwenden Sie `Class.CastTo()` oder `ClassName.Cast()`. Dies wird ausführlich in [Kapitel 1.3](03-classes-inheritance.md) behandelt, aber hier ist das wesentliche Muster:
 
 ```c
 void CastExample()
@@ -546,7 +546,7 @@ void CastExample()
     PlayerBase player;
     if (Class.CastTo(player, obj))
     {
-        // player ist gueltig und sicher verwendbar
+        // player ist gültig und sicher verwendbar
         string name = player.GetIdentity().GetName();
     }
 
@@ -554,14 +554,14 @@ void CastExample()
     PlayerBase player2 = PlayerBase.Cast(obj);
     if (player2)
     {
-        // player2 ist gueltig
+        // player2 ist gültig
     }
 }
 ```
 
 ---
 
-## Variablen-Gueltigkeitsbereich
+## Variablen-Gültigkeitsbereich
 
 Variablen existieren nur innerhalb des Codeblocks (geschweifte Klammern), in dem sie deklariert werden. Enforce Script erlaubt es **nicht**, einen Variablennamen in verschachtelten oder geschwisterlichen Scopes erneut zu deklarieren.
 
@@ -573,14 +573,14 @@ void ScopeExample()
     if (true)
     {
         // int x = 20;  // FEHLER: Neudeklaration von 'x' im verschachtelten Scope
-        x = 20;         // OK: das aeussere x modifizieren
+        x = 20;         // OK: das äußere x modifizieren
         int y = 30;     // OK: neue Variable in diesem Scope
     }
 
-    // y ist hier NICHT zugaenglich (im inneren Scope deklariert)
+    // y ist hier NICHT zugänglich (im inneren Scope deklariert)
     // Print(y);  // FEHLER: undeclared identifier 'y'
 
-    // WICHTIG: dies gilt auch fuer for-Schleifen
+    // WICHTIG: dies gilt auch für for-Schleifen
     for (int i = 0; i < 5; i++)
     {
         // i existiert hier
@@ -596,7 +596,7 @@ void ScopeExample()
 
 ### Die Geschwister-Scope-Falle
 
-Dies ist eine der beruehmtesten Eigenheiten von Enforce Script. Die Deklaration desselben Variablennamens in `if`- und `else`-Bloecken verursacht einen Kompilierfehler:
+Dies ist eine der berühmtesten Eigenheiten von Enforce Script. Die Deklaration desselben Variablennamens in `if`- und `else`-Blöcken verursacht einen Kompilierfehler:
 
 ```c
 void SiblingTrap()
@@ -627,7 +627,7 @@ void SiblingTrap()
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Nicht initialisierte Variablen in Logik verwendet
 
@@ -647,7 +647,7 @@ if (count > 0)
 
 ### 2. Float-zu-Int-Abschneidung
 
-Die Float-zu-Int-Konvertierung schneidet ab (rundet Richtung Null), rundet nicht zur naechsten Zahl:
+Die Float-zu-Int-Konvertierung schneidet ab (rundet Richtung Null), rundet nicht zur nächsten Zahl:
 
 ```c
 float f = 3.99;
@@ -657,7 +657,7 @@ int i = f;         // i == 3, NICHT 4
 int rounded = Math.Round(f);  // 4
 ```
 
-### 3. Float-Praezision bei Vergleichen
+### 3. Float-Präzision bei Vergleichen
 
 Vergleichen Sie Floats niemals auf exakte Gleichheit:
 
@@ -674,7 +674,7 @@ if (Math.AbsFloat(a - 0.3) < 0.001)
 
 ### 4. String-Verkettung mit Zahlen
 
-Sie koennen eine Zahl nicht einfach mit `+` an einen String anhaengen. Verwenden Sie `string.Format()`:
+Sie können eine Zahl nicht einfach mit `+` an einen String anhängen. Verwenden Sie `string.Format()`:
 
 ```c
 int kills = 5;
@@ -702,7 +702,7 @@ Anders als Klassenobjekte werden Strings und Vektoren bei der Zuweisung kopiert.
 ```c
 vector posA = "10 20 30";
 vector posB = posA;       // posB ist eine KOPIE
-posB[1] = 99;             // Nur posB aendert sich
+posB[1] = 99;             // Nur posB ändert sich
 // posA ist immer noch "10 20 30"
 ```
 
@@ -721,25 +721,25 @@ Deklarieren Sie Variablen zum Speichern von:
 Geben Sie eine formatierte Zusammenfassung mit `string.Format()` aus.
 
 ### Uebung 2: Temperaturumrechner
-Schreiben Sie eine Funktion `float CelsiusToFahrenheit(float celsius)` und ihr Gegenstueck `float FahrenheitToCelsius(float fahrenheit)`. Testen Sie mit dem Siedepunkt (100C = 212F) und dem Gefrierpunkt (0C = 32F).
+Schreiben Sie eine Funktion `float CelsiusToFahrenheit(float celsius)` und ihr Gegenstück `float FahrenheitToCelsius(float fahrenheit)`. Testen Sie mit dem Siedepunkt (100C = 212F) und dem Gefrierpunkt (0C = 32F).
 
 ### Uebung 3: Entfernungsrechner
-Schreiben Sie eine Funktion, die zwei Vektoren nimmt und zurueckgibt:
+Schreiben Sie eine Funktion, die zwei Vektoren nimmt und zurückgibt:
 - Die 3D-Entfernung zwischen ihnen
-- Die 2D-Entfernung (Hoehe/Y-Achse ignorierend)
-- Den Hoehenunterschied
+- Die 2D-Entfernung (Höhe/Y-Achse ignorierend)
+- Den Höhenunterschied
 
-Hinweis: Fuer die 2D-Entfernung erstellen Sie neue Vektoren mit `[1]` auf `0` gesetzt, bevor Sie die Entfernung berechnen.
+Hinweis: Für die 2D-Entfernung erstellen Sie neue Vektoren mit `[1]` auf `0` gesetzt, bevor Sie die Entfernung berechnen.
 
 ### Uebung 4: Typ-Jonglieren
 Gegeben den String `"42"`, konvertieren Sie ihn zu:
 1. Einem `int`
 2. Einem `float`
-3. Zurueck zu einem `string` mit `string.Format()`
+3. Zurück zu einem `string` mit `string.Format()`
 4. Einem `bool` (sollte `true` sein, da der int-Wert ungleich null ist)
 
 ### Uebung 5: Bodenposition
-Schreiben Sie eine Funktion `vector SnapToGround(vector pos)`, die eine beliebige Position nimmt und sie mit der Y-Komponente auf die Gelaendehoehe an dieser X,Z-Position gesetzt zurueckgibt. Verwenden Sie `GetGame().SurfaceY()`.
+Schreiben Sie eine Funktion `vector SnapToGround(vector pos)`, die eine beliebige Position nimmt und sie mit der Y-Komponente auf die Geländehöhe an dieser X,Z-Position gesetzt zurückgibt. Verwenden Sie `GetGame().SurfaceY()`.
 
 ---
 
@@ -749,10 +749,10 @@ Schreiben Sie eine Funktion `vector SnapToGround(vector pos)`, die eine beliebig
 |---------|-----------|
 | Typen | `int`, `float`, `bool`, `string`, `vector`, `typename`, `void` |
 | Standardwerte | `0`, `0.0`, `false`, `""`, `"0 0 0"`, `null` |
-| Konstanten | `const`-Schluesselwort, `UPPER_SNAKE_CASE`-Konvention |
+| Konstanten | `const`-Schlüsselwort, `UPPER_SNAKE_CASE`-Konvention |
 | Vektoren | Initialisierung mit `"x y z"`-String oder `Vector(x,y,z)`, Zugriff mit `[0]`, `[1]`, `[2]` |
-| Scope | Variablen auf `{}`-Bloecke beschraenkt; keine Neudeklaration in verschachtelten/geschwisterlichen Bloecken |
-| Konvertierung | `float`-zu-`int` schneidet ab; verwenden Sie `.ToInt()`, `.ToFloat()`, `.ToVector()` fuer String-Parsing |
+| Scope | Variablen auf `{}`-Blöcke beschränkt; keine Neudeklaration in verschachtelten/geschwisterlichen Blöcken |
+| Konvertierung | `float`-zu-`int` schneidet ab; verwenden Sie `.ToInt()`, `.ToFloat()`, `.ToVector()` für String-Parsing |
 | Formatierung | Verwenden Sie immer `string.Format()` zum Erstellen von Strings aus gemischten Typen |
 
 ---

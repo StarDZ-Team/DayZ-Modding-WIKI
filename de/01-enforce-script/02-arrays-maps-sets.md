@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Real DayZ mods deal with collections of things: lists of players, inventories of items, mappings from player IDs to permissions, sets of active zones. Enforce Script provides three collection types to handle these needs:
 
@@ -735,7 +735,7 @@ class LootTable
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. `Remove` vs `RemoveOrdered`: The Silent Bug
 
@@ -917,4 +917,4 @@ Create a class with two maps that allows lookup in both directions: given a play
 
 ---
 
-[Startseite](../../README.md) | [<< Zurueck: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Next: Classes & Inheritance >>](03-classes-inheritance.md)
+[Startseite](../../README.md) | [<< Zurück: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Next: Classes & Inheritance >>](03-classes-inheritance.md)

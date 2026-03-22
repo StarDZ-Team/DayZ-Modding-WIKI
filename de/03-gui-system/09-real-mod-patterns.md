@@ -1116,7 +1116,7 @@ This avoids loading all admin panels beim Start when most will never be opened.
 
 ### Event Delegation Through Handler Chains
 
-Ein gaengiges Muster is a parent handler that delegates to child handlers:
+Ein gängiges Muster is a parent handler that delegates to child handlers:
 
 ```c
 // Parent handles click, routes to appropriate child
@@ -1279,4 +1279,4 @@ If you create widgets with `CreateWidgets()`, you own them. Call `Unlink()` on t
 
 ---
 
-*Naechstes chapter: [Advanced Widgets](10-advanced-widgets.md) -- RichTextWidget formatting, CanvasWidget drawing, MapWidget markers, ItemPreviewWidget, PlayerPreviewWidget, VideoWidget, and RenderTargetWidget.*
+*Nächstes chapter: [Advanced Widgets](10-advanced-widgets.md) -- RichTextWidget formatting, CanvasWidget drawing, MapWidget markers, ItemPreviewWidget, PlayerPreviewWidget, VideoWidget, and RenderTargetWidget.*

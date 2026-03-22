@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ has a fully dynamic weather system controlled through the `Weather` class. The system manages overcast, rain, snowfall, fog, wind, and thunderstorms. Weather can be configured through script (the Weather API), through `cfgweather.xml` in the mission folder, or through a scripted weather state machine. This chapter covers the script API for reading and controlling weather programmatically.
 
@@ -320,4 +320,4 @@ Key structure:
 
 ---
 
-[<< Zurueck: Vehicles](02-vehicles.md) | **Weather** | [Next: Cameras >>](04-cameras.md)
+[<< Zurück: Vehicles](02-vehicles.md) | **Weather** | [Next: Cameras >>](04-cameras.md)

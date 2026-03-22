@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Sound design is one of the most immersive aspects of DayZ modding. From the crack of a rifle to the ambient wind in a forest, audio brings the game world to life. DayZ uses **OGG Vorbis** as its primary audio format and configures sound playback through a layered system of **CfgSoundShaders** and **CfgSoundSets** defined in `config.cpp`. Understanding this pipeline -- from raw audio file to spatialized in-game sound -- is essential for any mod that introduces custom weapons, vehicles, ambient effects, or UI feedback.
 
@@ -577,7 +577,7 @@ done
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Stereo File for 3D Sound
 

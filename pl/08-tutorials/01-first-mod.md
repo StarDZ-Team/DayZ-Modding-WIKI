@@ -1,108 +1,112 @@
-# Chapter 8.1: Your First Mod (Hello World)
+# Rozdział 8.1: Twój pierwszy mod (Hello World)
 
-[Home](../../README.md) | **Your First Mod** | [Next: Creating a Custom Item >>](02-custom-item.md)
-
----
-
-## Spis tresci
-
-- [Prerequisites](#prerequisites)
-- [Step 1: Install DayZ Tools](#step-1-install-dayz-tools)
-- [Step 2: Set Up the P: Drive (Workdrive)](#step-2-set-up-the-p-drive-workdrive)
-- [Step 3: Create the Mod Directory Structure](#step-3-create-the-mod-directory-structure)
-- [Step 4: Write mod.cpp](#step-4-write-modcpp)
-- [Step 5: Write config.cpp](#step-5-write-configcpp)
-- [Step 6: Write Your First Script](#step-6-write-your-first-script)
-- [Step 7: Pack the PBO with Addon Builder](#step-7-pack-the-pbo-with-addon-builder)
-- [Step 8: Load the Mod in DayZ](#step-8-load-the-mod-in-dayz)
-- [Step 9: Verify in the Script Log](#step-9-verify-in-the-script-log)
-- [Step 10: Troubleshooting Common Issues](#step-10-troubleshooting-common-issues)
-- [Complete File Reference](#complete-file-reference)
-- [Next Steps](#next-steps)
+[Strona główna](../../README.md) | **Twój pierwszy mod** | [Dalej: Tworzenie własnego przedmiotu >>](02-custom-item.md)
 
 ---
 
-## Prerequisites
-
-Before you begin, make sure you have:
-
-- **Steam** installed and logged in
-- **DayZ** game installed (retail version from Steam)
-- A **text editor** (VS Code, Notepad++, or even Notepad)
-- About **15 GB of free disk space** for DayZ Tools
-
-That is everything. No programming experience is required for this tutorial -- every line of code is explained.
+> **Podsumowanie:** Ten samouczek przeprowadzi cię przez tworzenie pierwszego moda DayZ od absolutnego zera. Zainstalujesz narzędzia, skonfigurujesz przestrzeń roboczą, napiszesz trzy pliki, spakujesz PBO, załadujesz moda w DayZ i zweryfikujesz jego działanie czytając log skryptowy. Nie jest wymagane żadne wcześniejsze doświadczenie z moddingiem DayZ.
 
 ---
 
-## Step 1: Install DayZ Tools
+## Spis treści
 
-DayZ Tools is a free application on Steam that includes everything you need to build mods: the Workbench script editor, Addon Builder for PBO packing, Terrain Builder, and Object Builder.
+- [Wymagania wstępne](#wymagania-wstępne)
+- [Krok 1: Instalacja DayZ Tools](#krok-1-instalacja-dayz-tools)
+- [Krok 2: Konfiguracja dysku P: (Workdrive)](#krok-2-konfiguracja-dysku-p-workdrive)
+- [Krok 3: Tworzenie struktury katalogów moda](#krok-3-tworzenie-struktury-katalogów-moda)
+- [Krok 4: Pisanie mod.cpp](#krok-4-pisanie-modcpp)
+- [Krok 5: Pisanie config.cpp](#krok-5-pisanie-configcpp)
+- [Krok 6: Pisanie pierwszego skryptu](#krok-6-pisanie-pierwszego-skryptu)
+- [Krok 7: Pakowanie PBO za pomocą Addon Buildera](#krok-7-pakowanie-pbo-za-pomocą-addon-buildera)
+- [Krok 8: Ładowanie moda w DayZ](#krok-8-ładowanie-moda-w-dayz)
+- [Krok 9: Weryfikacja w logu skryptowym](#krok-9-weryfikacja-w-logu-skryptowym)
+- [Krok 10: Rozwiązywanie typowych problemów](#krok-10-rozwiązywanie-typowych-problemów)
+- [Kompletna referencja plików](#kompletna-referencja-plików)
+- [Następne kroki](#następne-kroki)
 
-### How to Install
+---
 
-1. Open **Steam**
-2. Go to **Library**
-3. In the dropdown filter at the top, change **Games** to **Tools**
-4. Search for **DayZ Tools**
-5. Click **Install**
-6. Wait for the download to complete (it is roughly 12-15 GB)
+## Wymagania wstępne
 
-Once installed, you will find DayZ Tools in your Steam library under Tools. The default installation path is:
+Przed rozpoczęciem upewnij się, że masz:
+
+- Zainstalowany **Steam** i zalogowane konto
+- Zainstalowaną grę **DayZ** (wersja detaliczna ze Steam)
+- **Edytor tekstu** (VS Code, Notepad++ lub nawet Notatnik)
+- Około **15 GB wolnego miejsca na dysku** na DayZ Tools
+
+To wszystko. Do tego samouczka nie jest wymagane żadne doświadczenie programistyczne -- każda linia kodu jest wyjaśniona.
+
+---
+
+## Krok 1: Instalacja DayZ Tools
+
+DayZ Tools to bezpłatna aplikacja na Steam, która zawiera wszystko, czego potrzebujesz do budowania modów: edytor skryptów Workbench, Addon Builder do pakowania PBO, Terrain Builder i Object Builder.
+
+### Jak zainstalować
+
+1. Otwórz **Steam**
+2. Przejdź do **Biblioteki**
+3. W filtrze rozwijalnym na górze zmień **Gry** na **Narzędzia**
+4. Wyszukaj **DayZ Tools**
+5. Kliknij **Zainstaluj**
+6. Poczekaj na zakończenie pobierania (około 12-15 GB)
+
+Po zainstalowaniu znajdziesz DayZ Tools w swojej bibliotece Steam pod Narzędziami. Domyślna ścieżka instalacji to:
 
 ```
 C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\
 ```
 
-### What Gets Installed
+### Co zostanie zainstalowane
 
-| Tool | Purpose |
+| Narzędzie | Przeznaczenie |
 |------|---------|
-| **Addon Builder** | Packs your mod files into `.pbo` archives |
-| **Workbench** | Script editor with syntax highlighting |
-| **Object Builder** | 3D model viewer and editor for `.p3d` files |
-| **Terrain Builder** | Map/terrain editor |
-| **TexView2** | Texture viewer/converter (`.paa`, `.edds`) |
+| **Addon Builder** | Pakuje pliki twojego moda do archiwów `.pbo` |
+| **Workbench** | Edytor skryptów z podświetlaniem składni |
+| **Object Builder** | Przeglądarka i edytor modeli 3D dla plików `.p3d` |
+| **Terrain Builder** | Edytor map/terenu |
+| **TexView2** | Przeglądarka/konwerter tekstur (`.paa`, `.edds`) |
 
-For this tutorial, you only need **Addon Builder**. The others are useful later.
+W tym samouczku potrzebujesz tylko **Addon Buildera**. Pozostałe przydadzą się później.
 
 ---
 
-## Step 2: Set Up the P: Drive (Workdrive)
+## Krok 2: Konfiguracja dysku P: (Workdrive)
 
-DayZ modding uses a virtual drive letter **P:** as a shared workspace. All mods and game data reference paths starting from P:, which keeps paths consistent across different machines.
+Modding DayZ używa wirtualnej litery dysku **P:** jako wspólnej przestrzeni roboczej. Wszystkie mody i dane gry odwołują się do ścieżek zaczynających się od P:, co utrzymuje spójność ścieżek na różnych maszynach.
 
-### Creating the P: Drive
+### Tworzenie dysku P:
 
-1. Open **DayZ Tools** from Steam
-2. In the main DayZ Tools window, click **P: Drive Management** (or look for a button labeled "Mount P drive" / "Setup P drive")
-3. Click **Create/Mount P: Drive**
-4. Choose a location for the P: drive data (default is fine, or pick a drive with enough space)
-5. Wait for the process to complete
+1. Otwórz **DayZ Tools** ze Steam
+2. W głównym oknie DayZ Tools kliknij **P: Drive Management** (lub szukaj przycisku oznaczonego "Mount P drive" / "Setup P drive")
+3. Kliknij **Create/Mount P: Drive**
+4. Wybierz lokalizację dla danych dysku P: (domyślna jest w porządku, lub wybierz dysk z wystarczającą ilością miejsca)
+5. Poczekaj na zakończenie procesu
 
-### Verify It Works
+### Weryfikacja działania
 
-Open **File Explorer** and navigate to `P:\`. You should see a directory that contains DayZ game data. If the P: drive exists and you can browse it, you are ready to proceed.
+Otwórz **Eksplorator plików** i przejdź do `P:\`. Powinieneś zobaczyć katalog zawierający dane gry DayZ. Jeśli dysk P: istnieje i możesz go przeglądać, jesteś gotowy do kontynuowania.
 
-### Alternative: Manual P: Drive
+### Alternatywa: Ręczny dysk P:
 
-If the DayZ Tools GUI does not work, you can create a P: drive manually using a Windows command prompt (run as Administrator):
+Jeśli GUI DayZ Tools nie działa, możesz utworzyć dysk P: ręcznie za pomocą wiersza poleceń Windows (uruchomionego jako Administrator):
 
 ```batch
 subst P: "C:\DayZWorkdrive"
 ```
 
-Replace `C:\DayZWorkdrive` with any folder you want. This creates a temporary drive mapping that lasts until you reboot. For a permanent mapping, use `net use` or the DayZ Tools GUI.
+Zamień `C:\DayZWorkdrive` na dowolny folder. To tworzy tymczasowe mapowanie dysku, które trwa do restartu. Dla trwałego mapowania użyj `net use` lub GUI DayZ Tools.
 
-### What If I Do Not Want to Use P: Drive?
+### Co jeśli nie chcę używać dysku P:?
 
-You can develop without the P: drive by placing your mod folder directly in the DayZ game directory and using `-filePatching` mode. However, the P: drive is the standard workflow and all official documentation assumes it. We strongly recommend setting it up.
+Możesz tworzyć mody bez dysku P:, umieszczając folder moda bezpośrednio w katalogu gry DayZ i używając trybu `-filePatching`. Jednak dysk P: to standardowy sposób pracy i cała oficjalna dokumentacja go zakłada. Zdecydowanie zalecamy jego skonfigurowanie.
 
 ---
 
-## Step 3: Create the Mod Directory Structure
+## Krok 3: Tworzenie struktury katalogów moda
 
-Every DayZ mod follows a specific folder structure. Create the following directories and files on your P: drive (or in your DayZ game directory if not using P:):
+Każdy mod DayZ ma określoną strukturę folderów. Utwórz następujące katalogi i pliki na swoim dysku P: (lub w katalogu gry DayZ, jeśli nie używasz P:):
 
 ```
 P:\MyFirstMod\
@@ -114,33 +118,33 @@ P:\MyFirstMod\
                 MissionHello.c
 ```
 
-### Create the Folders
+### Tworzenie folderów
 
-1. Open **File Explorer**
-2. Navigate to `P:\`
-3. Create a new folder called `MyFirstMod`
-4. Inside `MyFirstMod`, create a folder called `Scripts`
-5. Inside `Scripts`, create a folder called `5_Mission`
-6. Inside `5_Mission`, create a folder called `MyFirstMod`
+1. Otwórz **Eksplorator plików**
+2. Przejdź do `P:\`
+3. Utwórz nowy folder o nazwie `MyFirstMod`
+4. Wewnątrz `MyFirstMod` utwórz folder `Scripts`
+5. Wewnątrz `Scripts` utwórz folder `5_Mission`
+6. Wewnątrz `5_Mission` utwórz folder `MyFirstMod`
 
-### Understanding the Structure
+### Zrozumienie struktury
 
-| Path | Purpose |
+| Ścieżka | Przeznaczenie |
 |------|---------|
-| `MyFirstMod/` | Root of your mod |
-| `mod.cpp` | Metadata (name, author) shown in the DayZ launcher |
-| `Scripts/config.cpp` | Tells the engine what your mod depends on and where scripts live |
-| `Scripts/5_Mission/` | The mission script layer (UI, startup hooks) |
-| `Scripts/5_Mission/MyFirstMod/` | Subfolder for your mod's mission scripts |
-| `Scripts/5_Mission/MyFirstMod/MissionHello.c` | Your actual script file |
+| `MyFirstMod/` | Katalog główny twojego moda |
+| `mod.cpp` | Metadane (nazwa, autor) wyświetlane w launcherze DayZ |
+| `Scripts/config.cpp` | Mówi silnikowi, od czego zależy twój mod i gdzie są skrypty |
+| `Scripts/5_Mission/` | Warstwa skryptów misji (UI, hooki startowe) |
+| `Scripts/5_Mission/MyFirstMod/` | Podkatalog dla skryptów misji twojego moda |
+| `Scripts/5_Mission/MyFirstMod/MissionHello.c` | Twój właściwy plik skryptowy |
 
-You need exactly **3 files**. Let us create them one by one.
+Potrzebujesz dokładnie **3 plików**. Stwórzmy je jeden po drugim.
 
 ---
 
-## Step 4: Write mod.cpp
+## Krok 4: Pisanie mod.cpp
 
-Create the file `P:\MyFirstMod\mod.cpp` in your text editor and paste this content:
+Utwórz plik `P:\MyFirstMod\mod.cpp` w swoim edytorze tekstu i wklej tę zawartość:
 
 ```cpp
 name = "My First Mod";
@@ -149,20 +153,20 @@ version = "1.0";
 overview = "My very first DayZ mod. Prints Hello World to the script log.";
 ```
 
-### What Each Line Does
+### Co robi każda linia
 
-- **`name`** -- The display name shown in the DayZ launcher mod list. Players see this when selecting mods.
-- **`author`** -- Your name or team name.
-- **`version`** -- Any version string you like. The engine does not parse it.
-- **`overview`** -- A description shown when expanding the mod details.
+- **`name`** -- Nazwa wyświetlana na liście modów w launcherze DayZ. Gracze widzą ją przy wybieraniu modów.
+- **`author`** -- Twoje imię lub nazwa zespołu.
+- **`version`** -- Dowolny łańcuch wersji. Silnik go nie parsuje.
+- **`overview`** -- Opis wyświetlany po rozwinięciu szczegółów moda.
 
-Save the file. That is your mod's identity card.
+Zapisz plik. To jest karta tożsamości twojego moda.
 
 ---
 
-## Step 5: Write config.cpp
+## Krok 5: Pisanie config.cpp
 
-Create the file `P:\MyFirstMod\Scripts\config.cpp` and paste this content:
+Utwórz plik `P:\MyFirstMod\Scripts\config.cpp` i wklej tę zawartość:
 
 ```cpp
 class CfgPatches
@@ -202,29 +206,29 @@ class CfgMods
 };
 ```
 
-### What Each Section Does
+### Co robi każda sekcja
 
-**CfgPatches** declares your mod to the DayZ engine:
+**CfgPatches** deklaruje twojego moda w silniku DayZ:
 
-- `class MyFirstMod_Scripts` -- A unique identifier for your mod's script package. Must not collide with any other mod.
-- `units[] = {}; weapons[] = {};` -- Lists of entities and weapons your mod adds. Empty for now.
-- `requiredVersion = 0.1;` -- Minimum game version. Always `0.1`.
-- `requiredAddons[] = { "DZ_Data" };` -- Dependencies. `DZ_Data` is the base game data. This ensures your mod loads **after** the base game.
+- `class MyFirstMod_Scripts` -- Unikalny identyfikator pakietu skryptów twojego moda. Nie może kolidować z żadnym innym modem.
+- `units[] = {}; weapons[] = {};` -- Listy encji i broni dodawanych przez twojego moda. Na razie puste.
+- `requiredVersion = 0.1;` -- Minimalna wersja gry. Zawsze `0.1`.
+- `requiredAddons[] = { "DZ_Data" };` -- Zależności. `DZ_Data` to podstawowe dane gry. Zapewnia to, że twój mod załaduje się **po** grze bazowej.
 
-**CfgMods** tells the engine where your scripts live:
+**CfgMods** mówi silnikowi, gdzie są twoje skrypty:
 
-- `dir = "MyFirstMod";` -- Root directory of the mod.
-- `type = "mod";` -- This is a client+server mod (as opposed to `"servermod"` for server-only).
-- `dependencies[] = { "Mission" };` -- Your code hooks into the Mission script module.
-- `class missionScriptModule` -- Tells the engine to compile all `.c` files found in `MyFirstMod/Scripts/5_Mission/`.
+- `dir = "MyFirstMod";` -- Katalog główny moda.
+- `type = "mod";` -- To jest mod klient+serwer (w przeciwieństwie do `"servermod"` tylko dla serwera).
+- `dependencies[] = { "Mission" };` -- Twój kod wpina się w moduł skryptowy Mission.
+- `class missionScriptModule` -- Mówi silnikowi, żeby skompilował wszystkie pliki `.c` znalezione w `MyFirstMod/Scripts/5_Mission/`.
 
-**Why only `5_Mission`?** Because our Hello World script hooks into the mission startup event, which lives in the mission layer. Most simple mods start here.
+**Dlaczego tylko `5_Mission`?** Ponieważ nasz skrypt Hello World wpina się w zdarzenie uruchomienia misji, które żyje w warstwie misji. Większość prostych modów zaczyna tutaj.
 
 ---
 
-## Step 6: Write Your First Script
+## Krok 6: Pisanie pierwszego skryptu
 
-Create the file `P:\MyFirstMod\Scripts\5_Mission\MyFirstMod\MissionHello.c` and paste this content:
+Utwórz plik `P:\MyFirstMod\Scripts\5_Mission\MyFirstMod\MissionHello.c` i wklej tę zawartość:
 
 ```c
 modded class MissionServer
@@ -246,235 +250,235 @@ modded class MissionGameplay
 };
 ```
 
-### Line-by-Line Explanation
+### Wyjaśnienie linia po linii
 
 ```c
 modded class MissionServer
 ```
-The `modded` keyword is the heart of DayZ modding. It says: "Take the existing `MissionServer` class from the vanilla game and add my changes on top." You are not creating a new class -- you are extending the existing one.
+Słowo kluczowe `modded` jest sercem moddingu DayZ. Mówi: "Weź istniejącą klasę `MissionServer` z podstawowej gry i dodaj moje zmiany na wierzch." Nie tworzysz nowej klasy -- rozszerzasz istniejącą.
 
 ```c
     override void OnInit()
 ```
-`OnInit()` is called by the engine when a mission starts. `override` tells the compiler that this method already exists in the parent class and we are replacing it with our version.
+`OnInit()` jest wywoływany przez silnik, gdy misja się uruchamia. `override` mówi kompilatorowi, że ta metoda już istnieje w klasie nadrzędnej i zastępujemy ją naszą wersją.
 
 ```c
         super.OnInit();
 ```
-**This line is critical.** `super.OnInit()` calls the original vanilla implementation. If you skip this, the vanilla mission initialization code never runs and the game breaks. Always call `super` first.
+**Ta linia jest krytyczna.** `super.OnInit()` wywołuje oryginalną implementację z gry bazowej. Jeśli to pominiesz, kod inicjalizacji misji z gry bazowej nigdy się nie uruchomi i gra się zepsuje. Zawsze wywołuj `super` jako pierwsze.
 
 ```c
         Print("[MyFirstMod] Hello World! The SERVER mission has started.");
 ```
-`Print()` writes a message to the DayZ script log file. The `[MyFirstMod]` prefix makes it easy to find your messages in the log.
+`Print()` zapisuje wiadomość do pliku logu skryptowego DayZ. Prefiks `[MyFirstMod]` ułatwia znalezienie twoich wiadomości w logu.
 
 ```c
 modded class MissionGameplay
 ```
-`MissionGameplay` is the client-side equivalent of `MissionServer`. When a player joins a server, `MissionGameplay.OnInit()` fires on their machine. By modding both classes, your message appears in both server and client logs.
+`MissionGameplay` jest odpowiednikiem `MissionServer` po stronie klienta. Gdy gracz dołącza do serwera, `MissionGameplay.OnInit()` uruchamia się na jego maszynie. Moddując obie klasy, twoja wiadomość pojawia się zarówno w logach serwera, jak i klienta.
 
-### About `.c` Files
+### O plikach `.c`
 
-DayZ scripts use the `.c` file extension. Despite looking like C, this is **Enforce Script**, DayZ's own scripting language. It has classes, inheritance, arrays, and maps, but it is not C, C++, or C#. Your IDE may show syntax errors -- that is normal and expected.
+Skrypty DayZ używają rozszerzenia `.c`. Mimo że wyglądają jak C, to jest **Enforce Script**, własny język skryptowy DayZ. Ma klasy, dziedziczenie, tablice i mapy, ale nie jest to C, C++ ani C#. Twoje IDE może wyświetlać błędy składni -- to jest normalne i oczekiwane.
 
 ---
 
-## Step 7: Pack the PBO with Addon Builder
+## Krok 7: Pakowanie PBO za pomocą Addon Buildera
 
-DayZ loads mods from `.pbo` archive files (similar to .zip but in a format the engine understands). You need to pack your `Scripts` folder into a PBO.
+DayZ ładuje mody z plików archiwów `.pbo` (podobnych do .zip, ale w formacie zrozumiałym dla silnika). Musisz spakować swój folder `Scripts` do PBO.
 
-### Using Addon Builder (GUI)
+### Używanie Addon Buildera (GUI)
 
-1. Open **DayZ Tools** from Steam
-2. Click **Addon Builder** to launch it
-3. Set **Source directory** to: `P:\MyFirstMod\Scripts\`
-4. Set **Output/Destination directory** to a new folder: `P:\@MyFirstMod\Addons\`
+1. Otwórz **DayZ Tools** ze Steam
+2. Kliknij **Addon Builder**, aby go uruchomić
+3. Ustaw **Source directory** na: `P:\MyFirstMod\Scripts\`
+4. Ustaw **Output/Destination directory** na nowy folder: `P:\@MyFirstMod\Addons\`
 
-   Create the `@MyFirstMod\Addons\` folder first if it does not exist.
+   Utwórz folder `@MyFirstMod\Addons\` najpierw, jeśli nie istnieje.
 
-5. In **Addon Builder Options**:
-   - Set **Prefix** to: `MyFirstMod\Scripts`
-   - Leave other options at defaults
-6. Click **Pack**
+5. W **Addon Builder Options**:
+   - Ustaw **Prefix** na: `MyFirstMod\Scripts`
+   - Pozostaw inne opcje domyślne
+6. Kliknij **Pack**
 
-If successful, you will see a file at:
+Jeśli się powiodło, zobaczysz plik w:
 
 ```
 P:\@MyFirstMod\Addons\Scripts.pbo
 ```
 
-### Set Up the Final Mod Structure
+### Konfiguracja finalnej struktury moda
 
-Now copy your `mod.cpp` next to the `Addons` folder:
+Teraz skopiuj swój `mod.cpp` obok folderu `Addons`:
 
 ```
 P:\@MyFirstMod\
-    mod.cpp                         <-- Copy from P:\MyFirstMod\mod.cpp
+    mod.cpp                         <-- Kopia z P:\MyFirstMod\mod.cpp
     Addons\
-        Scripts.pbo                 <-- Created by Addon Builder
+        Scripts.pbo                 <-- Utworzony przez Addon Builder
 ```
 
-The `@` prefix on the folder name is a convention for distributable mods. It signals to server administrators and the launcher that this is a mod package.
+Prefiks `@` w nazwie folderu to konwencja dla modów dystrybucyjnych. Sygnalizuje administratorom serwerów i launcherowi, że to jest pakiet moda.
 
-### Alternative: Test Without Packing (File Patching)
+### Alternatywa: Testowanie bez pakowania (File Patching)
 
-During development, you can skip PBO packing entirely using file patching mode. This loads scripts directly from your source folders:
+Podczas rozwoju możesz całkowicie pominąć pakowanie PBO, używając trybu file patching. Ładuje on skrypty bezpośrednio z twoich folderów źródłowych:
 
 ```
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 ```
 
-File patching is faster for iteration because you edit a `.c` file, restart the game, and see the changes immediately. No packing step needed. However, file patching only works with the diagnostic executable (`DayZDiag_x64.exe`) and is not suitable for distribution.
+File patching jest szybszy przy iteracji, ponieważ edytujesz plik `.c`, restartujesz grę i od razu widzisz zmiany. Nie potrzeba kroku pakowania. Jednak file patching działa tylko z diagnostycznym plikiem wykonywalnym (`DayZDiag_x64.exe`) i nie nadaje się do dystrybucji.
 
 ---
 
-## Step 8: Load the Mod in DayZ
+## Krok 8: Ładowanie moda w DayZ
 
-There are two ways to load your mod: through the launcher or via command-line parameters.
+Istnieją dwa sposoby załadowania moda: przez launcher lub za pomocą parametrów wiersza poleceń.
 
-### Option A: DayZ Launcher
+### Opcja A: DayZ Launcher
 
-1. Open the **DayZ Launcher** from Steam
-2. Go to the **Mods** tab
-3. Click **Add local mod** (or "Add mod from local storage")
-4. Browse to `P:\@MyFirstMod\`
-5. Enable the mod by checking its checkbox
-6. Click **Play** (make sure you are connecting to a local/offline server, or launching single-player)
+1. Otwórz **DayZ Launcher** ze Steam
+2. Przejdź do zakładki **Mods**
+3. Kliknij **Add local mod** (lub "Add mod from local storage")
+4. Przejdź do `P:\@MyFirstMod\`
+5. Włącz moda zaznaczając jego pole wyboru
+6. Kliknij **Play** (upewnij się, że łączysz się z lokalnym/offline serwerem lub uruchamiasz tryb jednoosobowy)
 
-### Option B: Command Line (Recommended for Development)
+### Opcja B: Wiersz poleceń (zalecane do rozwoju)
 
-For faster iteration, launch DayZ directly with command-line parameters. Create a shortcut or batch file:
+Dla szybszej iteracji uruchom DayZ bezpośrednio z parametrami wiersza poleceń. Utwórz skrót lub plik batch:
 
-**Using the Diagnostic Executable (with file patching, no PBO needed):**
+**Używając diagnostycznego pliku wykonywalnego (z file patching, bez potrzeby PBO):**
 
 ```batch
 "C:\Program Files (x86)\Steam\steamapps\common\DayZ\DayZDiag_x64.exe" -mod=P:\MyFirstMod -filePatching -server -config=serverDZ.cfg -port=2302
 ```
 
-**Using the packed PBO:**
+**Używając spakowanego PBO:**
 
 ```batch
 "C:\Program Files (x86)\Steam\steamapps\common\DayZ\DayZDiag_x64.exe" -mod=P:\@MyFirstMod -server -config=serverDZ.cfg -port=2302
 ```
 
-The `-server` flag launches a local listen server. The `-filePatching` flag allows loading scripts from unpacked folders.
+Flaga `-server` uruchamia lokalny serwer listen. Flaga `-filePatching` pozwala na ładowanie skryptów z niespakowanych folderów.
 
-### Quick Test: Offline Mode
+### Szybki test: Tryb offline
 
-The fastest way to test is to launch DayZ in offline mode:
+Najszybszym sposobem testowania jest uruchomienie DayZ w trybie offline:
 
 ```batch
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 ```
 
-Then in the main menu, click **Play** and select **Offline Mode** (or **Community Offline**). This starts a local single-player session without needing a server.
+Następnie w menu głównym kliknij **Play** i wybierz **Offline Mode** (lub **Community Offline**). To uruchamia lokalną sesję jednoosobową bez potrzeby serwera.
 
 ---
 
-## Step 9: Verify in the Script Log
+## Krok 9: Weryfikacja w logu skryptowym
 
-After launching DayZ with your mod, the engine writes all `Print()` output to log files.
+Po uruchomieniu DayZ z twoim modem, silnik zapisuje cały wynik `Print()` do plików logów.
 
-### Finding the Log Files
+### Znajdowanie plików logów
 
-DayZ stores logs in your local AppData directory:
-
-```
-C:\Users\<YourWindowsUsername>\AppData\Local\DayZ\
-```
-
-To get there quickly:
-1. Press **Win + R** to open the Run dialog
-2. Type `%localappdata%\DayZ` and press Enter
-
-Look for the most recent file named like:
+DayZ przechowuje logi w twoim lokalnym katalogu AppData:
 
 ```
-script_<date>_<time>.log
+C:\Users\<TwojaWindowsowaNowaUzytkownika>\AppData\Local\DayZ\
 ```
 
-For example: `script_2025-01-15_14-30-22.log`
+Aby się tam szybko dostać:
+1. Naciśnij **Win + R**, aby otworzyć okno dialogowe Uruchom
+2. Wpisz `%localappdata%\DayZ` i naciśnij Enter
 
-### What to Search For
+Szukaj najnowszego pliku o nazwie takiej jak:
 
-Open the log file in your text editor and search for `[MyFirstMod]`. You should see one of these messages:
+```
+script_<data>_<czas>.log
+```
+
+Na przykład: `script_2025-01-15_14-30-22.log`
+
+### Czego szukać
+
+Otwórz plik logu w swoim edytorze tekstu i wyszukaj `[MyFirstMod]`. Powinieneś zobaczyć jedną z tych wiadomości:
 
 ```
 [MyFirstMod] Hello World! The SERVER mission has started.
 ```
 
-or (if you loaded as a client):
+lub (jeśli załadowałeś jako klient):
 
 ```
 [MyFirstMod] Hello World! The CLIENT mission has started.
 ```
 
-**If you see your message: congratulations.** Your first DayZ mod is working. You have successfully:
+**Jeśli widzisz swoją wiadomość: gratulacje.** Twój pierwszy mod DayZ działa. Udało ci się:
 
-1. Created a mod directory structure
-2. Written a config that the engine reads
-3. Hooked into vanilla game code with `modded class`
-4. Printed output to the script log
+1. Stworzyć strukturę katalogów moda
+2. Napisać konfigurację, którą silnik czyta
+3. Wpiąć się w kod gry bazowej za pomocą `modded class`
+4. Wydrukować wynik do logu skryptowego
 
-### What If You See Errors?
+### Co jeśli widzisz błędy?
 
-If the log contains lines starting with `SCRIPT (E):`, something went wrong. Read the next section.
+Jeśli log zawiera linie zaczynające się od `SCRIPT (E):`, coś poszło nie tak. Przeczytaj następną sekcję.
 
 ---
 
-## Step 10: Troubleshooting Common Issues
+## Krok 10: Rozwiązywanie typowych problemów
 
-### Problem: No Log Output At All (Mod Does Not Seem to Load)
+### Problem: Brak wyjścia w logu (mod wydaje się nie ładować)
 
-**Check your launch parameters.** The `-mod=` path must point to the correct folder. If using file patching, verify the path points to the folder containing `Scripts/config.cpp` directly (not the `@` folder).
+**Sprawdź parametry uruchomienia.** Ścieżka `-mod=` musi wskazywać na prawidłowy folder. Jeśli używasz file patching, zweryfikuj, że ścieżka wskazuje na folder zawierający `Scripts/config.cpp` bezpośrednio (nie na folder `@`).
 
-**Check that config.cpp exists at the right level.** It must be at `Scripts/config.cpp` inside your mod root. If it is in the wrong folder, the engine silently ignores your mod.
+**Sprawdź, czy config.cpp istnieje na właściwym poziomie.** Musi być w `Scripts/config.cpp` wewnątrz katalogu głównego twojego moda. Jeśli jest w niewłaściwym folderze, silnik po cichu ignoruje twojego moda.
 
-**Check the CfgPatches class name.** If there is no `CfgPatches` block, or its syntax is wrong, the entire PBO is skipped.
+**Sprawdź nazwę klasy CfgPatches.** Jeśli nie ma bloku `CfgPatches`, lub jego składnia jest niepoprawna, całe PBO jest pomijane.
 
-**Look at the main DayZ log** (not just the script log). Check:
+**Sprawdź główny log DayZ** (nie tylko log skryptowy). Sprawdź:
 ```
-C:\Users\<YourName>\AppData\Local\DayZ\DayZ_<date>_<time>.RPT
+C:\Users\<TwojeImie>\AppData\Local\DayZ\DayZ_<data>_<czas>.RPT
 ```
-Search for your mod name. You may see messages like "Addon MyFirstMod_Scripts requires addon DZ_Data which is not loaded."
+Wyszukaj nazwę swojego moda. Możesz zobaczyć wiadomości takie jak "Addon MyFirstMod_Scripts requires addon DZ_Data which is not loaded."
 
-### Problem: `SCRIPT (E): Undefined variable` or `Undefined type`
+### Problem: `SCRIPT (E): Undefined variable` lub `Undefined type`
 
-This means your code references something the engine does not recognize. Common causes:
+To oznacza, że twój kod odwołuje się do czegoś, czego silnik nie rozpoznaje. Typowe przyczyny:
 
-- **Typo in a class name.** `MisionServer` instead of `MissionServer` (note the double 's').
-- **Wrong script layer.** If you reference `PlayerBase` from `5_Mission`, it should work. But if you accidentally placed your file in `3_Game` and reference mission types, you will get this error.
-- **Missing `super.OnInit()` call.** Omitting it can cause cascading failures.
+- **Literówka w nazwie klasy.** `MisionServer` zamiast `MissionServer` (zwróć uwagę na podwójne 's').
+- **Niewłaściwa warstwa skryptowa.** Jeśli odwołujesz się do `PlayerBase` z `5_Mission`, powinno działać. Ale jeśli przypadkowo umieściłeś swój plik w `3_Game` i odwołujesz się do typów misji, dostaniesz ten błąd.
+- **Brakujące wywołanie `super.OnInit()`.** Jego pominięcie może spowodować kaskadowe awarie.
 
 ### Problem: `SCRIPT (E): Member not found`
 
-The method you are calling does not exist on the class. Double-check the method name and make sure you are overriding a real vanilla method. `OnInit` exists on `MissionServer` and `MissionGameplay` -- but not on every class.
+Metoda, którą wywołujesz, nie istnieje w tej klasie. Sprawdź dwukrotnie nazwę metody i upewnij się, że nadpisujesz prawdziwą metodę z gry bazowej. `OnInit` istnieje w `MissionServer` i `MissionGameplay` -- ale nie w każdej klasie.
 
-### Problem: Mod Loads But Script Never Executes
+### Problem: Mod się ładuje, ale skrypt nigdy się nie wykonuje
 
-- **File extension:** Make sure your script file ends in `.c` (not `.c.txt` or `.cs`). Windows may hide extensions by default.
-- **Script path mismatch:** The `files[]` path in `config.cpp` must match your actual directory. `"MyFirstMod/Scripts/5_Mission"` means the engine looks for a folder at that exact path relative to the mod root.
-- **Class name:** `modded class MissionServer` is case-sensitive. It must match the vanilla class name exactly.
+- **Rozszerzenie pliku:** Upewnij się, że twój plik skryptowy kończy się na `.c` (nie `.c.txt` ani `.cs`). Windows może domyślnie ukrywać rozszerzenia.
+- **Niezgodność ścieżki skryptu:** Ścieżka `files[]` w `config.cpp` musi odpowiadać twojemu rzeczywistemu katalogowi. `"MyFirstMod/Scripts/5_Mission"` oznacza, że silnik szuka folderu dokładnie pod tą ścieżką względem katalogu głównego moda.
+- **Nazwa klasy:** `modded class MissionServer` rozróżnia wielkość liter. Musi dokładnie odpowiadać nazwie klasy z gry bazowej.
 
-### Problem: PBO Packing Errors
+### Problem: Błędy pakowania PBO
 
-- Ensure `config.cpp` is at the root level of what you are packing (the `Scripts/` folder).
-- Check that the prefix in Addon Builder matches your mod path.
-- Make sure there are no non-text files mixed into the Scripts folder (no `.exe`, `.dll`, or binary files).
+- Upewnij się, że `config.cpp` jest na głównym poziomie tego, co pakujesz (folder `Scripts/`).
+- Sprawdź, czy prefiks w Addon Builderze odpowiada ścieżce twojego moda.
+- Upewnij się, że w folderze Scripts nie ma plików nietekstowych (żadnych `.exe`, `.dll` ani plików binarnych).
 
-### Problem: Game Crashes on Startup
+### Problem: Gra crashuje przy uruchomieniu
 
-- Check for syntax errors in `config.cpp`. A missing semicolon, brace, or quote mark can crash the config parser.
-- Verify that `requiredAddons` lists valid addon names. A misspelled addon name causes a hard failure.
-- Remove your mod from the launch parameters and confirm the game starts without it. Then add it back to isolate the issue.
+- Sprawdź błędy składni w `config.cpp`. Brakujący średnik, nawias lub cudzysłów może spowodować crash parsera konfiguracji.
+- Zweryfikuj, że `requiredAddons` wymienia poprawne nazwy addonów. Błędna nazwa addonu powoduje twardy błąd.
+- Usuń swojego moda z parametrów uruchomienia i potwierdź, że gra uruchamia się bez niego. Następnie dodaj go z powrotem, aby izolować problem.
 
 ---
 
-## Complete File Reference
+## Kompletna referencja plików
 
-Here are all three files in their complete form, for easy copy-paste:
+Oto wszystkie trzy pliki w kompletnej formie, do łatwego skopiowania:
 
-### File 1: `MyFirstMod/mod.cpp`
+### Plik 1: `MyFirstMod/mod.cpp`
 
 ```cpp
 name = "My First Mod";
@@ -483,7 +487,7 @@ version = "1.0";
 overview = "My very first DayZ mod. Prints Hello World to the script log.";
 ```
 
-### File 2: `MyFirstMod/Scripts/config.cpp`
+### Plik 2: `MyFirstMod/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -523,7 +527,7 @@ class CfgMods
 };
 ```
 
-### File 3: `MyFirstMod/Scripts/5_Mission/MyFirstMod/MissionHello.c`
+### Plik 3: `MyFirstMod/Scripts/5_Mission/MyFirstMod/MissionHello.c`
 
 ```c
 modded class MissionServer
@@ -547,16 +551,45 @@ modded class MissionGameplay
 
 ---
 
-## Nastepne kroki
+## Następne kroki
 
-Now that you have a working mod, here are the natural progressions:
+Teraz, gdy masz działającego moda, oto naturalne kierunki rozwoju:
 
-1. **[Chapter 8.2: Creating a Custom Item](02-custom-item.md)** -- Define a new in-game item with textures and spawning.
-2. **Add more script layers** -- Create `3_Game` and `4_World` folders to organize configuration, data classes, and entity logic. See [Chapter 2.1: The 5-Layer Script Hierarchy](../02-mod-structure/01-five-layers.md).
-3. **Add keybindings** -- Create an `Inputs.xml` file and register custom key actions.
-4. **Create UI** -- Build in-game panels using layout files and `ScriptedWidgetEventHandler`. See [Chapter 3: GUI System](../03-gui-system/01-widget-types.md).
-5. **Use a framework** -- Integrate with Community Framework (CF) or MyFramework for advanced features like RPC, config management, and admin panels.
+1. **[Rozdział 8.2: Tworzenie własnego przedmiotu](02-custom-item.md)** -- Zdefiniuj nowy przedmiot w grze z teksturami i spawnowaniem.
+2. **Dodaj więcej warstw skryptowych** -- Utwórz foldery `3_Game` i `4_World` do organizacji konfiguracji, klas danych i logiki encji. Zobacz [Rozdział 2.1: Pięciowarstwowa hierarchia skryptów](../02-mod-structure/01-five-layers.md).
+3. **Dodaj przypisania klawiszy** -- Utwórz plik `Inputs.xml` i zarejestruj własne akcje klawiszy.
+4. **Stwórz UI** -- Buduj panele w grze używając plików layoutu i `ScriptedWidgetEventHandler`. Zobacz [Rozdział 3: System GUI](../03-gui-system/01-widget-types.md).
+5. **Użyj frameworka** -- Zintegruj się z Community Framework (CF) lub innym frameworkiem dla zaawansowanych funkcji jak RPC, zarządzanie konfiguracją i panele administracyjne.
 
 ---
 
-**Next:** [Chapter 8.2: Creating a Custom Item](02-custom-item.md)
+## Najlepsze praktyki
+
+- **Zawsze testuj z `-filePatching` przed budowaniem PBO.** Eliminuje to cykl pakowania-kopiowania-restartowania i skraca czas iteracji z minut do sekund.
+- **Zacznij od warstwy `5_Mission` dla najszybszej iteracji.** Hooki misji jak `OnInit()` to najprostszy sposób na udowodnienie, że twój mod się ładuje i działa. Dodawaj `3_Game` i `4_World` dopiero gdy naprawdę ich potrzebujesz.
+- **Zawsze wywołuj `super` jako pierwsze w nadpisanych metodach.** Pominięcie `super.OnInit()` po cichu psuje zachowanie gry bazowej i każdego innego moda hookującego tę samą metodę.
+- **Używaj unikalnego prefiksu w wyjściu Print** (np. `[MyFirstMod]`). Logi skryptowe zawierają tysiące linii z gry bazowej i innych modów -- prefiks to jedyny sposób na szybkie znalezienie twojego wyjścia.
+- **Utrzymuj składnię `config.cpp` prostą i poprawną.** Brakujący średnik lub nawias w config.cpp powoduje twardy crash lub ciche pominięcie moda bez wyraźnego komunikatu o błędzie.
+
+---
+
+## Teoria a praktyka
+
+| Koncept | Teoria | Rzeczywistość |
+|---------|--------|---------|
+| Pola `mod.cpp` | `version` jest używana do rozwiązywania zależności | Silnik całkowicie ignoruje łańcuch wersji -- jest czysto kosmetyczny dla launchera. |
+| CfgPatches `requiredAddons` | Wymienia zależności, aby twój mod załadował się we właściwej kolejności | Jeśli błędnie wpiszesz nazwę addona, całe PBO jest po cichu pomijane bez błędu w logu skryptowym. Sprawdź plik `.RPT`. |
+| File patching | Edytuj plik `.c` i połącz się ponownie, aby natychmiast zobaczyć zmiany | `config.cpp` i nowo dodane pliki NIE są objęte file patchingiem. Nadal potrzebujesz przebudowy PBO dla nich. |
+| Testowanie w trybie offline | Szybki sposób na weryfikację działania moda | Niektóre API (jak `GetGame().GetPlayer().GetIdentity()`) zwracają NULL w trybie offline, powodując crashe, które nie występują na prawdziwym serwerze. |
+
+---
+
+## Czego się nauczyłeś
+
+W tym samouczku nauczyłeś się:
+- Jak zainstalować DayZ Tools i skonfigurować przestrzeń roboczą dysku P:
+- Trzy niezbędne pliki, których potrzebuje każdy mod: `mod.cpp`, `config.cpp` i co najmniej jeden skrypt `.c`
+- Jak `modded class` rozszerza klasy gry bazowej bez ich zastępowania
+- Jak spakować PBO, załadować moda i zweryfikować jego działanie czytając log skryptowy
+
+**Dalej:** [Rozdział 8.2: Tworzenie własnego przedmiotu](02-custom-item.md)

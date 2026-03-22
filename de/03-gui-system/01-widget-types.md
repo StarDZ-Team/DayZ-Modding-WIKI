@@ -423,7 +423,7 @@ ScrollWidgetTypeID
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 - [3.2 Layout File Format](02-layout-files.md) -- Learn how to define widget trees in `.layout` files
 - [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Create widgets from code instead of layout files

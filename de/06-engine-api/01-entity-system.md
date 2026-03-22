@@ -1,12 +1,12 @@
-# Kapitel 6.1: Entitaetssystem
+# Kapitel 6.1: Entitätssystem
 
-[Startseite](../../README.md) | **Entitaetssystem** | [Weiter: Fahrzeuge >>](02-vehicles.md)
+[Startseite](../../README.md) | **Entitätssystem** | [Weiter: Fahrzeuge >>](02-vehicles.md)
 
 ---
 
-## Einfuehrung
+## Einführung
 
-Jedes Objekt in der DayZ-Welt --- Items, Spieler, Zombies, Tiere, Gebaeude, Fahrzeuge --- stammt von einer einzelnen Klassenhierarchie ab, die bei `IEntity` wurzelt. Das Verstaendnis dieser Hierarchie und der auf jeder Ebene verfuegbaren Methoden ist die Grundlage allen DayZ-Moddings. Dieses Kapitel ist eine API-Referenz fuer die Kern-Entitaetsklassen: welche Methoden existieren, welche Signaturen sie haben und wie man sie korrekt verwendet.
+Jedes Objekt in der DayZ-Welt --- Items, Spieler, Zombies, Tiere, Gebäude, Fahrzeuge --- stammt von einer einzelnen Klassenhierarchie ab, die bei `IEntity` wurzelt. Das Verständnis dieser Hierarchie und der auf jeder Ebene verfügbaren Methoden ist die Grundlage allen DayZ-Moddings. Dieses Kapitel ist eine API-Referenz für die Kern-Entitätsklassen: welche Methoden existieren, welche Signaturen sie haben und wie man sie korrekt verwendet.
 
 ---
 
@@ -40,9 +40,9 @@ Class (Wurzel aller Enforce-Script-Klassen)
 Wichtige Punkte:
 
 - **IEntity** ist die Engine-Level-Basis. Sie bietet Transform-, Physik- und Hierarchie-Methoden.
-- **Object** fuegt Positions-/Orientierungs-Helfer, Gesundheit, Config-Zugriff, versteckte Selektionen und Typpruefung hinzu (`IsMan()`, `IsBuilding()`, etc.).
-- **EntityAI** fuegt Inventar, Schadenszonen, Anbauteile, Energiemanager, Netz-Sync-Variablen und Lebenszyklus-Events hinzu (`EEInit`, `EEKilled`, `EEHitBy`).
-- **ItemBase**, **PlayerBase**, **ZombieBase** und **AnimalBase** sind die konkreten Basisklassen, mit denen Sie taeglich arbeiten.
+- **Object** fügt Positions-/Orientierungs-Helfer, Gesundheit, Config-Zugriff, versteckte Selektionen und Typpruefung hinzu (`IsMan()`, `IsBuilding()`, etc.).
+- **EntityAI** fügt Inventar, Schadenszonen, Anbauteile, Energiemanager, Netz-Sync-Variablen und Lebenszyklus-Events hinzu (`EEInit`, `EEKilled`, `EEHitBy`).
+- **ItemBase**, **PlayerBase**, **ZombieBase** und **AnimalBase** sind die konkreten Basisklassen, mit denen Sie täglich arbeiten.
 
 ---
 
@@ -50,17 +50,17 @@ Wichtige Punkte:
 
 **Datei:** `1_Core/proto/enentity.c`
 
-Die engine-native Entitaet. Alle proto-nativen Methoden --- Sie koennen deren Implementierung im Skript nicht einsehen.
+Die engine-native Entität. Alle proto-nativen Methoden --- Sie können deren Implementierung im Skript nicht einsehen.
 
 ### Transform
 
 | Methode | Signatur | Beschreibung |
 |--------|-----------|-------------|
-| `GetOrigin` | `proto native vector GetOrigin()` | Weltposition der Entitaet |
+| `GetOrigin` | `proto native vector GetOrigin()` | Weltposition der Entität |
 | `SetOrigin` | `proto native external void SetOrigin(vector orig)` | Weltposition setzen |
 | `GetYawPitchRoll` | `proto native vector GetYawPitchRoll()` | Rotation als Yaw/Pitch/Roll in Grad |
-| `GetTransform` | `proto native external void GetTransform(out vector mat[4])` | Vollstaendige 4x3-Transformationsmatrix |
-| `SetTransform` | `proto native external void SetTransform(vector mat[4])` | Vollstaendige Transformation setzen |
+| `GetTransform` | `proto native external void GetTransform(out vector mat[4])` | Vollständige 4x3-Transformationsmatrix |
+| `SetTransform` | `proto native external void SetTransform(vector mat[4])` | Vollständige Transformation setzen |
 
 ### Koordinatenkonvertierung
 
@@ -75,11 +75,11 @@ Die engine-native Entitaet. Alle proto-nativen Methoden --- Sie koennen deren Im
 
 | Methode | Signatur | Beschreibung |
 |--------|-----------|-------------|
-| `AddChild` | `proto native external void AddChild(IEntity child, int pivot, bool positionOnly = false)` | Kind-Entitaet an einen Knochen-Pivot anhaengen |
-| `RemoveChild` | `proto native external void RemoveChild(IEntity child, bool keepTransform = false)` | Kind-Entitaet loesen |
-| `GetParent` | `proto native IEntity GetParent()` | Eltern-Entitaet (oder null) |
-| `GetChildren` | `proto native IEntity GetChildren()` | Erste Kind-Entitaet |
-| `GetSibling` | `proto native IEntity GetSibling()` | Naechste Geschwister-Entitaet |
+| `AddChild` | `proto native external void AddChild(IEntity child, int pivot, bool positionOnly = false)` | Kind-Entität an einen Knochen-Pivot anhängen |
+| `RemoveChild` | `proto native external void RemoveChild(IEntity child, bool keepTransform = false)` | Kind-Entität lösen |
+| `GetParent` | `proto native IEntity GetParent()` | Eltern-Entität (oder null) |
+| `GetChildren` | `proto native IEntity GetChildren()` | Erste Kind-Entität |
+| `GetSibling` | `proto native IEntity GetSibling()` | Nächste Geschwister-Entität |
 
 ### Events
 
@@ -87,8 +87,8 @@ Die engine-native Entitaet. Alle proto-nativen Methoden --- Sie koennen deren Im
 |--------|-----------|-------------|
 | `SetEventMask` | `proto native external void SetEventMask(EntityEvent e)` | Event-Callbacks aktivieren |
 | `ClearEventMask` | `proto native external void ClearEventMask(EntityEvent e)` | Event-Callbacks deaktivieren |
-| `SetFlags` | `proto native external EntityFlags SetFlags(EntityFlags flags, bool recursivelyApply)` | Entitaets-Flags setzen (VISIBLE, SOLID, etc.) |
-| `ClearFlags` | `proto native external EntityFlags ClearFlags(EntityFlags flags, bool recursivelyApply)` | Entitaets-Flags loeschen |
+| `SetFlags` | `proto native external EntityFlags SetFlags(EntityFlags flags, bool recursivelyApply)` | Entitäts-Flags setzen (VISIBLE, SOLID, etc.) |
+| `ClearFlags` | `proto native external EntityFlags ClearFlags(EntityFlags flags, bool recursivelyApply)` | Entitäts-Flags löschen |
 
 ### Event-Callbacks
 
@@ -112,7 +112,7 @@ event protected void EOnLeave(IEntity other, int extra);
 
 **Datei:** `3_Game/entities/object.c` (1455 Zeilen)
 
-Basisklasse fuer alle raeumlichen Objekte in der Spielwelt. Dies ist die erste im Skript zugaengliche Ebene der Hierarchie --- `IEntity` ist rein engine-nativ.
+Basisklasse für alle räumlichen Objekte in der Spielwelt. Dies ist die erste im Skript zugängliche Ebene der Hierarchie --- `IEntity` ist rein engine-nativ.
 
 ### Position & Orientierung
 
@@ -120,9 +120,9 @@ Basisklasse fuer alle raeumlichen Objekte in der Spielwelt. Dies ist die erste i
 proto native void SetPosition(vector pos);
 proto native vector GetPosition();
 proto native void SetOrientation(vector ori);     // ori = "yaw pitch roll" in Grad
-proto native vector GetOrientation();              // gibt "yaw pitch roll" zurueck
+proto native vector GetOrientation();              // gibt "yaw pitch roll" zurück
 proto native void SetDirection(vector direction);
-proto native vector GetDirection();                // Vorwaertsrichtungsvektor
+proto native vector GetDirection();                // Vorwärtsrichtungsvektor
 ```
 
 **Beispiel --- ein Objekt teleportieren:**
@@ -137,7 +137,7 @@ obj.SetPosition(newPos);
 ### Gesundheit & Schaden
 
 ```c
-// Zonenbasiertes Gesundheitssystem. Verwenden Sie "" fuer globale Zone, "Health" fuer Standard-Gesundheitstyp.
+// Zonenbasiertes Gesundheitssystem. Verwenden Sie "" für globale Zone, "Health" für Standard-Gesundheitstyp.
 proto native float GetHealth(string zoneName, string healthType);
 proto native float GetMaxHealth(string zoneName, string healthType);
 proto native void  SetHealth(string zoneName, string healthType, float value);
@@ -151,8 +151,8 @@ proto native bool  GetAllowDamage();
 
 | Parameter | Bedeutung |
 |-----------|---------|
-| `zoneName` | Schadenszonenname (z.B. `""` fuer global, `"Engine"`, `"FuelTank"`, `"LeftArm"`) |
-| `healthType` | Typ der Gesundheitsstatistik (normalerweise `"Health"`, aber auch `"Blood"`, `"Shock"` fuer Spieler) |
+| `zoneName` | Schadenszonenname (z.B. `""` für global, `"Engine"`, `"FuelTank"`, `"LeftArm"`) |
+| `healthType` | Typ der Gesundheitsstatistik (normalerweise `"Health"`, aber auch `"Blood"`, `"Shock"` für Spieler) |
 
 **Beispiel --- ein Item auf halbe Gesundheit setzen:**
 
@@ -167,13 +167,13 @@ obj.SetHealth("", "Health", maxHP * 0.5);
 proto native bool IsAlive();
 ```
 
-> **Fallstrick:** Die Vanilla-Referenz zeigt `IsAlive()` auf `Object`, aber in der Praxis haben viele Modder festgestellt, dass es auf der Basis-`Object`-Klasse unzuverlaessig ist. Das sichere Muster ist, zuerst zu `EntityAI` zu casten:
+> **Fallstrick:** Die Vanilla-Referenz zeigt `IsAlive()` auf `Object`, aber in der Praxis haben viele Modder festgestellt, dass es auf der Basis-`Object`-Klasse unzuverlässig ist. Das sichere Muster ist, zuerst zu `EntityAI` zu casten:
 
 ```c
 EntityAI eai;
 if (Class.CastTo(eai, obj) && eai.IsAlive())
 {
-    // Bestaetigt lebendig
+    // Bestätigt lebendig
 }
 ```
 
@@ -184,7 +184,7 @@ proto native bool IsMan();
 proto native bool IsDayZCreature();
 proto native bool IsBuilding();
 proto native bool IsTransport();
-proto native bool IsKindOf(string type);     // Config-Vererbung pruefen
+proto native bool IsKindOf(string type);     // Config-Vererbung prüfen
 ```
 
 **Beispiel:**
@@ -199,10 +199,10 @@ if (obj.IsKindOf("Weapon_Base"))
 ### Typ & Anzeigename
 
 ```c
-// GetType() gibt den Config-Klassennamen zurueck (z.B. "AKM", "SurvivorM_Mirek")
+// GetType() gibt den Config-Klassennamen zurück (z.B. "AKM", "SurvivorM_Mirek")
 string GetType();
 
-// GetDisplayName() gibt den lokalisierten Anzeigenamen zurueck
+// GetDisplayName() gibt den lokalisierten Anzeigenamen zurück
 string GetDisplayName();
 ```
 
@@ -229,7 +229,7 @@ TStringArray GetHiddenSelectionsTextures();
 TStringArray GetHiddenSelectionsMaterials();
 ```
 
-### Config-Zugriff (auf der Entitaet selbst)
+### Config-Zugriff (auf der Entität selbst)
 
 ```c
 proto native bool   ConfigGetBool(string entryName);
@@ -248,11 +248,11 @@ proto native bool   ConfigIsExisting(string entryName);
 proto native int GetNetworkID(out int id_low, out int id_high);
 ```
 
-### Loeschung
+### Löschung
 
 ```c
-void Delete();                    // Verzoegerte Loeschung (naechster Frame, ueber CallQueue)
-proto native bool ToDelete();     // Ist dieses Objekt zum Loeschen markiert?
+void Delete();                    // Verzögerte Löschung (nächster Frame, über CallQueue)
+proto native bool ToDelete();     // Ist dieses Objekt zum Löschen markiert?
 ```
 
 ### Geometrie & Komponenten
@@ -270,7 +270,7 @@ proto native vector GetBoundingCenter();
 
 **Datei:** `3_Game/entities/entityai.c` (4719 Zeilen)
 
-Die Arbeitstier-Basis fuer alle interaktiven Spielentitaeten. Fuegt Inventar, Schadensevents, Temperatur, Energiemanagement und Netzwerksynchronisation hinzu.
+Die Arbeitstier-Basis für alle interaktiven Spielentitäten. Fügt Inventar, Schadensevents, Temperatur, Energiemanagement und Netzwerksynchronisation hinzu.
 
 ### Inventarzugriff
 
@@ -278,17 +278,17 @@ Die Arbeitstier-Basis fuer alle interaktiven Spielentitaeten. Fuegt Inventar, Sc
 proto native GameInventory GetInventory();
 ```
 
-Haeufige Inventaroperationen ueber das zurueckgegebene `GameInventory`:
+Häufige Inventaroperationen über das zurückgegebene `GameInventory`:
 
 ```c
-// Alle Items im Inventar dieser Entitaet aufzaehlen
+// Alle Items im Inventar dieser Entität aufzählen
 array<EntityAI> items = new array<EntityAI>;
 eai.GetInventory().EnumerateInventory(InventoryTraversalType.PREORDER, items);
 
-// Items zaehlen
+// Items zählen
 int count = eai.GetInventory().CountInventory();
 
-// Pruefen ob Entitaet ein bestimmtes Item hat
+// Prüfen ob Entität ein bestimmtes Item hat
 bool has = eai.GetInventory().HasEntityInInventory(someItem);
 
 // Item in Fracht erstellen
@@ -324,18 +324,18 @@ proto native void ProcessDirectDamage(int damageType, EntityAI source, string co
 
 ### Lebenszyklus-Events
 
-Ueberschreiben Sie diese in Ihrer Unterklasse, um sich in den Entitaets-Lebenszyklus einzuklinken:
+Überschreiben Sie diese in Ihrer Unterklasse, um sich in den Entitäts-Lebenszyklus einzuklinken:
 
 ```c
-void EEInit();                                    // Wird nach der Entitaets-Initialisierung aufgerufen
-void EEDelete(EntityAI parent);                   // Wird vor dem Loeschen aufgerufen
-void EEKilled(Object killer);                     // Wird aufgerufen wenn die Entitaet stirbt
-void EEHitBy(TotalDamageResult damageResult,      // Wird aufgerufen wenn die Entitaet Schaden nimmt
+void EEInit();                                    // Wird nach der Entitäts-Initialisierung aufgerufen
+void EEDelete(EntityAI parent);                   // Wird vor dem Löschen aufgerufen
+void EEKilled(Object killer);                     // Wird aufgerufen wenn die Entität stirbt
+void EEHitBy(TotalDamageResult damageResult,      // Wird aufgerufen wenn die Entität Schaden nimmt
              int damageType, EntityAI source,
              int component, string dmgZone,
              string ammo, vector modelPos,
              float speedCoef);
-void EEItemAttached(EntityAI item, string slot_name);   // Anbauteil hinzugefuegt
+void EEItemAttached(EntityAI item, string slot_name);   // Anbauteil hinzugefügt
 void EEItemDetached(EntityAI item, string slot_name);   // Anbauteil entfernt
 ```
 
@@ -349,7 +349,7 @@ proto native void RegisterNetSyncVariableInt(string variableName, int minValue =
 proto native void RegisterNetSyncVariableFloat(string variableName, float minValue = 0, float maxValue = 0);
 ```
 
-Ueberschreiben Sie `OnVariablesSynchronized()` auf dem Client, um auf Aenderungen zu reagieren:
+Überschreiben Sie `OnVariablesSynchronized()` auf dem Client, um auf Änderungen zu reagieren:
 
 ```c
 void OnVariablesSynchronized();
@@ -418,7 +418,7 @@ bool IsTransport();
 bool IsFood();
 ```
 
-### Entitaeten spawnen
+### Entitäten spawnen
 
 ```c
 EntityAI SpawnEntityOnGroundPos(string object_name, vector pos);
@@ -432,7 +432,7 @@ EntityAI SpawnEntity(string object_name, notnull InventoryLocation inv_loc,
 
 **Datei:** `4_World/entities/itembase.c` (4986 Zeilen)
 
-Basis fuer alle Inventar-Items. `typedef ItemBase Inventory_Base;` wird im gesamten Vanilla-Code verwendet.
+Basis für alle Inventar-Items. `typedef ItemBase Inventory_Base;` wird im gesamten Vanilla-Code verwendet.
 
 ### Mengensystem
 
@@ -456,10 +456,10 @@ if (canteen)
 }
 ```
 
-### Zustand / Naesse / Temperatur
+### Zustand / Nässe / Temperatur
 
 ```c
-// Naesse
+// Nässe
 float m_VarWet, m_VarWetMin, m_VarWetMax;
 
 // Temperatur
@@ -468,14 +468,14 @@ float m_VarTemperature;
 // Sauberkeit
 int m_Cleanness;
 
-// Fluessigkeit
+// Flüssigkeit
 int m_VarLiquidType;
 ```
 
 ### Aktionen
 
 ```c
-void SetActions();                     // Ueberschreiben um Aktionen fuer dieses Item zu registrieren
+void SetActions();                     // Überschreiben um Aktionen für dieses Item zu registrieren
 void AddAction(typename actionName);   // Eine Aktion registrieren
 void RemoveAction(typename actionName);
 ```
@@ -506,7 +506,7 @@ void StopSoundSet(EffectSound effect_sound);
 ### Wirtschaft / Persistenz
 
 ```c
-override void InitItemVariables();     // Liest alle Config-Werte (Menge, Naesse, etc.)
+override void InitItemVariables();     // Liest alle Config-Werte (Menge, Nässe, etc.)
 ```
 
 Items erben CE (Central Economy) Lebensdauer und Persistenz aus ihrem `types.xml`-Eintrag. Verwenden Sie das `ECE_NOLIFETIME`-Flag beim Erstellen von Objekten, die nie despawnen sollen.
@@ -517,9 +517,9 @@ Items erben CE (Central Economy) Lebensdauer und Persistenz aus ihrem `types.xml
 
 **Datei:** `4_World/entities/manbase/playerbase.c` (9776 Zeilen)
 
-Die Spieler-Entitaet. Die groesste Klasse in der Codebasis.
+Die Spieler-Entität. Die größte Klasse in der Codebasis.
 
-### Identitaet
+### Identität
 
 ```c
 PlayerIdentity GetIdentity();
@@ -552,7 +552,7 @@ if (identity)
 Der Spieler verwendet das zonenbasierte Gesundheitssystem von EntityAI mit speziellen Gesundheitstypen:
 
 ```c
-// Globale Gesundheit (standardmaessig 0-100)
+// Globale Gesundheit (standardmäßig 0-100)
 float hp = player.GetHealth("", "Health");
 
 // Blut (0-5000)
@@ -573,7 +573,7 @@ player.SetHealth("", "Shock", 0);
 vector pos = player.GetPosition();
 player.SetPosition(newPos);
 
-// Item in Haenden
+// Item in Händen
 EntityAI inHands = player.GetHumanInventory().GetEntityInHands();
 
 // Fahrendes Fahrzeug
@@ -592,7 +592,7 @@ bool IsInVehicle();
 
 ### Manager
 
-`PlayerBase` haelt Referenzen auf viele Gameplay-Subsysteme:
+`PlayerBase` hält Referenzen auf viele Gameplay-Subsysteme:
 
 ```c
 ref ModifiersManager   m_ModifiersManager;
@@ -613,7 +613,7 @@ void OnScheduledTick(float deltaTime);
 override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx);
 ```
 
-### Items in der Naehe des Spielers spawnen
+### Items in der Nähe des Spielers spawnen
 
 ```c
 EntityAI SpawnEntityOnGroundOnCursorDir(string object_name, float distance);
@@ -625,7 +625,7 @@ EntityAI SpawnEntityOnGroundOnCursorDir(string object_name, float distance);
 
 **Datei:** `4_World/entities/creatures/infected/zombiebase.c` (1150 Zeilen)
 
-Basis fuer alle Infizierten (Zombie)-Entitaeten.
+Basis für alle Infizierten (Zombie)-Entitäten.
 
 ### Wichtige Eigenschaften
 
@@ -655,13 +655,13 @@ void Init()
 
 **Datei:** `4_World/entities/creatures/animals/`
 
-Basis fuer alle Tier-Entitaeten. Erweitert `DayZAnimal`, das `EntityAI` erweitert.
+Basis für alle Tier-Entitäten. Erweitert `DayZAnimal`, das `EntityAI` erweitert.
 
-Tiere verwenden dieselben Gesundheits-, Positions- und Schadens-APIs wie andere Entitaeten. Ihr Verhalten wird durch das KI-System und CE-konfigurierte Territoriumsdateien gesteuert.
+Tiere verwenden dieselben Gesundheits-, Positions- und Schadens-APIs wie andere Entitäten. Ihr Verhalten wird durch das KI-System und CE-konfigurierte Territoriumsdateien gesteuert.
 
 ---
 
-## Entitaeten erstellen
+## Entitäten erstellen
 
 ### GetGame().CreateObject()
 
@@ -677,7 +677,7 @@ proto native Object CreateObject(string type, vector pos,
 | `type` | Config-Klassenname (z.B. `"AKM"`, `"ZmbF_JournalistNormal_Blue"`) |
 | `pos` | Weltposition |
 | `create_local` | `true` = nur Client, nicht zum Server repliziert |
-| `init_ai` | `true` = KI initialisieren (fuer Zombies, Tiere) |
+| `init_ai` | `true` = KI initialisieren (für Zombies, Tiere) |
 | `create_physics` | `true` = Kollisionsgeometrie erstellen |
 
 **Beispiel:**
@@ -700,8 +700,8 @@ Dies ist die bevorzugte API. Der `iFlags`-Parameter verwendet ECE (Entity Creati
 | Flag | Wert | Beschreibung |
 |------|-------|-------------|
 | `ECE_NONE` | `0` | Kein spezielles Verhalten |
-| `ECE_SETUP` | `2` | Vollstaendiges Entitaets-Setup |
-| `ECE_TRACE` | `4` | Platzierung zur Oberflaeche tracen |
+| `ECE_SETUP` | `2` | Vollständiges Entitäts-Setup |
+| `ECE_TRACE` | `4` | Platzierung zur Oberfläche tracen |
 | `ECE_CENTER` | `8` | Zentrum aus Modellform verwenden |
 | `ECE_UPDATEPATHGRAPH` | `32` | Navigationsmesh aktualisieren |
 | `ECE_CREATEPHYSICS` | `1024` | Physik/Kollision erstellen |
@@ -710,7 +710,7 @@ Dies ist die bevorzugte API. Der `iFlags`-Parameter verwendet ECE (Entity Creati
 | `ECE_EQUIP_CARGO` | `16384` | Konfigurierte Fracht spawnen |
 | `ECE_EQUIP` | `24576` | `ATTACHMENTS + CARGO` |
 | `ECE_LOCAL` | `1073741824` | Nur lokal erstellen (nicht repliziert) |
-| `ECE_NOSURFACEALIGN` | `262144` | Nicht an Oberflaechennormale ausrichten |
+| `ECE_NOSURFACEALIGN` | `262144` | Nicht an Oberflächennormale ausrichten |
 | `ECE_KEEPHEIGHT` | `524288` | Y-Position beibehalten (kein Trace) |
 | `ECE_NOLIFETIME` | `4194304` | Keine CE-Lebensdauer (wird nicht despawnen) |
 | `ECE_DYNAMIC_PERSISTENCY` | `33554432` | Nur persistent nach Spielerinteraktion |
@@ -721,7 +721,7 @@ Dies ist die bevorzugte API. Der `iFlags`-Parameter verwendet ECE (Entity Creati
 |----------|-------|----------|
 | `ECE_IN_INVENTORY` | `CREATEPHYSICS \| KEEPHEIGHT \| NOSURFACEALIGN` | Items im Inventar erstellt |
 | `ECE_PLACE_ON_SURFACE` | `CREATEPHYSICS \| UPDATEPATHGRAPH \| TRACE` | Items auf Boden platziert |
-| `ECE_FULL` | `SETUP \| TRACE \| ROTATIONFLAGS \| UPDATEPATHGRAPH \| EQUIP` | Vollstaendiges Setup mit Ausruestung |
+| `ECE_FULL` | `SETUP \| TRACE \| ROTATIONFLAGS \| UPDATEPATHGRAPH \| EQUIP` | Vollständiges Setup mit Ausrüstung |
 
 ### RF (Rotations)-Flags
 
@@ -732,7 +732,7 @@ Dies ist die bevorzugte API. Der `iFlags`-Parameter verwendet ECE (Entity Creati
 | `RF_IGNORE` | `64` | Spawnen wie das Modell erstellt wurde |
 | `RF_ALL` | `63` | Alle Rotationsrichtungen |
 
-### Haeufige Muster
+### Häufige Muster
 
 **Item auf dem Boden spawnen:**
 
@@ -750,7 +750,7 @@ EntityAI zombie = EntityAI.Cast(
 );
 ```
 
-**Persistentes Gebaeude spawnen:**
+**Persistentes Gebäude spawnen:**
 
 ```c
 int flags = ECE_SETUP | ECE_UPDATEPATHGRAPH | ECE_CREATEPHYSICS | ECE_NOLIFETIME;
@@ -771,7 +771,7 @@ EntityAI item = player.GetInventory().CreateInInventory("BandageDressing");
 
 ---
 
-## Entitaeten zerstoeren
+## Entitäten zerstören
 
 ### Object.Delete()
 
@@ -779,7 +779,7 @@ EntityAI item = player.GetInventory().CreateInInventory("BandageDressing");
 void Delete();
 ```
 
-Verzoegerte Loeschung --- das Objekt wird im naechsten Frame ueber `CallQueue` entfernt. Dies ist der sicherste Weg, Objekte zu loeschen, da es Probleme beim Loeschen von Objekten vermeidet, waehrend sie iteriert werden.
+Verzögerte Löschung --- das Objekt wird im nächsten Frame über `CallQueue` entfernt. Dies ist der sicherste Weg, Objekte zu löschen, da es Probleme beim Löschen von Objekten vermeidet, während sie iteriert werden.
 
 ### GetGame().ObjectDelete()
 
@@ -787,7 +787,7 @@ Verzoegerte Loeschung --- das Objekt wird im naechsten Frame ueber `CallQueue` e
 proto native void ObjectDelete(Object obj);
 ```
 
-Sofortige server-autoritative Loeschung. Entfernt das Objekt vom Server und repliziert die Entfernung an alle Clients.
+Sofortige server-autoritative Löschung. Entfernt das Objekt vom Server und repliziert die Entfernung an alle Clients.
 
 ### GetGame().ObjectDeleteOnClient()
 
@@ -795,12 +795,12 @@ Sofortige server-autoritative Loeschung. Entfernt das Objekt vom Server und repl
 proto native void ObjectDeleteOnClient(Object obj);
 ```
 
-Loescht das Objekt nur auf Clients. Der Server behaelt das Objekt weiterhin.
+Löscht das Objekt nur auf Clients. Der Server behält das Objekt weiterhin.
 
-**Beispiel --- gespawnte Objekte aufraeumen:**
+**Beispiel --- gespawnte Objekte aufräumen:**
 
 ```c
-// Bevorzugt: verzoegertes Loeschen
+// Bevorzugt: verzögertes Löschen
 obj.Delete();
 
 // Sofort: wenn es sofort weg sein muss
@@ -811,7 +811,7 @@ GetGame().ObjectDelete(obj);
 
 ## Praxisbeispiele
 
-### Alle Spieler in der Naehe einer Position finden
+### Alle Spieler in der Nähe einer Position finden
 
 ```c
 void FindNearbyPlayers(vector center, float radius, out array<PlayerBase> result)
@@ -834,7 +834,7 @@ void FindNearbyPlayers(vector center, float radius, out array<PlayerBase> result
 }
 ```
 
-### Eine voll ausgeruestete Waffe spawnen
+### Eine voll ausgerüstete Waffe spawnen
 
 ```c
 void SpawnEquippedAKM(vector pos)
@@ -845,7 +845,7 @@ void SpawnEquippedAKM(vector pos)
     if (!weapon)
         return;
 
-    // Anbauteile hinzufuegen
+    // Anbauteile hinzufügen
     weapon.GetInventory().CreateAttachment("AK_WoodBttstck");
     weapon.GetInventory().CreateAttachment("AK_WoodHndgrd");
 
@@ -854,7 +854,7 @@ void SpawnEquippedAKM(vector pos)
 }
 ```
 
-### Eine Entitaet beschaedigen und toeten
+### Eine Entität beschädigen und töten
 
 ```c
 void DamageEntity(EntityAI target, float amount)
@@ -881,15 +881,15 @@ void DamageEntity(EntityAI target, float amount)
 | Konzept | Kernpunkt |
 |---------|-----------|
 | Hierarchie | `IEntity` > `Object` > `EntityAI` > `ItemBase` / `PlayerBase` / `ZombieBase` |
-| Position | `GetPosition()` / `SetPosition()` ab `Object` aufwaerts verfuegbar |
+| Position | `GetPosition()` / `SetPosition()` ab `Object` aufwärts verfügbar |
 | Gesundheit | Zonenbasiert: `GetHealth(zone, type)` / `SetHealth(zone, type, value)` |
 | IsAlive | Auf `EntityAI` verwenden oder vorher casten: `EntityAI eai; Class.CastTo(eai, obj)` |
-| Inventar | `eai.GetInventory()` gibt `GameInventory` mit vollstaendigem CRUD zurueck |
+| Inventar | `eai.GetInventory()` gibt `GameInventory` mit vollständigem CRUD zurück |
 | Erstellen | `GetGame().CreateObjectEx(type, pos, ECE_flags)` ist die bevorzugte API |
-| Loeschen | `obj.Delete()` (verzoegert) oder `GetGame().ObjectDelete(obj)` (sofort) |
+| Löschen | `obj.Delete()` (verzögert) oder `GetGame().ObjectDelete(obj)` (sofort) |
 | Netz-Sync | `RegisterNetSyncVariable*()` im Konstruktor, reagieren in `OnVariablesSynchronized()` |
 | Typpruefung | `obj.IsKindOf("ClassName")`, `obj.IsMan()`, `obj.IsBuilding()` |
 
 ---
 
-[Startseite](../../README.md) | **Entitaetssystem** | [Weiter: Fahrzeuge >>](02-vehicles.md)
+[Startseite](../../README.md) | **Entitätssystem** | [Weiter: Fahrzeuge >>](02-vehicles.md)

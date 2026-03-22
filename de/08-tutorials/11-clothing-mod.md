@@ -446,7 +446,7 @@ All other files are shown in full in their respective steps above.
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Consequence | Fix |
 |---------|-------------|-----|
@@ -460,7 +460,7 @@ All other files are shown in full in their respective steps above.
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Start with a simple retexture.** Get a working mod with a texture swap before adding custom properties or scripts. This isolates config issues from texture issues.
 - **Use the _ColorBase pattern.** Shared properties in `scope=0` base, only textures and names in `scope=2` variants. No duplication.
@@ -497,9 +497,9 @@ In this tutorial you learned:
 - How to add spawn entries with `types.xml` and display names with `Stringtable.csv`
 - How to optionally add script behavior with `OnWasAttached` and `OnWasDetached` events
 
-**Naechstes:** Apply the same techniques to create pants (`Pants_Base`), boots (`Shoes_Base`), or a vest (`Vest_Base`). The config structure is identical -- only der Elternteil class and inventory slot change.
+**Nächstes:** Apply the same techniques to create pants (`Pants_Base`), boots (`Shoes_Base`), or a vest (`Vest_Base`). The config structure is identical -- only der Elternteil class and inventory slot change.
 
 ---
 
 **Vorheriges:** [Chapter 8.8: HUD Overlay](08-hud-overlay.md)
-**Naechstes:** Coming soon
+**Nächstes:** Coming soon

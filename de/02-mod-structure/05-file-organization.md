@@ -409,7 +409,7 @@ MyMissions/
 
 ---
 
-## Was wohin gehoert
+## Was wohin gehört
 
 ### Data/ Directory
 
@@ -835,5 +835,5 @@ Before publishing your mod, verify:
 
 ---
 
-**Zurueck:** [Chapter 2.4: Your First Mod -- Minimum Viable](04-minimum-viable-mod.md)
+**Zurück:** [Chapter 2.4: Your First Mod -- Minimum Viable](04-minimum-viable-mod.md)
 **Weiter:** [Part 3: GUI & Layout System](../03-gui-system/01-widget-types.md)

@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 The Aktion System is how DayZ handles all player interactions with items and the world. Every time a player eats food, opens a door, bandages a wound, repairs a wall, or turns on a flashlight, die Engine runs through the action pipeline. Understanding this pipeline --- from condition checks to animation callbacks to server execution --- is fundamental to creating any interactive gameplay mod.
 
@@ -384,7 +384,7 @@ Actions are registered on entities through the `SetActions()` / `AddAction()` / 
 
 ### On ItemBase (Inventory Items)
 
-Am haeufigsten pattern. Override `SetActions()` in a `modded class`:
+Am häufigsten pattern. Override `SetActions()` in a `modded class`:
 
 ```c
 modded class MyCustomItem extends ItemBase
@@ -1070,7 +1070,7 @@ override bool CanBePerformedFromQuickbar()
 
 ### Lock Target On Use
 
-Standardmaessig, actions with targets lock das Ziel so only one player can interact at a time:
+Standardmäßig, actions with targets lock das Ziel so only one player can interact at a time:
 
 ```c
 override bool IsLockTargetOnUse()
@@ -1094,7 +1094,7 @@ override bool IsLockTargetOnUse()
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Forgetting `super.SetActions()`
 
@@ -1260,7 +1260,7 @@ The system is designed to be modular: condition components handle "can this happ
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Always call `super.SetActions()` when modding existing items.** Omitting it removes all vanilla actions (eat, drop, inspect) from the item, breaking core gameplay.
 - **Put all state-changing logic in `OnExecuteServer` or `OnFinishProgressServer`.** Health changes, item deletion, and inventory manipulation must run server-side. `OnExecuteClient` is only for visual feedback.

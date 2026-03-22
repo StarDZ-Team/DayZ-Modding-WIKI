@@ -732,7 +732,7 @@ class MFM_RallyHatchback extends OffroadHatchback
 
 ### Understanding Key Overrides
 
-**GetAnimInstance** -- Gibt zurueck which animation set der Spieler uses when sitting in the vehicle. The enum values are:
+**GetAnimInstance** -- Gibt zurück which animation set der Spieler uses when sitting in the vehicle. The enum values are:
 
 | Value | Constant | Vehicle Type |
 |-------|----------|-------------|
@@ -789,7 +789,7 @@ Vehicles in `types.xml` use the same format as items, but with some wichtig diff
 
 ### Pre-Attached Parts with cfgspawnabletypes.xml
 
-Vehicles spawn as empty shells standardmaessig -- no wheels, doors, or engine parts. To make them spawn with parts pre-attached, add entries to `cfgspawnabletypes.xml` in der Server mission folder:
+Vehicles spawn as empty shells standardmäßig -- no wheels, doors, or engine parts. To make them spawn with parts pre-attached, add entries to `cfgspawnabletypes.xml` in der Server mission folder:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1188,7 +1188,7 @@ class CfgMods
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Always extend an existing vehicle class.** Creating a vehicle from scratch requires a custom 3D model with correct geometry LODs, proxies, memory points, and a physics simulation config. Extending a vanilla vehicle gives you all of this for free.
 - **Test with `OnDebugSpawn()` first.** Before setting up types.xml and cfgspawnabletypes.xml, verify the vehicle works by spawning it fully equipped via the debug menu or script console.
@@ -1196,7 +1196,7 @@ class CfgMods
 - **Do not change door slot names.** The Niva uses `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. These are tied to the model's proxy names and inventory slot definitions. Changing them without changing the model will break door functionality.
 - **Use `scope = 0` for internal base classes.** If you create an abstract base vehicle that other variants extend, set `scope = 0` so it never spawns directly.
 - **Set `requiredAddons` correctly.** Your Data config.cpp must list `"DZ_Vehicles_Wheeled"` so der Elternteil `OffroadHatchback` class loads before yours.
-- **Test door logic thoroughly.** Enter/exit every seat, open/close every door, try accessing die Engine bay with the hood closed. CrewCanGetThrough bugs are am haeufigsten vehicle mod issue.
+- **Test door logic thoroughly.** Enter/exit every seat, open/close every door, try accessing die Engine bay with the hood closed. CrewCanGetThrough bugs are am häufigsten vehicle mod issue.
 
 ---
 
@@ -1224,11 +1224,11 @@ In this tutorial you learned:
 - How to test vehicles in-game using the script console and the `OnDebugSpawn()` method
 - How to add custom sounds for horns and custom light classes for headlights
 
-**Naechstes:** Expand your vehicle mod with custom door models, interior textures, or even a completely new vehicle body using Blender and Object Builder.
+**Nächstes:** Expand your vehicle mod with custom door models, interior textures, or even a completely new vehicle body using Blender and Object Builder.
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### Vehicle Spawnt But Immediately Falls Through the Ground
 

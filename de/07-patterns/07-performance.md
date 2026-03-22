@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ runs at 10--60 server FPS depending on player count, entity load, and mod complexity. Every script cycle that takes too long eats into that frame budget. A single poorly-written `OnUpdate` that scans every vehicle on the map or rebuilds a UI list from scratch can drop server performance noticeably. Professional mods earn their reputation by running fast --- not by having more features, but by implementing the same features with less waste.
 
@@ -768,4 +768,4 @@ Before shipping performance-sensitive code, verify:
 
 ---
 
-[<< Zurueck: Event-Driven Architecture](06-events.md) | [Startseite](../../README.md)
+[<< Zurück: Event-Driven Architecture](06-events.md) | [Startseite](../../README.md)

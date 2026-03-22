@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Every surface you see in DayZ -- weapon skins, clothing, terrain, UI icons -- is defined by texture files. The engine uses a proprietary compressed format called **PAA** at runtime, but during development you work with several source formats that are converted during the build process. Understanding these formats, the naming conventions that bind them to materials, and the resolution rules the engine enforces is fundamental to creating visual content for DayZ mods.
 
@@ -402,7 +402,7 @@ Terrain textures tile across the landscape. The `_mc` macro texture adds large-s
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Non-Power-of-Two Dimensions
 

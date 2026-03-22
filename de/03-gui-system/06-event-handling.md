@@ -501,7 +501,7 @@ override bool OnClick(Widget w, int x, int y, int button)
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 - [3.7 Styles, Fonts & Images](07-styles-fonts.md) -- Visual styling with styles, fonts, and imageset references
 - [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Creating widgets that generate events

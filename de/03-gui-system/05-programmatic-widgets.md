@@ -424,7 +424,7 @@ In practice, most mods use **layout files** for the structure and **code** for p
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 - [3.6 Event Handling](06-event-handling.md) -- Handle clicks, changes, and mouse events
 - [3.7 Styles, Fonts & Images](07-styles-fonts.md) -- Visual styling and image resources

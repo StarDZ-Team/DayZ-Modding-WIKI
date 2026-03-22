@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Almost every DayZ mod needs to save and load configuration data: server settings, spawn tables, ban lists, player data, teleport locations. The engine provides `JsonFileLoader` for simple JSON serialization and raw file I/O (`FileHandle`, `FPrintln`) for everything else. Professional mods layer config versioning and auto-migration on top.
 
@@ -590,7 +590,7 @@ void BanPlayer(string uid, string reason)
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Treating JsonLoadFile as if It Returns a Value
 
@@ -675,4 +675,4 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 ---
 
-[<< Zurueck: RPC Patterns](03-rpc-patterns.md) | [Startseite](../../README.md) | [Next: Permission Systems >>](05-permissions.md)
+[<< Zurück: RPC Patterns](03-rpc-patterns.md) | [Startseite](../../README.md) | [Next: Permission Systems >>](05-permissions.md)

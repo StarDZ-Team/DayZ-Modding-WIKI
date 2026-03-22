@@ -22,7 +22,7 @@
 
 ---
 
-## Ueberblick
+## Überblick
 
 A texture atlas is a single large image (typically in `.edds` format) containing many smaller icons arranged in a grid or freeform layout. An imageset file maps human-readable names to rectangular regions within that atlas.
 
@@ -709,7 +709,7 @@ image0 "set:mh_icons image:icon_store"
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### Forgetting config.cpp Registration
 

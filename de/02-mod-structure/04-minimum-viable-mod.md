@@ -270,7 +270,7 @@ The `modded` keyword is the key mechanism. It tells the engine "take the existin
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 Now that you have a working mod, here are natural progressions:
 
@@ -412,7 +412,7 @@ The method or property you are calling does not exist on that class. Double-chec
 
 ---
 
-## Vollstaendige Dateiauflistung
+## Vollständige Dateiauflistung
 
 For reference, here are all three files in their entirety:
 
@@ -489,5 +489,5 @@ modded class MissionGameplay
 
 ---
 
-**Zurueck:** [Chapter 2.3: mod.cpp & Workshop](03-mod-cpp.md)
+**Zurück:** [Chapter 2.3: mod.cpp & Workshop](03-mod-cpp.md)
 **Weiter:** [Chapter 2.5: File Organization Best Practices](05-file-organization.md)

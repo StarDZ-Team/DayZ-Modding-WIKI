@@ -672,7 +672,7 @@ Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edi
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Server is the single source of truth.** Client is a display terminal.
 - **Use `DeleteSafe()` not `Delete()`.** Behandelt network sync and locked slots.
@@ -684,9 +684,9 @@ Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edi
 
 | Concept | Theory | Reality |
 |---------|--------|---------|
-| `JsonFileLoader.LoadFile()` | Laedt cleanly | Trailing commas cause silent failures. Validate JSON externally. |
+| `JsonFileLoader.LoadFile()` | Lädt cleanly | Trailing commas cause silent failures. Validate JSON externally. |
 | String RPC serialization | Simple | 500+ items may hit size limits. Paginate for large shops. |
-| `CreateInInventory()` | Always works | Gibt zurueck null if inventory full. Always check. |
+| `CreateInInventory()` | Always works | Gibt zurück null if inventory full. Always check. |
 | Listen server testing | Fast iteration | Hides network bugs. Test on dedicated server. |
 
 ## What You Learned
@@ -699,7 +699,7 @@ Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edi
 - Full buy/sell transaction flow with server-only authority
 - Security principles for multiplayer economy systems
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Fix |
 |---------|-----|

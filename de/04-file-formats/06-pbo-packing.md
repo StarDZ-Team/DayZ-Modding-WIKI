@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 A **PBO** (Packed Bank of Objects) is DayZ's archive format -- the equivalent of a `.zip` file for game content. Every mod the game loads is delivered as one or more PBO files. When a player subscribes to a mod on Steam Workshop, they download PBOs. When a server loads mods, it reads PBOs. The PBO is the final deliverable of the entire modding pipeline.
 

@@ -4,13 +4,13 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ's base building system allows players to construct fortifications --- fences, watchtowers, and shelters --- by assembling individual parts using tools and materials. Each structure is divided into named construction parts (walls, platforms, roofs, gates) that are built, dismantled, or destroyed independently.
 
 The system lives primarily in three files:
 
-- `4_World/entities/itembase/basebuildingbase.c` --- die Entitaet base class
+- `4_World/entities/itembase/basebuildingbase.c` --- die Entität base class
 - `4_World/classes/basebuilding/construction.c` --- the construction manager
 - `4_World/classes/basebuilding/constructionpart.c` --- individual part representation
 
@@ -431,7 +431,7 @@ The Watchtower overrides `UpdateVisuals()` to handle its multi-floor system: upp
 
 ### Fence
 
-Am haeufigsten structure. Kit: `FenceKit`. Features a gate system with three states (`GATE_STATE_NONE`, `GATE_STATE_PARTIAL`, `GATE_STATE_FULL`). A fully constructed gate can accept a `CombinationLock` attachment. Unterstuetzt barbed wire (2 slots creating area damage when mounted) and camo net. Gate opening rotates 100 degrees over ~2 seconds.
+Am häufigsten structure. Kit: `FenceKit`. Features a gate system with three states (`GATE_STATE_NONE`, `GATE_STATE_PARTIAL`, `GATE_STATE_FULL`). A fully constructed gate can accept a `CombinationLock` attachment. Unterstützt barbed wire (2 slots creating area damage when mounted) and camo net. Gate opening rotates 100 degrees over ~2 seconds.
 
 ### Watchtower
 
@@ -463,7 +463,7 @@ Repair uses `TakeMaterialsServer(part_name, true)`, requiring only 15% of origin
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 1. **Part IDs muss unique** within an object (1-93 range). Gaps are allowed but waste capacity.
 2. **Always define `collision_data` memory points** to prevent building through geometry.
@@ -484,7 +484,7 @@ Repair uses `TakeMaterialsServer(part_name, true)`, requiring only 15% of origin
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Consequence | Fix |
 |---------|-------------|-----|

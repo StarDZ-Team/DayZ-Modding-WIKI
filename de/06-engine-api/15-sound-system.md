@@ -4,13 +4,13 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ provides two main approaches for playing sounds from scripts: a **high-level API** built around `EffectSound` and `SEffectManager`, and a **config-driven shortcut** via `PlaySoundSet` / `StopSoundSet` on entities. Both ultimately rely on engine-level `CfgSoundSets` and `CfgSoundShaders` definitions in `config.cpp`.
 
 All scripted sound playback is **client-side only**. Dedicated servers have no audio output device --- calling sound methods on a headless server wastes resources and can trigger warnings. Always guard sound calls behind `!GetGame().IsDedicatedServer()` or use the built-in guards provided by the API.
 
-Dieses Kapitel behandelt the complete sound pipeline: config definitions, the `SEffectManager` API, die Entitaet convenience methods, the `EffectSound` class, spatial vs UI sounds, looping, and common patterns found in Vanilla and community mods.
+Dieses Kapitel behandelt the complete sound pipeline: config definitions, the `SEffectManager` API, die Entität convenience methods, the `EffectSound` class, spatial vs UI sounds, looping, and common patterns found in Vanilla and community mods.
 
 ---
 
@@ -284,7 +284,7 @@ SEffectManager.DestroySound(sound);
 
 ## PlaySoundSet / StopSoundSet --- Entity Convenience Methods
 
-The `Object` class provides convenience methods that wrap `SEffectManager`. These are am haeufigsten way to play sounds on entities (items, buildings, vehicles, players).
+The `Object` class provides convenience methods that wrap `SEffectManager`. These are am häufigsten way to play sounds on entities (items, buildings, vehicles, players).
 
 ### PlaySoundSet
 
@@ -343,7 +343,7 @@ PlaySoundSetLoop(m_EngineSound, "Engine_SoundSet", 0.5, 0.5);
 bool StopSoundSet(out EffectSound sound);
 ```
 
-Calls `SoundStop()` on the effect and sets the reference to `null`. Gibt zurueck `false` if the sound was already null or on a dedicated server.
+Calls `SoundStop()` on the effect and sets the reference to `null`. Gibt zurück `false` if the sound was already null or on a dedicated server.
 
 ### PlaySoundSetAtMemoryPoint
 
@@ -374,9 +374,9 @@ The "Safe" variant is useful when a sound set might change dynamically (e.g. swi
 
 | Method | Description |
 |--------|-------------|
-| `SoundPlay()` | Start playback. Gibt zurueck `bool` (success). |
+| `SoundPlay()` | Start playback. Gibt zurück `bool` (success). |
 | `SoundStop()` | Stop playback. Respects fade-out duration if set. |
-| `IsPlaying()` | Gibt zurueck `true` if the sound is derzeit playing. |
+| `IsPlaying()` | Gibt zurück `true` if the sound is derzeit playing. |
 | `IsSoundPlaying()` | Same as `IsPlaying()`. Legacy name. |
 | `SetSoundSet(string name)` | Set the CfgSoundSets name. Must be called before playing. |
 | `GetSoundSet()` | Get the current sound set name. |
@@ -566,7 +566,7 @@ EffectSound sound = SEffectManager.PlaySound(
 
 ### Starting and Stopping Loops on Entities
 
-Die Entitaet convenience methods are the cleanest approach for looping sounds:
+Die Entität convenience methods are the cleanest approach for looping sounds:
 
 ```c
 class MyGenerator : ItemBase
@@ -706,7 +706,7 @@ soundObj.SetPosition("0 1 0");        // Local offset: 1m above entity origin
 
 ---
 
-## Gaengige Muster
+## Gängige Muster
 
 ### 1. Button Click Sound (UI)
 
@@ -884,7 +884,7 @@ class MyExplosiveBarrel : BuildingSuper
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Using Stereo Files for 3D Sounds
 
@@ -1045,7 +1045,7 @@ Available controller names include: `rain`, `night`, `meadow`, `trees`, `hills`,
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Always call `SetAutodestroy(true)` on one-shot sounds.** Without it, `EffectSound` instances accumulate in `SEffectManager`'s internal registry and are only cleaned on mission end, causing a memory leak over long play sessions.
 - **Guard all sound playback with `!GetGame().IsDedicatedServer()`.** Dedicated servers have no audio device. Calling sound methods auf dem Server wastes CPU cycles and may log warnings. The `PlaySoundSet` convenience methods include this guard internally, but `SEffectManager.PlaySound()` macht nicht.

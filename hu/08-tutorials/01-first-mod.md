@@ -1,108 +1,112 @@
-# Chapter 8.1: Your First Mod (Hello World)
+# 8.1. fejezet: Az első modod (Hello World)
 
-[Home](../../README.md) | **Your First Mod** | [Next: Creating a Custom Item >>](02-custom-item.md)
-
----
-
-## Tartalomjegyzek
-
-- [Prerequisites](#prerequisites)
-- [Step 1: Install DayZ eszkozok](#step-1-install-dayz-tools)
-- [Step 2: Set Up the P: Drive (Workdrive)](#step-2-set-up-the-p-drive-workdrive)
-- [Step 3: Create the Mod Directory Structure](#step-3-create-the-mod-directory-structure)
-- [Step 4: Write mod.cpp](#step-4-write-modcpp)
-- [Step 5: Write config.cpp](#step-5-write-configcpp)
-- [Step 6: Write Your First Script](#step-6-write-your-first-script)
-- [Step 7: Pack the PBO with Addon Builder](#step-7-pack-the-pbo-with-addon-builder)
-- [Step 8: Load the Mod in DayZ](#step-8-load-the-mod-in-dayz)
-- [Step 9: Verify in the Script Log](#step-9-verify-in-the-script-log)
-- [Step 10: Troubleshooting Common Issues](#step-10-troubleshooting-common-issues)
-- [Complete File Reference](#complete-file-reference)
-- [Next Steps](#next-steps)
+[Kezdőlap](../../README.md) | **Az első modod** | [Következő: Egyéni tárgy létrehozása >>](02-custom-item.md)
 
 ---
 
-## Prerequisites
-
-Before you begin, make sure you have:
-
-- **Steam** installed and logged in
-- **DayZ** game installed (retail version from Steam)
-- A **text editor** (VS Code, Notepad++, or even Notepad)
-- About **15 GB of free disk space** for DayZ eszkozok
-
-That is everything. No programming experience is required for this tutorial -- every line of code is explained.
+> **Összefoglalás:** Ez az útmutató végigvezet az első DayZ mod létrehozásán az abszolút nulláról. Telepíted az eszközöket, beállítod a munkaterületet, három fájlt írsz, PBO-t csomagolsz, betöltöd a modot a DayZ-ben, és ellenőrzöd a működését a szkript log olvasásával. Nincs szükség korábbi DayZ modding tapasztalatra.
 
 ---
 
-## Step 1: Install DayZ eszkozok
+## Tartalomjegyzék
 
-DayZ eszkozok is a free application on Steam that includes everything you need to build mods: the Workbench script editor, Addon Builder for PBO packing, Terrain Builder, and Object Builder.
+- [Előfeltételek](#előfeltételek)
+- [1. lépés: A DayZ Tools telepítése](#1-lépés-a-dayz-tools-telepítése)
+- [2. lépés: A P: meghajtó beállítása (Workdrive)](#2-lépés-a-p-meghajtó-beállítása-workdrive)
+- [3. lépés: A mod könyvtárstruktúra létrehozása](#3-lépés-a-mod-könyvtárstruktúra-létrehozása)
+- [4. lépés: A mod.cpp megírása](#4-lépés-a-modcpp-megírása)
+- [5. lépés: A config.cpp megírása](#5-lépés-a-configcpp-megírása)
+- [6. lépés: Az első szkript megírása](#6-lépés-az-első-szkript-megírása)
+- [7. lépés: PBO csomagolás az Addon Builderrel](#7-lépés-pbo-csomagolás-az-addon-builderrel)
+- [8. lépés: A mod betöltése a DayZ-ben](#8-lépés-a-mod-betöltése-a-dayz-ben)
+- [9. lépés: Ellenőrzés a szkript logban](#9-lépés-ellenőrzés-a-szkript-logban)
+- [10. lépés: Gyakori problémák megoldása](#10-lépés-gyakori-problémák-megoldása)
+- [Teljes fájl referencia](#teljes-fájl-referencia)
+- [Következő lépések](#következő-lépések)
 
-### How to Install
+---
 
-1. Open **Steam**
-2. Go to **Library**
-3. In the dropdown filter at the top, change **Games** to **Tools**
-4. Search for **DayZ eszkozok**
-5. Click **Install**
-6. Wait for the download to complete (it is roughly 12-15 GB)
+## Előfeltételek
 
-Once installed, you will find DayZ eszkozok in your Steam library under Tools. The default installation path is:
+Mielőtt elkezded, győződj meg róla, hogy rendelkezel a következőkkel:
+
+- Telepített **Steam** és bejelentkezve
+- Telepített **DayZ** játék (kiskereskedelmi verzió a Steamből)
+- Egy **szövegszerkesztő** (VS Code, Notepad++ vagy akár Jegyzettömb)
+- Körülbelül **15 GB szabad lemezterület** a DayZ Tools számára
+
+Ennyi az egész. Ehhez az útmutatóhoz nem szükséges programozási tapasztalat -- minden kódsor el van magyarázva.
+
+---
+
+## 1. lépés: A DayZ Tools telepítése
+
+A DayZ Tools egy ingyenes alkalmazás a Steamen, amely mindent tartalmaz, amire szükséged van a modok építéséhez: a Workbench szkriptszerkesztőt, az Addon Buildert PBO csomagoláshoz, a Terrain Buildert és az Object Buildert.
+
+### Hogyan telepítsük
+
+1. Nyisd meg a **Steamet**
+2. Menj a **Könyvtárba**
+3. A felső legördülő szűrőben változtasd a **Játékok**-at **Eszközök**-re
+4. Keress rá a **DayZ Tools**-ra
+5. Kattints a **Telepítés**-re
+6. Várd meg, amíg a letöltés befejeződik (körülbelül 12-15 GB)
+
+A telepítés után a DayZ Tools a Steam könyvtáradban az Eszközök alatt található. Az alapértelmezett telepítési útvonal:
 
 ```
 C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\
 ```
 
-### What Gets Installed
+### Mi kerül telepítésre
 
-| Eszkoz | Cel |
+| Eszköz | Cél |
 |------|---------|
-| **Addon Builder** | Packs your mod files into `.pbo` archives |
-| **Workbench** | Script editor with syntax highlighting |
-| **Object Builder** | 3D model viewer and editor for `.p3d` files |
-| **Terrain Builder** | Map/terrain editor |
-| **TexView2** | Texture viewer/converter (`.paa`, `.edds`) |
+| **Addon Builder** | A mod fájljaidat `.pbo` archívumokba csomagolja |
+| **Workbench** | Szkriptszerkesztő szintaxiskiemeléssel |
+| **Object Builder** | 3D modell megjelenítő és szerkesztő `.p3d` fájlokhoz |
+| **Terrain Builder** | Térkép/terep szerkesztő |
+| **TexView2** | Textúra megjelenítő/konverter (`.paa`, `.edds`) |
 
-For this tutorial, you only need **Addon Builder**. The others are useful later.
+Ehhez az útmutatóhoz csak az **Addon Builder**-re van szükséged. A többiek később lesznek hasznosak.
 
 ---
 
-## Step 2: Set Up the P: Drive (Workdrive)
+## 2. lépés: A P: meghajtó beállítása (Workdrive)
 
-DayZ modding uses a virtual drive letter **P:** as a shared workspace. All mods and game data reference paths starting from P:, which keeps paths consistent across different machines.
+A DayZ modding egy virtuális meghajtóbetűjelet használ, a **P:**-t, mint közös munkaterületet. Minden mod és játékadat P:-vel kezdődő útvonalakra hivatkozik, ami konzisztens útvonalakat biztosít különböző gépeken.
 
-### Creating the P: Drive
+### A P: meghajtó létrehozása
 
-1. Open **DayZ eszkozok** from Steam
-2. In the main DayZ eszkozok window, click **P: Drive Management** (or look for a button labeled "Mount P drive" / "Setup P drive")
-3. Click **Create/Mount P: Drive**
-4. Choose a location for the P: drive data (default is fine, or pick a drive with enough space)
-5. Wait for the process to complete
+1. Nyisd meg a **DayZ Tools**-t a Steamből
+2. A DayZ Tools főablakában kattints a **P: Drive Management**-re (vagy keress egy "Mount P drive" / "Setup P drive" feliratú gombot)
+3. Kattints a **Create/Mount P: Drive**-ra
+4. Válassz helyet a P: meghajtó adatainak (az alapértelmezett megfelelő, vagy válassz egy meghajtót elegendő hellyel)
+5. Várd meg, amíg a folyamat befejeződik
 
-### Verify It Works
+### A működés ellenőrzése
 
-Open **File Explorer** and navigate to `P:\`. You should see a directory that contains DayZ game data. If the P: drive exists and you can browse it, you are ready to proceed.
+Nyisd meg a **Fájlkezelőt** és navigálj a `P:\`-re. Egy könyvtárat kell látnod, amely DayZ játékadatokat tartalmaz. Ha a P: meghajtó létezik és böngészni tudod, készen állsz a folytatásra.
 
-### Alternative: Manual P: Drive
+### Alternatíva: Kézi P: meghajtó
 
-If the DayZ eszkozok GUI does not work, you can create a P: drive manually using a Windows command prompt (run as Administrator):
+Ha a DayZ Tools GUI nem működik, a P: meghajtót manuálisan is létrehozhatod a Windows parancssorból (Rendszergazdaként futtatva):
 
 ```batch
 subst P: "C:\DayZWorkdrive"
 ```
 
-Replace `C:\DayZWorkdrive` with any folder you want. This creates a temporary drive mapping that lasts until you reboot. For a permanent mapping, use `net use` or the DayZ eszkozok GUI.
+Cseréld ki a `C:\DayZWorkdrive`-ot bármely mappára. Ez egy ideiglenes meghajtó-leképezést hoz létre, amely az újraindításig tart. Állandó leképezéshez használd a `net use`-t vagy a DayZ Tools GUI-t.
 
-### What If I Do Not Want to Use P: Drive?
+### Mi van, ha nem akarom használni a P: meghajtót?
 
-You can develop without the P: drive by placing your mod folder directly in the DayZ game directory and using `-filePatching` mode. However, the P: drive is the standard workflow and all official documentation assumes it. We strongly recommend setting it up.
+Fejleszthetsz a P: meghajtó nélkül is, ha a mod mappádat közvetlenül a DayZ játékkönyvtárba helyezed és `-filePatching` módot használsz. Azonban a P: meghajtó a szabványos munkafolyamat, és minden hivatalos dokumentáció feltételezi. Határozottan javasoljuk a beállítását.
 
 ---
 
-## Step 3: Create the Mod Directory Structure
+## 3. lépés: A mod könyvtárstruktúra létrehozása
 
-Every DayZ mod follows a specific folder structure. Create the following directories and files on your P: drive (or in your DayZ game directory if not using P:):
+Minden DayZ mod egy adott mappastruktúrát követ. Hozd létre a következő könyvtárakat és fájlokat a P: meghajtódon (vagy a DayZ játékkönyvtáradban, ha nem használsz P:-t):
 
 ```
 P:\MyFirstMod\
@@ -114,33 +118,33 @@ P:\MyFirstMod\
                 MissionHello.c
 ```
 
-### Create the Folders
+### Mappák létrehozása
 
-1. Open **File Explorer**
-2. Navigate to `P:\`
-3. Create a new folder called `MyFirstMod`
-4. Inside `MyFirstMod`, create a folder called `Scripts`
-5. Inside `Scripts`, create a folder called `5_Mission`
-6. Inside `5_Mission`, create a folder called `MyFirstMod`
+1. Nyisd meg a **Fájlkezelőt**
+2. Navigálj a `P:\`-re
+3. Hozz létre egy új mappát `MyFirstMod` néven
+4. A `MyFirstMod`-on belül hozz létre egy `Scripts` mappát
+5. A `Scripts`-en belül hozz létre egy `5_Mission` mappát
+6. Az `5_Mission`-on belül hozz létre egy `MyFirstMod` mappát
 
-### Understanding the Structure
+### A struktúra megértése
 
-| Path | Cel |
+| Útvonal | Cél |
 |------|---------|
-| `MyFirstMod/` | Root of your mod |
-| `mod.cpp` | Metadata (name, author) shown in the DayZ launcher |
-| `Scripts/config.cpp` | Tells the engine what your mod depends on and where scripts live |
-| `Scripts/5_Mission/` | The mission script layer (UI, startup hooks) |
-| `Scripts/5_Mission/MyFirstMod/` | Subfolder for your mod's mission scripts |
-| `Scripts/5_Mission/MyFirstMod/MissionHello.c` | Your actual script file |
+| `MyFirstMod/` | A mod gyökérkönyvtára |
+| `mod.cpp` | Metaadatok (név, szerző) a DayZ launcherben megjelenítve |
+| `Scripts/config.cpp` | Megmondja a motornak, mitől függ a mod és hol vannak a szkriptek |
+| `Scripts/5_Mission/` | A misszió szkriptréteg (UI, indítási hookok) |
+| `Scripts/5_Mission/MyFirstMod/` | Almappa a mod misszió szkriptjeihez |
+| `Scripts/5_Mission/MyFirstMod/MissionHello.c` | A tényleges szkriptfájlod |
 
-You need exactly **3 files**. Let us create them one by one.
+Pontosan **3 fájlra** van szükséged. Hozzuk létre őket egyenként.
 
 ---
 
-## Step 4: Write mod.cpp
+## 4. lépés: A mod.cpp megírása
 
-Create the file `P:\MyFirstMod\mod.cpp` in your text editor and paste this content:
+Hozd létre a `P:\MyFirstMod\mod.cpp` fájlt a szövegszerkesztődben és illeszd be ezt a tartalmat:
 
 ```cpp
 name = "My First Mod";
@@ -149,20 +153,20 @@ version = "1.0";
 overview = "My very first DayZ mod. Prints Hello World to the script log.";
 ```
 
-### What Each Line Does
+### Mit csinál minden sor
 
-- **`name`** -- The display name shown in the DayZ launcher mod list. Players see this when selecting mods.
-- **`author`** -- Your name or team name.
-- **`version`** -- Any version string you like. The engine does not parse it.
-- **`overview`** -- A description shown when expanding the mod details.
+- **`name`** -- A DayZ launcher modlistájában megjelenő név. A játékosok ezt látják a modok kiválasztásakor.
+- **`author`** -- A neved vagy a csapat neve.
+- **`version`** -- Bármilyen verzió szöveg. A motor nem értelmezi.
+- **`overview`** -- A mod részleteinél megjelenő leírás.
 
-Save the file. That is your mod's identity card.
+Mentsd el a fájlt. Ez a mod személyi igazolványa.
 
 ---
 
-## Step 5: Write config.cpp
+## 5. lépés: A config.cpp megírása
 
-Create the file `P:\MyFirstMod\Scripts\config.cpp` and paste this content:
+Hozd létre a `P:\MyFirstMod\Scripts\config.cpp` fájlt és illeszd be ezt a tartalmat:
 
 ```cpp
 class CfgPatches
@@ -202,29 +206,29 @@ class CfgMods
 };
 ```
 
-### What Each Section Does
+### Mit csinál minden szekció
 
-**CfgPatches** declares your mod to the DayZ engine:
+A **CfgPatches** deklarálja a mododat a DayZ motornak:
 
-- `class MyFirstMod_Scripts` -- A unique identifier for your mod's script package. Must not collide with any other mod.
-- `units[] = {}; weapons[] = {};` -- Lists of entities and weapons your mod adds. Empty for now.
-- `requiredVersion = 0.1;` -- Minimum game version. Always `0.1`.
-- `requiredAddons[] = { "DZ_Data" };` -- Dependencies. `DZ_Data` is the base game data. This ensures your mod loads **after** the base game.
+- `class MyFirstMod_Scripts` -- Egyedi azonosító a mod szkriptcsomagjához. Nem ütközhet más modokkal.
+- `units[] = {}; weapons[] = {};` -- A mod által hozzáadott entitások és fegyverek listája. Egyelőre üres.
+- `requiredVersion = 0.1;` -- Minimális játékverzió. Mindig `0.1`.
+- `requiredAddons[] = { "DZ_Data" };` -- Függőségek. A `DZ_Data` az alapjáték adatai. Ez biztosítja, hogy a mod **az** alapjáték **után** töltődik be.
 
-**CfgMods** tells the engine where your scripts live:
+A **CfgMods** megmondja a motornak, hol vannak a szkriptek:
 
-- `dir = "MyFirstMod";` -- Root directory of the mod.
-- `type = "mod";` -- This is a client+server mod (as opposed to `"servermod"` for server-only).
-- `dependencies[] = { "Mission" };` -- Your code hooks into the Mission script module.
-- `class missionScriptModule` -- Tells the engine to compile all `.c` files found in `MyFirstMod/Scripts/5_Mission/`.
+- `dir = "MyFirstMod";` -- A mod gyökérkönyvtára.
+- `type = "mod";` -- Ez egy kliens+szerver mod (szemben a `"servermod"`-dal, ami csak szerverre vonatkozik).
+- `dependencies[] = { "Mission" };` -- A kódod a Mission szkriptmodulba kapcsolódik.
+- `class missionScriptModule` -- Megmondja a motornak, hogy fordítsa le az összes `.c` fájlt a `MyFirstMod/Scripts/5_Mission/` mappában.
 
-**Why only `5_Mission`?** Because our Hello World script hooks into the mission startup event, which lives in the mission layer. Most simple mods start here.
+**Miért csak `5_Mission`?** Mert a Hello World szkriptünk a misszió indítási eseményébe kapcsolódik, ami a misszió rétegben él. A legtöbb egyszerű mod itt kezdődik.
 
 ---
 
-## Step 6: Write Your First Script
+## 6. lépés: Az első szkript megírása
 
-Create the file `P:\MyFirstMod\Scripts\5_Mission\MyFirstMod\MissionHello.c` and paste this content:
+Hozd létre a `P:\MyFirstMod\Scripts\5_Mission\MyFirstMod\MissionHello.c` fájlt és illeszd be ezt a tartalmat:
 
 ```c
 modded class MissionServer
@@ -246,235 +250,235 @@ modded class MissionGameplay
 };
 ```
 
-### Line-by-Line Explanation
+### Soronkénti magyarázat
 
 ```c
 modded class MissionServer
 ```
-The `modded` keyword is the heart of DayZ modding. It says: "Take the existing `MissionServer` class from the vanilla game and add my changes on top." You are not creating a new class -- you are extending the existing one.
+A `modded` kulcsszó a DayZ modding szíve. Azt mondja: "Vedd a meglévő `MissionServer` osztályt a vanília játékból és add hozzá a módosításaimat." Nem hozol létre új osztályt -- a meglévőt bővíted.
 
 ```c
     override void OnInit()
 ```
-`OnInit()` is called by the engine when a mission starts. `override` tells the compiler that this method already exists in the parent class and we are replacing it with our version.
+Az `OnInit()` metódust a motor hívja meg, amikor egy misszió elindul. Az `override` megmondja a fordítónak, hogy ez a metódus már létezik a szülőosztályban, és mi a saját verziónkra cseréljük.
 
 ```c
         super.OnInit();
 ```
-**This line is critical.** `super.OnInit()` calls the original vanilla implementation. If you skip this, the vanilla mission initialization code never runs and the game breaks. Always call `super` first.
+**Ez a sor kritikus.** A `super.OnInit()` meghívja az eredeti vanília implementációt. Ha kihagyod, a vanília misszió inicializációs kódja soha nem fut le, és a játék elromlik. Mindig hívd meg a `super`-t először.
 
 ```c
         Print("[MyFirstMod] Hello World! The SERVER mission has started.");
 ```
-`Print()` writes a message to the DayZ script log file. The `[MyFirstMod]` prefix makes it easy to find your messages in the log.
+A `Print()` üzenetet ír a DayZ szkript logfájlba. A `[MyFirstMod]` előtag megkönnyíti az üzeneteid megtalálását a logban.
 
 ```c
 modded class MissionGameplay
 ```
-`MissionGameplay` is the client-side equivalent of `MissionServer`. When a player joins a server, `MissionGameplay.OnInit()` fires on their machine. By modding both classes, your message appears in both server and client logs.
+A `MissionGameplay` a `MissionServer` kliens oldali megfelelője. Amikor egy játékos csatlakozik egy szerverhez, a `MissionGameplay.OnInit()` az ő gépén fut le. Mindkét osztály modolásával az üzeneted mind a szerver, mind a kliens logban megjelenik.
 
-### About `.c` Files
+### A `.c` fájlokról
 
-DayZ scripts use the `.c` file extension. Despite looking like C, this is **Enforce Script**, DayZ's own scripting language. It has classes, inheritance, arrays, and maps, but it is not C, C++, or C#. Your IDE may show syntax errors -- that is normal and expected.
+A DayZ szkriptek `.c` fájlkiterjesztést használnak. Bár C-nek tűnnek, ez az **Enforce Script**, a DayZ saját szkriptnyelve. Vannak benne osztályok, öröklés, tömbök és mapek, de nem C, C++ vagy C#. Az IDE-d szintaxishibákat mutathat -- ez normális és várt viselkedés.
 
 ---
 
-## Step 7: Pack the PBO with Addon Builder
+## 7. lépés: PBO csomagolás az Addon Builderrel
 
-DayZ loads mods from `.pbo` archive files (similar to .zip but in a format the engine understands). You need to pack your `Scripts` folder into a PBO.
+A DayZ modokat `.pbo` archív fájlokból tölti be (hasonlóak a .zip-hez, de a motor által értett formátumban). A `Scripts` mappádat PBO-ba kell csomagolnod.
 
-### Using Addon Builder (GUI)
+### Az Addon Builder használata (GUI)
 
-1. Open **DayZ eszkozok** from Steam
-2. Click **Addon Builder** to launch it
-3. Set **Source directory** to: `P:\MyFirstMod\Scripts\`
-4. Set **Output/Destination directory** to a new folder: `P:\@MyFirstMod\Addons\`
+1. Nyisd meg a **DayZ Tools**-t a Steamből
+2. Kattints az **Addon Builder**-re az indításhoz
+3. Állítsd a **Source directory**-t erre: `P:\MyFirstMod\Scripts\`
+4. Állítsd az **Output/Destination directory**-t egy új mappára: `P:\@MyFirstMod\Addons\`
 
-   Create the `@MyFirstMod\Addons\` folder first if it does not exist.
+   Hozd létre a `@MyFirstMod\Addons\` mappát először, ha nem létezik.
 
-5. In **Addon Builder Options**:
-   - Set **Prefix** to: `MyFirstMod\Scripts`
-   - Leave other options at defaults
-6. Click **Pack**
+5. Az **Addon Builder Options**-ban:
+   - Állítsd a **Prefix**-et erre: `MyFirstMod\Scripts`
+   - A többi beállítást hagyd alapértelmezetten
+6. Kattints a **Pack**-ra
 
-If successful, you will see a file at:
+Ha sikeres, egy fájlt fogsz látni itt:
 
 ```
 P:\@MyFirstMod\Addons\Scripts.pbo
 ```
 
-### Set Up the Final Mod Structure
+### A végleges modstruktúra beállítása
 
-Now copy your `mod.cpp` next to the `Addons` folder:
+Most másold a `mod.cpp` fájlt az `Addons` mappa mellé:
 
 ```
 P:\@MyFirstMod\
-    mod.cpp                         <-- Copy from P:\MyFirstMod\mod.cpp
+    mod.cpp                         <-- Másolat a P:\MyFirstMod\mod.cpp-ból
     Addons\
-        Scripts.pbo                 <-- Created by Addon Builder
+        Scripts.pbo                 <-- Az Addon Builder által létrehozva
 ```
 
-The `@` prefix on the folder name is a convention for distributable mods. It signals to server administrators and the launcher that this is a mod package.
+A `@` előtag a mappanéven a terjeszthető modok konvenciója. Jelzi a szerveradminisztrátoroknak és a launchernek, hogy ez egy modcsomag.
 
-### Alternative: Test Without Packing (File Patching)
+### Alternatíva: Tesztelés csomagolás nélkül (File Patching)
 
-During development, you can skip PBO packing entirely using file patching mode. This loads scripts directly from your source folders:
+Fejlesztés során teljesen kihagyhatod a PBO csomagolást file patching módban. Ez közvetlenül a forrásmappáidból tölti be a szkripteket:
 
 ```
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 ```
 
-File patching is faster for iteration because you edit a `.c` file, restart the game, and see the changes immediately. No packing step needed. However, file patching only works with the diagnostic executable (`DayZDiag_x64.exe`) and is not suitable for distribution.
+A file patching gyorsabb az iterációhoz, mert szerkeszted a `.c` fájlt, újraindítod a játékot, és azonnal látod a változásokat. Nincs szükség csomagolási lépésre. Azonban a file patching csak a diagnosztikai végrehajtható fájllal (`DayZDiag_x64.exe`) működik, és nem alkalmas terjesztésre.
 
 ---
 
-## Step 8: Load the Mod in DayZ
+## 8. lépés: A mod betöltése a DayZ-ben
 
-There are two ways to load your mod: through the launcher or via command-line parameters.
+Kétféleképpen töltheted be a mododat: a launcheren keresztül vagy parancssori paraméterekkel.
 
-### Option A: DayZ Launcher
+### A opció: DayZ Launcher
 
-1. Open the **DayZ Launcher** from Steam
-2. Go to the **Mods** tab
-3. Click **Add local mod** (or "Add mod from local storage")
-4. Browse to `P:\@MyFirstMod\`
-5. Enable the mod by checking its checkbox
-6. Click **Play** (make sure you are connecting to a local/offline server, or launching single-player)
+1. Nyisd meg a **DayZ Launchert** a Steamből
+2. Menj a **Mods** fülre
+3. Kattints az **Add local mod**-ra (vagy "Add mod from local storage")
+4. Navigálj a `P:\@MyFirstMod\` mappához
+5. Engedélyezd a modot a jelölőnégyzet bejelölésével
+6. Kattints a **Play**-re (győződj meg róla, hogy helyi/offline szerverhez csatlakozol, vagy egyjátékos módot indítasz)
 
-### Option B: Command Line (Recommended for Development)
+### B opció: Parancssor (fejlesztéshez ajánlott)
 
-For faster iteration, launch DayZ directly with command-line parameters. Create a shortcut or batch file:
+Gyorsabb iterációhoz indítsd a DayZ-t közvetlenül parancssori paraméterekkel. Hozz létre egy parancsikont vagy batch fájlt:
 
-**Using the Diagnostic Executable (with file patching, no PBO needed):**
+**A diagnosztikai végrehajtható fájl használata (file patching-gel, PBO nélkül):**
 
 ```batch
 "C:\Program Files (x86)\Steam\steamapps\common\DayZ\DayZDiag_x64.exe" -mod=P:\MyFirstMod -filePatching -server -config=serverDZ.cfg -port=2302
 ```
 
-**Using the packed PBO:**
+**A csomagolt PBO használata:**
 
 ```batch
 "C:\Program Files (x86)\Steam\steamapps\common\DayZ\DayZDiag_x64.exe" -mod=P:\@MyFirstMod -server -config=serverDZ.cfg -port=2302
 ```
 
-The `-server` flag launches a local listen server. The `-filePatching` flag allows loading scripts from unpacked folders.
+A `-server` jelző helyi listen szervert indít. A `-filePatching` jelző lehetővé teszi a szkriptek betöltését csomagolatlan mappákból.
 
-### Quick Test: Offline Mode
+### Gyorsteszt: Offline mód
 
-The fastest way to test is to launch DayZ in offline mode:
+A leggyorsabb tesztelési mód a DayZ offline módban való indítása:
 
 ```batch
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 ```
 
-Then in the main menu, click **Play** and select **Offline Mode** (or **Community Offline**). This starts a local single-player session without needing a server.
+Ezután a főmenüben kattints a **Play**-re és válaszd az **Offline Mode**-ot (vagy **Community Offline**-t). Ez helyi egyjátékos munkamenetet indít szerver nélkül.
 
 ---
 
-## Step 9: Verify in the Script Log
+## 9. lépés: Ellenőrzés a szkript logban
 
-After launching DayZ with your mod, the engine writes all `Print()` output to log files.
+A DayZ moddal való indítás után a motor minden `Print()` kimenetet logfájlokba ír.
 
-### Finding the Log Files
+### Logfájlok megtalálása
 
-DayZ stores logs in your local AppData directory:
-
-```
-C:\Users\<YourWindowsUsername>\AppData\Local\DayZ\
-```
-
-To get there quickly:
-1. Press **Win + R** to open the Run dialog
-2. Type `%localappdata%\DayZ` and press Enter
-
-Look for the most recent file named like:
+A DayZ a logokat a helyi AppData könyvtáradban tárolja:
 
 ```
-script_<date>_<time>.log
+C:\Users\<WindowsFelhasznaloNeved>\AppData\Local\DayZ\
 ```
 
-For example: `script_2025-01-15_14-30-22.log`
+Gyors elérés:
+1. Nyomd meg a **Win + R** gombot a Futtatás párbeszédpanel megnyitásához
+2. Írd be: `%localappdata%\DayZ` és nyomd meg az Entert
 
-### What to Search For
+Keresd a legfrissebb fájlt ilyen névvel:
 
-Open the log file in your text editor and search for `[MyFirstMod]`. You should see one of these messages:
+```
+script_<datum>_<ido>.log
+```
+
+Például: `script_2025-01-15_14-30-22.log`
+
+### Mit keress
+
+Nyisd meg a logfájlt a szövegszerkesztődben és keress rá a `[MyFirstMod]`-ra. Az alábbi üzenetek egyikét kellene látnod:
 
 ```
 [MyFirstMod] Hello World! The SERVER mission has started.
 ```
 
-or (if you loaded as a client):
+vagy (ha kliensként töltötted be):
 
 ```
 [MyFirstMod] Hello World! The CLIENT mission has started.
 ```
 
-**If you see your message: congratulations.** Your first DayZ mod is working. You have successfully:
+**Ha látod az üzenetedet: gratulálunk.** Az első DayZ modod működik. Sikeresen:
 
-1. Created a mod directory structure
-2. Written a config that the engine reads
-3. Hooked into vanilla game code with `modded class`
-4. Printed output to the script log
+1. Létrehoztál egy mod könyvtárstruktúrát
+2. Írtál egy konfigurációt, amelyet a motor olvas
+3. Bekapcsolódtál a vanília játékkódba `modded class` segítségével
+4. Kimenetet nyomtattál a szkript logba
 
-### What If You See Errors?
+### Mi van, ha hibákat látsz?
 
-If the log contains lines starting with `SCRIPT (E):`, something went wrong. Read the next section.
-
----
-
-## Step 10: Troubleshooting Common Issues
-
-### Problem: No Log Output At All (Mod Does Not Seem to Load)
-
-**Check your launch parameters.** The `-mod=` path must point to the correct folder. If using file patching, verify the path points to the folder containing `Scripts/config.cpp` directly (not the `@` folder).
-
-**Check that config.cpp exists at the right level.** It must be at `Scripts/config.cpp` inside your mod root. If it is in the wrong folder, the engine silently ignores your mod.
-
-**Check the CfgPatches class name.** If there is no `CfgPatches` block, or its syntax is wrong, the entire PBO is skipped.
-
-**Look at the main DayZ log** (not just the script log). Check:
-```
-C:\Users\<YourName>\AppData\Local\DayZ\DayZ_<date>_<time>.RPT
-```
-Search for your mod name. You may see messages like "Addon MyFirstMod_Scripts requires addon DZ_Data which is not loaded."
-
-### Problem: `SCRIPT (E): Undefined variable` or `Undefined type`
-
-This means your code references something the engine does not recognize. Common causes:
-
-- **Typo in a class name.** `MisionServer` instead of `MissionServer` (note the double 's').
-- **Wrong script layer.** If you reference `PlayerBase` from `5_Mission`, it should work. But if you accidentally placed your file in `3_Game` and reference mission types, you will get this error.
-- **Missing `super.OnInit()` call.** Omitting it can cause cascading failures.
-
-### Problem: `SCRIPT (E): Member not found`
-
-The method you are calling does not exist on the class. Double-check the method name and make sure you are overriding a real vanilla method. `OnInit` exists on `MissionServer` and `MissionGameplay` -- but not on every class.
-
-### Problem: Mod Loads But Script Never Executes
-
-- **File extension:** Make sure your script file ends in `.c` (not `.c.txt` or `.cs`). Windows may hide extensions by default.
-- **Script path mismatch:** The `files[]` path in `config.cpp` must match your actual directory. `"MyFirstMod/Scripts/5_Mission"` means the engine looks for a folder at that exact path relative to the mod root.
-- **Class name:** `modded class MissionServer` is case-sensitive. It must match the vanilla class name exactly.
-
-### Problem: PBO csomagolas Errors
-
-- Ensure `config.cpp` is at the root level of what you are packing (the `Scripts/` folder).
-- Check that the prefix in Addon Builder matches your mod path.
-- Make sure there are no non-text files mixed into the Scripts folder (no `.exe`, `.dll`, or binary files).
-
-### Problem: Game Crashes on Startup
-
-- Check for syntax errors in `config.cpp`. A missing semicolon, brace, or quote mark can crash the config parser.
-- Verify that `requiredAddons` lists valid addon names. A misspelled addon name causes a hard failure.
-- Remove your mod from the launch parameters and confirm the game starts without it. Then add it back to isolate the issue.
+Ha a log `SCRIPT (E):`-vel kezdődő sorokat tartalmaz, valami elromlott. Olvasd el a következő szekciót.
 
 ---
 
-## Complete File Reference
+## 10. lépés: Gyakori problémák megoldása
 
-Here are all three files in their complete form, for easy copy-paste:
+### Probléma: Nincs log kimenet egyáltalán (a mod nem tűnik betöltöttnek)
 
-### File 1: `MyFirstMod/mod.cpp`
+**Ellenőrizd az indítási paramétereket.** A `-mod=` útvonalnak a helyes mappára kell mutatnia. Ha file patching-et használsz, ellenőrizd, hogy az útvonal közvetlenül a `Scripts/config.cpp`-t tartalmazó mappára mutat (nem a `@` mappára).
+
+**Ellenőrizd, hogy a config.cpp a megfelelő szinten létezik.** A `Scripts/config.cpp`-ben kell lennie a mod gyökerén belül. Ha rossz mappában van, a motor csendben figyelmen kívül hagyja a mododat.
+
+**Ellenőrizd a CfgPatches osztálynevet.** Ha nincs `CfgPatches` blokk, vagy a szintaxisa hibás, az egész PBO kihagyásra kerül.
+
+**Nézd meg a fő DayZ logot** (nem csak a szkript logot). Ellenőrizd:
+```
+C:\Users\<Neved>\AppData\Local\DayZ\DayZ_<datum>_<ido>.RPT
+```
+Keress a mod nevére. Olyan üzeneteket láthatsz, mint "Addon MyFirstMod_Scripts requires addon DZ_Data which is not loaded."
+
+### Probléma: `SCRIPT (E): Undefined variable` vagy `Undefined type`
+
+Ez azt jelenti, hogy a kódod olyan dologra hivatkozik, amit a motor nem ismer fel. Gyakori okok:
+
+- **Elgépelés az osztálynévben.** `MisionServer` a `MissionServer` helyett (figyelj a dupla 's'-re).
+- **Rossz szkriptréteg.** Ha a `PlayerBase`-re hivatkozol az `5_Mission`-ből, annak működnie kell. De ha véletlenül a `3_Game`-be helyezted a fájlodat és misszió típusokra hivatkozol, ezt a hibát kapod.
+- **Hiányzó `super.OnInit()` hívás.** Kihagyása kaszkádos hibákat okozhat.
+
+### Probléma: `SCRIPT (E): Member not found`
+
+A metódus, amelyet hívni próbálsz, nem létezik az osztályon. Ellenőrizd kétszer a metódusnevet, és győződj meg róla, hogy valódi vanília metódust írsz felül. Az `OnInit` létezik a `MissionServer`-en és a `MissionGameplay`-en -- de nem minden osztályon.
+
+### Probléma: A mod betöltődik, de a szkript soha nem fut le
+
+- **Fájlkiterjesztés:** Győződj meg róla, hogy a szkriptfájlod `.c`-re végződik (nem `.c.txt` vagy `.cs`). A Windows alapértelmezetten elrejtheti a kiterjesztéseket.
+- **Szkript útvonal eltérés:** A `files[]` útvonalnak a `config.cpp`-ben meg kell egyeznie a tényleges könyvtáraddal. A `"MyFirstMod/Scripts/5_Mission"` azt jelenti, hogy a motor pontosan ezen az útvonalon keresi a mappát a mod gyökeréhez képest.
+- **Osztálynév:** A `modded class MissionServer` megkülönbözteti a kis- és nagybetűket. Pontosan meg kell egyeznie a vanília osztálynévvel.
+
+### Probléma: PBO csomagolási hibák
+
+- Győződj meg róla, hogy a `config.cpp` annak a gyökérszintjén van, amit csomagolsz (a `Scripts/` mappa).
+- Ellenőrizd, hogy az Addon Builder-ben lévő prefix megegyezik a mod útvonaladdal.
+- Győződj meg róla, hogy a Scripts mappában nincsenek nem-szöveges fájlok keverve (nincs `.exe`, `.dll` vagy bináris fájl).
+
+### Probléma: A játék összeomlik indításkor
+
+- Ellenőrizd a szintaxishibákat a `config.cpp`-ben. Egy hiányzó pontosvessző, zárójel vagy idézőjel összeomlást okozhat a konfigurációs parserben.
+- Ellenőrizd, hogy a `requiredAddons` érvényes addon neveket sorol fel. Egy elgépelt addon név kemény hibát okoz.
+- Távolítsd el a mododat az indítási paraméterekből és erősítsd meg, hogy a játék nélküle elindul. Ezután add vissza a probléma izolálásához.
+
+---
+
+## Teljes fájl referencia
+
+Íme mindhárom fájl teljes formában, könnyű másoláshoz:
+
+### 1. fájl: `MyFirstMod/mod.cpp`
 
 ```cpp
 name = "My First Mod";
@@ -483,7 +487,7 @@ version = "1.0";
 overview = "My very first DayZ mod. Prints Hello World to the script log.";
 ```
 
-### File 2: `MyFirstMod/Scripts/config.cpp`
+### 2. fájl: `MyFirstMod/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -523,7 +527,7 @@ class CfgMods
 };
 ```
 
-### File 3: `MyFirstMod/Scripts/5_Mission/MyFirstMod/MissionHello.c`
+### 3. fájl: `MyFirstMod/Scripts/5_Mission/MyFirstMod/MissionHello.c`
 
 ```c
 modded class MissionServer
@@ -547,16 +551,45 @@ modded class MissionGameplay
 
 ---
 
-## Kovetkezo lepesek
+## Következő lépések
 
-Now that you have a working mod, here are the natural progressions:
+Most, hogy van egy működő modod, íme a természetes továbbfejlődési irányok:
 
-1. **[Chapter 8.2: Creating a Egyeni targy](02-custom-item.md)** -- Define a new in-game item with textures and spawning.
-2. **Add more script layers** -- Create `3_Game` and `4_World` folders to organize configuration, data classes, and entity logic. See [Chapter 2.1: Az 5 retegu script hierarchia](../02-mod-structure/01-five-layers.md).
-3. **Add keybindings** -- Create an `Inputs.xml` file and register custom key actions.
-4. **Create UI** -- Build in-game panels using layout files and `ScriptedWidgetEventHandler`. See [Chapter 3: GUI System](../03-gui-system/01-widget-types.md).
-5. **Use a framework** -- Integrate with Community Framework (CF) or MyFramework for advanced features like RPC, config management, and admin panels.
+1. **[8.2. fejezet: Egyéni tárgy létrehozása](02-custom-item.md)** -- Definiálj egy új játékbeli tárgyat textúrákkal és spawnolással.
+2. **Adj hozzá több szkriptréteget** -- Hozz létre `3_Game` és `4_World` mappákat a konfiguráció, adatosztályok és entitás logika szervezéséhez. Lásd [2.1. fejezet: Az ötréteges szkript hierarchia](../02-mod-structure/01-five-layers.md).
+3. **Adj hozzá billentyűkiosztásokat** -- Hozz létre egy `Inputs.xml` fájlt és regisztrálj egyéni billentyűműveleteket.
+4. **Hozz létre UI-t** -- Építs játékbeli paneleket layout fájlok és `ScriptedWidgetEventHandler` használatával. Lásd [3. fejezet: GUI rendszer](../03-gui-system/01-widget-types.md).
+5. **Használj keretrendszert** -- Integrálj a Community Framework-kel (CF) vagy más keretrendszerrel haladó funkciókhoz, mint RPC, konfiguráció-kezelés és admin panelek.
 
 ---
 
-**Kovetkezo:** [Chapter 8.2: Creating a Egyeni targy](02-custom-item.md)
+## Bevált gyakorlatok
+
+- **Mindig tesztelj `-filePatching`-gel PBO-k építése előtt.** Kiiktatja a csomagolás-másolás-újraindítás ciklust és az iterációs időt percekről másodpercekre csökkenti.
+- **Kezdd az `5_Mission` réteggel a leggyorsabb iterációhoz.** A misszió hookok, mint az `OnInit()`, a legegyszerűbb módja annak bizonyítására, hogy a mod betöltődik és fut. Csak akkor adj hozzá `3_Game`-et és `4_World`-öt, amikor tényleg szükséged van rájuk.
+- **Mindig hívd meg a `super`-t először a felülírt metódusokban.** A `super.OnInit()` kihagyása csendben elrontja a vanília viselkedést és minden más modot, ami ugyanebbe a metódusba kapcsolódik.
+- **Használj egyedi előtagot a Print kimenetben** (pl. `[MyFirstMod]`). A szkript logok ezernyi sort tartalmaznak a vanília játékból és más modokból -- az előtag az egyetlen módja a kimenet gyors megtalálásának.
+- **Tartsd a `config.cpp` szintaxisát egyszerűnek és érvényesnek.** Egy hiányzó pontosvessző vagy zárójel a config.cpp-ben kemény összeomlást vagy csendes mod-kihagyást okoz egyértelmű hibaüzenet nélkül.
+
+---
+
+## Elmélet vs. gyakorlat
+
+| Fogalom | Elmélet | Valóság |
+|---------|--------|---------|
+| `mod.cpp` mezők | A `version` függőségi feloldáshoz használt | A motor teljesen figyelmen kívül hagyja a verzió szöveget -- tisztán kozmetikus a launchernek. |
+| CfgPatches `requiredAddons` | Felsorolja a függőségeket, hogy a mod a megfelelő sorrendben töltődjön be | Ha elgépeled az addon nevet, az egész PBO csendben kihagyásra kerül hiba nélkül a szkript logban. Ellenőrizd a `.RPT` fájlt. |
+| File patching | Szerkeszd a `.c` fájlt és csatlakozz újra az azonnali változásokhoz | A `config.cpp` és az újonnan hozzáadott fájlok NEM tartoznak a file patching hatálya alá. Azokhoz továbbra is PBO újraépítés szükséges. |
+| Offline mód tesztelés | Gyors módja a mod működésének ellenőrzésének | Néhány API (mint a `GetGame().GetPlayer().GetIdentity()`) NULL-t ad vissza offline módban, ami olyan összeomlásokat okoz, amelyek valódi szerveren nem fordulnak elő. |
+
+---
+
+## Mit tanultál
+
+Ebben az útmutatóban megtanultad:
+- Hogyan telepítsd a DayZ Tools-t és állítsd be a P: meghajtó munkaterületet
+- A három alapvető fájlt, amelyre minden modnak szüksége van: `mod.cpp`, `config.cpp` és legalább egy `.c` szkript
+- Hogyan bővíti a `modded class` a vanília osztályokat anélkül, hogy lecserélné őket
+- Hogyan csomagolj PBO-t, tölts be modot és ellenőrizd a működését a szkript log olvasásával
+
+**Következő:** [8.2. fejezet: Egyéni tárgy létrehozása](02-custom-item.md)

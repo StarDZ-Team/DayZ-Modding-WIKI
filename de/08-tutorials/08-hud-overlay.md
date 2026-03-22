@@ -1495,7 +1495,7 @@ Note: for dragging to work, the widget must have `SetHandler(this)` called on it
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Updating Every Frame Stattdessen of Throttled
 
@@ -1568,7 +1568,7 @@ The layout path in `CreateWidgets()` is relative to the game's search paths. If 
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 Now that you have a working HUD overlay, consider these progressions:
 
@@ -1580,7 +1580,7 @@ Now that you have a working HUD overlay, consider these progressions:
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Throttle `OnUpdate` to 1-second intervals minimum.** Use a timer accumulator to avoid running expensive operations (RPC requests, text formatting) 60+ times per second. Only per-frame visuals like FPS counters should update every frame.
 - **Hide the HUD when inventory or any menu is open.** Check `GetGame().GetUIManager().GetMenu()` on each update and suppress your overlay. Overlapping UI elements confuse players and block interaction.
@@ -1595,9 +1595,9 @@ Now that you have a working HUD overlay, consider these progressions:
 | Concept | Theory | Reality |
 |---------|--------|---------|
 | `OnUpdate(float timeslice)` | Called once per frame with the frame delta time | On a 144 FPS client, this fires 144 times per second. Sending an RPC each call creates 144 network packets/second per player. Always accumulate `timeslice` and act only when the sum exceeds your interval. |
-| `CreateWidgets()` layout path | Laedt the layout from the path you provide | The path is relative to the PBO prefix, not the file system. If your PBO prefix macht nicht match the path string, `CreateWidgets` silently returns NULL with no error in the log. |
+| `CreateWidgets()` layout path | Lädt the layout from the path you provide | The path is relative to the PBO prefix, not the file system. If your PBO prefix macht nicht match the path string, `CreateWidgets` silently returns NULL with no error in the log. |
 | `WidgetFadeTimer` | Smoothly animates widget opacity | `FadeOut` hides the widget after the animation completes, but `FadeIn` does NOT call `Show(true)` first. You must manually show the widget before calling `FadeIn`, or nothing appears. |
-| `GetUApi().GetInputByName()` | Gibt zurueck the input action for your custom keybind | If `inputs.xml` ist nicht referenced in `config.cpp` under `class inputs`, the action name is unknown and `GetInputByName` returns null, causing a crash on `.LocalPress()`. |
+| `GetUApi().GetInputByName()` | Gibt zurück the input action for your custom keybind | If `inputs.xml` ist nicht referenced in `config.cpp` under `class inputs`, the action name is unknown and `GetInputByName` returns null, causing a crash on `.LocalPress()`. |
 
 ---
 

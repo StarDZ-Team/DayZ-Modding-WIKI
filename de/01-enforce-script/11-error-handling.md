@@ -690,7 +690,7 @@ bool TransferItem(PlayerBase fromPlayer, PlayerBase toPlayer, EntityAI item)
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Assuming a function ran successfully
 

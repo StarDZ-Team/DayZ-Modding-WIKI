@@ -6,7 +6,7 @@
 
 ## Inhaltsverzeichnis
 
-- [Ueberblick](#ueberblick)
+- [Überblick](#überblick)
 - [Der Schichtenstapel](#der-schichtenstapel)
 - [Schicht 1: 1_Core (engineScriptModule)](#schicht-1-1_core-enginescriptmodule)
 - [Schicht 2: 2_GameLib (gameLibScriptModule)](#schicht-2-2_gamelib-gamelibscriptmodule)
@@ -15,16 +15,16 @@
 - [Schicht 5: 5_Mission (missionScriptModule)](#schicht-5-5_mission-missionscriptmodule)
 - [Die kritische Regel](#die-kritische-regel)
 - [Ladereihenfolge und Timing](#ladereihenfolge-und-timing)
-- [Wann der Code jeder Schicht ausgefuehrt wird](#wann-der-code-jeder-schicht-ausgefuehrt-wird)
+- [Wann der Code jeder Schicht ausgeführt wird](#wann-der-code-jeder-schicht-ausgeführt-wird)
 - [Praktische Richtlinien](#praktische-richtlinien)
 - [Schnelle Entscheidungshilfe](#schnelle-entscheidungshilfe)
-- [Haeufige Fehler](#haeufige-fehler)
+- [Häufige Fehler](#häufige-fehler)
 
 ---
 
-## Ueberblick
+## Überblick
 
-Die DayZ-Engine kompiliert Skripte in fuenf verschiedenen Durchlaeufen, die **Script-Module** genannt werden. Jedes Modul entspricht einem nummerierten Ordner im `Scripts/`-Verzeichnis Ihrer Mod:
+Die DayZ-Engine kompiliert Skripte in fünf verschiedenen Durchläufen, die **Script-Module** genannt werden. Jedes Modul entspricht einem nummerierten Ordner im `Scripts/`-Verzeichnis Ihrer Mod:
 
 ```
 Scripts/
@@ -35,7 +35,7 @@ Scripts/
   5_Mission/       --> missionScriptModule
 ```
 
-Jede Schicht baut auf den vorherigen auf. Die Nummern sind nicht willkuerlich -- sie definieren eine strikte Kompilierungs- und Abhaengigkeitsreihenfolge, die von der Engine durchgesetzt wird.
+Jede Schicht baut auf den vorherigen auf. Die Nummern sind nicht willkürlich -- sie definieren eine strikte Kompilierungs- und Abhängigkeitsreihenfolge, die von der Engine durchgesetzt wird.
 
 ---
 
@@ -45,13 +45,13 @@ Jede Schicht baut auf den vorherigen auf. Die Nummern sind nicht willkuerlich --
 +---------------------------------------------------------------+
 |                                                               |
 |   5_Mission   (missionScriptModule)                           |
-|   UI, HUD, Mission-Lebenszyklus, Menuescreens                |
+|   UI, HUD, Mission-Lebenszyklus, Menüscreens                |
 |   Kann referenzieren: alles darunter (1-4)                    |
 |                                                               |
 +---------------------------------------------------------------+
 |                                                               |
 |   4_World     (worldScriptModule)                             |
-|   Entitaeten, Items, Fahrzeuge, Manager, Gameplay-Logik       |
+|   Entitäten, Items, Fahrzeuge, Manager, Gameplay-Logik       |
 |   Kann referenzieren: 1_Core, 2_GameLib, 3_Game               |
 |                                                               |
 +---------------------------------------------------------------+
@@ -75,7 +75,7 @@ Jede Schicht baut auf den vorherigen auf. Die Nummern sind nicht willkuerlich --
 +---------------------------------------------------------------+
 
         KOMPILIERUNGSREIHENFOLGE: 1 --> 2 --> 3 --> 4 --> 5
-        ABHAENGIGKEITSRICHTUNG: nur aufwaerts (untere koennen obere nicht sehen)
+        ABHAENGIGKEITSRICHTUNG: nur aufwärts (untere können obere nicht sehen)
 ```
 
 ---
@@ -84,15 +84,15 @@ Jede Schicht baut auf den vorherigen auf. Die Nummern sind nicht willkuerlich --
 
 ### Zweck
 
-Das absolute Fundament. Code hier laeuft auf Engine-Ebene, bevor Spielsysteme existieren. Dies ist der frueheste Punkt, an dem Mod-Code ausgefuehrt werden kann.
+Das absolute Fundament. Code hier läuft auf Engine-Ebene, bevor Spielsysteme existieren. Dies ist der früheste Punkt, an dem Mod-Code ausgeführt werden kann.
 
-### Was hierhin gehoert
+### Was hierhin gehört
 
-- Konstanten und Enums, die ueber alle Schichten geteilt werden
+- Konstanten und Enums, die über alle Schichten geteilt werden
 - Reine Hilfsfunktionen (Mathe-Helfer, String-Utilities)
 - Logging-Infrastruktur (der Logger selbst, nicht was geloggt wird)
-- Praeprozessor-Defines und Typedefs
-- Basisklassen-Definitionen, die ueberall sichtbar sein muessen
+- Präprozessor-Defines und Typedefs
+- Basisklassen-Definitionen, die überall sichtbar sein müssen
 
 ### Praxisbeispiele
 
@@ -127,7 +127,7 @@ enum MyLogLevel
 
 ### Wann verwenden
 
-Verwenden Sie `1_Core` nur, wenn Sie etwas benoetigen, das **allen** anderen Schichten zur Verfuegung steht, und es keinerlei Abhaengigkeit von Spieltypen wie `PlayerBase`, `ItemBase` oder `MissionBase` hat. Die meisten Mods benoetigen diese Schicht ueberhaupt nicht.
+Verwenden Sie `1_Core` nur, wenn Sie etwas benötigen, das **allen** anderen Schichten zur Verfügung steht, und es keinerlei Abhängigkeit von Spieltypen wie `PlayerBase`, `ItemBase` oder `MissionBase` hat. Die meisten Mods benötigen diese Schicht überhaupt nicht.
 
 ---
 
@@ -137,10 +137,10 @@ Verwenden Sie `1_Core` nur, wenn Sie etwas benoetigen, das **allen** anderen Sch
 
 Low-Level-Engine-Bibliotheksbindungen. Diese Schicht existiert in der Vanilla-Skript-Hierarchie, wird aber **selten von Mods verwendet**. Sie sitzt zwischen der rohen Engine und der Spiellogik.
 
-### Was hierhin gehoert
+### Was hierhin gehört
 
 - Engine-Level-Abstraktionen (Rendering, Sound-Engine-Bindungen)
-- Mathematische Bibliotheken ueber das hinaus, was `1_Core` bietet
+- Mathematische Bibliotheken über das hinaus, was `1_Core` bietet
 - Basis-Widget/UI-Engine-Typen
 
 ### Praxisbeispiele
@@ -158,7 +158,7 @@ class ScriptView : ScriptedWidgetEventHandler
 
 ### Wann verwenden
 
-Fast nie. Sofern Sie kein Framework bauen, das Engine-Level-Bindungen unterhalb der Spielschicht benoetigt, ueberspringen Sie `2_GameLib` komplett. Die ueberwiegende Mehrheit der Mods verwendet nur die Schichten 3, 4 und 5.
+Fast nie. Sofern Sie kein Framework bauen, das Engine-Level-Bindungen unterhalb der Spielschicht benötigt, überspringen Sie `2_GameLib` komplett. Die überwiegende Mehrheit der Mods verwendet nur die Schichten 3, 4 und 5.
 
 ---
 
@@ -166,16 +166,16 @@ Fast nie. Sofern Sie kein Framework bauen, das Engine-Level-Bindungen unterhalb 
 
 ### Zweck
 
-Die Arbeitstier-Schicht fuer Konfiguration, Datendefinitionen und Systeme, die nicht direkt mit Weltentitaeten interagieren. Dies ist die erste Schicht, in der Spieltypen verfuegbar sind.
+Die Arbeitstier-Schicht für Konfiguration, Datendefinitionen und Systeme, die nicht direkt mit Weltentitäten interagieren. Dies ist die erste Schicht, in der Spieltypen verfügbar sind.
 
-### Was hierhin gehoert
+### Was hierhin gehört
 
-- Konfigurationsklassen (Einstellungen, die geladen/gespeichert werden koennen)
+- Konfigurationsklassen (Einstellungen, die geladen/gespeichert werden können)
 - RPC-Registrierung und Identifikatoren
 - Datenklassen und DTOs (Data Transfer Objects)
 - Eingabe-Bindungs-Registrierung
 - Plugin-/Modul-Registrierungssysteme
-- Geteilte Enums und Konstanten, die von Spieltypen abhaengen
+- Geteilte Enums und Konstanten, die von Spieltypen abhängen
 - Eigene Tastenbelegungs-Handler
 
 ### Praxisbeispiele
@@ -218,7 +218,7 @@ class ChatCommandBase
 
 ### Wann verwenden
 
-**Im Zweifel in `3_Game` platzieren.** Dies ist die Standard-Schicht fuer den meisten Nicht-Entitaeten-Code. Konfigurationsklassen, Enums, Konstanten, RPC-Definitionen, Datenklassen -- gehoeren alle hierhin.
+**Im Zweifel in `3_Game` platzieren.** Dies ist die Standard-Schicht für den meisten Nicht-Entitäten-Code. Konfigurationsklassen, Enums, Konstanten, RPC-Definitionen, Datenklassen -- gehören alle hierhin.
 
 ---
 
@@ -226,17 +226,17 @@ class ChatCommandBase
 
 ### Zweck
 
-Gameplay-Logik, die mit der 3D-Welt interagiert. Diese Schicht hat Zugriff auf Entitaeten, Items, Fahrzeuge, Gebaeude und alle Weltobjekte.
+Gameplay-Logik, die mit der 3D-Welt interagiert. Diese Schicht hat Zugriff auf Entitäten, Items, Fahrzeuge, Gebäude und alle Weltobjekte.
 
-### Was hierhin gehoert
+### Was hierhin gehört
 
 - Eigene Items und Waffen (Erweiterung von `ItemBase`, `Weapon_Base`)
-- Eigene Entitaeten (Erweiterung von `Building`, `DayZAnimal`, etc.)
+- Eigene Entitäten (Erweiterung von `Building`, `DayZAnimal`, etc.)
 - Welt-Manager (Spawn-Systeme, Loot-Manager, KI-Direktoren)
 - Spieler-Erweiterungen (gemoddes `PlayerBase`-Verhalten)
 - Fahrzeug-Anpassung
 - Aktionssysteme (Erweiterung von `ActionBase`)
-- Triggerzonen und Flaecheneffekte
+- Triggerzonen und Flächeneffekte
 
 ### Praxisbeispiele
 
@@ -258,7 +258,7 @@ class MyMissionMarker : House
 };
 ```
 
-**MyAI-Mod** implementiert Bot-Entitaeten hier:
+**MyAI-Mod** implementiert Bot-Entitäten hier:
 
 ```c
 // 4_World/AI/MyAIBot.c
@@ -286,7 +286,7 @@ class Edible_Base extends ItemBase
 
 ### Wann verwenden
 
-Alles, was die physische Spielwelt beruehrt: Entitaeten erstellen, Items modifizieren, Spieler-Interaktionen behandeln, Weltzustand verwalten. Wenn Ihre Klasse `EntityAI`, `ItemBase`, `PlayerBase`, `Building` erweitert oder mit `GetGame().GetWorld()` interagiert, gehoert sie in `4_World`.
+Alles, was die physische Spielwelt berührt: Entitäten erstellen, Items modifizieren, Spieler-Interaktionen behandeln, Weltzustand verwalten. Wenn Ihre Klasse `EntityAI`, `ItemBase`, `PlayerBase`, `Building` erweitert oder mit `GetGame().GetWorld()` interagiert, gehört sie in `4_World`.
 
 ---
 
@@ -294,13 +294,13 @@ Alles, was die physische Spielwelt beruehrt: Entitaeten erstellen, Items modifiz
 
 ### Zweck
 
-Die hoechste Schicht. Mission-Lebenszyklus, UI-Panels, HUD-Overlays und der letzte Initialisierungspunkt. Hier lebt der clientseitige und serverseitige Startcode.
+Die höchste Schicht. Mission-Lebenszyklus, UI-Panels, HUD-Overlays und der letzte Initialisierungspunkt. Hier lebt der clientseitige und serverseitige Startcode.
 
-### Was hierhin gehoert
+### Was hierhin gehört
 
 - Mission-Klassen-Hooks (`MissionServer`-, `MissionGameplay`-Overrides)
 - HUD- und UI-Panels
-- Menuescreens
+- Menüscreens
 - Mod-Registrierung und Initialisierung (die "Boot"-Sequenz)
 - Clientseitige Rendering-Overlays
 - Server-Start-/Shutdown-Handler
@@ -327,7 +327,7 @@ modded class MissionGameplay
 };
 ```
 
-**COT** fuegt hier sein Admin-Menue hinzu:
+**COT** fügt hier sein Admin-Menü hinzu:
 
 ```c
 // 5_Mission/COT/gui/COT_Menu.c
@@ -356,13 +356,13 @@ class MyMissionsRegister
 
 ### Wann verwenden
 
-UI, HUD, Menuescreens und Mod-Initialisierung, die davon abhaengt, dass die Mission aktiv ist. Auch der letzte Ort, an dem der Server sich in den Start-/Shutdown-Lebenszyklus einklinkt.
+UI, HUD, Menüscreens und Mod-Initialisierung, die davon abhängt, dass die Mission aktiv ist. Auch der letzte Ort, an dem der Server sich in den Start-/Shutdown-Lebenszyklus einklinkt.
 
 ---
 
 ## Die kritische Regel
 
-> **Untere Schichten KOENNEN NICHT auf Typen aus hoeheren Schichten referenzieren.**
+> **Untere Schichten KOENNEN NICHT auf Typen aus höheren Schichten referenzieren.**
 
 Dies ist die wichtigste Einzelregel in der DayZ-Skript-Architektur. Die Engine setzt dies zur Kompilierzeit durch.
 
@@ -390,24 +390,24 @@ Die Fehlermeldung ist oft wenig hilfreich:
 SCRIPT (E): Undefined type 'PlayerBase'
 ```
 
-Dies bedeutet typischerweise, dass Sie Code in `3_Game` platziert haben, der `PlayerBase` referenziert, das in `4_World` definiert ist. Die Loesung ist, Ihren Code nach `4_World` oder hoeher zu verschieben.
+Dies bedeutet typischerweise, dass Sie Code in `3_Game` platziert haben, der `PlayerBase` referenziert, das in `4_World` definiert ist. Die Lösung ist, Ihren Code nach `4_World` oder höher zu verschieben.
 
-### Der Workaround: Casting ueber Basistypen
+### Der Workaround: Casting über Basistypen
 
-Wenn `3_Game`-Code ein Objekt behandeln muss, das zur Laufzeit ein `PlayerBase` sein wird, verwenden Sie den Basistyp `Object` oder `Man` (definiert in `3_Game`) und casten Sie spaeter:
+Wenn `3_Game`-Code ein Objekt behandeln muss, das zur Laufzeit ein `PlayerBase` sein wird, verwenden Sie den Basistyp `Object` oder `Man` (definiert in `3_Game`) und casten Sie später:
 
 ```c
-// In 3_Game -- wir koennen PlayerBase nicht direkt referenzieren
+// In 3_Game -- wir können PlayerBase nicht direkt referenzieren
 class MyConfig
 {
     void HandlePlayer(Man player)
     {
-        // 'Man' ist in 3_Game verfuegbar
-        // Zur Laufzeit wird dies ein PlayerBase sein, aber wir koennen es hier nicht benennen
+        // 'Man' ist in 3_Game verfügbar
+        // Zur Laufzeit wird dies ein PlayerBase sein, aber wir können es hier nicht benennen
     }
 };
 
-// In 4_World -- jetzt koennen wir sicher casten
+// In 4_World -- jetzt können wir sicher casten
 class MyWorldLogic
 {
     void ProcessPlayer(Man player)
@@ -427,7 +427,7 @@ class MyWorldLogic
 
 ### Kompilierungsreihenfolge
 
-Die Engine kompiliert die Skripte aller Mods fuer jede Schicht, bevor sie zur naechsten Schicht uebergeht:
+Die Engine kompiliert die Skripte aller Mods für jede Schicht, bevor sie zur nächsten Schicht übergeht:
 
 ```
 Schritt 1: Alle 1_Core-Skripte aller Mods kompilieren
@@ -437,40 +437,40 @@ Schritt 4: Alle 4_World-Skripte aller Mods kompilieren
 Schritt 5: Alle 5_Mission-Skripte aller Mods kompilieren
 ```
 
-Innerhalb jedes Schrittes werden Mods nach ihrer `requiredAddons`-Abhaengigkeitskette in `config.cpp` geordnet. Wenn ModB von ModA abhaengt, werden ModA's Skripte fuer diese Schicht zuerst kompiliert.
+Innerhalb jedes Schrittes werden Mods nach ihrer `requiredAddons`-Abhängigkeitskette in `config.cpp` geordnet. Wenn ModB von ModA abhängt, werden ModA's Skripte für diese Schicht zuerst kompiliert.
 
 ### Initialisierungsreihenfolge
 
 Nach der Kompilierung folgt die Laufzeit-Initialisierung einer anderen Abfolge:
 
 ```
-1. Engine startet, laedt Configs
-2. 1_Core-Skripte sind verfuegbar (statische Konstruktoren laufen)
-3. 2_GameLib-Skripte sind verfuegbar
-4. 3_Game-Skripte sind verfuegbar
+1. Engine startet, lädt Configs
+2. 1_Core-Skripte sind verfügbar (statische Konstruktoren laufen)
+3. 2_GameLib-Skripte sind verfügbar
+4. 3_Game-Skripte sind verfügbar
    --> CfgMods-Einstiegsfunktionen laufen (z.B. "CreateGameMod")
    --> Eingabe-Bindungen registrieren
-5. 4_World-Skripte sind verfuegbar
-   --> Entitaeten koennen erstellt werden
+5. 4_World-Skripte sind verfügbar
+   --> Entitäten können erstellt werden
 6. Mission wird geladen
-7. 5_Mission-Skripte sind verfuegbar
+7. 5_Mission-Skripte sind verfügbar
    --> MissionServer.OnInit() / MissionGameplay.OnInit() feuern
-   --> UI und HUD werden verfuegbar
+   --> UI und HUD werden verfügbar
 ```
 
 ---
 
-## Wann der Code jeder Schicht ausgefuehrt wird
+## Wann der Code jeder Schicht ausgeführt wird
 
-| Schicht | Statische Init | Laufzeit bereit | Schluessel-Event |
+| Schicht | Statische Init | Laufzeit bereit | Schlüssel-Event |
 |-------|------------|---------------|-----------|
 | `1_Core` | Erste | Sofort | Engine-Start |
 | `2_GameLib` | Zweite | Nach Engine-Init | Engine-Subsysteme bereit |
 | `3_Game` | Dritte | Nach Spiel-Init | `CreateGame()` / eigene Einstiegsfunktion |
-| `4_World` | Vierte | Nach Welt-Ladung | Entitaeten beginnen zu spawnen |
-| `5_Mission` | Fuenfte (letzte) | Nach Mission-Start | `MissionServer.OnInit()` / `MissionGameplay.OnInit()` |
+| `4_World` | Vierte | Nach Welt-Ladung | Entitäten beginnen zu spawnen |
+| `5_Mission` | Fünfte (letzte) | Nach Mission-Start | `MissionServer.OnInit()` / `MissionGameplay.OnInit()` |
 
-**Wichtig:** Statische Variablen und Code auf globaler Ebene in jeder Schicht werden waehrend der Kompilierungs-/Linking-Phase ausgefuehrt, bevor `OnInit()` jemals aufgerufen wird. Platzieren Sie keine komplexe Initialisierungslogik in statischen Initialisierern.
+**Wichtig:** Statische Variablen und Code auf globaler Ebene in jeder Schicht werden während der Kompilierungs-/Linking-Phase ausgeführt, bevor `OnInit()` jemals aufgerufen wird. Platzieren Sie keine komplexe Initialisierungslogik in statischen Initialisierern.
 
 ---
 
@@ -478,18 +478,18 @@ Nach der Kompilierung folgt die Laufzeit-Initialisierung einer anderen Abfolge:
 
 ### "Im Zweifel in 3_Game platzieren"
 
-Dies ist die haeufigste Schicht fuer Mod-Code. Es sei denn, Ihr Code:
-- Muss verfuegbar sein, bevor Spieltypen existieren --> `1_Core`
-- Erweitert eine Entitaet/Item/Fahrzeug/Spieler --> `4_World`
-- Beruehrt UI, HUD oder Mission-Lebenszyklus --> `5_Mission`
+Dies ist die häufigste Schicht für Mod-Code. Es sei denn, Ihr Code:
+- Muss verfügbar sein, bevor Spieltypen existieren --> `1_Core`
+- Erweitert eine Entität/Item/Fahrzeug/Spieler --> `4_World`
+- Berührt UI, HUD oder Mission-Lebenszyklus --> `5_Mission`
 
-...gehoert er in `3_Game`.
+...gehört er in `3_Game`.
 
 ### Die Schichten-Checkliste
 
 Bevor Sie eine Datei platzieren, stellen Sie diese Fragen:
 
-1. **Erweitert sie `EntityAI`, `ItemBase`, `PlayerBase`, `Building` oder eine andere Welt-Entitaet?**
+1. **Erweitert sie `EntityAI`, `ItemBase`, `PlayerBase`, `Building` oder eine andere Welt-Entität?**
    In `4_World` platzieren.
 
 2. **Referenziert sie `MissionServer`, `MissionGameplay` oder erstellt UI-Widgets?**
@@ -498,7 +498,7 @@ Bevor Sie eine Datei platzieren, stellen Sie diese Fragen:
 3. **Ist es eine reine Datenklasse, Config, Enum oder RPC-Definition?**
    In `3_Game` platzieren.
 
-4. **Ist es eine fundamentale Konstante oder ein Utility ohne Spiel-Abhaengigkeiten?**
+4. **Ist es eine fundamentale Konstante oder ein Utility ohne Spiel-Abhängigkeiten?**
    In `1_Core` platzieren.
 
 5. **Nichts davon?**
@@ -506,16 +506,16 @@ Bevor Sie eine Datei platzieren, stellen Sie diese Fragen:
 
 ### Schichten schlank halten
 
-Ein haeufiger Fehler ist, alles in `4_World` zu packen. Dies erzeugt eng gekoppelten Code. Stattdessen:
+Ein häufiger Fehler ist, alles in `4_World` zu packen. Dies erzeugt eng gekoppelten Code. Stattdessen:
 
 ```
 GUT:
   3_Game/  --> Config-Klasse, Enums, RPC-IDs, Datenstrukturen
-  4_World/ --> Manager der die Config verwendet, Entitaetsklassen
+  4_World/ --> Manager der die Config verwendet, Entitätsklassen
   5_Mission/ --> UI die Manager-Zustand anzeigt
 
 SCHLECHT:
-  4_World/ --> Config, Enums, RPCs, Manager UND Entitaetsklassen alles zusammengemischt
+  4_World/ --> Config, Enums, RPCs, Manager UND Entitätsklassen alles zusammengemischt
 ```
 
 ---
@@ -523,17 +523,17 @@ SCHLECHT:
 ## Schnelle Entscheidungshilfe
 
 ```
-                    Erweitert es eine Welt-Entitaet?
+                    Erweitert es eine Welt-Entität?
                           (EntityAI, ItemBase, etc.)
                          /                    \
                         JA                   NEIN
                         |                      |
-                    4_World              Beruehrt es UI/HUD/Mission?
+                    4_World              Berührt es UI/HUD/Mission?
                                         /                    \
                                        JA                   NEIN
                                        |                      |
                                    5_Mission          Ist es ein reines Utility
-                                                      ohne Spiel-Abhaengigkeiten?
+                                                      ohne Spiel-Abhängigkeiten?
                                                       /                \
                                                      JA               NEIN
                                                      |                  |
@@ -542,7 +542,7 @@ SCHLECHT:
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. PlayerBase aus 3_Game referenzieren
 
@@ -558,7 +558,7 @@ class MyConfig
 // RICHTIG: in 3_Game/MyConfig.c
 class MyConfig
 {
-    ref array<float> m_Values;  // Reine Daten, keine Entitaets-Referenzen
+    ref array<float> m_Values;  // Reine Daten, keine Entitäts-Referenzen
 };
 
 // RICHTIG: in 4_World/MyManager.c
@@ -566,7 +566,7 @@ class MyManager
 {
     void ApplyConfig(PlayerBase player, MyConfig config)
     {
-        // Jetzt koennen wir beides verwenden
+        // Jetzt können wir beides verwenden
     }
 };
 ```
@@ -583,7 +583,7 @@ class MyPanel : UIScriptedMenu  // UIScriptedMenu funktioniert in 4_World,
 // RICHTIG: in 5_Mission/MyPanel.c
 class MyPanel : UIScriptedMenu
 {
-    // UI gehoert in 5_Mission, wo der Mission-Lebenszyklus verfuegbar ist
+    // UI gehört in 5_Mission, wo der Mission-Lebenszyklus verfügbar ist
 };
 ```
 
@@ -599,32 +599,32 @@ class MyRPCHandler
 {
     void Register()
     {
-        // FEHLER: MY_RPC_ID hier nicht sichtbar (in hoeherer Schicht definiert)
+        // FEHLER: MY_RPC_ID hier nicht sichtbar (in höherer Schicht definiert)
     }
 };
 
 // RICHTIG: Konstanten in 3_Game definiert (oder 1_Core)
 // 3_Game/MyConstants.c
-const int MY_RPC_ID = 12345;  // Jetzt sichtbar fuer 3_Game UND 4_World UND 5_Mission
+const int MY_RPC_ID = 12345;  // Jetzt sichtbar für 3_Game UND 4_World UND 5_Mission
 ```
 
-### 4. Ueberkomplizierung mit 1_Core
+### 4. Überkomplizierung mit 1_Core
 
-Wenn Ihre "Konstanten" einen Spieltyp referenzieren, koennen sie nicht in `1_Core` platziert werden. Selbst etwas wie `const string PLAYER_CONFIG_PATH` ist in `1_Core` in Ordnung, aber eine Klasse, die einen `CGame`-Parameter nimmt, ist es nicht.
+Wenn Ihre "Konstanten" einen Spieltyp referenzieren, können sie nicht in `1_Core` platziert werden. Selbst etwas wie `const string PLAYER_CONFIG_PATH` ist in `1_Core` in Ordnung, aber eine Klasse, die einen `CGame`-Parameter nimmt, ist es nicht.
 
 ---
 
 ## Zusammenfassung
 
-| Schicht | Ordner | Config-Eintrag | Primaere Verwendung | Haeufigkeit |
+| Schicht | Ordner | Config-Eintrag | Primäre Verwendung | Häufigkeit |
 |-------|--------|-------------|-------------|-----------|
 | 1 | `1_Core/` | `engineScriptModule` | Konstanten, Utilities, Logging-Basis | Selten |
 | 2 | `2_GameLib/` | `gameLibScriptModule` | Engine-Bindungen | Sehr selten |
-| 3 | `3_Game/` | `gameScriptModule` | Configs, RPCs, Datenklassen | **Am haeufigsten** |
-| 4 | `4_World/` | `worldScriptModule` | Entitaeten, Items, Manager | Haeufig |
-| 5 | `5_Mission/` | `missionScriptModule` | UI, HUD, Mission-Hooks | Haeufig |
+| 3 | `3_Game/` | `gameScriptModule` | Configs, RPCs, Datenklassen | **Am häufigsten** |
+| 4 | `4_World/` | `worldScriptModule` | Entitäten, Items, Manager | Häufig |
+| 5 | `5_Mission/` | `missionScriptModule` | UI, HUD, Mission-Hooks | Häufig |
 
-**Merke:** Untere Schichten koennen obere Schichten nicht sehen. Im Zweifel `3_Game` verwenden. Code nur nach oben verschieben, wenn Sie Zugriff auf Typen benoetigen, die in einer hoeheren Schicht definiert sind.
+**Merke:** Untere Schichten können obere Schichten nicht sehen. Im Zweifel `3_Game` verwenden. Code nur nach oben verschieben, wenn Sie Zugriff auf Typen benötigen, die in einer höheren Schicht definiert sind.
 
 ---
 

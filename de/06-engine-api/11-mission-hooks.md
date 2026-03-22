@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Jeder DayZ-Mod needs an entry point --- a place where it initializes managers, registers RPC handlers, hooks into player connections, and cleans up on shutdown. That entry point is the **Mission** class. Die Engine creates exactly one Mission instance when a scenario loads: `MissionServer` on a dedicated server, `MissionGameplay` on a client, or both on a listen server. These classes provide lifecycle hooks that fire in a guaranteed order, giving mods a reliable place to inject behavior.
 
@@ -106,15 +106,15 @@ The `Mission` base class defines every hookable method. All are virtual with emp
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
-| `GetHud` | `Hud GetHud()` | Gibt zurueck the HUD instance (client only). |
-| `GetWorldData` | `WorldData GetWorldData()` | Gibt zurueck world-specific data (temperature curves, etc.). |
+| `GetHud` | `Hud GetHud()` | Gibt zurück the HUD instance (client only). |
+| `GetWorldData` | `WorldData GetWorldData()` | Gibt zurück world-specific data (temperature curves, etc.). |
 | `IsPaused` | `bool IsPaused()` | Whether das Spiel is paused (single player / listen server). |
 | `IsServer` | `bool IsServer()` | `true` for MissionServer, `false` for MissionGameplay. |
 | `IsMissionGameplay` | `bool IsMissionGameplay()` | `true` for MissionGameplay, `false` for MissionServer. |
 | `PlayerControlEnable` | `void PlayerControlEnable(bool bForceSuppress)` | Re-enable player input after disabling. |
 | `PlayerControlDisable` | `void PlayerControlDisable(int mode)` | Disable player input (e.g., `INPUT_EXCLUDE_ALL`). |
 | `IsControlDisabled` | `bool IsControlDisabled()` | Whether player controls are derzeit disabled. |
-| `GetControlDisabledMode` | `int GetControlDisabledMode()` | Gibt zurueck the current input exclusion mode. |
+| `GetControlDisabledMode` | `int GetControlDisabledMode()` | Gibt zurück the current input exclusion mode. |
 
 ---
 
@@ -127,7 +127,7 @@ MissionServer is instantiated by die Engine on dedicated servers. It handles eve
 ### Key Vanilla Behavior
 
 - **Constructor**: Sets up `CallQueue` for player stats (30-second interval), dead players array, logout tracking maps, rain procurement handler.
-- **OnInit**: Laedt `CfgGameplayHandler`, `PlayerSpawnHandler`, `CfgPlayerRestrictedAreaHandler`, `UndergroundAreaLoader`, artillery firing positions.
+- **OnInit**: Lädt `CfgGameplayHandler`, `PlayerSpawnHandler`, `CfgPlayerRestrictedAreaHandler`, `UndergroundAreaLoader`, artillery firing positions.
 - **OnMissionStart**: Erstellt effect area zones (contaminated zones, etc.).
 - **OnUpdate**: Runs tick scheduler, processes logout timers, updates base environment temperature, rain procurement, random artillery.
 
@@ -154,7 +154,7 @@ Aufgerufen aus within `OnEvent` when player-related events fire:
 | `InvokeOnConnect` | `void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)` | Calls `player.OnConnect()`. Primary "player joined" hook. |
 | `InvokeOnDisconnect` | `void InvokeOnDisconnect(PlayerBase player)` | Calls `player.OnDisconnect()`. Player fully disconnected. |
 | `OnClientReadyEvent` | `void OnClientReadyEvent(PlayerIdentity identity, PlayerBase player)` | Calls `g_Game.SelectPlayer()`. Existing character loaded from DB. |
-| `OnClientNewEvent` | `PlayerBase OnClientNewEvent(PlayerIdentity identity, vector pos, ParamsReadContext ctx)` | Erstellt + equips new character. Gibt zurueck `PlayerBase`. |
+| `OnClientNewEvent` | `PlayerBase OnClientNewEvent(PlayerIdentity identity, vector pos, ParamsReadContext ctx)` | Erstellt + equips new character. Gibt zurück `PlayerBase`. |
 | `OnClientRespawnEvent` | `void OnClientRespawnEvent(PlayerIdentity identity, PlayerBase player)` | Kills old character if unconscious/restrained. |
 | `OnClientReconnectEvent` | `void OnClientReconnectEvent(PlayerIdentity identity, PlayerBase player)` | Calls `player.OnReconnect()`. |
 | `PlayerDisconnected` | `void PlayerDisconnected(PlayerBase player, PlayerIdentity identity, string uid)` | Calls `InvokeOnDisconnect`, saves player, exits hive, handles body, removes from server. |
@@ -808,7 +808,7 @@ PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());                  // 
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Forgetting super.OnInit()
 
@@ -907,7 +907,7 @@ override void InvokeOnDisconnect(PlayerBase player)
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Always call `super` as the first line in every Mission override.** Dies ist der/die/das single most common DayZ modding mistake. Forgetting `super.OnInit()` silently breaks vanilla initialization and every other mod in the chain.
 - **Keep mission hook code thin --- delegate to manager classes.** Create a singleton manager (e.g., `MyModManager`) and call `manager.Init()` / `manager.Update()` / `manager.Cleanup()` from the hooks. This mirrors the pattern used by COT and Expansion.

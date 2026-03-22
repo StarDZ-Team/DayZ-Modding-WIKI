@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Event-driven architecture decouples the producer of an event from its consumers. When a player connects, the connection handler does not need to know about the killfeed, the admin panel, the mission system, or the logging module --- it fires a "player connected" event, and each interested system subscribes independently. This is the foundation of extensible mod design: new features subscribe to existing events without modifying the code that fires them.
 
@@ -507,4 +507,4 @@ OnKillEvent.Invoke(killData);
 
 ---
 
-[<< Zurueck: Permission Systems](05-permissions.md) | [Startseite](../../README.md) | [Next: Performance Optimization >>](07-performance.md)
+[<< Zurück: Permission Systems](05-permissions.md) | [Startseite](../../README.md) | [Next: Performance Optimization >>](07-performance.md)

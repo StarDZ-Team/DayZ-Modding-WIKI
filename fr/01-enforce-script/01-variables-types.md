@@ -1,62 +1,96 @@
-# Chapter 1.1: Variables & Types
+# Chapitre 1.1 : Variables et types
 
-[Home](../../README.md) | **Variables & Types** | [Next: Arrays, Maps & Sets >>](02-arrays-maps-sets.md)
+[Accueil](../../README.md) | **Variables et types** | [Suivant : Tableaux, Maps et Sets >>](02-arrays-maps-sets.md)
 
 ---
 
 ## Introduction
 
-Enforce Script est le langage de script du moteur Enfusion, utilise par DayZ Standalone. C'est un langage oriente objet avec une syntaxe de type C, similaire a C# a bien des egards mais avec son propre ensemble distinct de types, regles et limitations. Si vous avez de l'experience avec C#, Java, or C++, vous vous sentirez rapidement a l'aise --- mais faites bien attention aux differences, car les endroits ou Enforce Script diverges from those languages sont exactement la ou les bugs se cachent.
+Enforce Script est le langage de script du moteur Enfusion, utilisé par DayZ Standalone. C'est un langage orienté objet avec une syntaxe de type C, similaire à C# à bien des égards mais avec son propre ensemble distinct de types, de règles et de limitations. Si vous avez de l'expérience avec C#, Java ou C++, vous vous sentirez rapidement à l'aise --- mais faites bien attention aux différences, car les endroits où Enforce Script diverge de ces langages sont exactement là où les bugs se cachent.
 
-Ce chapitre couvre les briques fondamentales: les types primitifs, comment declarer et initialiser des variables, et comment fonctionne la conversion de types. Chaque ligne de code de mod DayZ commence ici.
+Ce chapitre couvre les briques fondamentales : les types primitifs, comment déclarer et initialiser des variables, et comment fonctionne la conversion de types. Chaque ligne de code de mod DayZ commence ici.
 
 ---
 
 ## Types primitifs
 
-Enforce Script possede un ensemble restreint et fixe de types primitifs. Vous ne pouvez pas definir de nouveaux types valeur --- seulement des classes (couvert dans [Chapter 1.3](03-classes-inheritance.md)).
+Enforce Script possède un ensemble restreint et fixe de types primitifs. Vous ne pouvez pas définir de nouveaux types valeur --- seulement des classes (couvert dans le [Chapitre 1.3](03-classes-inheritance.md)).
 
-| Type | Size | Default Value | Description |
-|------|------|---------------|-------------|
-| `int` | 32-bit signed | `0` | Nombres entiers de -2,147,483,648 to 2,147,483,647 |
-| `float` | 32-bit IEEE 754 | `0.0` | Nombres a virgule flottante |
-| `bool` | 1 bit logical | `false` | `true` or `false` |
-| `string` | Variable | `""` (empty) | Texte. Type valeur immutable --- passe par valeur, pas par reference |
-| `vector` | 3x float | `"0 0 0"` | Float a trois composantes (x, y, z). Passe par valeur |
-| `typename` | Engine ref | `null` | Une reference vers un type lui-meme, utilisee pour la reflexion |
-| `void` | N/A | N/A | Utilise uniquement comme type de retour pour indiquer "ne retourne rien" |
+| Type | Taille | Valeur par défaut | Description |
+|------|--------|-------------------|-------------|
+| `int` | 32 bits signé | `0` | Nombres entiers de -2 147 483 648 à 2 147 483 647 |
+| `float` | 32 bits IEEE 754 | `0.0` | Nombres à virgule flottante |
+| `bool` | 1 bit logique | `false` | `true` ou `false` |
+| `string` | Variable | `""` (vide) | Texte. Type valeur immutable --- passé par valeur, pas par référence |
+| `vector` | 3x float | `"0 0 0"` | Float à trois composantes (x, y, z). Passé par valeur |
+| `typename` | Référence moteur | `null` | Une référence vers un type lui-même, utilisée pour la réflexion |
+| `void` | N/A | N/A | Utilisé uniquement comme type de retour pour indiquer « ne retourne rien » |
 
-### Type Constants
+### Diagramme de hiérarchie des types
 
-Several types expose useful constants:
+```mermaid
+graph TD
+    subgraph "Value Types (passed by copy)"
+        INT[int<br/>32-bit signed]
+        FLOAT[float<br/>32-bit IEEE 754]
+        BOOL[bool<br/>true / false]
+        STRING[string<br/>immutable text]
+        VECTOR[vector<br/>3x float xyz]
+    end
+
+    subgraph "Reference Types (passed by reference)"
+        CLASS[Class<br/>root of all ref types]
+        MANAGED[Managed<br/>no engine ref-counting]
+        TYPENAME[typename<br/>type reflection]
+    end
+
+    CLASS --> MANAGED
+    CLASS --> ENTITYAI[EntityAI]
+    ENTITYAI --> ITEMBASE[ItemBase]
+    ENTITYAI --> MANBASE[ManBase / PlayerBase]
+    MANAGED --> SCRIPTHANDLER[ScriptedWidgetEventHandler]
+    MANAGED --> CUSTOMCLASS[Your Custom Classes]
+
+    style INT fill:#4A90D9,color:#fff
+    style FLOAT fill:#4A90D9,color:#fff
+    style BOOL fill:#4A90D9,color:#fff
+    style STRING fill:#4A90D9,color:#fff
+    style VECTOR fill:#4A90D9,color:#fff
+    style CLASS fill:#D94A4A,color:#fff
+    style MANAGED fill:#D97A4A,color:#fff
+```
+
+### Constantes de type
+
+Plusieurs types exposent des constantes utiles :
 
 ```c
-// int bounds
+// Bornes des int
 int maxInt = int.MAX;    // 2147483647
 int minInt = int.MIN;    // -2147483648
 
-// float bounds
-float smallest = float.MIN;     // smallest positive float (~1.175e-38)
-float largest  = float.MAX;     // largest float (~3.403e+38)
-float lowest   = float.LOWEST;  // most negative float (-3.403e+38)
+// Bornes des float
+float smallest = float.MIN;     // plus petit float positif (~1.175e-38)
+float largest  = float.MAX;     // plus grand float (~3.403e+38)
+float lowest   = float.LOWEST;  // float le plus négatif (-3.403e+38)
 ```
 
 ---
 
-## Declarer des variables
+## Déclarer des variables
 
-Les variables sont declarees en ecrivant le type suivi du nom. Vous pouvez declarer et assigner en une seule instruction ou separement.
+Les variables sont déclarées en écrivant le type suivi du nom. Vous pouvez déclarer et assigner en une seule instruction ou séparément.
 
 ```c
 void MyFunction()
 {
-    // Declaration only (initialized to default value)
+    // Déclaration seule (initialisée à la valeur par défaut)
     int health;          // health == 0
     float speed;         // speed == 0.0
     bool isAlive;        // isAlive == false
     string name;         // name == ""
 
-    // Declaration with initialization
+    // Déclaration avec initialisation
     int maxPlayers = 60;
     float gravity = 9.81;
     bool debugMode = true;
@@ -64,9 +98,9 @@ void MyFunction()
 }
 ```
 
-### The `auto` Keyword
+### Le mot-clé `auto`
 
-Quand le type est evident a partir du cote droit, vous pouvez utiliser `auto` pour laisser le compilateur le deduire:
+Quand le type est évident à partir du côté droit, vous pouvez utiliser `auto` pour laisser le compilateur le déduire :
 
 ```c
 void Example()
@@ -74,15 +108,15 @@ void Example()
     auto count = 10;           // int
     auto ratio = 0.75;         // float
     auto label = "Hello";      // string
-    auto player = GetGame().GetPlayer();  // DayZPlayer (or whatever GetPlayer returns)
+    auto player = GetGame().GetPlayer();  // DayZPlayer (ou le type retourné par GetPlayer)
 }
 ```
 
-C'est purement une commodite --- le compilateur resout le type a la compilation. Il n'y a aucune difference de performance.
+C'est purement une commodité --- le compilateur résout le type à la compilation. Il n'y a aucune différence de performance.
 
-### Constants
+### Constantes
 
-Utilisez le mot-cle `const` pour les valeurs qui ne doivent jamais changer apres l'initialisation:
+Utilisez le mot-clé `const` pour les valeurs qui ne doivent jamais changer après l'initialisation :
 
 ```c
 const int MAX_SQUAD_SIZE = 8;
@@ -91,18 +125,18 @@ const string MOD_PREFIX = "[MyMod]";
 
 void Example()
 {
-    int a = MAX_SQUAD_SIZE;  // OK: reading a constant
-    MAX_SQUAD_SIZE = 10;     // ERROR: cannot assign to a constant
+    int a = MAX_SQUAD_SIZE;  // OK : lecture d'une constante
+    MAX_SQUAD_SIZE = 10;     // ERREUR : impossible d'assigner à une constante
 }
 ```
 
-Les constantes sont generalement declarees a la portee du fichier (en dehors de toute fonction) ou comme membres de classe. Convention de nommage: `UPPER_SNAKE_CASE`.
+Les constantes sont généralement déclarées à la portée du fichier (en dehors de toute fonction) ou comme membres de classe. Convention de nommage : `UPPER_SNAKE_CASE`.
 
 ---
 
 ## Travailler avec `int`
 
-Les entiers sont le type de base. DayZ les utilise pour item counts, player IDs, health values (when discretized), enum values, bitflags, and more.
+Les entiers sont le type de base par excellence. DayZ les utilise pour les compteurs d'objets, les identifiants de joueurs, les valeurs de santé (lorsqu'elles sont discrétisées), les valeurs d'énumération, les drapeaux binaires, et bien plus encore.
 
 ```c
 void IntExamples()
@@ -112,28 +146,28 @@ void IntExamples()
     int doubled = count * 2;    // 10
     int remainder = 17 % 5;     // 2 (modulo)
 
-    // Increment and decrement
-    count++;    // count is now 6
-    count--;    // count is now 5 again
+    // Incrémentation et décrémentation
+    count++;    // count vaut maintenant 6
+    count--;    // count vaut de nouveau 5
 
-    // Compound assignment
-    count += 3;  // count is now 8
-    count -= 2;  // count is now 6
-    count *= 4;  // count is now 24
-    count /= 6;  // count is now 4
+    // Assignation composée
+    count += 3;  // count vaut maintenant 8
+    count -= 2;  // count vaut maintenant 6
+    count *= 4;  // count vaut maintenant 24
+    count /= 6;  // count vaut maintenant 4
 
-    // Integer division truncates (no rounding)
-    int result = 7 / 2;    // result == 3, not 3.5
+    // La division entière tronque (pas d'arrondi)
+    int result = 7 / 2;    // result == 3, pas 3.5
 
-    // Bitwise operations (used for flags)
+    // Opérations bit à bit (utilisées pour les drapeaux)
     int flags = 0;
-    flags = flags | 0x01;   // set bit 0
-    flags = flags | 0x04;   // set bit 2
+    flags = flags | 0x01;   // active le bit 0
+    flags = flags | 0x04;   // active le bit 2
     bool hasBit0 = (flags & 0x01) != 0;  // true
 }
 ```
 
-### Real-World Example: Player Count
+### Exemple concret : compteur de joueurs
 
 ```c
 void PrintPlayerCount()
@@ -149,7 +183,7 @@ void PrintPlayerCount()
 
 ## Travailler avec `float`
 
-Les floats representent des nombres decimaux. DayZ les utilise abondamment pour positions, distances, health percentages, damage values, and timers.
+Les floats représentent des nombres décimaux. DayZ les utilise abondamment pour les positions, les distances, les pourcentages de santé, les valeurs de dégâts et les minuteries.
 
 ```c
 void FloatExamples()
@@ -158,14 +192,14 @@ void FloatExamples()
     float damage = 25.5;
     float remaining = health - damage;   // 74.5
 
-    // DayZ-specific: damage multiplier
+    // Spécifique à DayZ : multiplicateur de dégâts
     float headMultiplier = 3.0;
     float actualDamage = damage * headMultiplier;  // 76.5
 
-    // Float division gives decimal results
+    // La division de floats donne des résultats décimaux
     float ratio = 7.0 / 2.0;   // 3.5
 
-    // Useful math
+    // Fonctions mathématiques utiles
     float dist = 150.7;
     float rounded = Math.Round(dist);    // 151
     float floored = Math.Floor(dist);    // 150
@@ -174,7 +208,7 @@ void FloatExamples()
 }
 ```
 
-### Real-World Example: Distance Check
+### Exemple concret : vérification de distance
 
 ```c
 bool IsPlayerNearby(PlayerBase player, vector targetPos, float radius)
@@ -192,7 +226,7 @@ bool IsPlayerNearby(PlayerBase player, vector targetPos, float radius)
 
 ## Travailler avec `bool`
 
-Les booleens contiennent `true` ou `false`. Ils sont utilises dans les conditions, les drapeaux et le suivi d'etat.
+Les booléens contiennent `true` ou `false`. Ils sont utilisés dans les conditions, les drapeaux et le suivi d'état.
 
 ```c
 void BoolExamples()
@@ -200,14 +234,14 @@ void BoolExamples()
     bool isAdmin = true;
     bool isBanned = false;
 
-    // Logical operators
-    bool canPlay = isAdmin || !isBanned;    // true (OR, NOT)
-    bool isSpecial = isAdmin && !isBanned;  // true (AND)
+    // Opérateurs logiques
+    bool canPlay = isAdmin || !isBanned;    // true (OU, NON)
+    bool isSpecial = isAdmin && !isBanned;  // true (ET)
 
-    // Negation
+    // Négation
     bool notAdmin = !isAdmin;   // false
 
-    // Comparison results are bool
+    // Les résultats de comparaison sont des bool
     int health = 50;
     bool isLow = health < 25;       // false
     bool isHurt = health < 100;     // true
@@ -216,27 +250,27 @@ void BoolExamples()
 }
 ```
 
-### Truthiness in Conditions
+### Valeurs de vérité dans les conditions
 
-En Enforce Script, vous pouvez utiliser des valeurs non-bool dans les conditions. Les valeurs suivantes sont considerees `false`:
+En Enforce Script, vous pouvez utiliser des valeurs non booléennes dans les conditions. Les valeurs suivantes sont considérées comme `false` :
 - `0` (int)
 - `0.0` (float)
-- `""` (empty string)
-- `null` (null object reference)
+- `""` (chaîne vide)
+- `null` (référence d'objet nulle)
 
-Tout le reste est `true`. Ceci est couramment utilise pour les verifications null:
+Tout le reste est `true`. Ceci est couramment utilisé pour les vérifications de nullité :
 
 ```c
 void SafeCheck(PlayerBase player)
 {
-    // These two are equivalent:
+    // Ces deux écritures sont équivalentes :
     if (player != null)
         Print("Player exists");
 
     if (player)
         Print("Player exists");
 
-    // And these two:
+    // Et ces deux aussi :
     if (player == null)
         Print("No player");
 
@@ -249,7 +283,7 @@ void SafeCheck(PlayerBase player)
 
 ## Travailler avec `string`
 
-Les chaines en Enforce Script sont des **types valeur** --- elles sont copiees lors de l'assignation ou du passage en parametre, tout comme `int` ou `float`. Ceci est different de C# ou Java ou les chaines sont des types reference.
+Les chaînes en Enforce Script sont des **types valeur** --- elles sont copiées lors de l'assignation ou du passage en paramètre, tout comme `int` ou `float`. Ceci est différent de C# ou Java où les chaînes sont des types référence.
 
 ```c
 void StringExamples()
@@ -257,43 +291,43 @@ void StringExamples()
     string greeting = "Hello";
     string name = "Survivor";
 
-    // Concatenation with +
+    // Concaténation avec +
     string message = greeting + ", " + name + "!";  // "Hello, Survivor!"
 
-    // String formatting (1-indexed placeholders)
+    // Formatage de chaîne (indices à partir de 1)
     string formatted = string.Format("Player %1 has %2 health", name, 75);
-    // Result: "Player Survivor has 75 health"
+    // Résultat : "Player Survivor has 75 health"
 
-    // Length
+    // Longueur
     int len = message.Length();    // 17
 
-    // Comparison
+    // Comparaison
     bool same = (greeting == "Hello");  // true
 
-    // Conversion from other types
-    string fromInt = "Score: " + 42;     // does NOT work -- must convert explicitly
+    // Conversion depuis d'autres types
+    string fromInt = "Score: " + 42;     // ne fonctionne PAS -- il faut convertir explicitement
     string correct = "Score: " + 42.ToString();  // "Score: 42"
 
-    // Using Format is the preferred approach
+    // Utiliser Format est l'approche recommandée
     string best = string.Format("Score: %1", 42);  // "Score: 42"
 }
 ```
 
-### Escape Sequences
+### Séquences d'échappement
 
-Strings support standard escape sequences:
+Les chaînes supportent les séquences d'échappement standard :
 
-| Sequence | Meaning |
-|----------|---------|
-| `\n` | Newline |
-| `\r` | Carriage return |
-| `\t` | Tab |
-| `\\` | Literal backslash |
-| `\"` | Literal double quote |
+| Séquence | Signification |
+|----------|---------------|
+| `\n` | Saut de ligne |
+| `\r` | Retour chariot |
+| `\t` | Tabulation |
+| `\\` | Antislash littéral |
+| `\"` | Guillemet double littéral |
 
-**Avertissement :** While these are documented, backslash (`\\`) and escaped quotes (`\"`) are known to cause issues with the CParser in some contexts, especially in JSON-related operations. When working with file paths or JSON strings, avoid backslashes when possible. Use forward slashes for paths --- DayZ accepts them on all platforms.
+**Avertissement :** Bien que ces séquences soient documentées, l'antislash (`\\`) et les guillemets échappés (`\"`) sont connus pour causer des problèmes avec le CParser dans certains contextes, notamment lors des opérations liées au JSON. Lorsque vous travaillez avec des chemins de fichiers ou des chaînes JSON, évitez les antislashs quand c'est possible. Utilisez des barres obliques pour les chemins --- DayZ les accepte sur toutes les plateformes.
 
-### Real-World Example: Chat Message
+### Exemple concret : message de chat
 
 ```c
 void SendAdminMessage(string adminName, string text)
@@ -307,53 +341,53 @@ void SendAdminMessage(string adminName, string text)
 
 ## Travailler avec `vector`
 
-Le type `vector` contient trois composantes `float` (x, y, z). C'est le type fondamental de DayZ pour les positions, directions, rotations et velocites. Comme les chaines et les primitifs, les vecteurs sont des **types valeur** --- ils sont copies lors de l'assignation.
+Le type `vector` contient trois composantes `float` (x, y, z). C'est le type fondamental de DayZ pour les positions, les directions, les rotations et les vélocités. Comme les chaînes et les primitifs, les vecteurs sont des **types valeur** --- ils sont copiés lors de l'assignation.
 
-### Initialization
+### Initialisation
 
-Les vecteurs peuvent etre initialises de deux facons:
+Les vecteurs peuvent être initialisés de deux façons :
 
 ```c
 void VectorInit()
 {
-    // Method 1: String initialization (three space-separated numbers)
+    // Méthode 1 : Initialisation par chaîne (trois nombres séparés par des espaces)
     vector pos1 = "100.5 0 200.3";
 
-    // Method 2: Vector() constructor function
+    // Méthode 2 : Fonction constructeur Vector()
     vector pos2 = Vector(100.5, 0, 200.3);
 
-    // Default value is "0 0 0"
+    // La valeur par défaut est "0 0 0"
     vector empty;   // empty == <0, 0, 0>
 }
 ```
 
-**Important :** Le format d'initialisation par chaine utilise des **espaces** comme separateurs, pas des virgules. `"1 2 3"` is valid; `"1,2,3"` is not.
+**Important :** Le format d'initialisation par chaîne utilise des **espaces** comme séparateurs, pas des virgules. `"1 2 3"` est valide ; `"1,2,3"` ne l'est pas.
 
-### Component Access
+### Accès aux composantes
 
-Accedez aux composantes individuelles en utilisant l'indexation de type tableau:
+Accédez aux composantes individuelles en utilisant l'indexation de type tableau :
 
 ```c
 void VectorComponents()
 {
     vector pos = Vector(100.5, 25.0, 200.3);
 
-    // Reading components
-    float x = pos[0];   // 100.5  (East/West)
-    float y = pos[1];   // 25.0   (Up/Down, altitude)
-    float z = pos[2];   // 200.3  (North/South)
+    // Lecture des composantes
+    float x = pos[0];   // 100.5  (Est/Ouest)
+    float y = pos[1];   // 25.0   (Haut/Bas, altitude)
+    float z = pos[2];   // 200.3  (Nord/Sud)
 
-    // Writing components
-    pos[1] = 50.0;      // Change altitude to 50
+    // Écriture des composantes
+    pos[1] = 50.0;      // Change l'altitude à 50
 }
 ```
 
-Systeme de coordonnees DayZ:
-- `[0]` = X = East(+) / West(-)
-- `[1]` = Y = Up(+) / Down(-) (altitude above sea level)
-- `[2]` = Z = North(+) / South(-)
+Système de coordonnées DayZ :
+- `[0]` = X = Est(+) / Ouest(-)
+- `[1]` = Y = Haut(+) / Bas(-) (altitude au-dessus du niveau de la mer)
+- `[2]` = Z = Nord(+) / Sud(-)
 
-### Static Constants
+### Constantes statiques
 
 ```c
 vector zero    = vector.Zero;      // "0 0 0"
@@ -362,7 +396,7 @@ vector right   = vector.Aside;     // "1 0 0"
 vector forward = vector.Forward;   // "0 0 1"
 ```
 
-### Common Vector Operations
+### Opérations vectorielles courantes
 
 ```c
 void VectorOps()
@@ -370,41 +404,41 @@ void VectorOps()
     vector pos1 = Vector(100, 0, 200);
     vector pos2 = Vector(150, 0, 250);
 
-    // Distance between two points
+    // Distance entre deux points
     float dist = vector.Distance(pos1, pos2);
 
-    // Squared distance (faster, good for comparisons)
+    // Distance au carré (plus rapide, utile pour les comparaisons)
     float distSq = vector.DistanceSq(pos1, pos2);
 
-    // Direction from pos1 to pos2
+    // Direction de pos1 vers pos2
     vector dir = vector.Direction(pos1, pos2);
 
-    // Normalize a vector (make length = 1)
+    // Normaliser un vecteur (longueur = 1)
     vector norm = dir.Normalized();
 
-    // Length of a vector
+    // Longueur d'un vecteur
     float len = dir.Length();
 
-    // Linear interpolation (50% between pos1 and pos2)
+    // Interpolation linéaire (50% entre pos1 et pos2)
     vector midpoint = vector.Lerp(pos1, pos2, 0.5);
 
-    // Dot product
+    // Produit scalaire
     float dot = vector.Dot(dir, vector.Up);
 }
 ```
 
-### Real-World Example: Spawn Position
+### Exemple concret : position d'apparition
 
 ```c
-// Get a position on the ground at given X,Z coordinates
+// Obtenir une position au sol aux coordonnées X,Z données
 vector GetGroundPosition(float x, float z)
 {
     vector pos = Vector(x, 0, z);
-    pos[1] = GetGame().SurfaceY(x, z);  // Set Y to terrain height
+    pos[1] = GetGame().SurfaceY(x, z);  // Définir Y à la hauteur du terrain
     return pos;
 }
 
-// Get a random position within a radius of a center point
+// Obtenir une position aléatoire dans un rayon autour d'un point central
 vector GetRandomPositionAround(vector center, float radius)
 {
     float angle = Math.RandomFloat(0, Math.PI2);
@@ -421,38 +455,38 @@ vector GetRandomPositionAround(vector center, float radius)
 
 ## Travailler avec `typename`
 
-Le type `typename` contient une reference vers un type lui-meme. Il est utilise pour la reflexion --- inspecter et travailler avec les types a l'execution. You will encounter it when writing generic systems, config loaders, and factory patterns.
+Le type `typename` contient une référence vers un type lui-même. Il est utilisé pour la réflexion --- inspecter et travailler avec les types à l'exécution. Vous le rencontrerez lors de l'écriture de systèmes génériques, de chargeurs de configuration et de patrons de type fabrique.
 
 ```c
 void TypenameExamples()
 {
-    // Get the typename of a class
+    // Obtenir le typename d'une classe
     typename t = PlayerBase;
 
-    // Get typename from a string
+    // Obtenir un typename depuis une chaîne
     typename t2 = t.StringToEnum(PlayerBase, "PlayerBase");
 
-    // Compare types
+    // Comparer des types
     if (t == PlayerBase)
         Print("It's PlayerBase!");
 
-    // Get the typename of an object instance
+    // Obtenir le typename d'une instance d'objet
     PlayerBase player;
-    // ... assume player is valid ...
+    // ... supposons que player est valide ...
     typename objType = player.Type();
 
-    // Check inheritance
+    // Vérifier l'héritage
     bool isMan = objType.IsInherited(Man);
 
-    // Convert typename to string
+    // Convertir un typename en chaîne
     string name = t.ToString();  // "PlayerBase"
 
-    // Create an instance from typename (factory pattern)
+    // Créer une instance depuis un typename (patron fabrique)
     Class instance = t.Spawn();
 }
 ```
 
-### Enum Conversion with typename
+### Conversion d'énumération avec typename
 
 ```c
 enum DamageType
@@ -464,11 +498,11 @@ enum DamageType
 
 void EnumConvert()
 {
-    // Enum to string
+    // Énumération vers chaîne
     string name = typename.EnumToString(DamageType, DamageType.BULLET);
     // name == "BULLET"
 
-    // String to enum
+    // Chaîne vers énumération
     int value;
     typename.StringToEnum(DamageType, "EXPLOSION", value);
     // value == 2
@@ -477,54 +511,82 @@ void EnumConvert()
 
 ---
 
+## Classe Managed
+
+`Managed` est une classe de base spéciale qui **désactive le comptage de références du moteur**. Les classes qui héritent de `Managed` ne sont pas suivies par le ramasse-miettes du moteur --- leur durée de vie est gérée entièrement par les références `ref` du script.
+
+```c
+class MyScriptHandler : Managed
+{
+    // Cette classe ne sera pas collectée par le ramasse-miettes du moteur
+    // Elle ne sera supprimée que lorsque la dernière ref sera libérée
+}
+```
+
+La plupart des classes purement scriptées (qui ne représentent pas des entités de jeu) devraient hériter de `Managed`. Les classes d'entité comme `PlayerBase`, `ItemBase` héritent de `EntityAI` (qui est gérée par le moteur, PAS par `Managed`).
+
+### Quand utiliser Managed
+
+| Utilisez `Managed` pour... | N'utilisez PAS `Managed` pour... |
+|----------------------------|----------------------------------|
+| Les classes de données de configuration | Les objets (`ItemBase`) |
+| Les singletons de gestionnaire | Les armes (`Weapon_Base`) |
+| Les contrôleurs d'interface | Les véhicules (`CarScript`) |
+| Les objets gestionnaires d'événements | Les joueurs (`PlayerBase`) |
+| Les classes utilitaires/d'aide | Toute classe qui hérite de `EntityAI` |
+
+Si votre classe ne représente pas une entité physique dans le monde du jeu, elle devrait presque certainement hériter de `Managed`.
+
+---
+
 ## Conversion de types
 
 Enforce Script supporte les conversions implicites et explicites entre types.
 
-### Implicit Conversions
+### Conversions implicites
 
-Certaines conversions se font automatiquement:
+Certaines conversions se font automatiquement :
 
 ```c
 void ImplicitConversions()
 {
-    // int to float (always safe, no data loss)
+    // int vers float (toujours sûr, pas de perte de données)
     int count = 42;
     float fCount = count;    // 42.0
 
-    // float to int (TRUNCATES, does not round!)
+    // float vers int (TRONQUE, n'arrondit pas !)
     float precise = 3.99;
-    int truncated = precise;  // 3, NOT 4
+    int truncated = precise;  // 3, PAS 4
 
-    // int/float to bool
-    bool fromInt = 5;      // true (non-zero)
+    // int/float vers bool
+    bool fromInt = 5;      // true (non-zéro)
     bool fromZero = 0;     // false
-    bool fromFloat = 0.1;  // true (non-zero)
+    bool fromFloat = 0.1;  // true (non-zéro)
 
-    // bool to int
+    // bool vers int
     int fromBool = true;   // 1
     int fromFalse = false; // 0
 }
 ```
 
-### Explicit Conversions (Parsing)
+### Conversions explicites (parsing)
 
-Pour convertir entre chaines et types numeriques, utilisez les methodes de parsing:
+Pour convertir entre chaînes et types numériques, utilisez les méthodes de parsing :
 
 ```c
 void ExplicitConversions()
 {
-    // String to int
+    // Chaîne vers int
     int num = "42".ToInt();           // 42
-    int bad = "hello".ToInt();        // 0 (fails silently)
+    int bad = "hello".ToInt();        // 0 (échoue silencieusement)
 
-    // String to float
+    // Chaîne vers float
     float f = "3.14".ToFloat();       // 3.14
 
-    // String to vector
+    // Chaîne vers vector
     vector v = "100 25 200".ToVector();  // <100, 25, 200>
 
-    // Number to string (using Format)
+    // Nombre vers chaîne (avec Format)
     string s1 = string.Format("%1", 42);       // "42"
     string s2 = string.Format("%1", 3.14);     // "3.14"
 
@@ -533,37 +595,37 @@ void ExplicitConversions()
 }
 ```
 
-### Object Casting
+### Transtypage d'objets
 
-Pour les types classes, utilisez `Class.CastTo()` ou `ClassName.Cast()`. This is couvert dans detail in [Chapter 1.3](03-classes-inheritance.md), but here is the essential pattern:
+Pour les types classes, utilisez `Class.CastTo()` ou `ClassName.Cast()`. Ceci est couvert en détail dans le [Chapitre 1.3](03-classes-inheritance.md), mais voici le patron essentiel :
 
 ```c
 void CastExample()
 {
     Object obj = GetSomeObject();
 
-    // Safe cast (preferred)
+    // Transtypage sûr (recommandé)
     PlayerBase player;
     if (Class.CastTo(player, obj))
     {
-        // player is valid and safe to use
+        // player est valide et peut être utilisé en toute sécurité
         string name = player.GetIdentity().GetName();
     }
 
-    // Alternative cast syntax
+    // Syntaxe de transtypage alternative
     PlayerBase player2 = PlayerBase.Cast(obj);
     if (player2)
     {
-        // player2 is valid
+        // player2 est valide
     }
 }
 ```
 
 ---
 
-## Portee des variables
+## Portée des variables
 
-Les variables n'existent que dans le bloc de code (accolades) ou elles sont declarees. Enforce Script ne permet **pas** de redeclarer un nom de variable dans des portees imbriquees ou paralleles.
+Les variables n'existent que dans le bloc de code (accolades) où elles sont déclarées. Enforce Script ne permet **pas** de redéclarer un nom de variable dans des portées imbriquées ou parallèles.
 
 ```c
 void ScopeExample()
@@ -572,47 +634,47 @@ void ScopeExample()
 
     if (true)
     {
-        // int x = 20;  // ERROR: redeclaration of 'x' in nested scope
-        x = 20;         // OK: modifying the outer x
-        int y = 30;     // OK: new variable in this scope
+        // int x = 20;  // ERREUR : redéclaration de 'x' dans une portée imbriquée
+        x = 20;         // OK : modification du x extérieur
+        int y = 30;     // OK : nouvelle variable dans cette portée
     }
 
-    // y is NOT accessible here (declared in inner scope)
-    // Print(y);  // ERROR: undeclared identifier 'y'
+    // y n'est PAS accessible ici (déclarée dans la portée interne)
+    // Print(y);  // ERREUR : identifiant 'y' non déclaré
 
-    // IMPORTANT: this also applies to for loops
+    // IMPORTANT : ceci s'applique aussi aux boucles for
     for (int i = 0; i < 5; i++)
     {
-        // i exists here
+        // i existe ici
     }
-    // for (int i = 0; i < 3; i++)  // ERROR in DayZ: 'i' already declared
-    // Use a different name:
+    // for (int i = 0; i < 3; i++)  // ERREUR dans DayZ : 'i' déjà déclaré
+    // Utilisez un nom différent :
     for (int j = 0; j < 3; j++)
     {
-        // j exists here
+        // j existe ici
     }
 }
 ```
 
-### The Sibling Scope Trap
+### Le piège des portées parallèles
 
-C'est l'un des notorious Enforce Script quirks. Declarer le meme nom de variable dans les blocs `if` et `else` provoque une erreur de compilation:
+C'est l'une des particularités les plus notoires d'Enforce Script. Déclarer le même nom de variable dans les blocs `if` et `else` provoque une erreur de compilation :
 
 ```c
 void SiblingTrap()
 {
     if (someCondition)
     {
-        int result = 10;    // Declared here
+        int result = 10;    // Déclaré ici
         Print(result);
     }
     else
     {
-        // int result = 20; // ERROR: multiple declaration of 'result'
-        // Even though this is a sibling scope, not the same scope
+        // int result = 20; // ERREUR : déclaration multiple de 'result'
+        // Même si c'est une portée parallèle, pas la même portée
     }
 
-    // FIX: declare above the if/else
+    // CORRECTION : déclarer au-dessus du if/else
     int result;
     if (someCondition)
     {
@@ -627,134 +689,191 @@ void SiblingTrap()
 
 ---
 
+## Priorité des opérateurs
+
+De la priorité la plus haute à la plus basse :
+
+| Priorité | Opérateur | Description | Associativité |
+|----------|-----------|-------------|---------------|
+| 1 | `()` `[]` `.` | Groupement, accès tableau, accès membre | Gauche à droite |
+| 2 | `!` `-` (unaire) `~` | NON logique, négation, NON bit à bit | Droite à gauche |
+| 3 | `*` `/` `%` | Multiplication, division, modulo | Gauche à droite |
+| 4 | `+` `-` | Addition, soustraction | Gauche à droite |
+| 5 | `<<` `>>` | Décalage bit à bit | Gauche à droite |
+| 6 | `<` `<=` `>` `>=` | Relationnel | Gauche à droite |
+| 7 | `==` `!=` | Égalité | Gauche à droite |
+| 8 | `&` | ET bit à bit | Gauche à droite |
+| 9 | `^` | XOR bit à bit | Gauche à droite |
+| 10 | `\|` | OU bit à bit | Gauche à droite |
+| 11 | `&&` | ET logique | Gauche à droite |
+| 12 | `\|\|` | OU logique | Gauche à droite |
+| 13 | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | Assignation | Droite à gauche |
+
+> **Conseil :** En cas de doute, utilisez des parenthèses. Enforce Script suit les règles de priorité de type C, mais le groupement explicite prévient les bugs et améliore la lisibilité.
+
+---
+
+## Bonnes pratiques
+
+- Initialisez toujours les variables explicitement lors de la déclaration, même quand la valeur par défaut correspond à votre intention -- cela communique l'intention aux futurs lecteurs.
+- Utilisez `const` pour toute valeur qui ne devrait jamais changer ; placez les constantes à la portée du fichier ou de la classe avec la convention de nommage `UPPER_SNAKE_CASE`.
+- Préférez `string.Format()` à la concaténation avec `+` lorsque vous mélangez des types -- cela évite les problèmes de conversion implicite et est plus facile à lire.
+- Utilisez `vector.DistanceSq()` au lieu de `vector.Distance()` lorsque vous comparez des distances -- cela évite un calcul coûteux de racine carrée.
+- Ne comparez jamais des floats avec `==` ; utilisez toujours une tolérance epsilon via `Math.AbsFloat(a - b) < 0.001`.
+
+---
+
+## Observé dans les vrais mods
+
+> Patrons confirmés par l'étude du code source de mods DayZ professionnels.
+
+| Patron | Mod | Détail |
+|--------|-----|--------|
+| `const string LOG_PREFIX` à la portée de classe | COT / Expansion | Chaque module définit une constante de chaîne pour les préfixes de log afin d'éviter les fautes de frappe |
+| Nommage `m_PascalCase` pour les membres | VPP / Dabs Framework | Toutes les variables membres utilisent le préfixe `m_` de manière cohérente, même pour les primitifs |
+| `string.Format` pour toutes les sorties de log | Expansion Market | N'utilise jamais la concaténation `+` avec des nombres -- toujours des marqueurs `%1`..`%9` |
+| `vector.Zero` au lieu du littéral `"0 0 0"` | COT Admin Tools | Utilise les constantes nommées pour la lisibilité et pour éviter le surcoût du parsing de chaîne |
+
+---
+
+## Théorie vs pratique
+
+| Concept | Théorie | Réalité |
+|---------|---------|---------|
+| Mot-clé `auto` | Devrait déduire n'importe quel type | Fonctionne pour les assignations simples mais peut troubler les lecteurs -- la plupart des mods déclarent les types explicitement |
+| Troncature `float` vers `int` | Documentée comme « arrondi vers zéro » | Piège presque tout le monde au moins une fois ; `3.99` devient `3`, pas `4` |
+| `string` est un type valeur | Passé par copie comme `int` | Surprend les développeurs C#/Java qui s'attendent à une sémantique de référence ; les modifications d'une copie n'affectent jamais l'original |
+
+---
+
 ## Erreurs courantes
 
-### 1. Uninitialized Variables Used in Logic
+### 1. Variables non initialisées utilisées dans la logique
 
-Les primitifs recoivent des valeurs par defaut (`0`, `0.0`, `false`, `""`), mais s'en remettre a cela rend le code fragile et difficile a lire. Initialisez toujours explicitement.
+Les primitifs reçoivent des valeurs par défaut (`0`, `0.0`, `false`, `""`), mais s'en remettre à cela rend le code fragile et difficile à lire. Initialisez toujours explicitement.
 
 ```c
-// BAD: relying on implicit zero
+// MAUVAIS : se fier au zéro implicite
 int count;
-if (count > 0)  // This works because count == 0, but intent is unclear
+if (count > 0)  // Cela fonctionne car count == 0, mais l'intention n'est pas claire
     DoThing();
 
-// GOOD: explicit initialization
+// BON : initialisation explicite
 int count = 0;
 if (count > 0)
     DoThing();
 ```
 
-### 2. Float-to-Int Truncation
+### 2. Troncature float vers int
 
-La conversion float vers int tronque (arrondit vers zero), n'arrondit pas au plus proche:
+La conversion float vers int tronque (arrondit vers zéro), elle n'arrondit pas au plus proche :
 
 ```c
 float f = 3.99;
-int i = f;         // i == 3, NOT 4
+int i = f;         // i == 3, PAS 4
 
-// If you want rounding:
+// Si vous voulez arrondir :
 int rounded = Math.Round(f);  // 4
 ```
 
-### 3. Float Precision in Comparisons
+### 3. Précision des floats dans les comparaisons
 
-Ne comparez jamais des floats pour une egalite exacte:
+Ne comparez jamais des floats pour une égalité exacte :
 
 ```c
 float a = 0.1 + 0.2;
-// BAD: may fail due to floating-point representation
+// MAUVAIS : peut échouer à cause de la représentation en virgule flottante
 if (a == 0.3)
     Print("Equal");
 
-// GOOD: use a tolerance (epsilon)
+// BON : utiliser une tolérance (epsilon)
 if (Math.AbsFloat(a - 0.3) < 0.001)
     Print("Close enough");
 ```
 
-### 4. String Concatenation with Numbers
+### 4. Concaténation de chaînes avec des nombres
 
-Vous ne pouvez pas simplement concatener un nombre a une chaine with `+`. Use `string.Format()`:
+Vous ne pouvez pas simplement concaténer un nombre à une chaîne avec `+`. Utilisez `string.Format()` :
 
 ```c
 int kills = 5;
-// Potentially problematic:
+// Potentiellement problématique :
 // string msg = "Kills: " + kills;
 
-// CORRECT: use Format
+// CORRECT : utiliser Format
 string msg = string.Format("Kills: %1", kills);
 ```
 
-### 5. Vector String Format
+### 5. Format de chaîne pour les vecteurs
 
-L'initialisation de vecteur par chaine necessite des espaces, pas des virgules:
+L'initialisation de vecteur par chaîne nécessite des espaces, pas des virgules :
 
 ```c
 vector good = "100 25 200";     // CORRECT
-// vector bad = "100, 25, 200"; // WRONG: commas are not parsed correctly
-// vector bad2 = "100,25,200";  // WRONG
+// vector bad = "100, 25, 200"; // FAUX : les virgules ne sont pas analysées correctement
+// vector bad2 = "100,25,200";  // FAUX
 ```
 
-### 6. Forgetting that Strings and Vectors are Value Types
+### 6. Oublier que les chaînes et les vecteurs sont des types valeur
 
-Contrairement aux objets de classe, les chaines et les vecteurs sont copies lors de l'assignation. Modifier une copie n'affecte pas l'original:
+Contrairement aux objets de classe, les chaînes et les vecteurs sont copiés lors de l'assignation. Modifier une copie n'affecte pas l'original :
 
 ```c
 vector posA = "10 20 30";
-vector posB = posA;       // posB is a COPY
-posB[1] = 99;             // Only posB changes
-// posA is still "10 20 30"
+vector posB = posA;       // posB est une COPIE
+posB[1] = 99;             // Seul posB change
+// posA est toujours "10 20 30"
 ```
 
 ---
 
 ## Exercices pratiques
 
-### Exercice 1: Variable Basics
-Declarez des variables pour stocker:
-- A player's name (string)
-- Their health percentage (float, 0-100)
-- Their kill count (int)
-- Whether they are an admin (bool)
-- Their world position (vector)
+### Exercice 1 : bases des variables
+Déclarez des variables pour stocker :
+- Le nom d'un joueur (string)
+- Son pourcentage de santé (float, 0-100)
+- Son nombre de kills (int)
+- S'il est administrateur (bool)
+- Sa position dans le monde (vector)
 
-Affichez un resume formate en utilisant `string.Format()`.
+Affichez un résumé formaté en utilisant `string.Format()`.
 
-### Exercice 2: Temperature Converter
-Ecrivez une fonction `float CelsiusToFahrenheit(float celsius)` and its inverse `float FahrenheitToCelsius(float fahrenheit)`. Testez avec boiling point (100C = 212F) and freezing point (0C = 32F).
+### Exercice 2 : convertisseur de température
+Écrivez une fonction `float CelsiusToFahrenheit(float celsius)` et son inverse `float FahrenheitToCelsius(float fahrenheit)`. Testez avec le point d'ébullition (100C = 212F) et le point de congélation (0C = 32F).
 
-### Exercice 3: Distance Calculator
-Ecrivez une fonction that takes two vectors and returns:
-- The 3D distance between them
-- The 2D distance (ignoring height/Y axis)
-- The height difference
+### Exercice 3 : calculateur de distance
+Écrivez une fonction qui prend deux vecteurs et retourne :
+- La distance 3D entre eux
+- La distance 2D (en ignorant la hauteur / l'axe Y)
+- La différence de hauteur
 
-Hint: For 2D distance, create new vectors with `[1]` set to `0` before calculating distance.
+Indice : pour la distance 2D, créez de nouveaux vecteurs avec `[1]` mis à `0` avant de calculer la distance.
 
-### Exercice 4: Type Juggling
-Etant donne la chaine `"42"`, convertissez-la en:
-1. An `int`
-2. A `float`
-3. Back to a `string` using `string.Format()`
-4. A `bool` (should be `true` since the int value is non-zero)
+### Exercice 4 : jonglage de types
+Étant donné la chaîne `"42"`, convertissez-la en :
+1. Un `int`
+2. Un `float`
+3. De retour en `string` en utilisant `string.Format()`
+4. Un `bool` (devrait être `true` puisque la valeur int est non-zéro)
 
-### Exercice 5: Ground Position
-Ecrivez une fonction `vector SnapToGround(vector pos)` that takes any position and returns it with the Y component set to the terrain height at that X,Z location. Use `GetGame().SurfaceY()`.
+### Exercice 5 : position au sol
+Écrivez une fonction `vector SnapToGround(vector pos)` qui prend n'importe quelle position et la retourne avec la composante Y définie à la hauteur du terrain aux coordonnées X,Z correspondantes. Utilisez `GetGame().SurfaceY()`.
 
 ---
 
-## Resume
+## Résumé
 
-| Concept | Key Point |
+| Concept | Point clé |
 |---------|-----------|
 | Types | `int`, `float`, `bool`, `string`, `vector`, `typename`, `void` |
-| Defaults | `0`, `0.0`, `false`, `""`, `"0 0 0"`, `null` |
-| Constants | `const` keyword, `UPPER_SNAKE_CASE` convention |
-| Vectors | Init with `"x y z"` string or `Vector(x,y,z)`, access with `[0]`, `[1]`, `[2]` |
-| Scope | Variables scoped to `{}` blocks; no redeclaration in nested/sibling blocks |
-| Conversion | `float`-to-`int` truncates; use `.ToInt()`, `.ToFloat()`, `.ToVector()` for string parsing |
-| Formatting | Always use `string.Format()` for building strings from mixed types |
+| Valeurs par défaut | `0`, `0.0`, `false`, `""`, `"0 0 0"`, `null` |
+| Constantes | Mot-clé `const`, convention `UPPER_SNAKE_CASE` |
+| Vecteurs | Initialisation avec la chaîne `"x y z"` ou `Vector(x,y,z)`, accès avec `[0]`, `[1]`, `[2]` |
+| Portée | Variables limitées aux blocs `{}` ; pas de redéclaration dans les portées imbriquées/parallèles |
+| Conversion | `float` vers `int` tronque ; utilisez `.ToInt()`, `.ToFloat()`, `.ToVector()` pour le parsing de chaînes |
+| Formatage | Utilisez toujours `string.Format()` pour construire des chaînes à partir de types mixtes |
 
 ---
 
-[Accueil](../../README.md) | **Variables et types** | [Next: Tableaux, Maps et Sets >>](02-arrays-maps-sets.md)
+[Accueil](../../README.md) | **Variables et types** | [Suivant : Tableaux, Maps et Sets >>](02-arrays-maps-sets.md)

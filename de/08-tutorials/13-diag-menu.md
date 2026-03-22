@@ -174,7 +174,7 @@ These settings control how profiling data is gathered. They can also be adjusted
 
 #### Always Enabled
 
-Profiling data gathering ist nicht enabled standardmaessig. This toggle shows whether it is derzeit active.
+Profiling data gathering ist nicht enabled standardmäßig. This toggle shows whether it is derzeit active.
 
 To enable profiling beim Start, use the launch parameter `-profile`.
 
@@ -345,7 +345,7 @@ A set of toggles for the occlusion culling system:
 
 ### Widgets
 
-Enable or disable the rendering of all UI widgets. Nuetzlich fuer taking clean screenshots or isolating rendering issues.
+Enable or disable the rendering of all UI widgets. Nützlich für taking clean screenshots or isolating rendering issues.
 
 ### Postprocess
 
@@ -407,7 +407,7 @@ Turns on the debug visualization for the Bullet physics engine.
 | **Force sleep Bullet** | Force all physics bodies to sleep |
 | **Show stats** | Show debug stats (options: disabled, basic, all). Stats remain visible for 10 seconds after disabling |
 
-> **Warning:** Max. Collider Distance is 0 standardmaessig because this visualization is expensive. Setting it to a large distance will cause significant performance degradation.
+> **Warning:** Max. Collider Distance is 0 standardmäßig because this visualization is expensive. Setting it to a large distance will cause significant performance degradation.
 
 ### Show Bodies
 
@@ -813,7 +813,7 @@ Debug visualization for derzeit playing sounds.
 | Option | Description |
 |--------|-------------|
 | **none** | Default, no debug |
-| **ImGui** | Separate window (newest iteration). Unterstuetzt filtering, full category coverage. Settings saved as `playing_sounds_imgui.ini` / `.bin` in profiles |
+| **ImGui** | Separate window (newest iteration). Unterstützt filtering, full category coverage. Settings saved as `playing_sounds_imgui.ini` / `.bin` in profiles |
 | **DbgUI** | Legacy. Has category filtering, more readable, but goes off-screen and lacks vehicle category |
 | **Engine** | Legacy. Shows real-time color-coded data with stats, but goes off-screen and has no color legend |
 
@@ -878,7 +878,7 @@ While every option has its use, these are the ones modders reach for most freque
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 **Using retail executable.** The Diag Menu is only available in `DayZDiag_x64.exe`. If you press Win+Alt and nothing happens, you are running the retail build.
 
@@ -901,7 +901,7 @@ While every option has its use, these are the ones modders reach for most freque
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 - **Chapter 8.6: [Debugging & Testing](06-debugging-testing.md)** -- Script logs, Print debugging, file patching, and Workbench
 - **Chapter 8.7: [Publishing to Workshop](07-publishing-workshop.md)** -- Package and publish your tested mod

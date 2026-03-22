@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Every admin tool, every privileged action, and every moderation feature in DayZ needs a permission system. The question is not whether to check permissions but how to structure them. The DayZ modding community has settled on three major patterns: hierarchical dot-separated permissions (MyMod), user-group role assignment (VPP), and framework-level role-based access (CF/COT). Each has different trade-offs in granularity, complexity, and server-owner experience.
 
@@ -605,4 +605,4 @@ This is exactly the pattern MyMod uses to migrate from its original flat `AdminU
 
 ---
 
-[<< Zurueck: Config Persistence](04-config-persistence.md) | [Startseite](../../README.md) | [Next: Event-Driven Architecture >>](06-events.md)
+[<< Zurück: Config Persistence](04-config-persistence.md) | [Startseite](../../README.md) | [Next: Event-Driven Architecture >>](06-events.md)

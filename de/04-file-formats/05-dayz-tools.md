@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ Tools is a free suite of development applications distributed through Steam, provided by Bohemia Interactive for modders. It contains everything needed to create, convert, and package game assets: a 3D model editor, texture viewer, terrain editor, script debugger, and the binarization pipeline that transforms human-readable source files into optimized game-ready formats. No DayZ mod can be built without at least some interaction with these tools.
 
@@ -486,7 +486,7 @@ Players subscribe to the mod on Steam Workshop, or server admins install it manu
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. P: Drive Not Mounted
 

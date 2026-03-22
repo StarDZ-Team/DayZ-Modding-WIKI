@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 The Crafting System is how DayZ handles combining items to produce new items --- sharpening sticks with knives, tying rags into rope, sawing off shotgun barrels, assembling splints. It is a data-driven pipeline that sits on top of the Aktion System (Chapter 6.12) and uses a central recipe registry to discover, validate, and execute item transformations.
 
@@ -747,7 +747,7 @@ seconds = m_AnimationLength * 4.0
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 1. **Always call `super.RegisterRecipies()`** when modding `PluginRecipesManagerBase`. Forgetting this removes all vanilla recipes.
 
@@ -810,7 +810,7 @@ The `RecipeBase` fields suggest a highly flexible system: up to 10 results per r
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Forgetting to Call super.RegisterRecipies()
 

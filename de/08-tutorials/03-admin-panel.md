@@ -1194,7 +1194,7 @@ Total time: typically under 100ms on a local network.
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 1. **[Chapter 8.4: Adding Chat Commands](04-chat-commands.md)** -- Create server-side chat commands for admin operations.
 2. **Add permissions** -- Check if the requesting player is an admin before processing RPCs.
@@ -1204,5 +1204,5 @@ Total time: typically under 100ms on a local network.
 
 ---
 
-**Zurueck:** [Chapter 8.2: Creating a Custom Item](02-custom-item.md)
+**Zurück:** [Chapter 8.2: Creating a Custom Item](02-custom-item.md)
 **Weiter:** [Chapter 8.4: Adding Chat Commands](04-chat-commands.md)

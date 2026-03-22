@@ -1,62 +1,96 @@
-# Chapter 1.1: Variables & Types
+# 1.1. fejezet: Változók és típusok
 
-[Home](../../README.md) | **Variables & Types** | [Next: Arrays, Maps & Sets >>](02-arrays-maps-sets.md)
-
----
-
-## Bevezetes
-
-Enforce Script is the scripting language of the Enfusion engine, used by DayZ Standalone. It is an object-oriented language with C-like syntax, similar to C# in many respects but with its own distinct set of types, rules, and limitations. If you have experience with C#, Java, or C++, you will feel at home quickly --- but pay close attention to the differences, because the places where Enforce Script diverges from those languages are exactly the places where bugs hide.
-
-This chapter covers the fundamental building blocks: primitive types, how to declare and initialize variables, and how type conversion works. Every line of DayZ mod code starts here.
+[Kezdőlap](../../README.md) | **Változók és típusok** | [Következő: Tömbök, Map-ek és Set-ek >>](02-arrays-maps-sets.md)
 
 ---
 
-## Primitive Types
+## Bevezetés
 
-Enforce Script has a small, fixed set of primitive types. You cannot define new value types --- only classes (covered in [Chapter 1.3](03-classes-inheritance.md)).
+Az Enforce Script az Enfusion motor szkriptnyelve, amelyet a DayZ Standalone használ. Ez egy objektumorientált nyelv C-szerű szintaxissal, sok tekintetben hasonló a C#-hoz, de saját típuskészlettel, szabályokkal és korlátozásokkal rendelkezik. Ha van tapasztalatod C#-ban, Javában vagy C++-ban, gyorsan otthon fogod érezni magad --- de figyelj oda a különbségekre, mert pontosan ott rejtőznek a hibák, ahol az Enforce Script eltér ezektől a nyelvektől.
 
-| Tipus | Meret | Default Value | Leiras |
+Ez a fejezet az alapvető építőelemeket tárgyalja: primitív típusokat, hogyan kell változókat deklarálni és inicializálni, valamint hogyan működik a típuskonverzió. A DayZ mod kódjának minden sora itt kezdődik.
+
+---
+
+## Primitív típusok
+
+Az Enforce Script kis, rögzített primitív típuskészlettel rendelkezik. Nem definiálhatsz új értéktípusokat --- csak osztályokat (lásd [1.3. fejezet](03-classes-inheritance.md)).
+
+| Típus | Méret | Alapértelmezett érték | Leírás |
 |------|------|---------------|-------------|
-| `int` | 32-bit signed | `0` | Whole numbers from -2,147,483,648 to 2,147,483,647 |
-| `float` | 32-bit IEEE 754 | `0.0` | Floating-point numbers |
-| `bool` | 1 bit logical | `false` | `true` or `false` |
-| `string` | Variable | `""` (empty) | Text. Immutable value type --- passed by value, not reference |
-| `vector` | 3x float | `"0 0 0"` | Three-component float (x, y, z). Passed by value |
-| `typename` | Engine ref | `null` | A reference to a type itself, used for reflection |
-| `void` | N/A | N/A | Used only as a return type to indicate "returns nothing" |
+| `int` | 32 bites előjeles | `0` | Egész számok -2 147 483 648-tól 2 147 483 647-ig |
+| `float` | 32 bites IEEE 754 | `0.0` | Lebegőpontos számok |
+| `bool` | 1 bit logikai | `false` | `true` vagy `false` |
+| `string` | Változó | `""` (üres) | Szöveg. Változtathatatlan értéktípus --- érték szerint kerül átadásra, nem referenciaként |
+| `vector` | 3x float | `"0 0 0"` | Háromkomponensű float (x, y, z). Érték szerint kerül átadásra |
+| `typename` | Motor ref | `null` | Referencia magára a típusra, reflexióhoz használatos |
+| `void` | N/A | N/A | Csak visszatérési típusként használatos, jelezve hogy "nem ad vissza semmit" |
 
-### Type Constants
+### Típushierarchia diagram
 
-Several types expose useful constants:
+```mermaid
+graph TD
+    subgraph "Értéktípusok (másolással átadva)"
+        INT[int<br/>32 bites előjeles]
+        FLOAT[float<br/>32 bites IEEE 754]
+        BOOL[bool<br/>true / false]
+        STRING[string<br/>változtathatatlan szöveg]
+        VECTOR[vector<br/>3x float xyz]
+    end
+
+    subgraph "Referenciatípusok (referenciaként átadva)"
+        CLASS[Class<br/>minden ref típus gyökere]
+        MANAGED[Managed<br/>nincs motor referenciaszámlálás]
+        TYPENAME[typename<br/>típusreflexió]
+    end
+
+    CLASS --> MANAGED
+    CLASS --> ENTITYAI[EntityAI]
+    ENTITYAI --> ITEMBASE[ItemBase]
+    ENTITYAI --> MANBASE[ManBase / PlayerBase]
+    MANAGED --> SCRIPTHANDLER[ScriptedWidgetEventHandler]
+    MANAGED --> CUSTOMCLASS[Saját egyéni osztályaid]
+
+    style INT fill:#4A90D9,color:#fff
+    style FLOAT fill:#4A90D9,color:#fff
+    style BOOL fill:#4A90D9,color:#fff
+    style STRING fill:#4A90D9,color:#fff
+    style VECTOR fill:#4A90D9,color:#fff
+    style CLASS fill:#D94A4A,color:#fff
+    style MANAGED fill:#D97A4A,color:#fff
+```
+
+### Típuskonstansok
+
+Néhány típus hasznos konstansokat tesz elérhetővé:
 
 ```c
-// int bounds
+// int határok
 int maxInt = int.MAX;    // 2147483647
 int minInt = int.MIN;    // -2147483648
 
-// float bounds
-float smallest = float.MIN;     // smallest positive float (~1.175e-38)
-float largest  = float.MAX;     // largest float (~3.403e+38)
-float lowest   = float.LOWEST;  // most negative float (-3.403e+38)
+// float határok
+float smallest = float.MIN;     // legkisebb pozitív float (~1.175e-38)
+float largest  = float.MAX;     // legnagyobb float (~3.403e+38)
+float lowest   = float.LOWEST;  // legnegatívabb float (-3.403e+38)
 ```
 
 ---
 
-## Declaring Variables
+## Változók deklarálása
 
-Variables are declared by writing the type followed by the name. You can declare and assign in one statement or separately.
+A változókat a típus és a név megadásával deklaráljuk. Egy utasításban deklarálhatsz és értéket adhatsz, vagy külön is.
 
 ```c
 void MyFunction()
 {
-    // Declaration only (initialized to default value)
+    // Csak deklaráció (alapértelmezett értékkel inicializálva)
     int health;          // health == 0
     float speed;         // speed == 0.0
     bool isAlive;        // isAlive == false
     string name;         // name == ""
 
-    // Declaration with initialization
+    // Deklaráció inicializálással
     int maxPlayers = 60;
     float gravity = 9.81;
     bool debugMode = true;
@@ -64,9 +98,9 @@ void MyFunction()
 }
 ```
 
-### The `auto` Keyword
+### Az `auto` kulcsszó
 
-When the type is obvious from the right-hand side, you can use `auto` to let the compiler infer it:
+Amikor a típus nyilvánvaló a jobb oldalról, használhatod az `auto` kulcsszót, hogy a fordító kikövetkeztesse:
 
 ```c
 void Example()
@@ -74,15 +108,15 @@ void Example()
     auto count = 10;           // int
     auto ratio = 0.75;         // float
     auto label = "Hello";      // string
-    auto player = GetGame().GetPlayer();  // DayZPlayer (or whatever GetPlayer returns)
+    auto player = GetGame().GetPlayer();  // DayZPlayer (vagy bármi, amit a GetPlayer visszaad)
 }
 ```
 
-This is purely a convenience --- the compiler resolves the type at compile time. There is no performance difference.
+Ez pusztán kényelmi funkció --- a fordító fordítási időben határozza meg a típust. Nincs teljesítménybeli különbség.
 
-### Constants
+### Konstansok
 
-Use the `const` keyword for values that should never change after initialization:
+Használd a `const` kulcsszót olyan értékekhez, amelyek az inicializálás után soha nem változhatnak:
 
 ```c
 const int MAX_SQUAD_SIZE = 8;
@@ -91,18 +125,18 @@ const string MOD_PREFIX = "[MyMod]";
 
 void Example()
 {
-    int a = MAX_SQUAD_SIZE;  // OK: reading a constant
-    MAX_SQUAD_SIZE = 10;     // ERROR: cannot assign to a constant
+    int a = MAX_SQUAD_SIZE;  // OK: konstans olvasása
+    MAX_SQUAD_SIZE = 10;     // HIBA: nem lehet konstanshoz értéket rendelni
 }
 ```
 
-Constants are typically declared at file scope (outside any function) or as class members. Naming convention: `UPPER_SNAKE_CASE`.
+A konstansokat általában fájlszinten (bármely függvényen kívül) vagy osztálytagokként deklaráljuk. Elnevezési konvenció: `UPPER_SNAKE_CASE`.
 
 ---
 
-## Working with `int`
+## Munka az `int` típussal
 
-Integers are the workhorse type. DayZ uses them for item counts, player IDs, health values (when discretized), enum values, bitflags, and more.
+Az egész számok a leggyakrabban használt típus. A DayZ tárgyak számolásához, játékos-azonosítókhoz, egészségértékekhez (diszkretizálva), felsorolási értékekhez, bitjelzőkhöz és sok máshoz használja őket.
 
 ```c
 void IntExamples()
@@ -112,28 +146,28 @@ void IntExamples()
     int doubled = count * 2;    // 10
     int remainder = 17 % 5;     // 2 (modulo)
 
-    // Increment and decrement
-    count++;    // count is now 6
-    count--;    // count is now 5 again
+    // Növelés és csökkentés
+    count++;    // count most 6
+    count--;    // count ismét 5
 
-    // Compound assignment
-    count += 3;  // count is now 8
-    count -= 2;  // count is now 6
-    count *= 4;  // count is now 24
-    count /= 6;  // count is now 4
+    // Összetett értékadás
+    count += 3;  // count most 8
+    count -= 2;  // count most 6
+    count *= 4;  // count most 24
+    count /= 6;  // count most 4
 
-    // Integer division truncates (no rounding)
-    int result = 7 / 2;    // result == 3, not 3.5
+    // Egész osztás csonkít (nem kerekít)
+    int result = 7 / 2;    // result == 3, nem 3.5
 
-    // Bitwise operations (used for flags)
+    // Bitműveletek (jelzőkhöz használva)
     int flags = 0;
-    flags = flags | 0x01;   // set bit 0
-    flags = flags | 0x04;   // set bit 2
+    flags = flags | 0x01;   // 0. bit beállítása
+    flags = flags | 0x04;   // 2. bit beállítása
     bool hasBit0 = (flags & 0x01) != 0;  // true
 }
 ```
 
-### Valos pelda: Player Count
+### Valós példa: Játékosok száma
 
 ```c
 void PrintPlayerCount()
@@ -147,9 +181,9 @@ void PrintPlayerCount()
 
 ---
 
-## Working with `float`
+## Munka a `float` típussal
 
-Floats represent decimal numbers. DayZ uses them extensively for positions, distances, health percentages, damage values, and timers.
+A lebegőpontos számok tizedes számokat reprezentálnak. A DayZ széleskörűen használja őket pozíciókhoz, távolságokhoz, egészségszázalékokhoz, sebzésértékekhez és időzítőkhöz.
 
 ```c
 void FloatExamples()
@@ -158,14 +192,14 @@ void FloatExamples()
     float damage = 25.5;
     float remaining = health - damage;   // 74.5
 
-    // DayZ-specific: damage multiplier
+    // DayZ-specifikus: sebzésszorzó
     float headMultiplier = 3.0;
     float actualDamage = damage * headMultiplier;  // 76.5
 
-    // Float division gives decimal results
+    // Float osztás tizedes eredményt ad
     float ratio = 7.0 / 2.0;   // 3.5
 
-    // Useful math
+    // Hasznos matematika
     float dist = 150.7;
     float rounded = Math.Round(dist);    // 151
     float floored = Math.Floor(dist);    // 150
@@ -174,7 +208,7 @@ void FloatExamples()
 }
 ```
 
-### Valos pelda: Distance Check
+### Valós példa: Távolságellenőrzés
 
 ```c
 bool IsPlayerNearby(PlayerBase player, vector targetPos, float radius)
@@ -190,9 +224,9 @@ bool IsPlayerNearby(PlayerBase player, vector targetPos, float radius)
 
 ---
 
-## Working with `bool`
+## Munka a `bool` típussal
 
-Booleans hold `true` or `false`. They are used in conditions, flags, and state tracking.
+A logikai változók `true` vagy `false` értéket tartalmaznak. Feltételekben, jelzőkben és állapotkövetésben használatosak.
 
 ```c
 void BoolExamples()
@@ -200,14 +234,14 @@ void BoolExamples()
     bool isAdmin = true;
     bool isBanned = false;
 
-    // Logical operators
+    // Logikai operátorok
     bool canPlay = isAdmin || !isBanned;    // true (OR, NOT)
     bool isSpecial = isAdmin && !isBanned;  // true (AND)
 
-    // Negation
+    // Tagadás
     bool notAdmin = !isAdmin;   // false
 
-    // Comparison results are bool
+    // Összehasonlítási eredmények bool típusúak
     int health = 50;
     bool isLow = health < 25;       // false
     bool isHurt = health < 100;     // true
@@ -216,27 +250,27 @@ void BoolExamples()
 }
 ```
 
-### Truthiness in Conditions
+### Igazságérték feltételekben
 
-In Enforce Script, you can use non-bool values in conditions. The following are considered `false`:
+Az Enforce Scriptben feltételekben nem-bool értékeket is használhatsz. A következők számítanak `false`-nak:
 - `0` (int)
 - `0.0` (float)
-- `""` (empty string)
-- `null` (null object reference)
+- `""` (üres string)
+- `null` (null objektumreferencia)
 
-Everything else is `true`. This is commonly used for null checks:
+Minden más `true`. Ezt általában null-ellenőrzésekhez használják:
 
 ```c
 void SafeCheck(PlayerBase player)
 {
-    // These two are equivalent:
+    // Ez a két írásmód egyenértékű:
     if (player != null)
         Print("Player exists");
 
     if (player)
         Print("Player exists");
 
-    // And these two:
+    // És ez a kettő is:
     if (player == null)
         Print("No player");
 
@@ -247,9 +281,9 @@ void SafeCheck(PlayerBase player)
 
 ---
 
-## Working with `string`
+## Munka a `string` típussal
 
-Strings in Enforce Script are **value types** --- they are copied when assigned or passed to functions, just like `int` or `float`. This is different from C# or Java where strings are reference types.
+A stringek az Enforce Scriptben **értéktípusok** --- másolódnak értékadáskor vagy függvénynek való átadáskor, ugyanúgy mint az `int` vagy `float`. Ez különbözik a C#-tól vagy Javától, ahol a stringek referenciatípusok.
 
 ```c
 void StringExamples()
@@ -257,43 +291,43 @@ void StringExamples()
     string greeting = "Hello";
     string name = "Survivor";
 
-    // Concatenation with +
+    // Összefűzés +-szal
     string message = greeting + ", " + name + "!";  // "Hello, Survivor!"
 
-    // String formatting (1-indexed placeholders)
+    // String formázás (1-től indexelt helyőrzők)
     string formatted = string.Format("Player %1 has %2 health", name, 75);
-    // Result: "Player Survivor has 75 health"
+    // Eredmény: "Player Survivor has 75 health"
 
-    // Length
+    // Hossz
     int len = message.Length();    // 17
 
-    // Comparison
+    // Összehasonlítás
     bool same = (greeting == "Hello");  // true
 
-    // Conversion from other types
-    string fromInt = "Score: " + 42;     // does NOT work -- must convert explicitly
+    // Konverzió más típusokból
+    string fromInt = "Score: " + 42;     // NEM működik -- explicit konverzió szükséges
     string correct = "Score: " + 42.ToString();  // "Score: 42"
 
-    // Using Format is the preferred approach
+    // A Format használata a preferált megközelítés
     string best = string.Format("Score: %1", 42);  // "Score: 42"
 }
 ```
 
-### Escape Sequences
+### Escape szekvenciák
 
-Strings support standard escape sequences:
+A stringek támogatják a szabványos escape szekvenciákat:
 
-| Sequence | Jelentes |
+| Szekvencia | Jelentés |
 |----------|---------|
-| `\n` | Newline |
-| `\r` | Carriage return |
-| `\t` | Tab |
-| `\\` | Literal backslash |
-| `\"` | Literal double quote |
+| `\n` | Új sor |
+| `\r` | Kocsi vissza |
+| `\t` | Tabulátor |
+| `\\` | Literális fordított perjel |
+| `\"` | Literális idézőjel |
 
-**Figyelmezetes:** While these are documented, backslash (`\\`) and escaped quotes (`\"`) are known to cause issues with the CParser in some contexts, especially in JSON-related operations. When working with file paths or JSON strings, avoid backslashes when possible. Use forward slashes for paths --- DayZ accepts them on all platforms.
+**Figyelmeztetés:** Bár ezek dokumentáltak, a fordított perjel (`\\`) és az escape-elt idézőjelek (`\"`) egyes kontextusokban problémákat okozhatnak a CParserrel, különösen JSON-nal kapcsolatos műveleteknél. Fájlelérési utakkal vagy JSON stringekkel dolgozva lehetőleg kerüld a fordított perjeleket. Használj normál perjelet az útvonalakhoz --- a DayZ minden platformon elfogadja őket.
 
-### Valos pelda: Chat Message
+### Valós példa: Chat üzenet
 
 ```c
 void SendAdminMessage(string adminName, string text)
@@ -305,55 +339,55 @@ void SendAdminMessage(string adminName, string text)
 
 ---
 
-## Working with `vector`
+## Munka a `vector` típussal
 
-The `vector` type holds three `float` components (x, y, z). It is DayZ's fundamental type for positions, directions, rotations, and velocities. Like strings and primitives, vectors are **value types** --- they are copied on assignment.
+A `vector` típus három `float` komponenst tartalmaz (x, y, z). Ez a DayZ alapvető típusa pozíciókhoz, irányokhoz, forgatásokhoz és sebességekhez. A stringekhez és primitív típusokhoz hasonlóan a vektorok is **értéktípusok** --- másolódnak értékadáskor.
 
-### Initialization
+### Inicializálás
 
-Vectors can be initialized in two ways:
+A vektorok kétféleképpen inicializálhatók:
 
 ```c
 void VectorInit()
 {
-    // Method 1: String initialization (three space-separated numbers)
+    // 1. módszer: String inicializálás (három szóközzel elválasztott szám)
     vector pos1 = "100.5 0 200.3";
 
-    // Method 2: Vector() constructor function
+    // 2. módszer: Vector() konstruktor függvény
     vector pos2 = Vector(100.5, 0, 200.3);
 
-    // Default value is "0 0 0"
+    // Az alapértelmezett érték "0 0 0"
     vector empty;   // empty == <0, 0, 0>
 }
 ```
 
-**Fontos:** The string initialization format uses **spaces** as separators, not commas. `"1 2 3"` is valid; `"1,2,3"` is not.
+**Fontos:** A string inicializálási formátum **szóközöket** használ elválasztóként, nem vesszőket. `"1 2 3"` érvényes; `"1,2,3"` nem.
 
-### Component Access
+### Komponensek elérése
 
-Access individual components using array-style indexing:
+Az egyes komponensekhez tömb-stílusú indexeléssel férhetsz hozzá:
 
 ```c
 void VectorComponents()
 {
     vector pos = Vector(100.5, 25.0, 200.3);
 
-    // Reading components
-    float x = pos[0];   // 100.5  (East/West)
-    float y = pos[1];   // 25.0   (Up/Down, altitude)
-    float z = pos[2];   // 200.3  (North/South)
+    // Komponensek olvasása
+    float x = pos[0];   // 100.5  (Kelet/Nyugat)
+    float y = pos[1];   // 25.0   (Fel/Le, tengerszint feletti magasság)
+    float z = pos[2];   // 200.3  (Észak/Dél)
 
-    // Writing components
-    pos[1] = 50.0;      // Change altitude to 50
+    // Komponensek írása
+    pos[1] = 50.0;      // Magasság módosítása 50-re
 }
 ```
 
-DayZ coordinate system:
-- `[0]` = X = East(+) / West(-)
-- `[1]` = Y = Up(+) / Down(-) (altitude above sea level)
-- `[2]` = Z = North(+) / South(-)
+DayZ koordinátarendszer:
+- `[0]` = X = Kelet(+) / Nyugat(-)
+- `[1]` = Y = Fel(+) / Le(-) (tengerszint feletti magasság)
+- `[2]` = Z = Észak(+) / Dél(-)
 
-### Static Constants
+### Statikus konstansok
 
 ```c
 vector zero    = vector.Zero;      // "0 0 0"
@@ -362,7 +396,7 @@ vector right   = vector.Aside;     // "1 0 0"
 vector forward = vector.Forward;   // "0 0 1"
 ```
 
-### Common Vector Operations
+### Gyakori vektorműveletek
 
 ```c
 void VectorOps()
@@ -370,41 +404,41 @@ void VectorOps()
     vector pos1 = Vector(100, 0, 200);
     vector pos2 = Vector(150, 0, 250);
 
-    // Distance between two points
+    // Két pont közötti távolság
     float dist = vector.Distance(pos1, pos2);
 
-    // Squared distance (faster, good for comparisons)
+    // Négyzetes távolság (gyorsabb, összehasonlításokhoz jó)
     float distSq = vector.DistanceSq(pos1, pos2);
 
-    // Direction from pos1 to pos2
+    // Irány pos1-ből pos2-be
     vector dir = vector.Direction(pos1, pos2);
 
-    // Normalize a vector (make length = 1)
+    // Vektor normalizálása (hossz = 1)
     vector norm = dir.Normalized();
 
-    // Length of a vector
+    // Vektor hossza
     float len = dir.Length();
 
-    // Linear interpolation (50% between pos1 and pos2)
+    // Lineáris interpoláció (50% pos1 és pos2 között)
     vector midpoint = vector.Lerp(pos1, pos2, 0.5);
 
-    // Dot product
+    // Skaláris szorzat
     float dot = vector.Dot(dir, vector.Up);
 }
 ```
 
-### Valos pelda: Spawn Position
+### Valós példa: Spawn pozíció
 
 ```c
-// Get a position on the ground at given X,Z coordinates
+// Pozíció lekérése a talajon adott X, Z koordinátáknál
 vector GetGroundPosition(float x, float z)
 {
     vector pos = Vector(x, 0, z);
-    pos[1] = GetGame().SurfaceY(x, z);  // Set Y to terrain height
+    pos[1] = GetGame().SurfaceY(x, z);  // Y beállítása a terep magasságára
     return pos;
 }
 
-// Get a random position within a radius of a center point
+// Véletlenszerű pozíció lekérése egy középpont sugarán belül
 vector GetRandomPositionAround(vector center, float radius)
 {
     float angle = Math.RandomFloat(0, Math.PI2);
@@ -419,40 +453,40 @@ vector GetRandomPositionAround(vector center, float radius)
 
 ---
 
-## Working with `typename`
+## Munka a `typename` típussal
 
-The `typename` type holds a reference to a type itself. It is used for reflection --- inspecting and working with types at runtime. You will encounter it when writing generic systems, config loaders, and factory patterns.
+A `typename` típus magára a típusra tartalmaz referenciát. Reflexióhoz használatos --- típusok vizsgálatához és kezeléséhez futásidőben. Általános rendszerek, konfiguráció-betöltők és gyártási minták írásakor találkozol vele.
 
 ```c
 void TypenameExamples()
 {
-    // Get the typename of a class
+    // Osztály typename-jének lekérése
     typename t = PlayerBase;
 
-    // Get typename from a string
+    // typename lekérése stringből
     typename t2 = t.StringToEnum(PlayerBase, "PlayerBase");
 
-    // Compare types
+    // Típusok összehasonlítása
     if (t == PlayerBase)
         Print("It's PlayerBase!");
 
-    // Get the typename of an object instance
+    // Objektumpéldány typename-jének lekérése
     PlayerBase player;
-    // ... assume player is valid ...
+    // ... feltételezzük, hogy a player érvényes ...
     typename objType = player.Type();
 
-    // Check inheritance
+    // Öröklés ellenőrzése
     bool isMan = objType.IsInherited(Man);
 
-    // Convert typename to string
+    // typename konvertálása stringgé
     string name = t.ToString();  // "PlayerBase"
 
-    // Create an instance from typename (factory pattern)
+    // Példány létrehozása typename-ből (gyártási minta)
     Class instance = t.Spawn();
 }
 ```
 
-### Enum Conversion with typename
+### Felsorolás konverzió typename-mel
 
 ```c
 enum DamageType
@@ -464,11 +498,11 @@ enum DamageType
 
 void EnumConvert()
 {
-    // Enum to string
+    // Felsorolás stringgé
     string name = typename.EnumToString(DamageType, DamageType.BULLET);
     // name == "BULLET"
 
-    // String to enum
+    // String felsorolássá
     int value;
     typename.StringToEnum(DamageType, "EXPLOSION", value);
     // value == 2
@@ -477,54 +511,82 @@ void EnumConvert()
 
 ---
 
-## Type Conversion
+## A Managed osztály
 
-Enforce Script supports both implicit and explicit conversions between types.
+A `Managed` egy speciális alaposztály, amely **kikapcsolja a motor referenciaszámlálását**. A `Managed`-ot kiterjesztő osztályokat a motor garbage collectora nem követi nyomon --- élettartamuk teljes egészében a szkript `ref` referenciák által kezelt.
 
-### Implicit Conversions
+```c
+class MyScriptHandler : Managed
+{
+    // Ezt az osztályt a motor nem fogja garbage collectálni
+    // Csak akkor törlődik, amikor az utolsó ref felszabadul
+}
+```
 
-Some conversions happen automatically:
+A legtöbb tisztán szkript osztálynak (amelyek nem képviselnek játékentitásokat) a `Managed`-ot kellene kiterjesztenie. Az entitásosztályok, mint a `PlayerBase`, `ItemBase`, az `EntityAI`-t terjesztik ki (ami motor által kezelt, NEM `Managed`).
+
+### Mikor használjuk a Managed-et
+
+| Használd `Managed`-ot ehhez... | NE használd `Managed`-ot ehhez... |
+|----------------------|-----------------------------|
+| Konfigurációs adatosztályok | Tárgyak (`ItemBase`) |
+| Singleton menedzserek | Fegyverek (`Weapon_Base`) |
+| UI vezérlők | Járművek (`CarScript`) |
+| Eseménykezelő objektumok | Játékosok (`PlayerBase`) |
+| Segéd-/eszközosztályok | Bármely `EntityAI`-t kiterjesztő osztály |
+
+Ha az osztályod nem képvisel fizikai entitást a játékvilágban, szinte biztosan a `Managed`-ot kellene kiterjesztenie.
+
+---
+
+## Típuskonverzió
+
+Az Enforce Script mind implicit, mind explicit konverziókat támogat a típusok között.
+
+### Implicit konverziók
+
+Néhány konverzió automatikusan megtörténik:
 
 ```c
 void ImplicitConversions()
 {
-    // int to float (always safe, no data loss)
+    // int-ből float-ba (mindig biztonságos, nincs adatveszteség)
     int count = 42;
     float fCount = count;    // 42.0
 
-    // float to int (TRUNCATES, does not round!)
+    // float-ból int-be (CSONKÍT, nem kerekít!)
     float precise = 3.99;
-    int truncated = precise;  // 3, NOT 4
+    int truncated = precise;  // 3, NEM 4
 
-    // int/float to bool
-    bool fromInt = 5;      // true (non-zero)
+    // int/float-ból bool-ba
+    bool fromInt = 5;      // true (nem nulla)
     bool fromZero = 0;     // false
-    bool fromFloat = 0.1;  // true (non-zero)
+    bool fromFloat = 0.1;  // true (nem nulla)
 
-    // bool to int
+    // bool-ból int-be
     int fromBool = true;   // 1
     int fromFalse = false; // 0
 }
 ```
 
-### Explicit Conversions (Parsing)
+### Explicit konverziók (parseolás)
 
-To convert between strings and numeric types, use parsing methods:
+Stringek és numerikus típusok közötti konverzióhoz használj parseolási metódusokat:
 
 ```c
 void ExplicitConversions()
 {
-    // String to int
+    // String-ből int-be
     int num = "42".ToInt();           // 42
-    int bad = "hello".ToInt();        // 0 (fails silently)
+    int bad = "hello".ToInt();        // 0 (csendben sikertelen)
 
-    // String to float
+    // String-ből float-ba
     float f = "3.14".ToFloat();       // 3.14
 
-    // String to vector
+    // String-ből vector-ba
     vector v = "100 25 200".ToVector();  // <100, 25, 200>
 
-    // Number to string (using Format)
+    // Szám stringgé (Format használatával)
     string s1 = string.Format("%1", 42);       // "42"
     string s2 = string.Format("%1", 3.14);     // "3.14"
 
@@ -533,37 +595,37 @@ void ExplicitConversions()
 }
 ```
 
-### Object Casting
+### Objektum-öntés (casting)
 
-For class types, use `Class.CastTo()` or `ClassName.Cast()`. This is covered in detail in [Chapter 1.3](03-classes-inheritance.md), but here is the essential pattern:
+Osztálytípusokhoz használd a `Class.CastTo()` vagy `ClassName.Cast()` metódusokat. Ez részletesen az [1.3. fejezetben](03-classes-inheritance.md) van tárgyalva, de íme az alapvető minta:
 
 ```c
 void CastExample()
 {
     Object obj = GetSomeObject();
 
-    // Safe cast (preferred)
+    // Biztonságos öntés (preferált)
     PlayerBase player;
     if (Class.CastTo(player, obj))
     {
-        // player is valid and safe to use
+        // player érvényes és biztonságosan használható
         string name = player.GetIdentity().GetName();
     }
 
-    // Alternative cast syntax
+    // Alternatív öntési szintaxis
     PlayerBase player2 = PlayerBase.Cast(obj);
     if (player2)
     {
-        // player2 is valid
+        // player2 érvényes
     }
 }
 ```
 
 ---
 
-## Variable Scope
+## Változók hatóköre
 
-Variables exist only within the code block (curly braces) where they are declared. Enforce Script does **not** allow redeclaring a variable name within nested or sibling scopes.
+A változók csak abban a kódblokkban (kapcsos zárójelekben) léteznek, ahol deklarálva lettek. Az Enforce Script **nem engedélyezi** ugyanazon változónév újradeklarálását beágyazott vagy testvérblokkokban.
 
 ```c
 void ScopeExample()
@@ -572,47 +634,47 @@ void ScopeExample()
 
     if (true)
     {
-        // int x = 20;  // ERROR: redeclaration of 'x' in nested scope
-        x = 20;         // OK: modifying the outer x
-        int y = 30;     // OK: new variable in this scope
+        // int x = 20;  // HIBA: 'x' újradeklarálása beágyazott blokkban
+        x = 20;         // OK: a külső x módosítása
+        int y = 30;     // OK: új változó ebben a blokkban
     }
 
-    // y is NOT accessible here (declared in inner scope)
-    // Print(y);  // ERROR: undeclared identifier 'y'
+    // y itt NEM elérhető (belső blokkban deklarálva)
+    // Print(y);  // HIBA: deklarálatlan azonosító 'y'
 
-    // IMPORTANT: this also applies to for loops
+    // FONTOS: ez a for ciklusokra is vonatkozik
     for (int i = 0; i < 5; i++)
     {
-        // i exists here
+        // i itt létezik
     }
-    // for (int i = 0; i < 3; i++)  // ERROR in DayZ: 'i' already declared
-    // Use a different name:
+    // for (int i = 0; i < 3; i++)  // HIBA a DayZ-ben: 'i' már deklarálva
+    // Használj másik nevet:
     for (int j = 0; j < 3; j++)
     {
-        // j exists here
+        // j itt létezik
     }
 }
 ```
 
-### The Sibling Scope Trap
+### A testvérblokk csapda
 
-This is one of the most notorious Enforce Script quirks. Declaring the same variable name in `if` and `else` blocks causes a compile error:
+Ez az Enforce Script egyik leghírhedtebb furcsasága. Ugyanazon változónév deklarálása az `if` és `else` blokkban fordítási hibát okoz:
 
 ```c
 void SiblingTrap()
 {
     if (someCondition)
     {
-        int result = 10;    // Declared here
+        int result = 10;    // Itt deklarálva
         Print(result);
     }
     else
     {
-        // int result = 20; // ERROR: multiple declaration of 'result'
-        // Even though this is a sibling scope, not the same scope
+        // int result = 20; // HIBA: 'result' többszörös deklarálása
+        // Annak ellenére, hogy ez testvérblokk, nem ugyanaz a blokk
     }
 
-    // FIX: declare above the if/else
+    // JAVÍTÁS: deklaráld az if/else felett
     int result;
     if (someCondition)
     {
@@ -627,134 +689,191 @@ void SiblingTrap()
 
 ---
 
-## Gyakori hibak
+## Operátor-prioritás
 
-### 1. Uninitialized Variables Used in Logic
+A legmagasabbtól a legalacsonyabb prioritásig:
 
-Primitives get default values (`0`, `0.0`, `false`, `""`), but relying on this makes code fragile and hard to read. Always initialize explicitly.
+| Prioritás | Operátor | Leírás | Asszociativitás |
+|----------|----------|-------------|---------------|
+| 1 | `()` `[]` `.` | Csoportosítás, tömbelérés, tagelérés | Balról jobbra |
+| 2 | `!` `-` (unáris) `~` | Logikai NOT, negálás, bitenkénti NOT | Jobbról balra |
+| 3 | `*` `/` `%` | Szorzás, osztás, modulo | Balról jobbra |
+| 4 | `+` `-` | Összeadás, kivonás | Balról jobbra |
+| 5 | `<<` `>>` | Bitenkénti eltolás | Balról jobbra |
+| 6 | `<` `<=` `>` `>=` | Relációs | Balról jobbra |
+| 7 | `==` `!=` | Egyenlőség | Balról jobbra |
+| 8 | `&` | Bitenkénti AND | Balról jobbra |
+| 9 | `^` | Bitenkénti XOR | Balról jobbra |
+| 10 | `\|` | Bitenkénti OR | Balról jobbra |
+| 11 | `&&` | Logikai AND | Balról jobbra |
+| 12 | `\|\|` | Logikai OR | Balról jobbra |
+| 13 | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | Értékadás | Jobbról balra |
+
+> **Tipp:** Ha bizonytalan vagy, használj zárójeleket. Az Enforce Script C-szerű prioritási szabályokat követ, de az explicit csoportosítás megelőzi a hibákat és javítja az olvashatóságot.
+
+---
+
+## Bevált gyakorlatok
+
+- Mindig explicit módon inicializáld a változókat deklaráláskor, még akkor is, ha az alapértelmezett érték megfelel a szándékodnak -- ez közvetíti a szándékot a jövőbeli olvasóknak.
+- Használd a `const` kulcsszót minden értékhez, amely soha nem változhat; helyezd a konstansokat fájl- vagy osztályszintre `UPPER_SNAKE_CASE` elnevezéssel.
+- Preferáld a `string.Format()`-ot a `+` összefűzés helyett típusok keverésekor -- elkerülöd az implicit konverziós problémákat és könnyebben olvasható.
+- Használj `vector.DistanceSq()`-t `vector.Distance()` helyett távolságok összehasonlításakor -- elkerülöd a költséges négyzetgyökvonást.
+- Soha ne hasonlíts floatokat `==`-vel; mindig használj epsilon toleranciát a `Math.AbsFloat(a - b) < 0.001` segítségével.
+
+---
+
+## Valós modokban megfigyelt minták
+
+> Professzionális DayZ mod forráskódok tanulmányozásával igazolt minták.
+
+| Minta | Mod | Részlet |
+|---------|-----|--------|
+| `const string LOG_PREFIX` osztályszinten | COT / Expansion | Minden modul definiál egy string konstanst a log-előtagokhoz, hogy elkerülje az elgépeléseket |
+| `m_PascalCase` tagnév-konvenció | VPP / Dabs Framework | Minden tagváltozó konzisztensen használja az `m_` előtagot, még primitív típusoknál is |
+| `string.Format` minden log-kimenethez | Expansion Market | Soha nem használ `+` összefűzést számokkal -- mindig `%1`..`%9` helyőrzőket |
+| `vector.Zero` a `"0 0 0"` literál helyett | COT Admin Tools | Elnevezett konstansokat használ az olvashatóság és a string-parseolási többletköltség elkerülése érdekében |
+
+---
+
+## Elmélet vs. gyakorlat
+
+| Fogalom | Elmélet | Valóság |
+|---------|--------|---------|
+| `auto` kulcsszó | Bármely típust ki kellene következtetnie | Egyszerű értékadásoknál működik, de összezavarhatja az olvasókat -- a legtöbb mod explicit módon deklarálja a típusokat |
+| `float`-ból `int`-be csonkítás | "Nulla felé kerekít" szerint dokumentálva | Szinte mindenkit elcsíp legalább egyszer; `3.99` `3` lesz, nem `4` |
+| `string` értéktípus | Másolatként kerül átadásra, mint az `int` | Meglepetés a C#/Java fejlesztőknek, akik referenciális szemantikát várnak; a másolat módosítása soha nem hat az eredetire |
+
+---
+
+## Gyakori hibák
+
+### 1. Nem inicializált változók használata logikában
+
+A primitív típusok alapértelmezett értékeket kapnak (`0`, `0.0`, `false`, `""`), de erre támaszkodni törékennyé és nehezen olvashatóvá teszi a kódot. Mindig explicit módon inicializálj.
 
 ```c
-// BAD: relying on implicit zero
+// ROSSZ: implicit nullára támaszkodás
 int count;
-if (count > 0)  // This works because count == 0, but intent is unclear
+if (count > 0)  // Ez működik, mert count == 0, de a szándék nem egyértelmű
     DoThing();
 
-// GOOD: explicit initialization
+// JÓ: explicit inicializálás
 int count = 0;
 if (count > 0)
     DoThing();
 ```
 
-### 2. Float-to-Int Truncation
+### 2. Float-ból int-be csonkítás
 
-Float-to-int conversion truncates (rounds toward zero), not rounds to nearest:
+A float-ból int-be konverzió csonkít (nulla felé kerekít), nem a legközelebbire kerekít:
 
 ```c
 float f = 3.99;
-int i = f;         // i == 3, NOT 4
+int i = f;         // i == 3, NEM 4
 
-// If you want rounding:
+// Ha kerekítést akarsz:
 int rounded = Math.Round(f);  // 4
 ```
 
-### 3. Float Precision in Comparisons
+### 3. Float pontosság összehasonlításoknál
 
-Never compare floats for exact equality:
+Soha ne hasonlíts floatokat pontos egyenlőségre:
 
 ```c
 float a = 0.1 + 0.2;
-// BAD: may fail due to floating-point representation
+// ROSSZ: sikertelen lehet a lebegőpontos ábrázolás miatt
 if (a == 0.3)
     Print("Equal");
 
-// GOOD: use a tolerance (epsilon)
+// JÓ: használj toleranciát (epsilon)
 if (Math.AbsFloat(a - 0.3) < 0.001)
     Print("Close enough");
 ```
 
-### 4. String Concatenation with Numbers
+### 4. String összefűzés számokkal
 
-You cannot simply concatenate a number onto a string with `+`. Use `string.Format()`:
+Nem lehet egyszerűen számot hozzáfűzni stringhez `+`-szal. Használd a `string.Format()`-ot:
 
 ```c
 int kills = 5;
-// Potentially problematic:
+// Potenciálisan problémás:
 // string msg = "Kills: " + kills;
 
-// CORRECT: use Format
+// HELYES: használd a Format-ot
 string msg = string.Format("Kills: %1", kills);
 ```
 
-### 5. Vector String Format
+### 5. Vektor string formátum
 
-Vector string initialization requires spaces, not commas:
+A vektor string inicializálás szóközöket igényel, nem vesszőket:
 
 ```c
-vector good = "100 25 200";     // CORRECT
-// vector bad = "100, 25, 200"; // WRONG: commas are not parsed correctly
-// vector bad2 = "100,25,200";  // WRONG
+vector good = "100 25 200";     // HELYES
+// vector bad = "100, 25, 200"; // HIBÁS: a vesszők nem parseolódnak helyesen
+// vector bad2 = "100,25,200";  // HIBÁS
 ```
 
-### 6. Forgetting that Strings and Vectors are Value Types
+### 6. Elfelejteni, hogy a stringek és vektorok értéktípusok
 
-Unlike class objects, strings and vectors are copied on assignment. Modifying a copy does not affect the original:
+Az osztályobjektumokkal ellentétben a stringek és vektorok másolódnak értékadáskor. A másolat módosítása nem hat az eredetire:
 
 ```c
 vector posA = "10 20 30";
-vector posB = posA;       // posB is a COPY
-posB[1] = 99;             // Only posB changes
-// posA is still "10 20 30"
+vector posB = posA;       // posB MÁSOLAT
+posB[1] = 99;             // Csak posB változik
+// posA továbbra is "10 20 30"
 ```
 
 ---
 
-## Gyakorlo feladatok
+## Gyakorló feladatok
 
-### Exercise 1: Variable Basics
-Declare variables to store:
-- A player's name (string)
-- Their health percentage (float, 0-100)
-- Their kill count (int)
-- Whether they are an admin (bool)
-- Their world position (vector)
+### 1. feladat: Változó alapok
+Deklarálj változókat a következők tárolásához:
+- Egy játékos neve (string)
+- Az egészségszázaléka (float, 0-100)
+- Az ölésszáma (int)
+- Adminisztrátor-e (bool)
+- A világbeli pozíciója (vector)
 
-Print a formatted summary using `string.Format()`.
+Nyomtass formázott összefoglalót `string.Format()` használatával.
 
-### Exercise 2: Temperature Converter
-Write a function `float CelsiusToFahrenheit(float celsius)` and its inverse `float FahrenheitToCelsius(float fahrenheit)`. Test with boiling point (100C = 212F) and freezing point (0C = 32F).
+### 2. feladat: Hőmérséklet-átváltó
+Írj egy `float CelsiusToFahrenheit(float celsius)` függvényt és az inverzét `float FahrenheitToCelsius(float fahrenheit)`. Teszteld a forrásponton (100C = 212F) és a fagyásponton (0C = 32F).
 
-### Exercise 3: Distance Calculator
-Write a function that takes two vectors and returns:
-- The 3D distance between them
-- The 2D distance (ignoring height/Y axis)
-- The height difference
+### 3. feladat: Távolságkalkulátor
+Írj egy függvényt, amely két vektort vesz és visszaadja:
+- A 3D távolságot közöttük
+- A 2D távolságot (a magasság / Y tengely figyelmen kívül hagyásával)
+- A magasságkülönbséget
 
-Hint: For 2D distance, create new vectors with `[1]` set to `0` before calculating distance.
+Tipp: A 2D távolsághoz hozz létre új vektorokat `[1]` értékkel `0`-ra állítva a távolság kiszámítása előtt.
 
-### Exercise 4: Type Juggling
-Given the string `"42"`, convert it to:
-1. An `int`
-2. A `float`
-3. Back to a `string` using `string.Format()`
-4. A `bool` (should be `true` since the int value is non-zero)
+### 4. feladat: Típus-zsonglőrözés
+A `"42"` string esetén konvertáld:
+1. `int`-re
+2. `float`-ra
+3. Vissza `string`-re `string.Format()` használatával
+4. `bool`-ra (legyen `true`, mivel az int érték nem nulla)
 
-### Exercise 5: Ground Position
-Write a function `vector SnapToGround(vector pos)` that takes any position and returns it with the Y component set to the terrain height at that X,Z location. Use `GetGame().SurfaceY()`.
+### 5. feladat: Talajpozíció
+Írj egy `vector SnapToGround(vector pos)` függvényt, amely bármely pozíciót vesz és visszaadja az Y komponenst a terep magasságára állítva az adott X, Z helyen. Használd a `GetGame().SurfaceY()`-t.
 
 ---
 
-## Osszefoglalas
+## Összefoglalás
 
 | Fogalom | Kulcspont |
 |---------|-----------|
-| Types | `int`, `float`, `bool`, `string`, `vector`, `typename`, `void` |
-| Defaults | `0`, `0.0`, `false`, `""`, `"0 0 0"`, `null` |
-| Constants | `const` keyword, `UPPER_SNAKE_CASE` convention |
-| Vectors | Init with `"x y z"` string or `Vector(x,y,z)`, access with `[0]`, `[1]`, `[2]` |
-| Scope | Variables scoped to `{}` blocks; no redeclaration in nested/sibling blocks |
-| Conversion | `float`-to-`int` truncates; use `.ToInt()`, `.ToFloat()`, `.ToVector()` for string parsing |
-| Formatting | Always use `string.Format()` for building strings from mixed types |
+| Típusok | `int`, `float`, `bool`, `string`, `vector`, `typename`, `void` |
+| Alapértékek | `0`, `0.0`, `false`, `""`, `"0 0 0"`, `null` |
+| Konstansok | `const` kulcsszó, `UPPER_SNAKE_CASE` konvenció |
+| Vektorok | Inicializálás `"x y z"` stringgel vagy `Vector(x,y,z)`-vel, elérés `[0]`, `[1]`, `[2]`-vel |
+| Hatókör | Változók `{}` blokkokra korlátozva; nincs újradeklarálás beágyazott/testvérblokkokban |
+| Konverzió | `float`-ból `int`-be csonkít; string parseoláshoz használd a `.ToInt()`, `.ToFloat()`, `.ToVector()` metódusokat |
+| Formázás | Mindig használd a `string.Format()`-ot vegyes típusokból álló stringek építéséhez |
 
 ---
 
-[Kezdolap](../../README.md) | **Valtozok es tipusok** | [Kovetkezo: Tombok, Map-ek es Set-ek >>](02-arrays-maps-sets.md)
+[Kezdőlap](../../README.md) | **Változók és típusok** | [Következő: Tömbök, Map-ek és Set-ek >>](02-arrays-maps-sets.md)

@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Enforce Script uses **automatic reference counting (ARC)** for memory management -- not garbage collection in the traditional sense. Understanding how `ref`, `autoptr`, and raw pointers work is essential for writing stable DayZ mods. Get it wrong and you will either leak memory (your server gradually consumes more RAM until it crashes) or access deleted objects (instant crash with no useful error message). This chapter explains every pointer type, when to use each, and how to avoid the most dangerous pitfall: reference cycles.
 
@@ -538,7 +538,7 @@ When `DestroyInstance()` is called:
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|

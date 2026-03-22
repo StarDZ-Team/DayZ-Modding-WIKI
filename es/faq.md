@@ -1,108 +1,108 @@
-# Frequently Asked Questions
+# Preguntas Frecuentes
 
-[Home](../README.md) | **FAQ**
+[Inicio](../README.md) | **FAQ**
 
 ---
 
 ## Primeros Pasos
 
-### P: What do I need to start modding DayZ?
-**R:** You need Steam, DayZ (retail copy), DayZ Tools (free on Steam under Tools), and a text editor (VS Code recommended). No programming experience is strictly required — start with [Chapter 8.1: Your First Mod](08-tutorials/01-first-mod.md). DayZ Tools includes Object Builder, Addon Builder, TexView2, and the Workbench IDE.
+### P: ¿Qué necesito para empezar a moddear DayZ?
+**R:** Necesitas Steam, DayZ (copia retail), DayZ Tools (gratis en Steam, en la sección Tools) y un editor de texto (se recomienda VS Code). No se requiere experiencia previa en programación -- comienza con el [Capítulo 8.1: Tu Primer Mod](08-tutorials/01-first-mod.md). DayZ Tools incluye Object Builder, Addon Builder, TexView2 y el IDE Workbench.
 
-### P: What programming language does DayZ use?
-**R:** DayZ uses **Enforce Script**, a proprietary language by Bohemia Interactive. It has C-like syntax similar to C#, but with its own rules and limitations (no ternary operator, no try/catch, no lambdas). See [Part 1: Enforce Script](01-enforce-script/01-variables-types.md) for a complete language guide.
+### P: ¿Qué lenguaje de programación usa DayZ?
+**R:** DayZ usa **Enforce Script**, un lenguaje propietario de Bohemia Interactive. Tiene una sintaxis similar a C#, pero con sus propias reglas y limitaciones (sin operador ternario, sin try/catch, sin lambdas). Consulta la [Parte 1: Enforce Script](01-enforce-script/01-variables-types.md) para una guía completa del lenguaje.
 
-### P: How do I set up the P: drive?
-**R:** Open DayZ Tools from Steam, click "Workdrive" or "Setup Workdrive" to mount the P: drive. This creates a virtual drive pointing to your modding workspace where the engine looks for source files during development. You can also use `subst P: "C:\Your\Path"` from the command line. Ver [Capitulo 4.5](04-file-formats/05-dayz-tools.md).
+### P: ¿Cómo configuro la unidad P:?
+**R:** Abre DayZ Tools desde Steam, haz clic en "Workdrive" o "Setup Workdrive" para montar la unidad P:. Esto crea una unidad virtual que apunta a tu espacio de trabajo de modding, donde el motor busca los archivos fuente durante el desarrollo. También puedes usar `subst P: "C:\Tu\Ruta"` desde la línea de comandos. Ver [Capítulo 4.5](04-file-formats/05-dayz-tools.md).
 
-### P: Can I test my mod without a dedicated server?
-**R:** Yes. Launch DayZ with the `-filePatching` parameter and your mod loaded. For quick testing, use a Listen Server (host from the in-game menu). For production testing, always verify on a dedicated server too, as some code paths differ. Ver [Capitulo 8.1](08-tutorials/01-first-mod.md).
+### P: ¿Puedo probar mi mod sin un servidor dedicado?
+**R:** Sí. Lanza DayZ con el parámetro `-filePatching` y tu mod cargado. Para pruebas rápidas, usa un Listen Server (aloja desde el menú del juego). Para pruebas de producción, verifica siempre también en un servidor dedicado, ya que algunas rutas de código difieren. Ver [Capítulo 8.1](08-tutorials/01-first-mod.md).
 
-### P: Where do I find vanilla DayZ script files to study?
-**R:** After mounting the P: drive via DayZ Tools, vanilla scripts are at `P:\DZ\scripts\` organized by layer (`3_Game`, `4_World`, `5_Mission`). These are the authoritative reference for every engine class, method, and event. Also see the [Cheat Sheet](cheatsheet.md) and [API Quick Reference](06-engine-api/quick-reference.md).
+### P: ¿Dónde encuentro los archivos de script vanilla de DayZ para estudiar?
+**R:** Después de montar la unidad P: mediante DayZ Tools, los scripts vanilla están en `P:\DZ\scripts\` organizados por capa (`3_Game`, `4_World`, `5_Mission`). Estos son la referencia definitiva para cada clase, método y evento del motor. Consulta también la [Hoja de Referencia](cheatsheet.md) y la [Referencia Rápida de API](06-engine-api/quick-reference.md).
 
 ---
 
 ## Errores Comunes y Soluciones
 
-### P: My mod loads but nothing happens. No errors in the log.
-**R:** Most likely your `config.cpp` has an incorrect `requiredAddons[]` entry, so your scripts load too early or not at all. Verify that each addon name in `requiredAddons` matches an existing `CfgPatches` class name exactly (case-sensitive). Check the script log at `%localappdata%/DayZ/` for silent warnings. Ver [Capitulo 2.2](02-mod-structure/02-config-cpp.md).
+### P: Mi mod carga pero no pasa nada. No hay errores en el log.
+**R:** Lo más probable es que tu `config.cpp` tenga una entrada incorrecta en `requiredAddons[]`, lo que hace que tus scripts se carguen demasiado pronto o no se carguen en absoluto. Verifica que cada nombre de addon en `requiredAddons` coincida exactamente con un nombre de clase `CfgPatches` existente (distingue mayúsculas y minúsculas). Revisa el log de scripts en `%localappdata%/DayZ/` para advertencias silenciosas. Ver [Capítulo 2.2](02-mod-structure/02-config-cpp.md).
 
-### P: I get "Cannot find variable" or "Undefined variable" errors.
-**R:** This usually means you are referencing a class or variable from a higher script layer. Lower layers (`3_Game`) cannot see types defined in higher layers (`4_World`, `5_Mission`). Move your class definition to the correct layer, or use `typename` reflection for loose coupling. Ver [Capitulo 2.1](02-mod-structure/01-five-layers.md).
+### P: Obtengo errores "Cannot find variable" o "Undefined variable".
+**R:** Esto generalmente significa que estás referenciando una clase o variable de una capa de scripts superior. Las capas inferiores (`3_Game`) no pueden ver tipos definidos en capas superiores (`4_World`, `5_Mission`). Mueve la definición de tu clase a la capa correcta, o usa reflexión con `typename` para un acoplamiento débil. Ver [Capítulo 2.1](02-mod-structure/01-five-layers.md).
 
-### P: Why does `JsonFileLoader<T>.JsonLoadFile()` not return my data?
-**R:** `JsonLoadFile()` retorna `void`, no el objeto cargado. You must pre-allocate your object and pass it as a reference parameter: `ref MyConfig cfg = new MyConfig(); JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);`. Assigning the return value silently gives you `null`. Ver [Capitulo 6.8](06-engine-api/08-file-io.md).
+### P: ¿Por qué `JsonFileLoader<T>.JsonLoadFile()` no devuelve mis datos?
+**R:** `JsonLoadFile()` devuelve `void`, no el objeto cargado. Debes pre-asignar tu objeto y pasarlo como parámetro de referencia: `ref MyConfig cfg = new MyConfig(); JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);`. Asignar el valor de retorno silenciosamente te da `null`. Ver [Capítulo 6.8](06-engine-api/08-file-io.md).
 
-### P: My RPC is sent but never received on the other side.
-**R:** Check these common causes: (1) The RPC ID does not match between sender and receiver. (2) You are sending from client but listening on client (or server-to-server). (3) You forgot to register the RPC handler in `OnRPC()` or your custom handler. (4) The target entity is `null` or not network-synced. Ver [Capitulo 6.9](06-engine-api/09-networking.md) and [Chapter 7.3](07-patterns/03-rpc-patterns.md).
+### P: Mi RPC se envía pero nunca se recibe en el otro lado.
+**R:** Verifica estas causas comunes: (1) El ID de RPC no coincide entre emisor y receptor. (2) Estás enviando desde el cliente pero escuchando en el cliente (o servidor a servidor). (3) Olvidaste registrar el handler de RPC en `OnRPC()` o en tu handler personalizado. (4) La entidad objetivo es `null` o no está sincronizada por red. Ver [Capítulo 6.9](06-engine-api/09-networking.md) y [Capítulo 7.3](07-patterns/03-rpc-patterns.md).
 
-### P: I get "Error: Member already defined" in an else-if block.
-**R:** Enforce Script does not allow variable redeclaration in sibling `else if` blocks within the same scope. Declare the variable once before the `if` chain, or use separate scopes with braces. Ver [Capitulo 1.12](01-enforce-script/12-gotchas.md).
+### P: Obtengo "Error: Member already defined" en un bloque else-if.
+**R:** Enforce Script no permite la redeclaración de variables en bloques `else if` hermanos dentro del mismo ámbito. Declara la variable una vez antes de la cadena `if`, o usa ámbitos separados con llaves. Ver [Capítulo 1.12](01-enforce-script/12-gotchas.md).
 
-### P: My UI layout shows nothing / widgets are invisible.
-**R:** Common causes: (1) Widget has zero size — check that width/height are set correctly (no negative values). (2) The widget is not `Show(true)`. (3) Text color alpha is 0 (fully transparent). (4) The layout path in `CreateWidgets()` is wrong (no error is thrown, it just returns `null`). Ver [Capitulo 3.3](03-gui-system/03-sizing-positioning.md).
+### P: Mi layout de UI no muestra nada / los widgets son invisibles.
+**R:** Causas comunes: (1) El widget tiene tamaño cero -- verifica que el ancho y alto estén configurados correctamente (sin valores negativos). (2) El widget no tiene `Show(true)`. (3) El alfa del color del texto es 0 (completamente transparente). (4) La ruta del layout en `CreateWidgets()` es incorrecta (no se lanza ningún error, simplemente devuelve `null`). Ver [Capítulo 3.3](03-gui-system/03-sizing-positioning.md).
 
-### P: My mod causes a crash on server startup.
-**R:** Check for: (1) Calling client-only methods (`GetGame().GetPlayer()`, UI code) on the server. (2) `null` reference in `OnInit` or `OnMissionStart` before the world is ready. (3) Infinite recursion in a `modded class` override that forgot to call `super`. Always add guard clauses since there is no try/catch. Ver [Capitulo 1.11](01-enforce-script/11-error-handling.md).
+### P: Mi mod causa un crash al iniciar el servidor.
+**R:** Verifica: (1) Llamadas a métodos exclusivos del cliente (`GetGame().GetPlayer()`, código de UI) en el servidor. (2) Referencia `null` en `OnInit` o `OnMissionStart` antes de que el mundo esté listo. (3) Recursión infinita en un override de `modded class` que olvidó llamar a `super`. Siempre agrega cláusulas de guarda ya que no hay try/catch. Ver [Capítulo 1.11](01-enforce-script/11-error-handling.md).
 
-### P: Backslash or quote characters in my strings cause parse errors.
-**R:** Enforce Script's parser (CParser) does not support `\\` or `\"` escape sequences in string literals. Avoid backslashes entirely. For file paths, use forward slashes (`"my/path/file.json"`). For quotes in strings, use single-quote characters or string concatenation. Ver [Capitulo 1.12](01-enforce-script/12-gotchas.md).
+### P: Los caracteres de barra invertida o comillas en mis strings causan errores de parseo.
+**R:** El parser de Enforce Script (CParser) no soporta secuencias de escape `\\` o `\"` en literales de string. Evita las barras invertidas por completo. Para rutas de archivos, usa barras normales (`"mi/ruta/archivo.json"`). Para comillas dentro de strings, usa comillas simples o concatenación de strings. Ver [Capítulo 1.12](01-enforce-script/12-gotchas.md).
 
 ---
 
 ## Decisiones de Arquitectura
 
-### P: What is the 5-layer script hierarchy and why does it matter?
-**R:** DayZ scripts compile in five numbered layers: `1_Core`, `2_GameLib`, `3_Game`, `4_World`, `5_Mission`. Each layer can only reference types from the same or lower-numbered layers. This enforces architectural boundaries — put shared enums and constants in `3_Game`, entity logic in `4_World`, and UI/mission hooks in `5_Mission`. Ver [Capitulo 2.1](02-mod-structure/01-five-layers.md).
+### P: ¿Qué es la jerarquía de 5 capas de scripts y por qué importa?
+**R:** Los scripts de DayZ se compilan en cinco capas numeradas: `1_Core`, `2_GameLib`, `3_Game`, `4_World`, `5_Mission`. Cada capa solo puede referenciar tipos de la misma capa o de capas con número inferior. Esto impone límites arquitectónicos -- coloca enums y constantes compartidas en `3_Game`, lógica de entidades en `4_World`, y hooks de UI/misión en `5_Mission`. Ver [Capítulo 2.1](02-mod-structure/01-five-layers.md).
 
-### P: Should I use `modded class` or create new classes?
-**R:** Use `modded class` when you need to change or extend existing vanilla behavior (adding a method to `PlayerBase`, hooking into `MissionServer`). Create new classes for self-contained systems that do not need to override anything. Modded classes chain automatically — always call `super` to avoid breaking other mods. Ver [Capitulo 1.4](01-enforce-script/04-modded-classes.md).
+### P: ¿Debo usar `modded class` o crear clases nuevas?
+**R:** Usa `modded class` cuando necesites cambiar o extender el comportamiento vanilla existente (agregar un método a `PlayerBase`, engancharte a `MissionServer`). Crea clases nuevas para sistemas autocontenidos que no necesiten sobreescribir nada. Las clases modded se encadenan automáticamente -- siempre llama a `super` para evitar romper otros mods. Ver [Capítulo 1.4](01-enforce-script/04-modded-classes.md).
 
-### P: How should I organize client vs. server code?
-**R:** Use `#ifdef SERVER` and `#ifdef CLIENT` preprocessor guards for code that must only run on one side. For larger mods, split into separate PBOs: a client mod (UI, rendering, local effects) and a server mod (spawning, logic, persistence). This prevents leaking server logic to clients. Ver [Capitulo 2.5](02-mod-structure/05-file-organization.md) and [Chapter 6.9](06-engine-api/09-networking.md).
+### P: ¿Cómo debo organizar el código de cliente vs. servidor?
+**R:** Usa las directivas de preprocesador `#ifdef SERVER` y `#ifdef CLIENT` para código que solo debe ejecutarse en un lado. Para mods más grandes, separa en PBOs distintos: un mod de cliente (UI, renderizado, efectos locales) y un mod de servidor (spawning, lógica, persistencia). Esto evita filtrar la lógica del servidor a los clientes. Ver [Capítulo 2.5](02-mod-structure/05-file-organization.md) y [Capítulo 6.9](06-engine-api/09-networking.md).
 
-### P: When should I use a Singleton vs. a Module/Plugin?
-**R:** Use a Module (registered with CF's `PluginManager` or your own module system) when you need lifecycle management (`OnInit`, `OnUpdate`, `OnMissionFinish`). Use a standalone Singleton for stateless utility services that just need global access. Modules are preferred for anything with state or cleanup needs. Ver [Capitulo 7.1](07-patterns/01-singletons.md) and [Chapter 7.2](07-patterns/02-module-systems.md).
+### P: ¿Cuándo debo usar un Singleton vs. un Module/Plugin?
+**R:** Usa un Module (registrado con el `PluginManager` de CF o tu propio sistema de módulos) cuando necesites gestión del ciclo de vida (`OnInit`, `OnUpdate`, `OnMissionFinish`). Usa un Singleton independiente para servicios utilitarios sin estado que solo necesiten acceso global. Los Modules son preferibles para cualquier cosa con estado o necesidades de limpieza. Ver [Capítulo 7.1](07-patterns/01-singletons.md) y [Capítulo 7.2](07-patterns/02-module-systems.md).
 
-### P: How do I safely store per-player data that survives server restarts?
-**R:** Save JSON files to the server's `$profile:` directory using `JsonFileLoader`. Use the player's Steam UID (from `PlayerIdentity.GetId()`) as the filename. Load on player connect, save on disconnect and periodically. Always handle missing/corrupted files gracefully with guard clauses. Ver [Capitulo 7.4](07-patterns/04-config-persistence.md) and [Chapter 6.8](06-engine-api/08-file-io.md).
+### P: ¿Cómo almaceno datos por jugador de forma segura que sobrevivan a reinicios del servidor?
+**R:** Guarda archivos JSON en el directorio `$profile:` del servidor usando `JsonFileLoader`. Usa el Steam UID del jugador (de `PlayerIdentity.GetId()`) como nombre de archivo. Carga al conectar el jugador, guarda al desconectar y periódicamente. Siempre maneja archivos faltantes o corruptos con cláusulas de guarda. Ver [Capítulo 7.4](07-patterns/04-config-persistence.md) y [Capítulo 6.8](06-engine-api/08-file-io.md).
 
 ---
 
-## Publicacion y Distribucion
+## Publicación y Distribución
 
-### P: How do I pack my mod into a PBO?
-**R:** Use Addon Builder (from DayZ Tools) or third-party tools like PBO Manager. Point it at your mod's source folder, set the correct prefix (matching your `config.cpp` addon prefix), and build. The output `.pbo` file goes into your mod's `Addons/` folder. Ver [Capitulo 4.6](04-file-formats/06-pbo-packing.md).
+### P: ¿Cómo empaqueto mi mod en un PBO?
+**R:** Usa Addon Builder (de DayZ Tools) o herramientas de terceros como PBO Manager. Apunta a la carpeta fuente de tu mod, establece el prefijo correcto (que coincida con el prefijo de addon de tu `config.cpp`) y compila. El archivo `.pbo` resultante va en la carpeta `Addons/` de tu mod. Ver [Capítulo 4.6](04-file-formats/06-pbo-packing.md).
 
-### P: How do I sign my mod for server use?
-**R:** Generate a keypair with DayZ Tools' DSSignFile or DSCreateKey: this produces a `.biprivatekey` and `.bikey`. Sign each PBO with the private key (creates `.bisign` files next to each PBO). Distribute the `.bikey` to server admins for their `keys/` folder. Never share your `.biprivatekey`. Ver [Capitulo 4.6](04-file-formats/06-pbo-packing.md).
+### P: ¿Cómo firmo mi mod para uso en servidores?
+**R:** Genera un par de claves con DSSignFile o DSCreateKey de DayZ Tools: esto produce un `.biprivatekey` y un `.bikey`. Firma cada PBO con la clave privada (crea archivos `.bisign` junto a cada PBO). Distribuye el `.bikey` a los administradores de servidor para su carpeta `keys/`. Nunca compartas tu `.biprivatekey`. Ver [Capítulo 4.6](04-file-formats/06-pbo-packing.md).
 
-### P: How do I publish to the Steam Workshop?
-**R:** Use the DayZ Tools Publisher or the Steam Workshop uploader. You need a `mod.cpp` file in your mod root defining the name, author, and description. The publisher uploads your packed PBOs, and Steam assigns a Workshop ID. Update by re-publishing from the same account. Ver [Capitulo 2.3](02-mod-structure/03-mod-cpp.md) and [Chapter 8.7](08-tutorials/07-publishing-workshop.md).
+### P: ¿Cómo publico en el Steam Workshop?
+**R:** Usa el Publisher de DayZ Tools o el cargador del Steam Workshop. Necesitas un archivo `mod.cpp` en la raíz de tu mod que defina el nombre, autor y descripción. El publisher sube tus PBOs empaquetados y Steam asigna un Workshop ID. Actualiza republicando desde la misma cuenta. Ver [Capítulo 2.3](02-mod-structure/03-mod-cpp.md) y [Capítulo 8.7](08-tutorials/07-publishing-workshop.md).
 
-### P: Can my mod require other mods as dependencies?
-**R:** Yes. In `config.cpp`, add the dependency mod's `CfgPatches` class name to your `requiredAddons[]` array. In `mod.cpp`, there is no formal dependency system — document required mods in your Workshop description. Players must subscribe to and load all required mods. Ver [Capitulo 2.2](02-mod-structure/02-config-cpp.md).
+### P: ¿Puede mi mod requerir otros mods como dependencias?
+**R:** Sí. En `config.cpp`, agrega el nombre de clase `CfgPatches` del mod dependencia a tu array `requiredAddons[]`. En `mod.cpp`, no hay un sistema formal de dependencias -- documenta los mods requeridos en la descripción de tu Workshop. Los jugadores deben suscribirse y cargar todos los mods requeridos. Ver [Capítulo 2.2](02-mod-structure/02-config-cpp.md).
 
 ---
 
 ## Temas Avanzados
 
-### P: How do I create custom player actions (interactions)?
-**R:** Extend `ActionBase` (or a subclass like `ActionInteractBase`), define `CreateConditionComponents()` for preconditions, override `OnStart`/`OnExecute`/`OnEnd` for logic, and register it in `SetActions()` on the target entity. Actions support continuous (hold) and instant (click) modes. Ver [Capitulo 6.12](06-engine-api/12-action-system.md).
+### P: ¿Cómo creo acciones de jugador personalizadas (interacciones)?
+**R:** Extiende `ActionBase` (o una subclase como `ActionInteractBase`), define `CreateConditionComponents()` para precondiciones, sobreescribe `OnStart`/`OnExecute`/`OnEnd` para la lógica, y regístrala en `SetActions()` en la entidad objetivo. Las acciones soportan modos continuo (mantener) e instantáneo (clic). Ver [Capítulo 6.12](06-engine-api/12-action-system.md).
 
-### P: How does the damage system work for custom items?
-**R:** Define a `DamageSystem` class in your item's config.cpp with `DamageZones` (named regions) and `ArmorType` values. Each zone tracks its own health. Override `EEHitBy()` and `EEKilled()` in script for custom damage reactions. The engine maps model Fire Geometry components to zone names. Ver [Capitulo 6.1](06-engine-api/01-entity-system.md).
+### P: ¿Cómo funciona el sistema de daño para items personalizados?
+**R:** Define una clase `DamageSystem` en el config.cpp de tu item con `DamageZones` (regiones nombradas) y valores de `ArmorType`. Cada zona rastrea su propia salud. Sobreescribe `EEHitBy()` y `EEKilled()` en el script para reacciones de daño personalizadas. El motor mapea los componentes de Fire Geometry del modelo a nombres de zona. Ver [Capítulo 6.1](06-engine-api/01-entity-system.md).
 
-### P: How can I add custom keybindings to my mod?
-**R:** Create an `inputs.xml` file defining your input actions with default key assignments. Register them in script via `GetUApi().RegisterInput()`. Query state with `GetUApi().GetInputByName("your_action").LocalPress()`. Add localized names in your `stringtable.csv`. Ver [Capitulo 5.2](05-config-files/02-inputs-xml.md) and [Chapter 6.13](06-engine-api/13-input-system.md).
+### P: ¿Cómo puedo agregar atajos de teclado personalizados a mi mod?
+**R:** Crea un archivo `inputs.xml` definiendo tus acciones de entrada con asignaciones de teclas por defecto. Regístralas en el script mediante `GetUApi().RegisterInput()`. Consulta el estado con `GetUApi().GetInputByName("tu_accion").LocalPress()`. Agrega nombres localizados en tu `stringtable.csv`. Ver [Capítulo 5.2](05-config-files/02-inputs-xml.md) y [Capítulo 6.13](06-engine-api/13-input-system.md).
 
-### P: How do I make my mod compatible with other mods?
-**R:** Follow these principles: (1) Always call `super` in modded class overrides. (2) Use unique class names with a mod prefix (e.g., `MyMod_Manager`). (3) Use unique RPC IDs. (4) Do not override vanilla methods without calling `super`. (5) Use `#ifdef` to detect optional dependencies. (6) Test with popular mod combinations (CF, Expansion, etc.). Ver [Capitulo 7.2](07-patterns/02-module-systems.md).
+### P: ¿Cómo hago que mi mod sea compatible con otros mods?
+**R:** Sigue estos principios: (1) Siempre llama a `super` en overrides de modded class. (2) Usa nombres de clase únicos con un prefijo de mod (ej. `MiMod_Manager`). (3) Usa IDs de RPC únicos. (4) No sobreescribas métodos vanilla sin llamar a `super`. (5) Usa `#ifdef` para detectar dependencias opcionales. (6) Prueba con combinaciones de mods populares (CF, Expansion, etc.). Ver [Capítulo 7.2](07-patterns/02-module-systems.md).
 
-### P: How do I optimize my mod for server performance?
-**R:** Key strategies: (1) Avoid per-frame (`OnUpdate`) logic — use timers or event-driven design. (2) Cache references instead of calling `GetGame().GetPlayer()` repeatedly. (3) Use `GetGame().IsServer()` / `GetGame().IsClient()` guards to skip unnecessary code. (4) Profile with `int start = TickCount(0);` benchmarks. (5) Limit network traffic — batch RPCs and use Net Sync Variables for frequent small updates. Ver [Capitulo 7.7](07-patterns/07-performance.md).
+### P: ¿Cómo optimizo mi mod para el rendimiento del servidor?
+**R:** Estrategias clave: (1) Evita lógica por frame (`OnUpdate`) -- usa temporizadores o diseño basado en eventos. (2) Cachea referencias en lugar de llamar a `GetGame().GetPlayer()` repetidamente. (3) Usa guardas `GetGame().IsServer()` / `GetGame().IsClient()` para saltar código innecesario. (4) Perfila con benchmarks `int start = TickCount(0);`. (5) Limita el tráfico de red -- agrupa RPCs y usa Net Sync Variables para actualizaciones pequeñas frecuentes. Ver [Capítulo 7.7](07-patterns/07-performance.md).
 
 ---
 
-*Tienes una pregunta que no se cubre aqui? Abre un issue en el repositorio.*
+*¿Tienes una pregunta que no se cubre aquí? Abre un issue en el repositorio.*

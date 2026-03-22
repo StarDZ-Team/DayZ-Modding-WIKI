@@ -334,7 +334,7 @@ When a widget is not appearing where you expect:
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 - [3.4 Container Widgets](04-containers.md) -- How spacers and scroll widgets handle layout automatically
 - [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Setting size and position from code

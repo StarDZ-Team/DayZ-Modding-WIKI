@@ -28,7 +28,7 @@
 
 ---
 
-## Ueberblick
+## Überblick
 
 A "Hello World" mod proves the toolchain works. A professional mod needs much more:
 
@@ -1777,7 +1777,7 @@ text "#STR_MYMOD_BOUNTY_PLACED"
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 With this professional template running, you can:
 

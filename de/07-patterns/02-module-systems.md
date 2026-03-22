@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Every serious DayZ mod framework uses a module or plugin system to organize code into self-contained units with defined lifecycle hooks. Rather than scattering initialization logic across modded mission classes, modules register themselves with a central manager that dispatches lifecycle events --- `OnInit`, `OnMissionStart`, `OnUpdate`, `OnMissionFinish` --- to each module in a predictable order.
 
@@ -535,4 +535,4 @@ Choose the approach that matches your mod's dependency profile. If you already d
 
 ---
 
-[<< Zurueck: Singleton Pattern](01-singletons.md) | [Startseite](../../README.md) | [Next: RPC Patterns >>](03-rpc-patterns.md)
+[<< Zurück: Singleton Pattern](01-singletons.md) | [Startseite](../../README.md) | [Next: RPC Patterns >>](03-rpc-patterns.md)

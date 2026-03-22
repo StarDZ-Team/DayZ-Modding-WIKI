@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Buildings in DayZ are more than static scenery. Players interact with them constantly -- opening doors, climbing ladders, taking cover behind walls. Creating a custom building that supports these interactions requires careful model setup: doors need rotation axes and named selections across multiple LODs, ladders need precisely placed climbing paths defined entirely through Memory LOD vertices.
 
@@ -64,7 +64,7 @@ A door in the P3D model must include the following:
 
 #### Recommended Door Dimensions
 
-Almost all doors in Vanilla DayZ are **120 x 220 cm** (width x height). Using these standard dimensions ensures animations look correct and characters fit through openings naturally. Model your doors **closed standardmaessig** and animate them to the open position -- Bohemia plans to support doors opening in both directions in the future.
+Almost all doors in Vanilla DayZ are **120 x 220 cm** (width x height). Using these standard dimensions ensures animations look correct and characters fit through openings naturally. Model your doors **closed standardmäßig** and animate them to the open position -- Bohemia plans to support doors opening in both directions in the future.
 
 ### model.cfg -- Skeletons and Animations
 
@@ -341,7 +341,7 @@ For doors that slide along a track rather than swinging (such as barn doors or s
 
 ### Bounding Sphere Issues
 
-Standardmaessig, a model's bounding sphere is sized to contain the entire object. When doors are modeled in the closed position, the open position may extend **outside** this bounding sphere. This causes problems:
+Standardmäßig, a model's bounding sphere is sized to contain the entire object. When doors are modeled in the closed position, the open position may extend **outside** this bounding sphere. This causes problems:
 
 - **Actions stop working** -- ray-casting for door interactions fails from certain angles.
 - **Ballistics ignore the door** -- bullets pass through geometry that lies outside the bounding sphere.
@@ -441,9 +441,9 @@ A critical requirement is that **named selections muss consistent across all LOD
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
-1. **Model doors closed standardmaessig.** Animate from closed to open. Bohemia plans to support opening doors in both directions, so starting from closed is future-proof.
+1. **Model doors closed standardmäßig.** Animate from closed to open. Bohemia plans to support opening doors in both directions, so starting from closed is future-proof.
 
 2. **Use standard door dimensions.** Stick to 120 x 220 cm for door openings unless you have a specific design reason not to. This matches vanilla buildings and ensures character animations look correct.
 
@@ -465,7 +465,7 @@ A critical requirement is that **named selections muss consistent across all LOD
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### Doors
 
@@ -504,6 +504,6 @@ A critical requirement is that **named selections muss consistent across all LOD
 
 ## Navigation
 
-| Vorheriges | Up | Naechstes |
+| Vorheriges | Up | Nächstes |
 |----------|----|------|
 | [4.7 Workbench Guide](07-workbench-guide.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | -- |

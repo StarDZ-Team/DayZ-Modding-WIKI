@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ uses a state-machine-driven animation system built into the Enfusion engine. Player animations are controlled by a hierarchy of `HumanCommand` classes -- movement, actions, climbing, swimming, vehicles, falling, death, and unconsciousness each have their own dedicated command. Object animations (doors, lids, deployables) are driven through `model.cfg` AnimationSources and controlled from script via `SetAnimationPhase()`.
 
@@ -392,8 +392,8 @@ class EmoteDance extends EmoteBase
 
 Emotes have two playback modes, selected automatisch by `EmoteManager.DetermineEmoteData()`:
 
-- **Additive (modifier):** Overlaid on top of locomotion. Player can still move. Uses `AddCommandModifier_Action()`. Ausgeloest wenn der Spieler is in a stance matching `m_StanceMaskAdditive`.
-- **Full-body:** Takes over the entire animation state. Player cannot move. Uses `StartCommand_Action()`. Ausgeloest wenn der Spieler is in a stance matching `m_StanceMaskFullbody`.
+- **Additive (modifier):** Overlaid on top of locomotion. Player can still move. Uses `AddCommandModifier_Action()`. Ausgelöst wenn der Spieler is in a stance matching `m_StanceMaskAdditive`.
+- **Full-body:** Takes over the entire animation state. Player cannot move. Uses `StartCommand_Action()`. Ausgelöst wenn der Spieler is in a stance matching `m_StanceMaskFullbody`.
 
 The `CMD_GESTUREMOD_*` constants map to additive versions; `CMD_GESTUREFB_*` constants map to full-body versions.
 
@@ -548,7 +548,7 @@ class CfgModels
 | `door` | Driven by door opening system |
 | `reload` | Weapon reload cycle |
 
-For modding, `user` is am haeufigsten. You control it from Enforce Script.
+For modding, `user` is am häufigsten. You control it from Enforce Script.
 
 ### Animation Types in model.cfg
 
@@ -989,7 +989,7 @@ else if (player.GetCommand_Action())
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 1. **Always null-check command getters.** `GetCommand_Move()` returns `null` when der Spieler ist nicht in the move command. Every command getter can return null.
 
@@ -1027,7 +1027,7 @@ else if (player.GetCommand_Action())
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 1. **Checking the wrong command.** Calling `GetCommand_Move()` while der Spieler is in a vehicle returns `null`. Always check `GetCurrentCommandID()` first or null-check the result.
 

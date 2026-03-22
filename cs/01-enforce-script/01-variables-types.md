@@ -1,62 +1,96 @@
-# Chapter 1.1: Variables & Types
+# Kapitola 1.1: Proměnné a typy
 
-[Home](../../README.md) | **Variables & Types** | [Next: Arrays, Maps & Sets >>](02-arrays-maps-sets.md)
+[Domů](../../README.md) | **Proměnné a typy** | [Další: Pole, mapy a množiny >>](02-arrays-maps-sets.md)
 
 ---
 
-## Introduction
+## Úvod
 
-Enforce Script is the scripting language of the Enfusion engine, used by DayZ Standalone. It is an object-oriented language with C-like syntax, similar to C# in many respects but with its own distinct set of types, rules, and limitations. If you have experience with C#, Java, or C++, you will feel at home quickly --- but pay close attention to the differences, because the places where Enforce Script diverges from those languages are exactly the places where bugs hide.
+Enforce Script je skriptovací jazyk enginu Enfusion, který používá DayZ Standalone. Jedná se o objektově orientovaný jazyk se syntaxí podobnou jazyku C, v mnoha ohledech podobný C#, ale s vlastní sadou typů, pravidel a omezení. Pokud máte zkušenosti s C#, Javou nebo C++, budete se rychle cítit jako doma --- ale věnujte pozornost rozdílům, protože právě tam, kde se Enforce Script od těchto jazyků odchyluje, se skrývají chyby.
 
-This chapter covers the fundamental building blocks: primitive types, how to declare and initialize variables, and how type conversion works. Every line of DayZ mod code starts here.
+Tato kapitola pokrývá základní stavební kameny: primitivní typy, jak deklarovat a inicializovat proměnné a jak funguje konverze typů. Každý řádek kódu DayZ modu začíná právě zde.
 
 ---
 
 ## Primitivní typy
 
-Enforce Script has a small, fixed set of primitive types. You cannot define new value types --- only classes (covered in [Chapter 1.3](03-classes-inheritance.md)).
+Enforce Script má malou, pevnou sadu primitivních typů. Nemůžete definovat nové hodnotové typy --- pouze třídy (viz [Kapitola 1.3](03-classes-inheritance.md)).
 
 | Typ | Velikost | Výchozí hodnota | Popis |
 |------|------|---------------|-------------|
-| `int` | 32-bit signed | `0` | Celá čísla od -2,147,483,648 to 2,147,483,647 |
-| `float` | 32-bit IEEE 754 | `0.0` | Čísla s plovoucí řádovou čárkou |
-| `bool` | 1 bit logical | `false` | `true` or `false` |
-| `string` | Variable | `""` (empty) | Text. Neměnný hodnotový typ --- předávaný hodnotou, ne referencí |
+| `int` | 32bitový se znaménkem | `0` | Celá čísla od -2 147 483 648 do 2 147 483 647 |
+| `float` | 32bitový IEEE 754 | `0.0` | Čísla s plovoucí řádovou čárkou |
+| `bool` | 1 bit logický | `false` | `true` nebo `false` |
+| `string` | Proměnlivá | `""` (prázdný) | Text. Neměnný hodnotový typ --- předávaný hodnotou, ne referencí |
 | `vector` | 3x float | `"0 0 0"` | Tříkomponentový float (x, y, z). Předávaný hodnotou |
-| `typename` | Engine ref | `null` | Reference na samotný typ, používaná pro reflexi |
-| `void` | N/A | N/A | Používán pouze jako návratový typ k označení "nic nevrací" |
+| `typename` | Reference enginu | `null` | Reference na samotný typ, používaná pro reflexi |
+| `void` | N/A | N/A | Používán pouze jako návratový typ k označení "nevrací nic" |
+
+### Diagram hierarchie typů
+
+```mermaid
+graph TD
+    subgraph "Hodnotové typy (předávané kopií)"
+        INT[int<br/>32bitový se znaménkem]
+        FLOAT[float<br/>32bitový IEEE 754]
+        BOOL[bool<br/>true / false]
+        STRING[string<br/>neměnný text]
+        VECTOR[vector<br/>3x float xyz]
+    end
+
+    subgraph "Referenční typy (předávané referencí)"
+        CLASS[Class<br/>kořen všech ref typů]
+        MANAGED[Managed<br/>bez počítání referencí enginem]
+        TYPENAME[typename<br/>reflexe typů]
+    end
+
+    CLASS --> MANAGED
+    CLASS --> ENTITYAI[EntityAI]
+    ENTITYAI --> ITEMBASE[ItemBase]
+    ENTITYAI --> MANBASE[ManBase / PlayerBase]
+    MANAGED --> SCRIPTHANDLER[ScriptedWidgetEventHandler]
+    MANAGED --> CUSTOMCLASS[Vaše vlastní třídy]
+
+    style INT fill:#4A90D9,color:#fff
+    style FLOAT fill:#4A90D9,color:#fff
+    style BOOL fill:#4A90D9,color:#fff
+    style STRING fill:#4A90D9,color:#fff
+    style VECTOR fill:#4A90D9,color:#fff
+    style CLASS fill:#D94A4A,color:#fff
+    style MANAGED fill:#D97A4A,color:#fff
+```
 
 ### Typové konstanty
 
 Některé typy nabízejí užitečné konstanty:
 
 ```c
-// int bounds
+// hranice int
 int maxInt = int.MAX;    // 2147483647
 int minInt = int.MIN;    // -2147483648
 
-// float bounds
-float smallest = float.MIN;     // smallest positive float (~1.175e-38)
-float largest  = float.MAX;     // largest float (~3.403e+38)
-float lowest   = float.LOWEST;  // most negative float (-3.403e+38)
+// hranice float
+float smallest = float.MIN;     // nejmenší kladný float (~1.175e-38)
+float largest  = float.MAX;     // největší float (~3.403e+38)
+float lowest   = float.LOWEST;  // nejzápornější float (-3.403e+38)
 ```
 
 ---
 
 ## Deklarace proměnných
 
-Variables are declared by writing the type followed by the name. You can declare and assign in one statement or separately.
+Proměnné se deklarují uvedením typu následovaného názvem. Můžete deklarovat a přiřadit v jednom příkazu nebo odděleně.
 
 ```c
 void MyFunction()
 {
-    // Declaration only (initialized to default value)
+    // Pouze deklarace (inicializováno na výchozí hodnotu)
     int health;          // health == 0
     float speed;         // speed == 0.0
     bool isAlive;        // isAlive == false
     string name;         // name == ""
 
-    // Declaration with initialization
+    // Deklarace s inicializací
     int maxPlayers = 60;
     float gravity = 9.81;
     bool debugMode = true;
@@ -66,7 +100,7 @@ void MyFunction()
 
 ### Klíčové slovo `auto`
 
-When the type is obvious from the right-hand side, you can use `auto` to let the compiler infer it:
+Když je typ zřejmý z pravé strany výrazu, můžete použít `auto`, aby kompilátor typ odvodil:
 
 ```c
 void Example()
@@ -74,7 +108,7 @@ void Example()
     auto count = 10;           // int
     auto ratio = 0.75;         // float
     auto label = "Hello";      // string
-    auto player = GetGame().GetPlayer();  // DayZPlayer (or whatever GetPlayer returns)
+    auto player = GetGame().GetPlayer();  // DayZPlayer (nebo cokoliv GetPlayer vrátí)
 }
 ```
 
@@ -82,7 +116,7 @@ Toto je čistě pro pohodlí --- kompilátor vyhodnotí typ při kompilaci. Neex
 
 ### Konstanty
 
-Use the `const` keyword for values that should never change after initialization:
+Použijte klíčové slovo `const` pro hodnoty, které by se po inicializaci nikdy neměly měnit:
 
 ```c
 const int MAX_SQUAD_SIZE = 8;
@@ -91,18 +125,18 @@ const string MOD_PREFIX = "[MyMod]";
 
 void Example()
 {
-    int a = MAX_SQUAD_SIZE;  // OK: reading a constant
-    MAX_SQUAD_SIZE = 10;     // ERROR: cannot assign to a constant
+    int a = MAX_SQUAD_SIZE;  // OK: čtení konstanty
+    MAX_SQUAD_SIZE = 10;     // CHYBA: nelze přiřadit konstantě
 }
 ```
 
-Constants are typically declared at file scope (outside any function) or as class members. Konvence pojmenování: `UPPER_SNAKE_CASE`.
+Konstanty se obvykle deklarují na úrovni souboru (mimo jakoukoli funkci) nebo jako členy třídy. Konvence pojmenování: `UPPER_SNAKE_CASE`.
 
 ---
 
 ## Práce s `int`
 
-Integers are the workhorse type. DayZ uses them for item counts, player IDs, health values (when discretized), enum values, bitflags, and more.
+Celá čísla jsou nejpoužívanějším typem. DayZ je používá pro počty předmětů, ID hráčů, hodnoty zdraví (při diskretizaci), hodnoty výčtů, bitové příznaky a další.
 
 ```c
 void IntExamples()
@@ -112,28 +146,28 @@ void IntExamples()
     int doubled = count * 2;    // 10
     int remainder = 17 % 5;     // 2 (modulo)
 
-    // Increment and decrement
-    count++;    // count is now 6
-    count--;    // count is now 5 again
+    // Inkrementace a dekrementace
+    count++;    // count je nyní 6
+    count--;    // count je opět 5
 
-    // Compound assignment
-    count += 3;  // count is now 8
-    count -= 2;  // count is now 6
-    count *= 4;  // count is now 24
-    count /= 6;  // count is now 4
+    // Složené přiřazení
+    count += 3;  // count je nyní 8
+    count -= 2;  // count je nyní 6
+    count *= 4;  // count je nyní 24
+    count /= 6;  // count je nyní 4
 
-    // Integer division truncates (no rounding)
-    int result = 7 / 2;    // result == 3, not 3.5
+    // Celočíselné dělení ořezává (nezaokrouhluje)
+    int result = 7 / 2;    // result == 3, ne 3.5
 
-    // Bitwise operations (used for flags)
+    // Bitové operace (používané pro příznaky)
     int flags = 0;
-    flags = flags | 0x01;   // set bit 0
-    flags = flags | 0x04;   // set bit 2
+    flags = flags | 0x01;   // nastavit bit 0
+    flags = flags | 0x04;   // nastavit bit 2
     bool hasBit0 = (flags & 0x01) != 0;  // true
 }
 ```
 
-### Příklad z praxe: Player Count
+### Příklad z praxe: Počet hráčů
 
 ```c
 void PrintPlayerCount()
@@ -149,7 +183,7 @@ void PrintPlayerCount()
 
 ## Práce s `float`
 
-Floats represent decimal numbers. DayZ uses them extensively for positions, distances, health percentages, damage values, and timers.
+Čísla s plovoucí řádovou čárkou představují desetinná čísla. DayZ je hojně používá pro pozice, vzdálenosti, procenta zdraví, hodnoty poškození a časovače.
 
 ```c
 void FloatExamples()
@@ -158,14 +192,14 @@ void FloatExamples()
     float damage = 25.5;
     float remaining = health - damage;   // 74.5
 
-    // DayZ-specific: damage multiplier
+    // Specifické pro DayZ: násobitel poškození
     float headMultiplier = 3.0;
     float actualDamage = damage * headMultiplier;  // 76.5
 
-    // Float division gives decimal results
+    // Dělení floatů dává desetinné výsledky
     float ratio = 7.0 / 2.0;   // 3.5
 
-    // Useful math
+    // Užitečná matematika
     float dist = 150.7;
     float rounded = Math.Round(dist);    // 151
     float floored = Math.Floor(dist);    // 150
@@ -174,7 +208,7 @@ void FloatExamples()
 }
 ```
 
-### Příklad z praxe: Distance Check
+### Příklad z praxe: Kontrola vzdálenosti
 
 ```c
 bool IsPlayerNearby(PlayerBase player, vector targetPos, float radius)
@@ -192,7 +226,7 @@ bool IsPlayerNearby(PlayerBase player, vector targetPos, float radius)
 
 ## Práce s `bool`
 
-Booleovskýs hold `true` or `false`. They are used in conditions, flags, and state tracking.
+Booleovské proměnné obsahují `true` nebo `false`. Používají se v podmínkách, příznacích a sledování stavů.
 
 ```c
 void BoolExamples()
@@ -200,14 +234,14 @@ void BoolExamples()
     bool isAdmin = true;
     bool isBanned = false;
 
-    // Logical operators
+    // Logické operátory
     bool canPlay = isAdmin || !isBanned;    // true (OR, NOT)
     bool isSpecial = isAdmin && !isBanned;  // true (AND)
 
-    // Negation
+    // Negace
     bool notAdmin = !isAdmin;   // false
 
-    // Comparison results are bool
+    // Výsledky porovnání jsou bool
     int health = 50;
     bool isLow = health < 25;       // false
     bool isHurt = health < 100;     // true
@@ -218,25 +252,25 @@ void BoolExamples()
 
 ### Pravdivost v podmínkách
 
-In Enforce Script, you can use non-bool values in conditions. The following are considered `false`:
+V Enforce Scriptu můžete v podmínkách používat i hodnoty, které nejsou typu bool. Následující jsou považovány za `false`:
 - `0` (int)
 - `0.0` (float)
-- `""` (empty string)
-- `null` (null object reference)
+- `""` (prázdný řetězec)
+- `null` (nulová reference na objekt)
 
-Everything else is `true`. This is commonly used for null checks:
+Vše ostatní je `true`. To se běžně používá pro kontrolu null:
 
 ```c
 void SafeCheck(PlayerBase player)
 {
-    // These two are equivalent:
+    // Tyto dva zápisy jsou ekvivalentní:
     if (player != null)
         Print("Player exists");
 
     if (player)
         Print("Player exists");
 
-    // And these two:
+    // A tyto dva také:
     if (player == null)
         Print("No player");
 
@@ -249,7 +283,7 @@ void SafeCheck(PlayerBase player)
 
 ## Práce s `string`
 
-Strings in Enforce Script are **value types** --- they are copied when assigned or passed to functions, just like `int` or `float`. This is different from C# or Java where strings are reference types.
+Řetězce v Enforce Scriptu jsou **hodnotové typy** --- jsou kopírovány při přiřazení nebo předání do funkce, stejně jako `int` nebo `float`. To se liší od C# nebo Javy, kde jsou řetězce referenčními typy.
 
 ```c
 void StringExamples()
@@ -257,31 +291,31 @@ void StringExamples()
     string greeting = "Hello";
     string name = "Survivor";
 
-    // Concatenation with +
+    // Zřetězení pomocí +
     string message = greeting + ", " + name + "!";  // "Hello, Survivor!"
 
-    // String formatting (1-indexed placeholders)
+    // Formátování řetězců (zástupné znaky indexované od 1)
     string formatted = string.Format("Player %1 has %2 health", name, 75);
-    // Result: "Player Survivor has 75 health"
+    // Výsledek: "Player Survivor has 75 health"
 
-    // Length
+    // Délka
     int len = message.Length();    // 17
 
-    // Comparison
+    // Porovnání
     bool same = (greeting == "Hello");  // true
 
-    // Conversion from other types
-    string fromInt = "Score: " + 42;     // does NOT work -- must convert explicitly
+    // Konverze z jiných typů
+    string fromInt = "Score: " + 42;     // NEFUNGUJE -- je nutné explicitně převést
     string correct = "Score: " + 42.ToString();  // "Score: 42"
 
-    // Using Format is the preferred approach
+    // Použití Format je preferovaný přístup
     string best = string.Format("Score: %1", 42);  // "Score: 42"
 }
 ```
 
 ### Escape sekvence
 
-Strings support standard escape sequences:
+Řetězce podporují standardní escape sekvence:
 
 | Sekvence | Význam |
 |----------|---------|
@@ -291,9 +325,9 @@ Strings support standard escape sequences:
 | `\\` | Literální zpětné lomítko |
 | `\"` | Literální uvozovka |
 
-**Warning:** While these are documented, backslash (`\\`) and escaped quotes (`\"`) are known to cause issues with the CParser in some contexts, especially in JSON-related operations. When working with file paths or JSON strings, avoid backslashes when possible. Use forward slashes for paths --- DayZ accepts them on all platforms.
+**Varování:** Ačkoli jsou tyto sekvence zdokumentovány, zpětné lomítko (`\\`) a escapované uvozovky (`\"`) jsou známy tím, že v některých kontextech způsobují problémy s CParserem, zejména při operacích souvisejících s JSON. Při práci s cestami k souborům nebo řetězci JSON se zpětným lomítkům pokud možno vyhněte. Pro cesty používejte lomítka --- DayZ je akceptuje na všech platformách.
 
-### Příklad z praxe: Chat Message
+### Příklad z praxe: Zpráva v chatu
 
 ```c
 void SendAdminMessage(string adminName, string text)
@@ -307,51 +341,51 @@ void SendAdminMessage(string adminName, string text)
 
 ## Práce s `vector`
 
-The `vector` type holds three `float` components (x, y, z). It is DayZ's fundamental type for positions, directions, rotations, and velocities. Like strings and primitives, vectors are **value types** --- they are copied on assignment.
+Typ `vector` obsahuje tři `float` komponenty (x, y, z). Je to základní typ DayZ pro pozice, směry, rotace a rychlosti. Stejně jako řetězce a primitivní typy jsou vektory **hodnotové typy** --- jsou kopírovány při přiřazení.
 
 ### Inicializace
 
-Vectors can be initialized in two ways:
+Vektory lze inicializovat dvěma způsoby:
 
 ```c
 void VectorInit()
 {
-    // Method 1: String initialization (three space-separated numbers)
+    // Způsob 1: Inicializace řetězcem (tři čísla oddělená mezerami)
     vector pos1 = "100.5 0 200.3";
 
-    // Method 2: Vector() constructor function
+    // Způsob 2: Konstruktorová funkce Vector()
     vector pos2 = Vector(100.5, 0, 200.3);
 
-    // Default value is "0 0 0"
+    // Výchozí hodnota je "0 0 0"
     vector empty;   // empty == <0, 0, 0>
 }
 ```
 
-**Important:** The string initialization format uses **spaces** as separators, not commas. `"1 2 3"` is valid; `"1,2,3"` is not.
+**Důležité:** Formát inicializace řetězcem používá jako oddělovače **mezery**, ne čárky. `"1 2 3"` je platný; `"1,2,3"` ne.
 
 ### Přístup ke komponentám
 
-Access individual components using array-style indexing:
+K jednotlivým komponentám se přistupuje pomocí indexování ve stylu pole:
 
 ```c
 void VectorComponents()
 {
     vector pos = Vector(100.5, 25.0, 200.3);
 
-    // Reading components
-    float x = pos[0];   // 100.5  (East/West)
-    float y = pos[1];   // 25.0   (Up/Down, altitude)
-    float z = pos[2];   // 200.3  (North/South)
+    // Čtení komponent
+    float x = pos[0];   // 100.5  (Východ/Západ)
+    float y = pos[1];   // 25.0   (Nahoru/Dolů, nadmořská výška)
+    float z = pos[2];   // 200.3  (Sever/Jih)
 
-    // Writing components
-    pos[1] = 50.0;      // Change altitude to 50
+    // Zápis komponent
+    pos[1] = 50.0;      // Změnit nadmořskou výšku na 50
 }
 ```
 
-DayZ coordinate system:
-- `[0]` = X = East(+) / West(-)
-- `[1]` = Y = Up(+) / Down(-) (altitude above sea level)
-- `[2]` = Z = North(+) / South(-)
+Souřadnicový systém DayZ:
+- `[0]` = X = Východ(+) / Západ(-)
+- `[1]` = Y = Nahoru(+) / Dolů(-) (nadmořská výška)
+- `[2]` = Z = Sever(+) / Jih(-)
 
 ### Statické konstanty
 
@@ -370,41 +404,41 @@ void VectorOps()
     vector pos1 = Vector(100, 0, 200);
     vector pos2 = Vector(150, 0, 250);
 
-    // Distance between two points
+    // Vzdálenost mezi dvěma body
     float dist = vector.Distance(pos1, pos2);
 
-    // Squared distance (faster, good for comparisons)
+    // Kvadrát vzdálenosti (rychlejší, vhodný pro porovnání)
     float distSq = vector.DistanceSq(pos1, pos2);
 
-    // Direction from pos1 to pos2
+    // Směr z pos1 do pos2
     vector dir = vector.Direction(pos1, pos2);
 
-    // Normalize a vector (make length = 1)
+    // Normalizace vektoru (délka = 1)
     vector norm = dir.Normalized();
 
-    // Length of a vector
+    // Délka vektoru
     float len = dir.Length();
 
-    // Linear interpolation (50% between pos1 and pos2)
+    // Lineární interpolace (50 % mezi pos1 a pos2)
     vector midpoint = vector.Lerp(pos1, pos2, 0.5);
 
-    // Dot product
+    // Skalární součin
     float dot = vector.Dot(dir, vector.Up);
 }
 ```
 
-### Příklad z praxe: Spawn Position
+### Příklad z praxe: Pozice spawnu
 
 ```c
-// Get a position on the ground at given X,Z coordinates
+// Získat pozici na zemi na daných souřadnicích X, Z
 vector GetGroundPosition(float x, float z)
 {
     vector pos = Vector(x, 0, z);
-    pos[1] = GetGame().SurfaceY(x, z);  // Set Y to terrain height
+    pos[1] = GetGame().SurfaceY(x, z);  // Nastavit Y na výšku terénu
     return pos;
 }
 
-// Get a random position within a radius of a center point
+// Získat náhodnou pozici v okruhu od středového bodu
 vector GetRandomPositionAround(vector center, float radius)
 {
     float angle = Math.RandomFloat(0, Math.PI2);
@@ -421,33 +455,33 @@ vector GetRandomPositionAround(vector center, float radius)
 
 ## Práce s `typename`
 
-The `typename` type holds a reference to a type itself. It is used for reflection --- inspecting and working with types at runtime. You will encounter it when writing generic systems, config loaders, and factory patterns.
+Typ `typename` uchovává referenci na samotný typ. Používá se pro reflexi --- zkoumání a práci s typy za běhu. Setkáte se s ním při psaní generických systémů, načítačů konfigurací a továrních vzorů.
 
 ```c
 void TypenameExamples()
 {
-    // Get the typename of a class
+    // Získat typename třídy
     typename t = PlayerBase;
 
-    // Get typename from a string
+    // Získat typename z řetězce
     typename t2 = t.StringToEnum(PlayerBase, "PlayerBase");
 
-    // Compare types
+    // Porovnat typy
     if (t == PlayerBase)
         Print("It's PlayerBase!");
 
-    // Get the typename of an object instance
+    // Získat typename instance objektu
     PlayerBase player;
-    // ... assume player is valid ...
+    // ... předpokládejme, že player je platný ...
     typename objType = player.Type();
 
-    // Check inheritance
+    // Zkontrolovat dědičnost
     bool isMan = objType.IsInherited(Man);
 
-    // Convert typename to string
+    // Převést typename na řetězec
     string name = t.ToString();  // "PlayerBase"
 
-    // Create an instance from typename (factory pattern)
+    // Vytvořit instanci z typename (tovární vzor)
     Class instance = t.Spawn();
 }
 ```
@@ -464,11 +498,11 @@ enum DamageType
 
 void EnumConvert()
 {
-    // Enum to string
+    // Výčet na řetězec
     string name = typename.EnumToString(DamageType, DamageType.BULLET);
     // name == "BULLET"
 
-    // String to enum
+    // Řetězec na výčet
     int value;
     typename.StringToEnum(DamageType, "EXPLOSION", value);
     // value == 2
@@ -477,31 +511,59 @@ void EnumConvert()
 
 ---
 
+## Třída Managed
+
+`Managed` je speciální základní třída, která **vypíná počítání referencí enginem**. Třídy rozšiřující `Managed` nejsou sledovány garbage collectorem enginu --- jejich životnost je plně řízena skriptovými `ref` referencemi.
+
+```c
+class MyScriptHandler : Managed
+{
+    // Tato třída nebude garbage collectována enginem
+    // Bude smazána teprve když je uvolněna poslední ref
+}
+```
+
+Většina čistě skriptových tříd (které nepředstavují herní entity) by měla rozšiřovat `Managed`. Třídy entit jako `PlayerBase`, `ItemBase` rozšiřují `EntityAI` (což je řízeno enginem, NE `Managed`).
+
+### Kdy použít Managed
+
+| Použijte `Managed` pro... | NEpoužívejte `Managed` pro... |
+|----------------------|-----------------------------|
+| Datové třídy konfigurace | Předměty (`ItemBase`) |
+| Singletonové manažery | Zbraně (`Weapon_Base`) |
+| UI kontrolery | Vozidla (`CarScript`) |
+| Objekty obsluhy událostí | Hráče (`PlayerBase`) |
+| Pomocné/utilitní třídy | Jakoukoliv třídu rozšiřující `EntityAI` |
+
+Pokud vaše třída nepředstavuje fyzickou entitu v herním světě, měla by téměř jistě rozšiřovat `Managed`.
+
+---
+
 ## Konverze typů
 
-Enforce Script supports both implicit and explicit conversions between types.
+Enforce Script podporuje implicitní i explicitní konverze mezi typy.
 
 ### Implicitní konverze
 
-Some conversions happen automatically:
+Některé konverze probíhají automaticky:
 
 ```c
 void ImplicitConversions()
 {
-    // int to float (always safe, no data loss)
+    // int na float (vždy bezpečné, žádná ztráta dat)
     int count = 42;
     float fCount = count;    // 42.0
 
-    // float to int (TRUNCATES, does not round!)
+    // float na int (OŘEZÁVÁ, nezaokrouhluje!)
     float precise = 3.99;
-    int truncated = precise;  // 3, NOT 4
+    int truncated = precise;  // 3, NE 4
 
-    // int/float to bool
-    bool fromInt = 5;      // true (non-zero)
+    // int/float na bool
+    bool fromInt = 5;      // true (nenulové)
     bool fromZero = 0;     // false
-    bool fromFloat = 0.1;  // true (non-zero)
+    bool fromFloat = 0.1;  // true (nenulové)
 
-    // bool to int
+    // bool na int
     int fromBool = true;   // 1
     int fromFalse = false; // 0
 }
@@ -509,22 +571,22 @@ void ImplicitConversions()
 
 ### Explicitní konverze (parsování)
 
-To convert between strings and numeric types, use parsing methods:
+Pro konverzi mezi řetězci a číselnými typy použijte metody parsování:
 
 ```c
 void ExplicitConversions()
 {
-    // String to int
+    // Řetězec na int
     int num = "42".ToInt();           // 42
-    int bad = "hello".ToInt();        // 0 (fails silently)
+    int bad = "hello".ToInt();        // 0 (selže tiše)
 
-    // String to float
+    // Řetězec na float
     float f = "3.14".ToFloat();       // 3.14
 
-    // String to vector
+    // Řetězec na vector
     vector v = "100 25 200".ToVector();  // <100, 25, 200>
 
-    // Number to string (using Format)
+    // Číslo na řetězec (pomocí Format)
     string s1 = string.Format("%1", 42);       // "42"
     string s2 = string.Format("%1", 3.14);     // "3.14"
 
@@ -535,26 +597,26 @@ void ExplicitConversions()
 
 ### Přetypování objektů
 
-For class types, use `Class.CastTo()` or `ClassName.Cast()`. This is covered in detail in [Chapter 1.3](03-classes-inheritance.md), but here is the essential pattern:
+Pro typy tříd použijte `Class.CastTo()` nebo `ClassName.Cast()`. Toto je podrobně pokryto v [Kapitole 1.3](03-classes-inheritance.md), ale zde je základní vzor:
 
 ```c
 void CastExample()
 {
     Object obj = GetSomeObject();
 
-    // Safe cast (preferred)
+    // Bezpečné přetypování (preferované)
     PlayerBase player;
     if (Class.CastTo(player, obj))
     {
-        // player is valid and safe to use
+        // player je platný a bezpečný k použití
         string name = player.GetIdentity().GetName();
     }
 
-    // Alternative cast syntax
+    // Alternativní syntaxe přetypování
     PlayerBase player2 = PlayerBase.Cast(obj);
     if (player2)
     {
-        // player2 is valid
+        // player2 je platný
     }
 }
 ```
@@ -563,7 +625,7 @@ void CastExample()
 
 ## Rozsah platnosti proměnných
 
-Variables exist only within the code block (curly braces) where they are declared. Enforce Script does **not** allow redeclaring a variable name within nested or sibling scopes.
+Proměnné existují pouze v bloku kódu (složených závorkách), kde byly deklarovány. Enforce Script **neumožňuje** opětovnou deklaraci stejného názvu proměnné ve vnořených nebo sourozených blocích.
 
 ```c
 void ScopeExample()
@@ -572,47 +634,47 @@ void ScopeExample()
 
     if (true)
     {
-        // int x = 20;  // ERROR: redeclaration of 'x' in nested scope
-        x = 20;         // OK: modifying the outer x
-        int y = 30;     // OK: new variable in this scope
+        // int x = 20;  // CHYBA: opětovná deklarace 'x' ve vnořeném bloku
+        x = 20;         // OK: úprava vnějšího x
+        int y = 30;     // OK: nová proměnná v tomto bloku
     }
 
-    // y is NOT accessible here (declared in inner scope)
-    // Print(y);  // ERROR: undeclared identifier 'y'
+    // y zde NENÍ přístupné (deklarováno ve vnitřním bloku)
+    // Print(y);  // CHYBA: nedeklarovaný identifikátor 'y'
 
-    // IMPORTANT: this also applies to for loops
+    // DŮLEŽITÉ: toto platí i pro cykly for
     for (int i = 0; i < 5; i++)
     {
-        // i exists here
+        // i existuje zde
     }
-    // for (int i = 0; i < 3; i++)  // ERROR in DayZ: 'i' already declared
-    // Use a different name:
+    // for (int i = 0; i < 3; i++)  // CHYBA v DayZ: 'i' již deklarováno
+    // Použijte jiný název:
     for (int j = 0; j < 3; j++)
     {
-        // j exists here
+        // j existuje zde
     }
 }
 ```
 
 ### Past sourozených bloků
 
-This is one of the most notorious Enforce Script quirks. Declaring the same variable name in `if` and `else` blocks causes a compile error:
+Toto je jeden z nejznámějších zvláštností Enforce Scriptu. Deklarace stejného názvu proměnné v blocích `if` a `else` způsobí chybu kompilace:
 
 ```c
 void SiblingTrap()
 {
     if (someCondition)
     {
-        int result = 10;    // Declared here
+        int result = 10;    // Deklarováno zde
         Print(result);
     }
     else
     {
-        // int result = 20; // ERROR: multiple declaration of 'result'
-        // Even though this is a sibling scope, not the same scope
+        // int result = 20; // CHYBA: vícenásobná deklarace 'result'
+        // I přesto, že se jedná o sourozený blok, ne stejný blok
     }
 
-    // FIX: declare above the if/else
+    // OPRAVA: deklarujte nad if/else
     int result;
     if (someCondition)
     {
@@ -627,134 +689,191 @@ void SiblingTrap()
 
 ---
 
-## Common Mistakes
+## Priorita operátorů
 
-### 1. Uninitialized Variables Used in Logic
+Od nejvyšší po nejnižší prioritu:
 
-Primitives get default values (`0`, `0.0`, `false`, `""`), but relying on this makes code fragile and hard to read. Always initialize explicitly.
+| Priorita | Operátor | Popis | Asociativita |
+|----------|----------|-------------|---------------|
+| 1 | `()` `[]` `.` | Seskupení, přístup k poli, přístup ke členům | Zleva doprava |
+| 2 | `!` `-` (unární) `~` | Logický NOT, negace, bitový NOT | Zprava doleva |
+| 3 | `*` `/` `%` | Násobení, dělení, modulo | Zleva doprava |
+| 4 | `+` `-` | Sčítání, odčítání | Zleva doprava |
+| 5 | `<<` `>>` | Bitový posun | Zleva doprava |
+| 6 | `<` `<=` `>` `>=` | Relační | Zleva doprava |
+| 7 | `==` `!=` | Rovnost | Zleva doprava |
+| 8 | `&` | Bitový AND | Zleva doprava |
+| 9 | `^` | Bitový XOR | Zleva doprava |
+| 10 | `\|` | Bitový OR | Zleva doprava |
+| 11 | `&&` | Logický AND | Zleva doprava |
+| 12 | `\|\|` | Logický OR | Zleva doprava |
+| 13 | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | Přiřazení | Zprava doleva |
+
+> **Tip:** Pokud si nejste jistí, použijte závorky. Enforce Script dodržuje pravidla priority podobná jazyku C, ale explicitní seskupení zabraňuje chybám a zlepšuje čitelnost.
+
+---
+
+## Osvědčené postupy
+
+- Vždy explicitně inicializujte proměnné při deklaraci, i když výchozí hodnota odpovídá vašemu záměru -- sděluje to záměr budoucím čtenářům.
+- Používejte `const` pro jakoukoli hodnotu, která by se nikdy neměla měnit; umísťujte konstanty na úroveň souboru nebo třídy s pojmenováním `UPPER_SNAKE_CASE`.
+- Preferujte `string.Format()` před zřetězením pomocí `+` při míchání typů -- vyhnete se problémům s implicitní konverzí a je to lépe čitelné.
+- Používejte `vector.DistanceSq()` místo `vector.Distance()` při porovnávání vzdáleností -- vyhnete se drahé odmocnině.
+- Nikdy neporovnávejte floaty pomocí `==`; vždy použijte epsilon toleranci přes `Math.AbsFloat(a - b) < 0.001`.
+
+---
+
+## Pozorováno v reálných modech
+
+> Vzory potvrzené studiem zdrojového kódu profesionálních DayZ modů.
+
+| Vzor | Mod | Detail |
+|---------|-----|--------|
+| `const string LOG_PREFIX` na úrovni třídy | COT / Expansion | Každý modul definuje řetězcovou konstantu pro prefixy logů, aby se předešlo překlepům |
+| Pojmenování členů `m_PascalCase` | VPP / Dabs Framework | Všechny členské proměnné konzistentně používají prefix `m_`, i pro primitivní typy |
+| `string.Format` pro veškerý výstup logů | Expansion Market | Nikdy nepoužívá zřetězení `+` s čísly -- vždy zástupné znaky `%1`..`%9` |
+| `vector.Zero` místo literálu `"0 0 0"` | COT Admin Tools | Používá pojmenované konstanty pro čitelnost a aby se vyhnul režii parsování řetězce |
+
+---
+
+## Teorie vs. praxe
+
+| Koncept | Teorie | Realita |
+|---------|--------|---------|
+| Klíčové slovo `auto` | Mělo by odvodit jakýkoli typ | Funguje pro jednoduchá přiřazení, ale může zmást čtenáře -- většina modů typy deklaruje explicitně |
+| Ořezávání `float` na `int` | Zdokumentováno jako "zaokrouhluje směrem k nule" | Nachytá téměř každého alespoň jednou; `3.99` se stane `3`, ne `4` |
+| `string` je hodnotový typ | Předáván kopií jako `int` | Překvapuje vývojáře v C#/Java, kteří očekávají referenční sémantiku; úpravy kopie nikdy neovlivní originál |
+
+---
+
+## Časté chyby
+
+### 1. Neinicializované proměnné používané v logice
+
+Primitivní typy dostávají výchozí hodnoty (`0`, `0.0`, `false`, `""`), ale spoléhání na to činí kód křehkým a špatně čitelným. Vždy inicializujte explicitně.
 
 ```c
-// BAD: relying on implicit zero
+// ŠPATNĚ: spoléhání na implicitní nulu
 int count;
-if (count > 0)  // This works because count == 0, but intent is unclear
+if (count > 0)  // Toto funguje, protože count == 0, ale záměr je nejasný
     DoThing();
 
-// GOOD: explicit initialization
+// SPRÁVNĚ: explicitní inicializace
 int count = 0;
 if (count > 0)
     DoThing();
 ```
 
-### 2. Float-to-Int Truncation
+### 2. Ořezávání float na int
 
-Float-to-int conversion truncates (rounds toward zero), not rounds to nearest:
+Konverze float na int ořezává (zaokrouhluje směrem k nule), ne zaokrouhluje k nejbližšímu:
 
 ```c
 float f = 3.99;
-int i = f;         // i == 3, NOT 4
+int i = f;         // i == 3, NE 4
 
-// If you want rounding:
+// Pokud chcete zaokrouhlení:
 int rounded = Math.Round(f);  // 4
 ```
 
-### 3. Float Precision in Comparisons
+### 3. Přesnost float při porovnávání
 
-Never compare floats for exact equality:
+Nikdy neporovnávejte floaty na přesnou rovnost:
 
 ```c
 float a = 0.1 + 0.2;
-// BAD: may fail due to floating-point representation
+// ŠPATNĚ: může selhat kvůli reprezentaci s plovoucí řádovou čárkou
 if (a == 0.3)
     Print("Equal");
 
-// GOOD: use a tolerance (epsilon)
+// SPRÁVNĚ: použijte toleranci (epsilon)
 if (Math.AbsFloat(a - 0.3) < 0.001)
     Print("Close enough");
 ```
 
-### 4. String Concatenation with Numbers
+### 4. Zřetězení řetězců s čísly
 
-You cannot simply concatenate a number onto a string with `+`. Use `string.Format()`:
+Nemůžete jednoduše přidat číslo k řetězci pomocí `+`. Použijte `string.Format()`:
 
 ```c
 int kills = 5;
-// Potentially problematic:
+// Potenciálně problematické:
 // string msg = "Kills: " + kills;
 
-// CORRECT: use Format
+// SPRÁVNĚ: použijte Format
 string msg = string.Format("Kills: %1", kills);
 ```
 
-### 5. Vector String Format
+### 5. Formát vektorového řetězce
 
-Vector string initialization requires spaces, not commas:
+Inicializace vektoru řetězcem vyžaduje mezery, ne čárky:
 
 ```c
-vector good = "100 25 200";     // CORRECT
-// vector bad = "100, 25, 200"; // WRONG: commas are not parsed correctly
-// vector bad2 = "100,25,200";  // WRONG
+vector good = "100 25 200";     // SPRÁVNĚ
+// vector bad = "100, 25, 200"; // ŠPATNĚ: čárky nejsou správně parsovány
+// vector bad2 = "100,25,200";  // ŠPATNĚ
 ```
 
-### 6. Forgetting that Strings and Vectors are Value Types
+### 6. Zapomenutí, že řetězce a vektory jsou hodnotové typy
 
-Unlike class objects, strings and vectors are copied on assignment. Modifying a copy does not affect the original:
+Na rozdíl od objektů tříd jsou řetězce a vektory při přiřazení kopírovány. Úprava kopie neovlivní originál:
 
 ```c
 vector posA = "10 20 30";
-vector posB = posA;       // posB is a COPY
-posB[1] = 99;             // Only posB changes
-// posA is still "10 20 30"
+vector posB = posA;       // posB je KOPIE
+posB[1] = 99;             // Změní se pouze posB
+// posA je stále "10 20 30"
 ```
 
 ---
 
-## Practice Exercises
+## Praktická cvičení
 
-### Exercise 1: Variable Basics
-Declare variables to store:
-- A player's name (string)
-- Their health percentage (float, 0-100)
-- Their kill count (int)
-- Whether they are an admin (bool)
-- Their world position (vector)
+### Cvičení 1: Základy proměnných
+Deklarujte proměnné pro uložení:
+- Jména hráče (string)
+- Jeho procenta zdraví (float, 0-100)
+- Jeho počtu zabití (int)
+- Zda je administrátor (bool)
+- Jeho pozice ve světě (vector)
 
-Print a formatted summary using `string.Format()`.
+Vytiskněte formátovaný přehled pomocí `string.Format()`.
 
-### Exercise 2: Temperature Converter
-Write a function `float CelsiusToFahrenheit(float celsius)` and its inverse `float FahrenheitToCelsius(float fahrenheit)`. Test with boiling point (100C = 212F) and freezing point (0C = 32F).
+### Cvičení 2: Převodník teploty
+Napište funkci `float CelsiusToFahrenheit(float celsius)` a její inverzi `float FahrenheitToCelsius(float fahrenheit)`. Otestujte s bodem varu (100C = 212F) a bodem mrazu (0C = 32F).
 
-### Exercise 3: Distance Calculator
-Write a function that takes two vectors and returns:
-- The 3D distance between them
-- The 2D distance (ignoring height/Y axis)
-- The height difference
+### Cvičení 3: Kalkulačka vzdálenosti
+Napište funkci, která přijme dva vektory a vrátí:
+- 3D vzdálenost mezi nimi
+- 2D vzdálenost (ignorující výšku / osu Y)
+- Výškový rozdíl
 
-Hint: For 2D distance, create new vectors with `[1]` set to `0` before calculating distance.
+Nápověda: Pro 2D vzdálenost vytvořte nové vektory s `[1]` nastaveným na `0` před výpočtem vzdálenosti.
 
-### Exercise 4: Type Juggling
-Given the string `"42"`, convert it to:
-1. An `int`
-2. A `float`
-3. Back to a `string` using `string.Format()`
-4. A `bool` (should be `true` since the int value is non-zero)
+### Cvičení 4: Žonglování s typy
+Máte řetězec `"42"`, převeďte ho na:
+1. `int`
+2. `float`
+3. Zpět na `string` pomocí `string.Format()`
+4. `bool` (mělo by být `true`, protože hodnota int je nenulová)
 
-### Exercise 5: Ground Position
-Write a function `vector SnapToGround(vector pos)` that takes any position and returns it with the Y component set to the terrain height at that X,Z location. Use `GetGame().SurfaceY()`.
+### Cvičení 5: Pozice na zemi
+Napište funkci `vector SnapToGround(vector pos)`, která přijme libovolnou pozici a vrátí ji s komponentou Y nastavenou na výšku terénu na daném místě X, Z. Použijte `GetGame().SurfaceY()`.
 
 ---
 
-## Summary
+## Shrnutí
 
 | Koncept | Klíčový bod |
 |---------|-----------|
-| Types | `int`, `float`, `bool`, `string`, `vector`, `typename`, `void` |
-| Defaults | `0`, `0.0`, `false`, `""`, `"0 0 0"`, `null` |
-| Constants | `const` keyword, `UPPER_SNAKE_CASE` convention |
-| Vectors | Init with `"x y z"` string or `Vector(x,y,z)`, access with `[0]`, `[1]`, `[2]` |
-| Scope | Variables scoped to `{}` blocks; no redeclaration in nested/sibling blocks |
-| Conversion | `float`-to-`int` truncates; use `.ToInt()`, `.ToFloat()`, `.ToVector()` for string parsing |
-| Formatting | Always use `string.Format()` for building strings from mixed types |
+| Typy | `int`, `float`, `bool`, `string`, `vector`, `typename`, `void` |
+| Výchozí hodnoty | `0`, `0.0`, `false`, `""`, `"0 0 0"`, `null` |
+| Konstanty | Klíčové slovo `const`, konvence `UPPER_SNAKE_CASE` |
+| Vektory | Inicializace řetězcem `"x y z"` nebo `Vector(x,y,z)`, přístup přes `[0]`, `[1]`, `[2]` |
+| Rozsah | Proměnné omezeny na bloky `{}`; žádná opětovná deklarace ve vnořených/sourozených blocích |
+| Konverze | `float` na `int` ořezává; pro parsování řetězců použijte `.ToInt()`, `.ToFloat()`, `.ToVector()` |
+| Formátování | Vždy používejte `string.Format()` pro sestavování řetězců ze smíšených typů |
 
 ---
 
-[Domů](../README.md) | **Variables & Types** | [Další: Arrays, Maps & Sets >>](02-arrays-maps-sets.md)
+[Domů](../../README.md) | **Proměnné a typy** | [Další: Pole, mapy a množiny >>](02-arrays-maps-sets.md)

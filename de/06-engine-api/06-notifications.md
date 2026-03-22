@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ includes a built-in notification system for displaying toast-style popup messages to players. The `NotificationSystem` class provides static methods for sending notifications both locally (client-side) and from server to client via RPC. This chapter covers the full API for sending, customizing, and managing notifications.
 
@@ -320,4 +320,4 @@ The CF API adds color and localization support. Use whichever system your mod st
 
 ---
 
-[<< Zurueck: Post-Process Effects](05-ppe.md) | **Notifications** | [Next: Timers & CallQueue >>](07-timers.md)
+[<< Zurück: Post-Process Effects](05-ppe.md) | **Notifications** | [Next: Timers & CallQueue >>](07-timers.md)

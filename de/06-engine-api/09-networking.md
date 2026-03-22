@@ -1,12 +1,12 @@
 # Kapitel 6.9: Netzwerk & RPC
 
-[Startseite](../../README.md) | [<< Zurueck: Datei-I/O & JSON](08-file-io.md) | **Netzwerk & RPC** | [Weiter: Central Economy >>](10-central-economy.md)
+[Startseite](../../README.md) | [<< Zurück: Datei-I/O & JSON](08-file-io.md) | **Netzwerk & RPC** | [Weiter: Central Economy >>](10-central-economy.md)
 
 ---
 
-## Einfuehrung
+## Einführung
 
-DayZ ist ein Client-Server-Spiel. Alle autoritativen Logiken laufen auf dem Server, und Clients kommunizieren mit ihm ueber Remote Procedure Calls (RPCs). Der primaere RPC-Mechanismus ist `ScriptRPC`, der es ermoeglicht, beliebige Daten auf einer Seite zu schreiben und auf der anderen zu lesen. Dieses Kapitel behandelt die Netzwerk-API: Senden und Empfangen von RPCs, die Serialisierungskontextklassen, die Legacy-Methode `CGame.RPC()` und `ScriptInputUserData` fuer eingabeverifizierte Client-zu-Server-Nachrichten.
+DayZ ist ein Client-Server-Spiel. Alle autoritativen Logiken laufen auf dem Server, und Clients kommunizieren mit ihm über Remote Procedure Calls (RPCs). Der primäre RPC-Mechanismus ist `ScriptRPC`, der es ermöglicht, beliebige Daten auf einer Seite zu schreiben und auf der anderen zu lesen. Dieses Kapitel behandelt die Netzwerk-API: Senden und Empfangen von RPCs, die Serialisierungskontextklassen, die Legacy-Methode `CGame.RPC()` und `ScriptInputUserData` für eingabeverifizierte Client-zu-Server-Nachrichten.
 
 ---
 
@@ -50,7 +50,7 @@ if (!GetGame().IsServer())
 
 **Datei:** `3_Game/gameplay.c:104`
 
-Die primaere RPC-Klasse zum Senden eigener Daten zwischen Client und Server. `ScriptRPC` erweitert `ParamsWriteContext`, daher rufen Sie `.Write()` direkt darauf auf, um Daten zu serialisieren.
+Die primäre RPC-Klasse zum Senden eigener Daten zwischen Client und Server. `ScriptRPC` erweitert `ParamsWriteContext`, daher rufen Sie `.Write()` direkt darauf auf, um Daten zu serialisieren.
 
 ### Klassendefinition
 
@@ -69,9 +69,9 @@ class ScriptRPC : ParamsWriteContext
 
 | Parameter | Beschreibung |
 |-----------|-------------|
-| `target` | Das Objekt, dem dieser RPC zugeordnet ist (kann `null` fuer globale RPCs sein) |
-| `rpc_type` | Ganzzahl-RPC-ID (muss zwischen Sender und Empfaenger uebereinstimmen) |
-| `guaranteed` | `true` = TCP-artige zuverlaessige Zustellung; `false` = UDP-artig unzuverlaessig |
+| `target` | Das Objekt, dem dieser RPC zugeordnet ist (kann `null` für globale RPCs sein) |
+| `rpc_type` | Ganzzahl-RPC-ID (muss zwischen Sender und Empfänger übereinstimmen) |
+| `guaranteed` | `true` = TCP-artige zuverlässige Zustellung; `false` = UDP-artig unzuverlässig |
 | `recipient` | `PlayerIdentity` des Ziel-Clients; `null` = an alle Clients senden (nur Server) |
 
 ### Daten schreiben
@@ -82,7 +82,7 @@ class ScriptRPC : ParamsWriteContext
 proto bool Write(void value_out);
 ```
 
-Unterstuetzt alle primitiven Typen, Arrays und serialisierbare Objekte:
+Unterstützt alle primitiven Typen, Arrays und serialisierbare Objekte:
 
 ```c
 ScriptRPC rpc = new ScriptRPC();
@@ -119,7 +119,7 @@ void BroadcastData(string message)
 
     ScriptRPC rpc = new ScriptRPC();
     rpc.Write(message);
-    rpc.Send(null, MY_RPC_ID, true, null);  // null-Empfaenger = alle Clients
+    rpc.Send(null, MY_RPC_ID, true, null);  // null-Empfänger = alle Clients
 }
 ```
 
@@ -138,7 +138,7 @@ void SendRequestToServer(int requestType)
     ScriptRPC rpc = new ScriptRPC();
     rpc.Write(requestType);
     rpc.Send(player, MY_REQUEST_RPC, true, null);
-    // Beim Senden vom Client wird der Empfaenger ignoriert — es geht immer an den Server
+    // Beim Senden vom Client wird der Empfänger ignoriert — es geht immer an den Server
 }
 ```
 
@@ -146,7 +146,7 @@ void SendRequestToServer(int requestType)
 
 ## RPCs empfangen
 
-RPCs werden durch Ueberschreiben von `OnRPC` auf dem Zielobjekt (oder einer beliebigen Elternklasse in der Hierarchie) empfangen.
+RPCs werden durch Überschreiben von `OnRPC` auf dem Zielobjekt (oder einer beliebigen Elternklasse in der Hierarchie) empfangen.
 
 ### OnRPC-Signatur
 
@@ -174,7 +174,7 @@ override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
 
 ### ParamsReadContext
 
-`ParamsReadContext` ist ein Typedef fuer `Serializer`:
+`ParamsReadContext` ist ein Typedef für `Serializer`:
 
 ```c
 typedef Serializer ParamsReadContext;
@@ -187,18 +187,18 @@ Die `Read`-Methode:
 proto bool Read(void value_in);
 ```
 
-Gibt `true` bei Erfolg zurueck, `false` wenn das Lesen fehlschlaegt (falscher Typ, unzureichende Daten). Pruefen Sie immer den Rueckgabewert.
+Gibt `true` bei Erfolg zurück, `false` wenn das Lesen fehlschlägt (falscher Typ, unzureichende Daten). Prüfen Sie immer den Rückgabewert.
 
-### Wo OnRPC ueberschrieben wird
+### Wo OnRPC überschrieben wird
 
-| Zielobjekt | Empfaengt RPCs fuer |
+| Zielobjekt | Empfängt RPCs für |
 |---------------|-------------------|
 | `PlayerBase` | RPCs gesendet mit `target = player` |
 | `ItemBase` | RPCs gesendet mit `target = item` |
 | Jedes `Object` | RPCs gesendet mit diesem Objekt als Ziel |
-| `MissionGameplay` / `MissionServer` | Globale RPCs (`target = null`) ueber `OnRPC` in der Mission |
+| `MissionGameplay` / `MissionServer` | Globale RPCs (`target = null`) über `OnRPC` in der Mission |
 
-**Beispiel --- vollstaendiger Client-Server-Austausch:**
+**Beispiel --- vollständiger Client-Server-Austausch:**
 
 ```c
 // Geteilte Konstante (3_Game-Schicht)
@@ -238,7 +238,7 @@ modded class PlayerBase
 
 ## CGame.RPC (Legacy-API)
 
-Das aeltere array-basierte RPC-System. Wird noch im Vanilla-Code verwendet, aber `ScriptRPC` wird fuer neue Mods bevorzugt.
+Das ältere array-basierte RPC-System. Wird noch im Vanilla-Code verwendet, aber `ScriptRPC` wird für neue Mods bevorzugt.
 
 ### Signaturen
 
@@ -287,7 +287,7 @@ if (rpc_type == MY_RPC_ID)
 
 **Datei:** `3_Game/gameplay.c`
 
-Ein spezialisierter Schreibkontext zum Senden von Client-zu-Server-Eingabenachrichten, die durch die Eingabevalidierungs-Pipeline der Engine laufen. Wird fuer Aktionen verwendet, die Anti-Cheat-Verifizierung benoetigen.
+Ein spezialisierter Schreibkontext zum Senden von Client-zu-Server-Eingabenachrichten, die durch die Eingabevalidierungs-Pipeline der Engine laufen. Wird für Aktionen verwendet, die Anti-Cheat-Verifizierung benötigen.
 
 ```c
 class ScriptInputUserData : ParamsWriteContext
@@ -316,21 +316,21 @@ void SendAction(int actionId)
 }
 ```
 
-> **Hinweis:** `ScriptInputUserData` hat Ratenbegrenzung. Pruefen Sie immer `CanStoreInputUserData()` vor dem Senden.
+> **Hinweis:** `ScriptInputUserData` hat Ratenbegrenzung. Prüfen Sie immer `CanStoreInputUserData()` vor dem Senden.
 
 ---
 
 ## RPC-ID-Verwaltung
 
-### RPC-IDs waehlen
+### RPC-IDs wählen
 
-Vanilla DayZ verwendet das `ERPCs`-Enum fuer eingebaute RPCs. Eigene Mods sollten IDs verwenden, die nicht mit Vanilla konfligieren.
+Vanilla DayZ verwendet das `ERPCs`-Enum für eingebaute RPCs. Eigene Mods sollten IDs verwenden, die nicht mit Vanilla konfligieren.
 
 **Best Practices:**
 
 ```c
 // In der 3_Game-Schicht definieren (zwischen Client und Server geteilt)
-const int MY_MOD_RPC_BASE = 87000;  // Eine hohe Zahl waehlen, die unwahrscheinlich kollidiert
+const int MY_MOD_RPC_BASE = 87000;  // Eine hohe Zahl wählen, die unwahrscheinlich kollidiert
 const int RPC_MY_FEATURE_A = MY_MOD_RPC_BASE + 1;
 const int RPC_MY_FEATURE_B = MY_MOD_RPC_BASE + 2;
 const int RPC_MY_FEATURE_C = MY_MOD_RPC_BASE + 3;
@@ -338,7 +338,7 @@ const int RPC_MY_FEATURE_C = MY_MOD_RPC_BASE + 3;
 
 ### Einzelne Engine-ID-Muster (von MyFramework verwendet)
 
-Fuer Mods mit vielen RPC-Typen verwenden Sie eine einzelne Engine-RPC-ID und routen intern ueber einen String-Identifikator:
+Für Mods mit vielen RPC-Typen verwenden Sie eine einzelne Engine-RPC-ID und routen intern über einen String-Identifikator:
 
 ```c
 // Einzelne Engine-ID
@@ -369,22 +369,22 @@ override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
 
 ## Netzwerk-Sync-Variablen (Alternative zu RPC)
 
-Fuer einfache Zustandssynchronisation ist `RegisterNetSyncVariable*()` oft einfacher als RPCs. Siehe [Kapitel 6.1](01-entity-system.md) fuer Details.
+Für einfache Zustandssynchronisation ist `RegisterNetSyncVariable*()` oft einfacher als RPCs. Siehe [Kapitel 6.1](01-entity-system.md) für Details.
 
 RPCs sind besser wenn:
-- Sie einmalige Events senden muessen (keinen kontinuierlichen Zustand)
-- Die Daten nicht zu einer bestimmten Entitaet gehoeren
-- Sie komplexe oder variabel lange Daten senden muessen
-- Sie Client-zu-Server-Kommunikation benoetigen
+- Sie einmalige Events senden müssen (keinen kontinuierlichen Zustand)
+- Die Daten nicht zu einer bestimmten Entität gehören
+- Sie komplexe oder variabel lange Daten senden müssen
+- Sie Client-zu-Server-Kommunikation benötigen
 
 Netz-Sync-Variablen sind besser wenn:
-- Sie eine kleine Anzahl von Variablen auf einer Entitaet haben, die sich periodisch aendern
-- Sie automatische Interpolation wuenschen
-- Die Daten natuerlich zur Entitaet gehoeren
+- Sie eine kleine Anzahl von Variablen auf einer Entität haben, die sich periodisch ändern
+- Sie automatische Interpolation wünschen
+- Die Daten natürlich zur Entität gehören
 
 ---
 
-## Sicherheitsueberlegungen
+## Sicherheitsüberlegungen
 
 ### Serverseitige Validierung
 
@@ -404,7 +404,7 @@ override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
         // VALIDIEREN: auf erlaubten Bereich begrenzen
         requestedAmount = Math.Clamp(requestedAmount, 0, 100);
 
-        // VALIDIEREN: Absender-Identitaet stimmt mit Spielerobjekt ueberein
+        // VALIDIEREN: Absender-Identität stimmt mit Spielerobjekt überein
         PlayerBase senderPlayer = GetPlayerBySender(sender);
         if (!senderPlayer || !senderPlayer.IsAlive())
             return;
@@ -417,10 +417,10 @@ override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
 
 ### Ratenbegrenzung
 
-Die Engine hat eingebaute Ratenbegrenzung fuer RPCs. Zu viele RPCs pro Frame zu senden kann dazu fuehren, dass sie verworfen werden. Fuer hochfrequente Daten erwaegen Sie:
+Die Engine hat eingebaute Ratenbegrenzung für RPCs. Zu viele RPCs pro Frame zu senden kann dazu führen, dass sie verworfen werden. Für hochfrequente Daten erwägen Sie:
 
 - Netz-Sync-Variablen stattdessen verwenden
-- Mehrere Werte in einen einzelnen RPC buendeln
+- Mehrere Werte in einen einzelnen RPC bündeln
 - Sendefrequenz mit einem Timer drosseln
 
 ---
@@ -429,17 +429,17 @@ Die Engine hat eingebaute Ratenbegrenzung fuer RPCs. Zu viele RPCs pro Frame zu 
 
 | Konzept | Kernpunkt |
 |---------|-----------|
-| ScriptRPC | Primaere RPC-Klasse: Daten `Write()`, dann `Send(target, id, guaranteed, recipient)` |
-| OnRPC | Auf dem Zielobjekt ueberschreiben zum Empfangen: `OnRPC(sender, rpc_type, ctx)` |
-| Lesen/Schreiben | `ctx.Write(value)` / `ctx.Read(value)` --- immer Read-Rueckgabewert pruefen |
+| ScriptRPC | Primäre RPC-Klasse: Daten `Write()`, dann `Send(target, id, guaranteed, recipient)` |
+| OnRPC | Auf dem Zielobjekt überschreiben zum Empfangen: `OnRPC(sender, rpc_type, ctx)` |
+| Lesen/Schreiben | `ctx.Write(value)` / `ctx.Read(value)` --- immer Read-Rückgabewert prüfen |
 | Richtung | Client sendet an Server; Server sendet an bestimmten Client oder sendet an alle |
-| Empfaenger | `null` = Broadcast (Server), ignoriert (Client) |
-| Garantiert | `true` = zuverlaessige Zustellung, `false` = unzuverlaessig (schneller) |
+| Empfänger | `null` = Broadcast (Server), ignoriert (Client) |
+| Garantiert | `true` = zuverlässige Zustellung, `false` = unzuverlässig (schneller) |
 | Legacy | `GetGame().RPC()` / `RPCSingleParam()` mit Param-Objekten |
-| Eingabedaten | `ScriptInputUserData` fuer validierte Client-Eingabe |
+| Eingabedaten | `ScriptInputUserData` für validierte Client-Eingabe |
 | IDs | Hohe Nummern verwenden (87000+) um Vanilla-Konflikte zu vermeiden |
 | Sicherheit | Client-Daten immer auf dem Server validieren |
 
 ---
 
-[<< Zurueck: Datei-I/O & JSON](08-file-io.md) | **Netzwerk & RPC** | [Weiter: Central Economy >>](10-central-economy.md)
+[<< Zurück: Datei-I/O & JSON](08-file-io.md) | **Netzwerk & RPC** | [Weiter: Central Economy >>](10-central-economy.md)

@@ -20,7 +20,7 @@
 
 ---
 
-## Ueberblick
+## Überblick
 
 DayZ uses a CSV-based localization system. When the engine encounters a string key prefixed with `#` (for example, `#STR_MYMOD_HELLO`), it looks up that key in all loaded stringtable files and returns the translation matching the player's current language. If no match is found for the active language, the engine falls back through a defined chain.
 
@@ -390,7 +390,7 @@ Notable: the `original` column is absent, and `Korean` is added as an extra lang
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### Forgetting the `#` Prefix in Scripts
 

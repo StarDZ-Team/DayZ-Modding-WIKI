@@ -21,7 +21,7 @@
 
 ---
 
-## Ueberblick
+## Überblick
 
 Every DayZ server loads its configuration from a **mission folder**. The Central Economy (CE) files define what items spawn, where, and for how long. Der Server executable itself is configured through `serverDZ.cfg`, which lives alongside the executable.
 
@@ -436,7 +436,7 @@ EntityAI item = GetGame().CreateObjectEx("AK74", position, ECE_PLACE_ON_SURFACE)
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### XML Syntax Errors
 
@@ -472,7 +472,7 @@ Modifying vanilla types.xml works but breaks on game updates. Prefer shipping se
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - Ship a `ServerFiles/` folder with your mod containing pre-configured `types.xml` entries so server admins can copy-paste rather than write from scratch.
 - Use `cfglimitsdefinitionuser.xml` stattdessen of editing the vanilla `cfglimitsdefinition.xml` -- your additions survive game updates.

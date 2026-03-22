@@ -1011,7 +1011,7 @@ proto native void SetWidgetWorld(
 
 ### RenderTargetWidget
 
-Renders a camera view from a `BaseWorld` into the widget area. Verwendet fuer security cameras, rear-view mirrors, or picture-in-picture displays.
+Renders a camera view from a `BaseWorld` into the widget area. Verwendet für security cameras, rear-view mirrors, or picture-in-picture displays.
 
 From `scripts/2_gamelib/entities/rendertarget.c`:
 
@@ -1062,7 +1062,7 @@ imgWidget.SetImageTexture(0, rtTexture);
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 1. **Use the right widget for the job.** `TextWidget` for simple labels, `RichTextWidget` only when you need inline images or formatted content. `CanvasWidget` for dynamic 2D overlays, not static graphics (use `ImageWidget` for those).
 
@@ -1101,7 +1101,7 @@ imgWidget.SetImageTexture(0, rtTexture);
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 **1. Using RichTextWidget where TextWidget suffices.**
 Rich text parsing has overhead. If you only need plain text, use `TextWidget`.

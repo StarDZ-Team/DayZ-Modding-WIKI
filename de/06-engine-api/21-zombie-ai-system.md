@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Zombies (officially called "Infected") are the primary hostile AI entity in DayZ. They patrol, detect players through sight, sound, and proximity, transition through behavioral states, attack, vault, crawl, and die --- all driven by a C++ AI engine with script-level hooks for customization. Understanding how the infected system works is essential for any mod that spawns, modifies, or interacts with zombies.
 
@@ -233,7 +233,7 @@ The primary movement command, started with `StartCommand_Move()`. Methods:
 | `SetStanceVariation` | `void SetStanceVariation(int pStanceVariation)` | Sets animation stance variant (0-3, randomized on init) |
 | `SetIdleState` | `void SetIdleState(int pIdleState)` | Sets idle animation (0=calm, 1=disturbed, 2=chase) |
 | `StartTurn` | `void StartTurn(float pDirection, int pSpeedType)` | Initiates a turn animation |
-| `IsTurning` | `bool IsTurning()` | Gibt zurueck true during turn animation |
+| `IsTurning` | `bool IsTurning()` | Gibt zurück true during turn animation |
 
 Movement speed is read from the input controller and synced:
 
@@ -694,7 +694,7 @@ Specific zombie types override behavior flags:
 
 | Override | Types | Effect |
 |----------|-------|--------|
-| `IsZombieMilitary()` | ZmbM_PatrolNormal, ZmbM_Soldier, ZmbM_SoldierNormal, ZmbM_usSoldier_normal, ZmbM_NBC_Grey, ZmbM_NBC_White | Verwendet fuer loot table selection |
+| `IsZombieMilitary()` | ZmbM_PatrolNormal, ZmbM_Soldier, ZmbM_SoldierNormal, ZmbM_usSoldier_normal, ZmbM_NBC_Grey, ZmbM_NBC_White | Verwendet für loot table selection |
 | `ResistContaminatedEffect()` | ZmbM_NBC_Yellow, ZmbM_NBC_Grey, ZmbM_NBC_White, ZmbM_Mummy | Immune to contaminated zone damage |
 | `IsMale()` | All `ZombieFemaleBase` return `false` | Sound set selection |
 
@@ -869,7 +869,7 @@ Animation-driven voice events (`OnSoundVoiceEvent`) interrupt state-based sounds
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 1. **Always use `ECE_INITAI` when spawning** --- without it, the zombie has no AI brain and wird motionless.
 2. **Server-side spawning only** --- `CreateObjectEx` for zombies should only run auf dem Server; the network handles client replication.
@@ -912,9 +912,9 @@ This plugin is an excellent reference for testing any infected-related mod.
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
-1. **Forgetting `ECE_INITAI`** --- Am haeufigsten spawning bug. The zombie appears but macht nichthing.
+1. **Forgetting `ECE_INITAI`** --- Am häufigsten spawning bug. The zombie appears but macht nichthing.
 2. **Calling `StartCommand_Attack(null, ...)` in production** --- The debug plugin does this for testing, but real attacks need a valid target entity or damage wird nicht apply.
 3. **Overriding `CommandHandler` directly** --- This breaks compatibility with other mods. Use the three `ModCommandHandler*` hooks stattdessen.
 4. **Assuming `COMMANDID_CRAWL` means the zombie is crawling** --- `COMMANDID_CRAWL` is only the transition. Check `IsCrawling()` for the persistent state.

@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ vehicles are entities that extend the transport system. Cars extend `CarScript`, boats extend `BoatScript`, and both inherit from `Transport`. Vehicles have fluid systems, parts with independent health, gear simulation, and physics managed by the engine. This chapter covers the API methods you need to interact with vehicles in scripts.
 
@@ -353,4 +353,4 @@ void FindAllVehicles(out array<Transport> vehicles)
 
 ---
 
-[<< Zurueck: Entity System](01-entity-system.md) | **Vehicles** | [Next: Weather >>](03-weather.md)
+[<< Zurück: Entity System](01-entity-system.md) | **Vehicles** | [Next: Weather >>](03-weather.md)

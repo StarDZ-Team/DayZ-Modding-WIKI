@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ modding frequently requires mathematical calculations: finding distances between players, randomizing spawn positions, interpolating camera movements, computing angles for AI targeting. Enforce Script provides the `Math` class for scalar operations and the `vector` type with static helpers for 3D math. This chapter is a complete reference for both, organized by category.
 
@@ -657,7 +657,7 @@ array<vector> GetSpawnRing(vector center, float radius, int count)
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|

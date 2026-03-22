@@ -447,7 +447,7 @@ FrameWidgetClass SettingsPanel {
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 - [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Create widgets from code
 - [3.6 Event Handling](06-event-handling.md) -- Respond to clicks, changes, and other events

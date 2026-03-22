@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 `PlayerBase` is the single most wichtig class in DayZ modding. Every gameplay system --- health, hunger, bleeding, stamina, inventory, restraints, unconsciousness --- lives on der Spieler entity or one of its manager subsystems. Whether you are writing an admin tool, a survival mechanic, or a PvP mod, you will interact with PlayerBase constantly.
 
@@ -346,9 +346,9 @@ bool restrained  = player.IsRestrained();    // Handcuffed
 
 | Method | Defined In | How It Works |
 |--------|-----------|--------------|
-| `IsAlive()` | `Object` | Gibt zurueck `!IsDamageDestroyed()` |
+| `IsAlive()` | `Object` | Gibt zurück `!IsDamageDestroyed()` |
 | `IsUnconscious()` | `PlayerBase` | Checks command type or `m_IsUnconscious` flag |
-| `IsRestrained()` | `PlayerBase` | Gibt zurueck `m_IsRestrained` (synced variable) |
+| `IsRestrained()` | `PlayerBase` | Gibt zurück `m_IsRestrained` (synced variable) |
 | `IsInVehicle()` | `DayZPlayerImplement` | Checks `COMMANDID_VEHICLE` or parent is `Transport` |
 | `IsSwimming()` | `DayZPlayerImplement` | Checks `COMMANDID_SWIM` |
 | `IsClimbing()` | `PlayerBase` | Checks `COMMANDID_CLIMB` |
@@ -626,7 +626,7 @@ modded class PlayerBase
 - `PlayerBase.GetIdentity()` returns the identity (kann null during connect/disconnect)
 - `PlayerIdentity.GetPlayer()` returns the `Man` entity (cast to `PlayerBase`)
 - A player entity can briefly exist without an identity during initial connection
-- After disconnect, the identity is detached before die Entitaet is cleaned up
+- After disconnect, the identity is detached before die Entität is cleaned up
 
 ---
 
@@ -742,7 +742,7 @@ bool locked = emoteMgr.IsControllsLocked();
 
 ---
 
-## Gaengige Muster
+## Gängige Muster
 
 ### Finding a Player by Identity
 
@@ -833,9 +833,9 @@ void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
-### 1. GetGame().GetPlayer() Gibt zurueck Null on Server
+### 1. GetGame().GetPlayer() Gibt zurück Null on Server
 
 `GetGame().GetPlayer()` returns the **local** player entity. On a dedicated server, there is no local player --- it always returns `null`.
 
@@ -987,7 +987,7 @@ if (entity && entity.IsAlive())
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Always null-check `GetIdentity()` before accessing player identity fields.** During the connection handshake and disconnect teardown, a `PlayerBase` entity can exist without an identity. Calling `GetIdentity().GetName()` without a null check crashes the server.
 - **Use `GetPlainId()` for Steam lookups, `GetId()` for database storage.** `GetPlainId()` returns the raw Steam64 ID suitable for profile URLs. `GetId()` returns the BattlEye GUID hash, which Bohemia recommends for persistent data keys.

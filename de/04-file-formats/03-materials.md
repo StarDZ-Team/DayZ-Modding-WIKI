@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 A material in DayZ is the bridge between a 3D model and its visual appearance. While textures provide raw image data, the **RVMAT** (Real Virtuality Material) file defines how those textures are combined, which shader interprets them, and what surface properties the engine should simulate -- shininess, transparency, self-illumination, and more. Every face on every P3D model in the game references an RVMAT file, and understanding how to create and configure them is essential for any visual mod.
 
@@ -570,7 +570,7 @@ VertexShaderID = "Super";
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Wrong Stage Order
 

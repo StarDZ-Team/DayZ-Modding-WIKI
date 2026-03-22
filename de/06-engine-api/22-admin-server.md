@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Server administration in DayZ covers a broad set of responsibilities: managing connected players, enforcing rules, controlling world state (time, weather), logging events for audit trails, and integrating with persistence systems. Unlike most game engines that provide a built-in admin panel, DayZ offers only low-level scripting APIs. The admin tool ecosystem --- COT, VPP, and custom solutions --- is built entirely on top of these APIs.
 
@@ -94,7 +94,7 @@ class PlayerIdentity : PlayerIdentityBase {}
 
 **Identity ID guidance:**
 
-| Method | Gibt zurueck | Use For |
+| Method | Gibt zurück | Use For |
 |--------|---------|---------|
 | `GetPlainId()` | Raw Steam64 ID (e.g. `"76561198012345678"`) | Admin lists, Steam profile lookups, display |
 | `GetId()` | BattlEye GUID hash | Database keys, persistent storage, log files |
@@ -612,7 +612,7 @@ The vanilla `PluginAdminLog` class provides structured logging. It automatisch f
 // Player "PlayerName" (id=SteamGUID pos=<X, Y, Z>)
 ```
 
-VPP's `VPPLogManager` zusaetzlich writes to its own log files and optionally mirrors to the ADM log:
+VPP's `VPPLogManager` zusätzlich writes to its own log files and optionally mirrors to the ADM log:
 
 ```c
 // VPP dual logging pattern
@@ -929,7 +929,7 @@ RCON (Remote Console) is BattlEye's admin interface, separate from script. RCON 
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Always validate permissions server-side.** Client-side checks are cosmetic only. Any RPC handler that performs a privileged action must call a permission check before executing. Der Client kann modified to skip UI-level checks.
 - **Use `GetPlainId()` for admin UID lists, `GetId()` for persistent data.** `GetPlainId()` returns the Steam64 ID that administrators actually know and use. `GetId()` returns the BattlEye GUID hash, which is what DayZ uses internally for character persistence.
@@ -959,7 +959,7 @@ RCON (Remote Console) is BattlEye's admin interface, separate from script. RCON 
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Trusting Client-Side Permission Checks
 

@@ -49,7 +49,7 @@ These appear in the script log as `SCRIPT (E):` or `SCRIPT ERROR:` lines.
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `Null pointer access` | Accessing a variable that is `null` | Add a null check before using the variable: `if (myVar) { myVar.DoSomething(); }`. This is am haeufigsten runtime error. |
+| `Null pointer access` | Accessing a variable that is `null` | Add a null check before using the variable: `if (myVar) { myVar.DoSomething(); }`. This is am häufigsten runtime error. |
 | `Cannot convert type 'X' to type 'Y'` | Direct cast between incompatible types | Use `Class.CastTo()` for safe downcasting: `Class.CastTo(result, source);`. Never assume a cast will succeed. See [Chapter 1.9](01-enforce-script/09-casting-reflection.md). |
 | `Undefined variable 'X'` | Typo, wrong scope, or wrong layer | Check spelling first. If die Variable is a class from another file, ensure it is defined in the same or lower layer. `3_Game` cannot see `4_World` types. See [Chapter 2.1](02-mod-structure/01-five-layers.md). |
 | `Method 'X' not found` | Calling a method that macht nicht exist on that class | Verify die Methode name and check der Elternteil class. You may need to cast to a more specific type first. Check vanilla scripts at `P:\DZ\scripts\` for the correct API. |
@@ -62,7 +62,7 @@ These appear in the script log as `SCRIPT (E):` or `SCRIPT ERROR:` lines.
 | `String conversion error` | Using `string.ToInt()` or `string.ToFloat()` on non-numeric text | Validate string content before conversion. There is no try/catch, so you must guard manually. |
 | `Error: Serializer X mismatch` | Read/write order macht nicht match in serialization | Ensure `OnStoreSave()` and `OnStoreLoad()` write and read the same types in the same order, including version checks. |
 | Syntax error with no clear message | Backslash `\` or escaped quote `\"` in string literal | Enforce Script's CParser macht nicht support `\\` or `\"`. Use forward slashes for paths (`"my/path/file"`). For quotes, use single-quote characters. See [Chapter 1.12](01-enforce-script/12-gotchas.md). |
-| `JsonFileLoader` returns null data | Assigning der Rueckgabewert of `JsonLoadFile()` | `JsonLoadFile()` returns `void`. Pre-allocate das Objekt and pass it by reference: `ref MyConfig cfg = new MyConfig(); JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);`. See [Chapter 6.8](06-engine-api/08-file-io.md). |
+| `JsonFileLoader` returns null data | Assigning der Rückgabewert of `JsonLoadFile()` | `JsonLoadFile()` returns `void`. Pre-allocate das Objekt and pass it by reference: `ref MyConfig cfg = new MyConfig(); JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);`. See [Chapter 6.8](06-engine-api/08-file-io.md). |
 | `Object.IsAlive()` macht nicht exist | Calling `IsAlive()` on base `Object` | `IsAlive()` is only on `EntityAI`. Cast first: `EntityAI entity; if (Class.CastTo(entity, obj) && entity.IsAlive()) { ... }` |
 | No ternary operator support | Using `condition ? a : b` syntax | Enforce Script has no ternary operator. Use an `if`/`else` block stattdessen. See [Chapter 1.12](01-enforce-script/12-gotchas.md). |
 | `do...while` loop error | Using `do { } while(cond)` | Enforce Script macht nicht support `do...while`. Use a `while` loop with a `break` condition stattdessen. See [Chapter 1.12](01-enforce-script/12-gotchas.md). |
@@ -83,7 +83,7 @@ Problems with Remote Procedure Calls and client-server communication.
 | Works in singleplayer / listen server, fails on dedicated | Different code paths for listen vs. dedicated | On a listen server, both client and server run in the same process, hiding timing and null issues. Always test on a dedicated server. Check `GetGame().IsServer()` and `GetGame().IsMultiplayer()` guards. |
 | RPC floods and server lag | Sending RPCs every frame or in tight loops | Throttle RPC calls with timers or accumulators. Batch multiple small updates into a single RPC. Use Net Sync Variables for data that changes frequently. |
 | Client receives RPC meant for all clients | Using `RPCSingleParam` with wrong target | Use `null` as the identity parameter to broadcast, or provide a specific `PlayerIdentity` to send to one client. |
-| `OnRPC()` never called | Override is in the wrong class or layer | `OnRPC()` muss overridden on die Entitaet that receives the RPC. If overriding on `PlayerBase`, ensure you call `super.OnRPC()` so other mods still work. |
+| `OnRPC()` never called | Override is in the wrong class or layer | `OnRPC()` muss overridden on die Entität that receives the RPC. If overriding on `PlayerBase`, ensure you call `super.OnRPC()` so other mods still work. |
 | Net Sync Variables not updating on client | Missing `RegisterNetSyncVariable*()` or wrong type | Register each variable in der Konstruktor with the correct method (`RegisterNetSyncVariableInt`, `RegisterNetSyncVariableFloat`, `RegisterNetSyncVariableBool`). Override `OnVariablesSynchronized()` to react to changes auf dem Client side. |
 | RPC works for host but not other players | Using player object reference stattdessen of identity | On dedicated servers, the host player ist nicht special. Ensure you are using `PlayerIdentity` for targeting and not relying on local player references that only exist on the sender's machine. |
 
@@ -157,7 +157,7 @@ Problems with custom items, vehicles, and world entities.
 | Vehicle spawns but wird nicht drive | Missing engine, wheels, or parts | Ensure all erforderlich parts are attached. Use `OnDebugSpawn()` to spawn a fully assembled vehicle for testing. Check that simulation type is correct in config. |
 | Item kann nicht picked up | Incorrect geometry or wrong `inventorySlot` | Verify der Gegenstand has proper Fire Geometry in the model. Check that the `itemSize[]` is set correctly and der Gegenstand fits in available inventory slots. |
 | Entity immediately deleted after spawn | `lifetime` is zero in `types.xml` or scope issue | Set appropriate `lifetime` value in `types.xml`. Ensure `scope=2` in config. Check server cleanup settings in `globals.xml`. |
-| Custom animal/zombie macht nicht move | AI config missing or broken | Verify `AIAgentType` in config. Check that die Entitaet has proper NavMesh-compatible geometry. Test with vanilla AI configs first. |
+| Custom animal/zombie macht nicht move | AI config missing or broken | Verify `AIAgentType` in config. Check that die Entität has proper NavMesh-compatible geometry. Test with vanilla AI configs first. |
 | Attachments mache nicht snap to item | Wrong `inventorySlot` names | Attachment slot names must match exactly between der Elternteil item's `attachments[]` and das Kind item's `inventorySlot[]`. Names are case-sensitive. |
 | Item damage zones not working | `DamageSystem` config mismatch with model | Each `DamageZone` name must match a named selection in the model's Fire Geometry LOD. Check with Object Builder. See [Chapter 6.1](06-engine-api/01-entity-system.md). |
 | Custom sound macht nicht play | Sound shader or config path wrong | Verify the sound shader class name in `CfgSoundShaders` and `CfgSoundSets`. Check that the `.ogg` file path is correct and the file is packed in the PBO. |
@@ -203,10 +203,10 @@ Step-by-step diagnostic processes for common "it doesn't work" situations.
 
 ### "My mod doesn't work at all"
 
-1. **Check the script log** for `SCRIPT (E)` errors. Loesung the first error you find. (Section 2)
+1. **Check the script log** for `SCRIPT (E)` errors. Lösung the first error you find. (Section 2)
 2. **Is the mod listed in the launcher?** If not, check that `mod.cpp` exists and is valid. (Section 1)
 3. **Does the log mention your CfgPatches class?** If not, check `config.cpp` syntax, `requiredAddons[]`, and the `-mod=` launch parameter.
-4. **Do scripts compile?** Look for compile errors in the RPT. Loesung any syntax errors. (Section 2)
+4. **Do scripts compile?** Look for compile errors in the RPT. Lösung any syntax errors. (Section 2)
 5. **Is there an entry point?** You need a `modded class MissionServer`/`MissionGameplay`, a registered module, or a plugin. Scripts without an entry point never run.
 6. **Still nothing?** Add `Print("MY_MOD: Init reached");` at your entry point to confirm execution.
 
@@ -275,7 +275,7 @@ Knowing where to look is half the battle.
 
 ### Client Logs
 
-| Log | Location | Enthaelt |
+| Log | Location | Enthält |
 |-----|----------|----------|
 | Script log | `%localappdata%\DayZ\` (most recent `.RPT` file) | Script errors, warnings, `Print()` output |
 | Crash dumps | `%localappdata%\DayZ\` (`.mdmp` files) | Crash analysis data |
@@ -283,7 +283,7 @@ Knowing where to look is half the battle.
 
 ### Server Logs
 
-| Log | Location | Enthaelt |
+| Log | Location | Enthält |
 |-----|----------|----------|
 | Script log | `<server_root>\profiles\` (most recent `.RPT` file) | Script errors, server-side `Print()` |
 | Admin log | `<server_root>\profiles\` (`.ADM` file) | Player connections, kills, chat |

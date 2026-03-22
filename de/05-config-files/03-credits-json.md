@@ -17,7 +17,7 @@
 
 ---
 
-## Ueberblick
+## Überblick
 
 When a player selects your mod in the DayZ launcher or in-game mod menu, the engine looks for a `Credits.json` file inside your mod's PBO. If found, the credits are displayed in a scrolling view organized into departments and sections --- similar to movie credits.
 
@@ -394,7 +394,7 @@ Expansion demonstrates the most sophisticated use of Credits.json, including:
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### Invalid JSON Syntax
 

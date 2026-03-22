@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ provides several JSON and XML configuration files that control world-level systems without requiring script modifications. These files live in the **mission folder** and are loaded at server start, allowing server owners to customize contaminated areas, underground darkness, weather behavior, gameplay rules, and object placement with no code changes and no wipe required.
 
@@ -80,7 +80,7 @@ As of version 1.28, the particle configuration uses a circle-packing algorithm v
 | `AreaName` | string | Human-readable identifier for the zone (also used in debug) |
 | `Type` | string | Class name of the EffectArea subclass to spawn (`ContaminatedArea_Static`) |
 | `TriggerType` | string | Trigger class name (`ContaminatedTrigger`). Leave empty for no trigger |
-| `Pos` | float[3] | World position `[X, Y, Z]`. If Y is 0, die Entitaet snaps to ground |
+| `Pos` | float[3] | World position `[X, Y, Z]`. If Y is 0, die Entität snaps to ground |
 | `Radius` | float | Radius of the zone in meters |
 | `PosHeight` | float | Height of the cylinder above the anchor position (meters) |
 | `NegHeight` | float | Height of the cylinder below the anchor position (meters) |
@@ -135,7 +135,7 @@ For inner rings, the ring radius is calculated as: `area_radius / (inner_ring_co
 When a player is inside a contaminated trigger zone without proper protection:
 
 - The contamination agent is applied, causing progressive health damage
-- The PPE effect tints the player's vision (green/yellow tint standardmaessig)
+- The PPE effect tints the player's vision (green/yellow tint standardmäßig)
 - Gas particles appear around der Spieler character
 
 **Protection:** Gas masks with intact filters and NBC suits provide protection. The protection logic is handled in script (`ContaminatedAreaAgent` and related classes), not in the JSON configuration.
@@ -317,7 +317,7 @@ Using `DayZDiag_x64`, the following diag menu options are available:
 
 While Chapter 6.3 covers the Weather script API in detail, this section documents the `cfgweather.xml` mission-folder file for declarative weather configuration without scripting.
 
-### Ueberblick
+### Überblick
 
 Es gibt drei ways to adjust weather behavior in DayZ:
 
@@ -325,7 +325,7 @@ Es gibt drei ways to adjust weather behavior in DayZ:
 2. **Mission init script** --- call `MissionWeather(true)` in `init.c` and use the Weather API
 3. **cfgweather.xml** --- place an XML file in the mission folder (recommended for server admins)
 
-Standardmaessig, all vanilla server missions use the scripted weather state machine. For custom weather, the XML approach is the simplest.
+Standardmäßig, all vanilla server missions use the scripted weather state machine. For custom weather, the XML approach is the simplest.
 
 ### Full cfgweather.xml Structure
 
@@ -381,7 +381,7 @@ Standardmaessig, all vanilla server missions use the scripted weather state mach
 | `reset` | bool | `false` | Whether to discard stored weather state on server start |
 | `enable` | bool | `true` | Whether this file is active |
 
-Unterstuetzt `0`/`1`, `true`/`false`, or `yes`/`no`.
+Unterstützt `0`/`1`, `true`/`false`, or `yes`/`no`.
 
 ### Phenomenon Parameters
 
@@ -688,7 +688,7 @@ To process `customString`, override `OnSpawnByObjectSpawner()` on the spawned it
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 ### Contaminated Areas
 
@@ -726,7 +726,7 @@ To process `customString`, override `OnSpawnByObjectSpawner()` on the spawned it
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Consequence | Fix |
 |---------|-------------|-----|

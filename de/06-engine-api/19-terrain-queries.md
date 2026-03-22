@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Every spatial operation in DayZ --- spawning objects on the ground, checking line of sight, detecting nearby entities, determining surface type for footstep sounds --- depends on querying the world. Die Engine exposes three categories of spatial API: **terrain queries** (height, surface type, normals), **object queries** (finding entities near a position), and **raycasting** (tracing a line through die Welt to detect collisions). This chapter documents every available method, its exact signature, and the practical patterns found in Vanilla code.
 
@@ -16,7 +16,7 @@ All terrain and surface functions live on the `CGame` class, accessed via `GetGa
 
 ### SurfaceY --- Ground Height at X,Z
 
-Am haeufigstenly used terrain query. Gibt zurueck the Y (vertical) coordinate of the terrain at a given X,Z position. This ignores objects, roads, and water --- it returns raw terrain height only.
+Am häufigstenly used terrain query. Gibt zurück the Y (vertical) coordinate of the terrain at a given X,Z position. This ignores objects, roads, and water --- it returns raw terrain height only.
 
 ```c
 // Signature (CGame)
@@ -46,7 +46,7 @@ partPos[1] = g_Game.SurfaceY(partPos[0], partPos[2]); // Snap particles to groun
 
 ### SurfaceRoadY --- Height Including Roads
 
-Gibt zurueck height including road surfaces (bridges, elevated roads). Use this when you need the actual walkable surface, not raw terrain.
+Gibt zurück height including road surfaces (bridges, elevated roads). Use this when you need the actual walkable surface, not raw terrain.
 
 ```c
 // Signatures (CGame)
@@ -115,7 +115,7 @@ g_Game.GetSurface(ctx.m_SurfaceParams, ctx.m_SurfaceResult);
 
 ### GetHighestSurfaceYDifference
 
-Utility method on `CGame` that returns the largest height difference between a set of positions. Nuetzlich fuer slope checks.
+Utility method on `CGame` that returns the largest height difference between a set of positions. Nützlich für slope checks.
 
 ```c
 float GetHighestSurfaceYDifference(array<vector> positions);
@@ -127,7 +127,7 @@ float GetHighestSurfaceYDifference(array<vector> positions);
 
 ### SurfaceGetType --- Material at Position
 
-Gibt zurueck the surface material name at a given X,Z coordinate. Der Rueckgabewert is the Y position where the surface was found.
+Gibt zurück the surface material name at a given X,Z coordinate. Der Rückgabewert is the Y position where the surface was found.
 
 ```c
 // Signatures (CGame)
@@ -161,7 +161,7 @@ g_Game.SurfaceGetType3D(pos[0], pos[1], pos[2], surfaceType);
 
 ### SurfaceUnderObject --- Material Under an Entity
 
-Gibt zurueck the surface type and liquid type directly under a specific object.
+Gibt zurück the surface type and liquid type directly under a specific object.
 
 ```c
 // Signatures (CGame)
@@ -180,7 +180,7 @@ void SurfaceUnderObjectByBoneCorrectedLiquid(notnull Object object, int boneType
 
 ### Surface Normal --- Slope Direction
 
-Gibt zurueck the normal vector of the terrain surface, pointing away from the ground. Essential for aligning objects to slopes.
+Gibt zurück the normal vector of the terrain surface, pointing away from the ground. Essential for aligning objects to slopes.
 
 ```c
 // Signature (CGame)
@@ -219,7 +219,7 @@ vector GetSurfaceOrientation(float x, float z)
 
 ### SurfaceGetNoiseMultiplier
 
-Gibt zurueck a noise multiplier for a surface at a given position, used by the stealth/sound system.
+Gibt zurück a noise multiplier for a surface at a given position, used by the stealth/sound system.
 
 ```c
 proto native float SurfaceGetNoiseMultiplier(Object directHit, vector pos, int componentIndex);
@@ -264,7 +264,7 @@ proto native float SurfaceGetSeaWaveCurrent();  // Current sea wave height
 proto native float GetWaterDepth(vector posWS);
 ```
 
-Gibt zurueck the water depth at a world-space position. Gibt zurueck 0 or negative if the position is above water.
+Gibt zurück the water depth at a world-space position. Gibt zurück 0 or negative if the position is above water.
 
 ### Water Surface Height
 
@@ -421,7 +421,7 @@ PhxInteractionLayers hitMask = PhxInteractionLayers.BUILDING
 
 ### RaycastRV --- Simple Raycast
 
-Am haeufigstenly used raycast function. Traces a line and returns the first (or nearest) hit.
+Am häufigstenly used raycast function. Traces a line and returns the first (or nearest) hit.
 
 ```c
 // Signature (DayZPhysics)
@@ -1035,7 +1035,7 @@ const static PhxInteractionLayers MELEE_TARGET_OBSTRUCTION_LAYERS =
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Use `DistanceSq` stattdessen of `Distance` for comparisons.** The square root in `Distance` is expensive. Pre-compute `maxRange * maxRange` and compare against `DistanceSq`. The vanilla codebase does this extensively in action targeting and vicinity checks.
 - **Keep `GetObjectsAtPosition` radius as small as possible.** Every meter of radius dramatically increases the number of objects returned. A 100m radius in a city can return thousands of objects. Cache results and reuse them within the same frame.
@@ -1051,7 +1051,7 @@ const static PhxInteractionLayers MELEE_TARGET_OBSTRUCTION_LAYERS =
 > **Mod Compatibility:** Terrain and raycast queries are read-only operations that mache nicht modify world state. Multiple mods can safely call these functions simultaneously without conflicts.
 
 - **Server/Client:** All terrain queries (`SurfaceY`, `SurfaceGetType`, `SurfaceGetNormal`, `SurfaceIsSea`, `SurfaceIsPond`) are safe to call on both server and client. World modification methods like `SetDate()` are server-authoritative.
-- **Performance Impact:** `GetObjectsAtPosition` with large radii is am haeufigsten performance mistake. A mod that calls it every frame with a 50m+ radius will cause noticeable server lag. Raycast operations are cheaper but still should not run every frame on many entities.
+- **Performance Impact:** `GetObjectsAtPosition` with large radii is am häufigsten performance mistake. A mod that calls it every frame with a 50m+ radius will cause noticeable server lag. Raycast operations are cheaper but still should not run every frame on many entities.
 - **Map Dependency:** `SurfaceGetType` returns different surface names depending on the map. Chernarus and Livonia share most surface type names (`cp_gravel`, `cp_concrete`, etc.), but custom maps may define their own. Always handle unknown surface types gracefully.
 - **WorldData Subclassing:** If your mod needs to read or override temperature or weather data, note that `WorldData` is subclassed per map. Modding die Basis class affects all maps; modding `ChernarusPlusData` only affects Chernarus.
 
@@ -1061,16 +1061,16 @@ const static PhxInteractionLayers MELEE_TARGET_OBSTRUCTION_LAYERS =
 
 | Documentation/Expectation | Actual Behavior |
 |--------------------------|-----------------|
-| `SurfaceY` returns ground height | Gibt zurueck raw terrain height, ignoring roads, bridges, and objects. Use `SurfaceRoadY` for surfaces that include roads. |
+| `SurfaceY` returns ground height | Gibt zurück raw terrain height, ignoring roads, bridges, and objects. Use `SurfaceRoadY` for surfaces that include roads. |
 | `RaycastRV` `ignore` parameter ignores one object | Only ignores one object. For multiple exclusions, use `RaycastRVProxy` with the `excluded` array parameter. |
-| `GetObjectsAtPosition` returns all objects | Gibt zurueck objects with physics bodies. Pure visual objects (particles, effects) sind nicht returned. |
+| `GetObjectsAtPosition` returns all objects | Gibt zurück objects with physics bodies. Pure visual objects (particles, effects) sind nicht returned. |
 | `RaycastRVResult.obj` is always die Welt object | When `hierLevel > 0`, `obj` is the proxy (attachment/component) and `parent` is the actual world object. Always check `hierLevel`. |
-| `CollisionFlags.ALLOBJECTS` returns everything | Gibt zurueck the first contact per object, not all contacts per object. Multiple results come from multiple distinct objects. |
+| `CollisionFlags.ALLOBJECTS` returns everything | Gibt zurück the first contact per object, not all contacts per object. Multiple results come from multiple distinct objects. |
 | Surface type names are standardized | Surface names are map-dependent configuration values from CfgSurfaces. Custom maps define custom surface names. |
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Fix |
 |---------|-----|

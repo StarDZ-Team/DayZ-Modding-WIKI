@@ -275,7 +275,7 @@ switch (command)
 
 ---
 
-## Praeprozessor-Direktiven
+## Präprozessor-Direktiven
 
 The Enforce Script preprocessor runs before compilation, enabling conditional code inclusion. It works similarly to C/C++ preprocessor but with fewer features.
 
@@ -470,7 +470,7 @@ class MissionHandler
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Using enums as validated types
 

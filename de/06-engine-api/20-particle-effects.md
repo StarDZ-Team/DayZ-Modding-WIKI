@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ's particle and visual effects system handles fire, smoke, blood, explosions, weather effects, vehicle exhaust, contaminated area gas, and more. Every visual effect you see in das Spiel world --- from a campfire to a bullet impact crater --- is driven by this system.
 
@@ -314,7 +314,7 @@ p.StopParticle(StopParticleFlags.RESET);
 
 ### Auto-Destroy Behavior
 
-`ParticleSource` auto-destroys standardmaessig when the particle ends or stops:
+`ParticleSource` auto-destroys standardmäßig when the particle ends or stops:
 
 ```c
 // Check current flags
@@ -636,7 +636,7 @@ SEffectManager.Stop(effectID);
 
 ### Key Methods for Particles
 
-| Method | Gibt zurueck | Description |
+| Method | Gibt zurück | Description |
 |--------|---------|-------------|
 | `PlayInWorld(eff, pos)` | `int` | Register and play Effect at world position |
 | `PlayOnObject(eff, obj, pos, ori)` | `int` | Register and play Effect on parent object |
@@ -946,7 +946,7 @@ Patterns seen in Vanilla DayZ and community mods:
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Creating Particles on Dedicated Server
 
@@ -1030,7 +1030,7 @@ ps.ResetParticle();  // Works correctly
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 - **Always use `ParticleManager.GetInstance()` for new code.** The pool-based approach is more efficient, supports batch creation, and provides full `ParticleSource` functionality including reset, restart, and native lifecycle management.
 - **Guard all particle code with `!GetGame().IsDedicatedServer()`.** Even though `ParticleManager.GetInstance()` returns null on servers, calling any particle-related method auf dem Server is wasteful. Guard early and return.
@@ -1044,7 +1044,7 @@ ps.ResetParticle();  // Works correctly
 
 ## Key Source Files
 
-| File | Enthaelt |
+| File | Enthält |
 |------|----------|
 | `scripts/3_game/particles/particlelist.c` | `ParticleList` --- all registered particle IDs and lookup methods |
 | `scripts/3_game/particles/particlebase.c` | `ParticleBase`, `ParticleEvents` --- base class and event system |

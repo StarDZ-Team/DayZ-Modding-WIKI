@@ -532,7 +532,7 @@ class EventDispatcher
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Forgetting to null-check after cast
 

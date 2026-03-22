@@ -509,7 +509,7 @@ This pattern (used by Colorful UI, MyMod, and others) means changing the entire 
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 - [3.1 Widget Types](01-widget-types.md) -- Review the full widget catalog
 - [3.6 Event Handling](06-event-handling.md) -- Make your styled widgets interactive

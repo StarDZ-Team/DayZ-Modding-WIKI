@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ's Post-Process Effects (PPE) system controls visual effects applied after scene rendering: blur, color grading, vignette, chromatic aberration, night vision, and more. The system is built around `PPERequester` classes that can request specific visual effects. Multiple requesters can be active simultaneously, and the engine blends their contributions. This chapter covers how to use the PPE system in mods.
 
@@ -314,4 +314,4 @@ Higher numbers take priority. Use `PPEManager.L_LAST` to force your effect to ov
 
 ---
 
-[<< Zurueck: Cameras](04-cameras.md) | **Post-Process Effects** | [Next: Notifications >>](06-notifications.md)
+[<< Zurück: Cameras](04-cameras.md) | **Post-Process Effects** | [Next: Notifications >>](06-notifications.md)

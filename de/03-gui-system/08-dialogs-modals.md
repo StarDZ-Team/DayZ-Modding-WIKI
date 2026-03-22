@@ -455,7 +455,7 @@ FrameWidget "DialogRoot" {
 
 ## Confirmation Dialog Pattern
 
-A reusable confirmation dialog accepts a title, message, and callback. This is am haeufigsten dialog pattern in DayZ mods.
+A reusable confirmation dialog accepts a title, message, and callback. This is am häufigsten dialog pattern in DayZ mods.
 
 ### Implementation
 
@@ -766,7 +766,7 @@ FrameWidget "DialogRoot" {
 }
 ```
 
-### Bewaeaehrte Methoden
+### Bewährte Methoden
 
 - **Overlay background**: Use a high sort value (e.g., 998) for the semi-transparent background.
 - **Dialog panel**: Use a higher sort value (e.g., 999 or 1024) for the dialog itself.
@@ -774,7 +774,7 @@ FrameWidget "DialogRoot" {
 
 ---
 
-## Gaengige Muster
+## Gängige Muster
 
 ### Toggle Panel (Open/Close with Same Key)
 
@@ -952,7 +952,7 @@ In der Praxis most mod developers use `ScriptedWidgetEventHandler`-based popups 
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### 1. Not Restoring Game Focus on Close
 
@@ -1005,7 +1005,7 @@ If you need to show/hide the same dialog repeatedly, keeping the widget and usin
 
 **Das Problem:** Dialog is invisible or partially hidden because other widgets have higher rendering priority.
 
-**Die Loesung:** Use `SetSort()` to push the dialog above everything:
+**Die Lösung:** Use `SetSort()` to push the dialog above everything:
 
 ```c
 m_Root.SetSort(1024, true);
@@ -1015,7 +1015,7 @@ m_Root.SetSort(1024, true);
 
 **Das Problem:** Opening dialog A (+1), then dialog B (+1), then closing B (-1) -- focus counter is still 1, so input is still locked even though the user sees no dialog.
 
-**Die Loesung:** Track whether each dialog instance has locked focus, and only decrement if it did:
+**Die Lösung:** Track whether each dialog instance has locked focus, and only decrement if it did:
 
 ```c
 class SafeDialog : ScriptedWidgetEventHandler
@@ -1058,7 +1058,7 @@ class SafeDialog : ScriptedWidgetEventHandler
 
 **Das Problem:** Calling `Close()` or `delete this` during construction causes crashes or undefined behavior because das Objekt ist nicht fully initialized.
 
-**Die Loesung:** Defer closure using `CallLater`:
+**Die Lösung:** Defer closure using `CallLater`:
 
 ```c
 void MyDialog()
@@ -1113,7 +1113,7 @@ Die goldene Regel: **every `ChangeGameFocus(1)` muss matched by a `ChangeGameFoc
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 - [3.6 Event Handling](06-event-handling.md) -- Handle clicks, hover, keyboard events inside dialogs
 - [3.5 Programmatic Widget Creation](05-programmatic-widgets.md) -- Build dialog content dynamically in code

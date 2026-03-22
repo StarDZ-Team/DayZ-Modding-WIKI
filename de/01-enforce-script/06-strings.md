@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Strings in Enforce Script are a **value type**, like `int` or `float`. They are passed by value and compared by value. The `string` type has a rich set of built-in methods for searching, slicing, converting, and formatting text. This chapter is a complete reference for every string operation available in DayZ scripting, with real-world examples from mod development.
 
@@ -27,7 +27,7 @@ Print(original); // Still "DayZ"
 
 ---
 
-## Vollstaendige String-Methodenreferenz
+## Vollständige String-Methodenreferenz
 
 ### Length
 
@@ -436,7 +436,7 @@ string GetFileName(string path)
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|

@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 Workbench is Bohemia Interactive's integrated development environment for the Enfusion engine. It ships with DayZ Tools and is the only official tool that understands Enforce Script at a language level. While many modders write code in VS Code or other editors, Workbench remains indispensable for tasks no other tool can perform: attaching a debugger to a running DayZ instance, setting breakpoints, stepping through code, inspecting variables zur Laufzeit, previewing `.layout` UI files, browsing game resources, and running live script commands through the built-in console.
 
@@ -211,7 +211,7 @@ GameProjectClass {
 }
 ```
 
-### Erklaerung wichtiger Abschnitte
+### Erklärung wichtiger Abschnitte
 
 **FileSystem** -- Root directories where Workbench searches for files. At minimum, include `P:/`. You can add additional paths (e.g., Steam DayZ install directory) if files live outside the workdrive.
 
@@ -242,7 +242,7 @@ ScriptModulePathClass {
 
 Some frameworks override entry points (CF uses `"CF_CreateGame"`).
 
-**imageSets / widgetStyles** -- Erforderlich fuer layout preview. Without vanilla image sets, layout files show missing images. Always include the standard 14 vanilla image sets listed in the example above.
+**imageSets / widgetStyles** -- Erforderlich für layout preview. Without vanilla image sets, layout files show missing images. Always include the standard 14 vanilla image sets listed in the example above.
 
 ### Path Prefix Resolution
 
@@ -387,7 +387,7 @@ The **Locals** panel shows all variables in scope -- primitives with values, obj
 
 Use **Debug > Debug Client** or **Debug > Debug Server** in the Script Editor menu to choose which side to debug. On a listen server, you can switch freely. The stepping controls, breakpoints, and variable inspection all apply to whichever side is derzeit selected.
 
-### Einschraenkungen
+### Einschränkungen
 
 - Only `DayZDiag_x64.exe` supports debugging, not retail builds.
 - Engine-internal C++ functions kann nicht stepped into.
@@ -429,9 +429,9 @@ for (int i = 0; i < 5; i++)
 }
 ```
 
-### Einschraenkungen
+### Einschränkungen
 
-- **Client-side only** standardmaessig (server-side code needs a listen server).
+- **Client-side only** standardmäßig (server-side code needs a listen server).
 - **No persistent state** -- variables mache nicht carry between executions.
 - **Some APIs unavailable** until das Spiel reaches a specific state (player spawned, mission loaded).
 - **No error recovery** -- null pointers simply fail silently.
@@ -599,7 +599,7 @@ The fastest development workflow combines Workbench with file patching, eliminat
 
 6. **Use bookmarks for navigation.** Blue bookmark dots mark interesting vanilla script locations you reference frequently.
 
-7. **Check compiler output before launching.** If Workbench reports errors, das Spiel will fail too. Loesung errors in Workbench first -- faster than waiting for game boot.
+7. **Check compiler output before launching.** If Workbench reports errors, das Spiel will fail too. Lösung errors in Workbench first -- faster than waiting for game boot.
 
 8. **Use -mod for simple setups, .gproj for complex.** Single-mod with no dependencies: `-mod=P:\MyMod`. Multi-mod with CF/Dabs: custom `.gproj`.
 
@@ -635,6 +635,6 @@ The fastest development workflow combines Workbench with file patching, eliminat
 
 ## Navigation
 
-| Vorheriges | Up | Naechstes |
+| Vorheriges | Up | Nächstes |
 |----------|----|------|
 | [4.6 PBO Packing](06-pbo-packing.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.8 Building Modeling](08-building-modeling.md) |

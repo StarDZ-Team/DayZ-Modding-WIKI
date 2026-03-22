@@ -95,7 +95,7 @@ Key characteristics:
 - **Both `IsServer()` and `IsClient()` return true** -- this is the critical difference from dedicated servers.
 - **Has a player AND manages all players** -- `GetGame().GetPlayer()` returns the host player.
 - **Both `MissionServer` and `MissionGameplay` hooks run** -- your modded classes for both will execute.
-- **Verwendet fuer development only** -- production servers are always dedicated.
+- **Verwendet für development only** -- production servers are always dedicated.
 - **Can mask bugs** -- code that works on a listen server may break on dedicated because the listen server has access to both server and client types.
 
 ---
@@ -148,7 +148,7 @@ if (GetGame().IsMultiplayer())
 | `IsMultiplayer()` | true | true | false |
 | `GetPlayer()` returns | null | PlayerBase | PlayerBase |
 
-### Gaengige Muster
+### Gängige Muster
 
 ```c
 // Guard: server-only logic
@@ -883,7 +883,7 @@ void DoServerThing(PlayerBase player)
 
 ### 4. Testing on Listen Server Masks Bugs
 
-Ein haeufiger Fallstrick: you test your mod on a listen server, everything works, you publish it, and it crashes on every dedicated server. This happens because:
+Ein häufiger Fallstrick: you test your mod on a listen server, everything works, you publish it, and it crashes on every dedicated server. This happens because:
 
 - Types that exist only in `MissionGameplay` are available on listen server
 - `GetPlayer()` returns a value on listen server
@@ -1103,7 +1103,7 @@ StarDZ_Missions/
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 ### Mistake 1: Running Server Logic on Client
 
@@ -1345,4 +1345,4 @@ Before publishing a split mod, verify:
 ---
 
 **Vorheriges:** [Chapter 2.5: File Organization Best Practices](05-file-organization.md)
-**Naechstes:** [Part 3: GUI & Layout System](../03-gui-system/01-widget-types.md)
+**Nächstes:** [Part 3: GUI & Layout System](../03-gui-system/01-widget-types.md)

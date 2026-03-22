@@ -36,7 +36,7 @@
 
 ---
 
-## Ueberblick
+## Überblick
 
 ```mermaid
 flowchart TD
@@ -78,7 +78,7 @@ The two systems are independent. You can use custom spawn points with vanilla ge
 
 ### Enabling Spawn Gear Presets
 
-Spawn gear presets are **not** enabled standardmaessig. To use them, you must:
+Spawn gear presets are **not** enabled standardmäßig. To use them, you must:
 
 1. Create one or more JSON preset files in your mission folder (e.g., `mpmissions/dayzOffline.chernarusplus/`).
 2. Register them in `cfggameplay.json` under `PlayerData.spawnGearPresetFiles`.
@@ -1088,7 +1088,7 @@ If the mod ist nicht loaded auf dem Server, items with unknown classnames will s
 
 ---
 
-## Bewaeaehrte Methoden
+## Bewährte Methoden
 
 1. **Start from vanilla.** Copy the vanilla preset from the official documentation as your base and modify it, rather than writing from scratch.
 
@@ -1110,7 +1110,7 @@ If the mod ist nicht loaded auf dem Server, items with unknown classnames will s
 
 ---
 
-## Haeufige Fehler
+## Häufige Fehler
 
 | Mistake | Consequence | Fix |
 |---------|-------------|-----|

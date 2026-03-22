@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 The singleton pattern guarantees that a class has exactly one instance, accessible globally. In DayZ modding it is the most common architectural pattern --- virtually every manager, cache, registry, and subsystem uses it. COT, VPP, Expansion, Dabs Framework, and MyMod all rely on singletons to coordinate state across the engine's script layers.
 

@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 The Central Economy (CE) is DayZ's server-side system for managing all spawnable entities in the world: loot, vehicles, infected, animals, and dynamic events. It is configured entirely through XML files in the mission folder. While the CE itself is an engine system (not directly scriptable), understanding its configuration files is essential for any server mod. This chapter covers all CE configuration files, their structure, key parameters, and how they interact.
 
@@ -509,4 +509,4 @@ Add a new `<event>` block in `events.xml` and corresponding spawn positions in `
 
 ---
 
-[<< Zurueck: Networking & RPC](09-networking.md) | **Central Economy** | [Startseite](../../README.md)
+[<< Zurück: Networking & RPC](09-networking.md) | **Central Economy** | [Startseite](../../README.md)

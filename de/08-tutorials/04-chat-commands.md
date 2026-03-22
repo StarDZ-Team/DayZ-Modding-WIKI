@@ -1539,7 +1539,7 @@ The exact implementation depends on the DayZ version and how `ChatInputMenu` exp
 
 ---
 
-## Naechste Schritte
+## Nächste Schritte
 
 1. **Load admins from a config file** -- Use `JsonFileLoader` to load admin IDs from a JSON file instead of hardcoding them.
 2. **Add a /help command** -- List all available commands with their descriptions and usage.
@@ -1550,4 +1550,4 @@ The exact implementation depends on the DayZ version and how `ChatInputMenu` exp
 
 ---
 
-**Zurueck:** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)
+**Zurück:** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)

@@ -4,7 +4,7 @@
 
 ---
 
-## Einfuehrung
+## Einführung
 
 DayZ uses a multi-layered camera system. The player camera is managed by the engine through `DayZPlayerCamera` subclasses. For modding and debugging, the `FreeDebugCamera` allows free-flight. The engine also provides global accessors for the current camera state. This chapter covers camera types, how to access camera data, and how to use the scripted camera tools.
 
@@ -286,4 +286,4 @@ Object GetObjectInCrosshair(float maxDistance)
 
 ---
 
-[<< Zurueck: Weather](03-weather.md) | **Cameras** | [Next: Post-Process Effects >>](05-ppe.md)
+[<< Zurück: Weather](03-weather.md) | **Cameras** | [Next: Post-Process Effects >>](05-ppe.md)
