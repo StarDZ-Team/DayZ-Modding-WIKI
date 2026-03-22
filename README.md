@@ -1,211 +1,158 @@
-# DayZ Modding Complete Guide
+<p align="center">
+  <img src="https://img.shields.io/badge/DayZ-Modding_Wiki-black?style=for-the-badge&logo=steam&logoColor=white" alt="DayZ Modding Wiki" />
+</p>
 
-> The most comprehensive DayZ modding documentation available. From zero to published mod.
-> **86 chapters** across **8 parts**, available in **12 languages**.
+<h1 align="center">DayZ Modding Complete Guide</h1>
 
-[![English](https://flagsapi.com/US/flat/48.png)](en/README.md) [![Português](https://flagsapi.com/BR/flat/48.png)](pt/README.md) [![Deutsch](https://flagsapi.com/DE/flat/48.png)](de/README.md) [![Русский](https://flagsapi.com/RU/flat/48.png)](ru/README.md) [![Čeština](https://flagsapi.com/CZ/flat/48.png)](cs/README.md) [![Polski](https://flagsapi.com/PL/flat/48.png)](pl/README.md) [![Magyar](https://flagsapi.com/HU/flat/48.png)](hu/README.md) [![Italiano](https://flagsapi.com/IT/flat/48.png)](it/README.md) [![Español](https://flagsapi.com/ES/flat/48.png)](es/README.md) [![Français](https://flagsapi.com/FR/flat/48.png)](fr/README.md) [![日本語](https://flagsapi.com/JP/flat/48.png)](ja/README.md) [![简体中文](https://flagsapi.com/CN/flat/48.png)](zh-hans/README.md)
+<p align="center">
+  <strong>The most comprehensive DayZ modding documentation ever created.</strong><br/>
+  From absolute zero to published mod — in 12 languages.
+</p>
 
----
+<p align="center">
+  <a href="en/README.md"><img src="https://img.shields.io/badge/lang-English-blue?style=flat-square" alt="English" /></a>
+  <a href="pt/README.md"><img src="https://img.shields.io/badge/lang-Português-green?style=flat-square" alt="Português" /></a>
+  <a href="de/README.md"><img src="https://img.shields.io/badge/lang-Deutsch-yellow?style=flat-square" alt="Deutsch" /></a>
+  <a href="ru/README.md"><img src="https://img.shields.io/badge/lang-Русский-red?style=flat-square" alt="Русский" /></a>
+  <a href="es/README.md"><img src="https://img.shields.io/badge/lang-Español-orange?style=flat-square" alt="Español" /></a>
+  <a href="fr/README.md"><img src="https://img.shields.io/badge/lang-Français-lightblue?style=flat-square" alt="Français" /></a>
+  <a href="ja/README.md"><img src="https://img.shields.io/badge/lang-日本語-white?style=flat-square" alt="日本語" /></a>
+  <a href="zh-hans/README.md"><img src="https://img.shields.io/badge/lang-简体中文-crimson?style=flat-square" alt="简体中文" /></a>
+  <a href="cs/README.md"><img src="https://img.shields.io/badge/lang-Čeština-darkblue?style=flat-square" alt="Čeština" /></a>
+  <a href="pl/README.md"><img src="https://img.shields.io/badge/lang-Polski-white?style=flat-square" alt="Polski" /></a>
+  <a href="hu/README.md"><img src="https://img.shields.io/badge/lang-Magyar-darkgreen?style=flat-square" alt="Magyar" /></a>
+  <a href="it/README.md"><img src="https://img.shields.io/badge/lang-Italiano-green?style=flat-square" alt="Italiano" /></a>
+</p>
 
-## Table of Contents
-
-### Part 1: Enforce Script Language
-Learn DayZ's scripting language from the ground up.
-
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| [1.1](en/01-enforce-script/01-variables-types.md) | Variables & Types | Done |
-| [1.2](en/01-enforce-script/02-arrays-maps-sets.md) | Arrays, Maps & Sets | Done |
-| [1.3](en/01-enforce-script/03-classes-inheritance.md) | Classes & Inheritance | Done |
-| [1.4](en/01-enforce-script/04-modded-classes.md) | Modded Classes | Done |
-| [1.5](en/01-enforce-script/05-control-flow.md) | Control Flow | Done |
-| [1.6](en/01-enforce-script/06-strings.md) | String Operations | Done |
-| [1.7](en/01-enforce-script/07-math-vectors.md) | Math & Vectors | Done |
-| [1.8](en/01-enforce-script/08-memory-management.md) | Memory Management | Done |
-| [1.9](en/01-enforce-script/09-casting-reflection.md) | Casting & Reflection | Done |
-| [1.10](en/01-enforce-script/10-enums-preprocessor.md) | Enums & Preprocessor | Done |
-| [1.11](en/01-enforce-script/11-error-handling.md) | Error Handling | Done |
-| [1.12](en/01-enforce-script/12-gotchas.md) | What Does NOT Exist | Done |
-| [1.13](en/01-enforce-script/13-functions-methods.md) | Functions & Methods | Done |
-
-### Part 2: Mod Structure
-Understand how DayZ mods are organized.
-
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| [2.1](en/02-mod-structure/01-five-layers.md) | The 5-Layer Script Hierarchy | Done |
-| [2.2](en/02-mod-structure/02-config-cpp.md) | config.cpp Deep Dive | Done |
-| [2.3](en/02-mod-structure/03-mod-cpp.md) | mod.cpp & Workshop | Done |
-| [2.4](en/02-mod-structure/04-minimum-viable-mod.md) | Your First Mod | Done |
-| [2.5](en/02-mod-structure/05-file-organization.md) | File Organization | Done |
-| [2.6](en/02-mod-structure/06-server-client-split.md) | Server/Client Architecture | Done |
-
-### Part 3: GUI & Layout System
-Build user interfaces for DayZ.
-
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| [3.1](en/03-gui-system/01-widget-types.md) | Widget Types | Done |
-| [3.2](en/03-gui-system/02-layout-files.md) | Layout File Format | Done |
-| [3.3](en/03-gui-system/03-sizing-positioning.md) | Sizing & Positioning | Done |
-| [3.4](en/03-gui-system/04-containers.md) | Container Widgets | Done |
-| [3.5](en/03-gui-system/05-programmatic-widgets.md) | Programmatic Creation | Done |
-| [3.6](en/03-gui-system/06-event-handling.md) | Event Handling | Done |
-| [3.7](en/03-gui-system/07-styles-fonts.md) | Styles, Fonts & Images | Done |
-| [3.8](en/03-gui-system/08-dialogs-modals.md) | Dialogs & Modals | Done |
-| [3.9](en/03-gui-system/09-real-mod-patterns.md) | Real Mod UI Patterns | Done |
-| [3.10](en/03-gui-system/10-advanced-widgets.md) | Advanced Widgets | Done |
-
-### Part 4: File Formats & Tools
-Working with DayZ asset pipeline.
-
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| [4.1](en/04-file-formats/01-textures.md) | Textures (.paa, .edds, .tga) | Done |
-| [4.2](en/04-file-formats/02-models.md) | 3D Models (.p3d) | Done |
-| [4.3](en/04-file-formats/03-materials.md) | Materials (.rvmat) | Done |
-| [4.4](en/04-file-formats/04-audio.md) | Audio (.ogg, .wss) | Done |
-| [4.5](en/04-file-formats/05-dayz-tools.md) | DayZ Tools Workflow | Done |
-| [4.6](en/04-file-formats/06-pbo-packing.md) | PBO Packing | Done |
-| [4.7](en/04-file-formats/07-workbench-guide.md) | Workbench Guide | Done |
-| [4.8](en/04-file-formats/08-building-modeling.md) | Building Modeling (Doors & Ladders) | Done |
-
-### Part 5: Configuration Files
-Essential configuration files for every mod.
-
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| [5.1](en/05-config-files/01-stringtable.md) | stringtable.csv (13 Languages) | Done |
-| [5.2](en/05-config-files/02-inputs-xml.md) | Inputs.xml (Keybindings) | Done |
-| [5.3](en/05-config-files/03-credits-json.md) | Credits.json | Done |
-| [5.4](en/05-config-files/04-imagesets.md) | ImageSet Format | Done |
-| [5.5](en/05-config-files/05-server-configs.md) | Server Configuration Files | Done |
-| [5.6](en/05-config-files/06-spawning-gear.md) | Spawning Gear Configuration | Done |
-
-### Part 6: Engine API Reference
-DayZ engine APIs for mod developers.
-
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| [6.1](en/06-engine-api/01-entity-system.md) | Entity System | Done |
-| [6.2](en/06-engine-api/02-vehicles.md) | Vehicle System | Done |
-| [6.3](en/06-engine-api/03-weather.md) | Weather System | Done |
-| [6.4](en/06-engine-api/04-cameras.md) | Camera System | Done |
-| [6.5](en/06-engine-api/05-ppe.md) | Post-Process Effects | Done |
-| [6.6](en/06-engine-api/06-notifications.md) | Notification System | Done |
-| [6.7](en/06-engine-api/07-timers.md) | Timers & CallQueue | Done |
-| [6.8](en/06-engine-api/08-file-io.md) | File I/O & JSON | Done |
-| [6.9](en/06-engine-api/09-networking.md) | Networking & RPC | Done |
-| [6.10](en/06-engine-api/10-central-economy.md) | Central Economy | Done |
-| [6.11](en/06-engine-api/11-mission-hooks.md) | Mission Hooks | Done |
-| [6.12](en/06-engine-api/12-action-system.md) | Action System | Done |
-| [6.13](en/06-engine-api/13-input-system.md) | Input System | Done |
-| [6.14](en/06-engine-api/14-player-system.md) | Player System | Done |
-| [6.15](en/06-engine-api/15-sound-system.md) | Sound System | Done |
-| [6.16](en/06-engine-api/16-crafting-system.md) | Crafting System | Done |
-| [6.17](en/06-engine-api/17-construction-system.md) | Construction System | Done |
-| [6.18](en/06-engine-api/18-animation-system.md) | Animation System | Done |
-| [6.19](en/06-engine-api/19-terrain-queries.md) | Terrain & World Queries | Done |
-| [6.20](en/06-engine-api/20-particle-effects.md) | Particle & Effect System | Done |
-| [6.21](en/06-engine-api/21-zombie-ai-system.md) | Zombie & AI System | Done |
-| [6.22](en/06-engine-api/22-admin-server.md) | Admin & Server Management | Done |
-| [6.23](en/06-engine-api/23-world-systems.md) | World Systems | Done |
-
-### Part 7: Patterns & Best Practices
-Battle-tested patterns from professional mods.
-
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| [7.1](en/07-patterns/01-singletons.md) | Singleton Pattern | Done |
-| [7.2](en/07-patterns/02-module-systems.md) | Module/Plugin Systems | Done |
-| [7.3](en/07-patterns/03-rpc-patterns.md) | RPC Communication | Done |
-| [7.4](en/07-patterns/04-config-persistence.md) | Config Persistence | Done |
-| [7.5](en/07-patterns/05-permissions.md) | Permission Systems | Done |
-| [7.6](en/07-patterns/06-events.md) | Event-Driven Architecture | Done |
-| [7.7](en/07-patterns/07-performance.md) | Performance Optimization | Done |
-
-### Part 8: Tutorials
-Step-by-step guides.
-
-| Chapter | Topic | Status |
-|---------|-------|--------|
-| [8.1](en/08-tutorials/01-first-mod.md) | Your First Mod (Hello World) | Done |
-| [8.2](en/08-tutorials/02-custom-item.md) | Creating a Custom Item | Done |
-| [8.3](en/08-tutorials/03-admin-panel.md) | Building an Admin Panel | Done |
-| [8.4](en/08-tutorials/04-chat-commands.md) | Adding Chat Commands | Done |
-| [8.5](en/08-tutorials/05-mod-template.md) | Using the DayZ Mod Template | Done |
-| [8.6](en/08-tutorials/06-debugging-testing.md) | Debugging & Testing | Done |
-| [8.7](en/08-tutorials/07-publishing-workshop.md) | Publishing to Steam Workshop | Done |
-| [8.8](en/08-tutorials/08-hud-overlay.md) | Building a HUD Overlay | Done |
-| [8.9](en/08-tutorials/09-professional-template.md) | Professional Mod Template | Done |
-| [8.10](en/08-tutorials/10-vehicle-mod.md) | Creating a Vehicle Mod | Done |
-| [8.11](en/08-tutorials/11-clothing-mod.md) | Creating a Clothing Mod | Done |
-| [8.12](en/08-tutorials/12-trading-system.md) | Building a Trading System | Done |
-| [8.13](en/08-tutorials/13-diag-menu.md) | Diag Menu Reference | Done |
+<p align="center">
+  <img src="https://img.shields.io/badge/chapters-92-blue?style=flat-square" alt="92 chapters" />
+  <img src="https://img.shields.io/badge/languages-12-green?style=flat-square" alt="12 languages" />
+  <img src="https://img.shields.io/badge/files-1,107-orange?style=flat-square" alt="1,107 files" />
+  <img src="https://img.shields.io/badge/license-CC_BY--SA_4.0-lightgrey?style=flat-square" alt="CC BY-SA 4.0" />
+</p>
 
 ---
 
-## Supported Languages
+## Why This Wiki?
 
-| | Language | Code | Pages | Status |
-|:-:|----------|------|-------|--------|
-| [![](https://flagsapi.com/US/flat/24.png)](en/README.md) | [English](en/README.md) | `en` | 93 | Complete |
-| [![](https://flagsapi.com/BR/flat/24.png)](pt/README.md) | [Português (BR)](pt/README.md) | `pt` | 93 | Complete |
-| [![](https://flagsapi.com/DE/flat/24.png)](de/README.md) | [Deutsch](de/README.md) | `de` | 93 | Complete |
-| [![](https://flagsapi.com/RU/flat/24.png)](ru/README.md) | [Русский](ru/README.md) | `ru` | 93 | Complete |
-| [![](https://flagsapi.com/CZ/flat/24.png)](cs/README.md) | [Čeština](cs/README.md) | `cs` | 93 | Complete |
-| [![](https://flagsapi.com/PL/flat/24.png)](pl/README.md) | [Polski](pl/README.md) | `pl` | 93 | Complete |
-| [![](https://flagsapi.com/HU/flat/24.png)](hu/README.md) | [Magyar](hu/README.md) | `hu` | 93 | Complete |
-| [![](https://flagsapi.com/IT/flat/24.png)](it/README.md) | [Italiano](it/README.md) | `it` | 93 | Complete |
-| [![](https://flagsapi.com/ES/flat/24.png)](es/README.md) | [Español](es/README.md) | `es` | 93 | Complete |
-| [![](https://flagsapi.com/FR/flat/24.png)](fr/README.md) | [Français](fr/README.md) | `fr` | 93 | Complete |
-| [![](https://flagsapi.com/JP/flat/24.png)](ja/README.md) | [日本語](ja/README.md) | `ja` | 93 | Complete |
-| [![](https://flagsapi.com/CN/flat/24.png)](zh-hans/README.md) | [简体中文](zh-hans/README.md) | `zh-hans` | 93 | Complete |
+There is **no complete public documentation** for DayZ modding. The official wiki is sparse, community tutorials are scattered and outdated, and most knowledge lives in private Discord servers. This project changes that.
+
+This wiki was built by **reverse-engineering 10+ professional mods**, studying **2,800+ vanilla script files**, analyzing **15 official Bohemia samples**, and documenting every pattern, gotcha, and best practice we found.
+
+**Whether you're creating your first mod or building a complex framework — this is your reference.**
 
 ---
 
-## Quick Reference
+## What's Inside
 
-- [Enforce Script Cheat Sheet](en/cheatsheet.md)
-- [Widget Type Reference](en/03-gui-system/01-widget-types.md)
-- [API Quick Reference](en/06-engine-api/quick-reference.md)
-- [Common Gotchas](en/01-enforce-script/12-gotchas.md)
-- [Glossary](en/glossary.md)
-- [FAQ](en/faq.md)
-- [Troubleshooting Guide](en/troubleshooting.md)
+| Part | Topic | Chapters | What You'll Learn |
+|:----:|-------|:--------:|-------------------|
+| **1** | [Enforce Script Language](en/01-enforce-script/01-variables-types.md) | 13 | The complete language — types, classes, modded classes, memory management, 30+ gotchas |
+| **2** | [Mod Structure](en/02-mod-structure/01-five-layers.md) | 6 | 5-layer hierarchy, config.cpp, server/client architecture |
+| **3** | [GUI & Layout System](en/03-gui-system/01-widget-types.md) | 10 | Widgets, .layout files, sizing, events, dialogs, real mod UI patterns |
+| **4** | [File Formats & Tools](en/04-file-formats/01-textures.md) | 8 | Textures, models, audio, DayZ Tools, Workbench, PBO packing |
+| **5** | [Configuration Files](en/05-config-files/01-stringtable.md) | 6 | stringtable.csv, inputs.xml, imagesets, server configs, spawn gear |
+| **6** | [Engine API Reference](en/06-engine-api/01-entity-system.md) | 23 | Entity, player, vehicle, sound, crafting, construction, animation, zombie/AI, terrain, particles, admin |
+| **7** | [Patterns & Best Practices](en/07-patterns/01-singletons.md) | 7 | Singletons, modules, RPC, permissions, events, performance |
+| **8** | [Tutorials](en/08-tutorials/01-first-mod.md) | 13 | Hello World → Custom Items → Admin Panel → Vehicles → Trading System |
+| | [Quick Reference](en/06-engine-api/quick-reference.md) | 6 | Cheatsheet, API reference, glossary, FAQ, troubleshooting |
+
+> **92 chapters total** — each with code examples, common mistakes, best practices, and real-world patterns from professional mods.
+
+---
+
+## Quick Start
+
+**New to DayZ modding?** Follow this path:
+
+1. [Your First Mod (Hello World)](en/08-tutorials/01-first-mod.md) — Build and load a mod in 15 minutes
+2. [The 5-Layer Script Hierarchy](en/02-mod-structure/01-five-layers.md) — Understand how DayZ organizes code
+3. [Variables & Types](en/01-enforce-script/01-variables-types.md) — Learn Enforce Script basics
+4. [Creating a Custom Item](en/08-tutorials/02-custom-item.md) — Add your first in-game item
+5. [What Does NOT Exist](en/01-enforce-script/12-gotchas.md) — Avoid the 30 most common traps
+
+**Experienced developer?** Jump to:
+- [API Quick Reference](en/06-engine-api/quick-reference.md) — Condensed method reference
+- [Professional Mod Template](en/08-tutorials/09-professional-template.md) — Production-ready starter
+- [Real Mod UI Patterns](en/03-gui-system/09-real-mod-patterns.md) — Patterns from COT, VPP, Expansion, Dabs
+- [Troubleshooting Guide](en/troubleshooting.md) — 91 problems with solutions
+
+---
+
+## Key Features
+
+- **Learn by example** — Every chapter includes real code from professional mods (COT, VPP, Expansion, Dabs Framework, Colorful UI)
+- **Gotcha-first approach** — Each topic highlights what goes wrong before showing what's right
+- **Copy-paste ready** — All code examples are complete and tested
+- **Theory vs Practice** — Tables showing what the docs say vs how things actually behave
+- **12 languages** — Full wiki available in English, Portuguese, German, Russian, Spanish, French, Japanese, Chinese, Czech, Polish, Hungarian, and Italian
+- **31+ Mermaid diagrams** — Visual flowcharts, class hierarchies, and sequence diagrams
+- **Professional template** — Complete mod starter with every file explained
+
+---
+
+## Reference Material
+
+This documentation was built by studying:
+
+| Source | What We Extracted |
+|--------|-------------------|
+| [Community Online Tools](https://github.com/Jacob-Mango/DayZ-CommunityOnlineTools) | Module system, RPC, permissions, ESP, admin UI |
+| [VPP Admin Tools](https://github.com/Da0ne/VPP-AdminTools) | Player management, dialogs, webhook system |
+| [DayZ Expansion](https://github.com/salutesh/DayZ-Expansion-Scripts) | Market, vehicles, AI, notifications, settings versioning |
+| [Dabs Framework](https://github.com/InclementDab/DayZ-Dabs-Framework) | MVC architecture, ViewBinding, attribute-based registration |
+| [Colorful UI](https://github.com/DrkDevil/DayZ-Colorful-UI) | Theme system, modded class UI, resolution-aware layouts |
+| [DayZ Editor](https://github.com/InclementDab/DayZ-Editor) | Editor UI, command pattern, object management |
+| [Community Framework](https://github.com/Jacob-Mango/DayZ-CommunityFramework) | Module lifecycle, RPC manager, logging |
+| [Official DayZ Samples](https://github.com/BohemiaInteractive/DayZ-Samples) | 15 sample mods covering vehicles, weapons, crafting, terrain |
+| Vanilla DayZ Scripts | 2,800+ script files reverse-engineered |
 
 ---
 
 ## Contributing
 
-This documentation was compiled by studying:
-- 10+ professional DayZ mods (COT, VPP, Expansion, Dabs Framework, DayZ Editor, Colorful UI)
-- 15 official Bohemia Interactive sample mods
-- 2,800+ vanilla DayZ script files
-- Community Framework source code
+We welcome contributions! Whether it's fixing a typo, adding an example, translating a chapter, or writing new content.
 
-Pull requests welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+**Ways to contribute:**
+- Report errors or suggest improvements via [Issues](https://github.com/StarDZ-Team/DayZ-Modding-WIKI/issues)
+- Submit corrections or new content via [Pull Requests](https://github.com/StarDZ-Team/DayZ-Modding-WIKI/pulls)
+- Help translate — see [Translation Guide](CONTRIBUTING.md#translations)
+- Add screenshots to chapters that need them — see [Image Needs](images/NEEDED_IMAGES.md)
 
 ---
 
 ## Credits
 
-This documentation was made possible by studying the work of these incredible developers and their open-source projects:
+This wiki exists thanks to the incredible work of these developers and their open-source projects:
 
-| Developer | GitHub | Projects | Contribution |
-|-----------|--------|----------|--------------|
-| **Jacob_Mango** | [@Jacob-Mango](https://github.com/Jacob-Mango) | Community Framework, Community Online Tools | Module system, RPC patterns, permissions, ESP, vehicle management |
-| **InclementDab** | [@InclementDab](https://github.com/InclementDab) | Dabs Framework, DayZ Editor, Mod Template | MVC architecture, ViewBinding, widget patterns, editor UI |
-| **salutesh** | [@salutesh](https://github.com/salutesh) | DayZ Expansion Scripts | Market system, party system, map markers, notification system, vehicle modules |
-| **Arkensor** | [@Arkensor](https://github.com/Arkensor) | DayZ Expansion Scripts | Central economy, settings versioning, anti-cheat patterns |
-| **DaOne** | [@Da0ne](https://github.com/Da0ne) | VPP Admin Tools | Player management, chat commands, webhook system, ESP tools |
-| **GravityWolf** | [@GravityWolfNotAmused](https://github.com/GravityWolfNotAmused) | VPP Admin Tools | Permission system, server management, teleport system |
-| **Bohemia Interactive** | [@BohemiaInteractive](https://github.com/BohemiaInteractive/) | DayZ Engine & Official Samples | Enforce Script engine, vanilla scripts, DayZ Tools, sample mods |
-| **Brian Orr (DrkDevil)** | [@DrkDevil](https://github.com/DrkDevil) | Colorful UI | Color theming system, modded class UI patterns, resolution-aware layouts |
-| **lothsun** | [@lothsun](https://github.com/lothsun) | Colorful UI | UI color systems, visual enhancement patterns |
-| **StarDZ Team** | [@StarDZ-Team](https://github.com/StarDZ-Team) | --- | Documentation compilation, translation & organization |
+| Developer | Projects | Key Contributions |
+|-----------|----------|-------------------|
+| [**Jacob_Mango**](https://github.com/Jacob-Mango) | Community Framework, COT | Module system, RPC, permissions, ESP |
+| [**InclementDab**](https://github.com/InclementDab) | Dabs Framework, DayZ Editor, Mod Template | MVC, ViewBinding, editor UI |
+| [**salutesh**](https://github.com/salutesh) | DayZ Expansion | Market, party, map markers, vehicles |
+| [**Arkensor**](https://github.com/Arkensor) | DayZ Expansion | Central economy, settings versioning |
+| [**DaOne**](https://github.com/Da0ne) | VPP Admin Tools | Player management, webhooks, ESP |
+| [**GravityWolf**](https://github.com/GravityWolfNotAmused) | VPP Admin Tools | Permissions, server management |
+| [**Brian Orr (DrkDevil)**](https://github.com/DrkDevil) | Colorful UI | Color theming, modded class UI patterns |
+| [**lothsun**](https://github.com/lothsun) | Colorful UI | UI color systems, visual enhancement |
+| [**Bohemia Interactive**](https://github.com/BohemiaInteractive) | DayZ Engine & Samples | Enforce Script, vanilla scripts, DayZ Tools |
+| [**StarDZ Team**](https://github.com/StarDZ-Team) | This Wiki | Documentation, translation & organization |
+
+---
 
 ## License
 
-This documentation is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
-Code examples are licensed under [MIT](https://opensource.org/licenses/MIT).
+Documentation is licensed under [**CC BY-SA 4.0**](https://creativecommons.org/licenses/by-sa/4.0/) — share and adapt with attribution.
+
+Code examples are licensed under [**MIT**](LICENCE) — use freely in your mods.
+
+See [LICENCE](LICENCE) for full text.
+
+---
+
+<p align="center">
+  <strong>Built with reverse engineering, coffee, and the DayZ modding community.</strong><br/>
+  <sub>If this wiki helped you, consider giving it a star and sharing it with fellow modders.</sub>
+</p>
