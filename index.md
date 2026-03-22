@@ -6,7 +6,7 @@ hero:
   text: The Complete Guide
   tagline: 92 chapters covering everything from Enforce Script to published mods — in 12 languages.
   image:
-    src: ./images/wiki-logo.png
+    src: https://stardz-team.github.io/DayZ-Modding-Wiki/images/wiki-logo.png
     alt: DayZ Modding Wiki
   actions:
     - theme: brand
