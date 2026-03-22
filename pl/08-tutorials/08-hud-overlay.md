@@ -1,30 +1,34 @@
-# Chapter 8.8: Building a HUD Overlay
+# Rozdział 8.8: Budowanie nakładki HUD
 
-[Home](../../README.md) | [<< Previous: Publishing to the Steam Workshop](07-publishing-workshop.md) | **Building a HUD Overlay** | [Next: Professional Mod Template >>](09-professional-template.md)
-
----
-
-## Spis tresci
-
-- [What We Are Building](#what-we-are-building)
-- [Wymagania wstepne](#prerequisites)
-- [Mod Structure](#mod-structure)
-- [Step 1: Create the Layout File](#step-1-create-the-layout-file)
-- [Step 2: Create the HUD Controller Class](#step-2-create-the-hud-controller-class)
-- [Step 3: Hook into MissionGameplay](#step-3-hook-into-missiongameplay)
-- [Step 4: Request Data from Server](#step-4-request-data-from-server)
-- [Step 5: Add Toggle with Keybind](#step-5-add-toggle-with-keybind)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Extending the HUD](#extending-the-hud)
-- [Czeste bledy](#common-mistakes)
-- [Nastepne kroki](#next-steps)
+[Strona główna](../../README.md) | [<< Poprzedni: Publikacja na Steam Workshop](07-publishing-workshop.md) | **Budowanie nakładki HUD** | [Dalej: Profesjonalny szablon moda >>](09-professional-template.md)
 
 ---
 
-## What We Are Building
+> **Podsumowanie:** Ten samouczek przeprowadzi cię przez budowanie własnej nakładki HUD wyświetlającej informacje o serwerze w prawym górnym rogu ekranu. Utworzysz plik layoutu, napiszesz klasę kontrolera, podepniesz się do cyklu życia misji, zażądasz danych z serwera przez RPC, dodasz przełącznik za pomocą skrótu klawiszowego i wypolirujesz rezultat animacjami zanikania oraz inteligentną widocznością. Pod koniec będziesz mieć nieinwazyjny HUD informacji o serwerze wyświetlający nazwę serwera, liczbę graczy i aktualny czas w grze -- plus solidne zrozumienie jak nakładki HUD działają w DayZ.
 
-A small, semi-transparent panel anchored to the top-right corner of the screen that displays three lines of information:
+---
+
+## Spis treści
+
+- [Co budujemy](#co-budujemy)
+- [Wymagania wstępne](#wymagania-wstępne)
+- [Struktura moda](#struktura-moda)
+- [Krok 1: Tworzenie pliku layoutu](#krok-1-tworzenie-pliku-layoutu)
+- [Krok 2: Tworzenie klasy kontrolera HUD](#krok-2-tworzenie-klasy-kontrolera-hud)
+- [Krok 3: Podpięcie do MissionGameplay](#krok-3-podpięcie-do-missiongameplay)
+- [Krok 4: Żądanie danych z serwera](#krok-4-żądanie-danych-z-serwera)
+- [Krok 5: Dodanie przełącznika ze skrótem klawiszowym](#krok-5-dodanie-przełącznika-ze-skrótem-klawiszowym)
+- [Krok 6: Polerowanie](#krok-6-polerowanie)
+- [Kompletna referencja kodu](#kompletna-referencja-kodu)
+- [Rozszerzanie HUD](#rozszerzanie-hud)
+- [Częste błędy](#częste-błędy)
+- [Następne kroki](#następne-kroki)
+
+---
+
+## Co budujemy
+
+Mały, półprzezroczysty panel zakotwiczony w prawym górnym rogu ekranu, wyświetlający trzy linie informacji:
 
 ```
   Aurora Survival [Official]
@@ -32,25 +36,25 @@ A small, semi-transparent panel anchored to the top-right corner of the screen t
   Time: 14:35
 ```
 
-The panel sits below the status indicators and above the quickbar. It updates once per second (not every frame), fades in when shown and fades out when hidden, and automatically hides when the inventory or pause menu is open. The player can toggle it on and off with a configurable key (default: **F7**).
+Panel znajduje się poniżej wskaźników statusu i powyżej paska szybkiego dostępu. Aktualizuje się raz na sekundę (nie co klatkę), pojawia się płynnie gdy jest pokazywany i zanika gdy jest ukrywany, oraz automatycznie chowa się gdy otwarty jest ekwipunek lub menu pauzy. Gracz może go włączać i wyłączać konfigurowalnym klawiszem (domyślnie: **F7**).
 
-### Expected Result
+### Oczekiwany rezultat
 
-When loaded, you will see a dark semi-transparent rectangle in the top-right area of the screen. White text shows the server name on the first line, the current player count on the second line, and the in-game world time on the third line. Pressing F7 smoothly fades it out; pressing F7 again fades it back in.
-
----
-
-## Wymagania wstepne
-
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Basic understanding of Enforce Script syntax
-- Familiarity with DayZ's client-server model (the HUD runs on the client; player count comes from the server)
+Po załadowaniu zobaczysz ciemny, półprzezroczysty prostokąt w prawym górnym obszarze ekranu. Biały tekst pokazuje nazwę serwera w pierwszej linii, aktualną liczbę graczy w drugiej linii i czas świata gry w trzeciej linii. Naciśnięcie F7 płynnie go wygasza; ponowne naciśnięcie F7 płynnie go przywraca.
 
 ---
 
-## Mod Structure
+## Wymagania wstępne
 
-Create the following directory tree:
+- Działająca struktura moda (ukończ najpierw [Rozdział 8.1](01-first-mod.md))
+- Podstawowe zrozumienie składni Enforce Script
+- Znajomość modelu klient-serwer DayZ (HUD działa na kliencie; liczba graczy pochodzi z serwera)
+
+---
+
+## Struktura moda
+
+Utwórz następujące drzewo katalogów:
 
 ```
 ServerInfoHUD/
@@ -74,13 +78,13 @@ ServerInfoHUD/
             ServerInfoHUD.layout
 ```
 
-The `3_Game` layer defines constants (our RPC ID). The `4_World` layer handles the server-side response. The `5_Mission` layer contains the HUD class and the mission hook. The layout file defines the widget tree.
+Warstwa `3_Game` definiuje stałe (nasz identyfikator RPC). Warstwa `4_World` obsługuje odpowiedź po stronie serwera. Warstwa `5_Mission` zawiera klasę HUD i hook misji. Plik layoutu definiuje drzewo widgetów.
 
 ---
 
-## Step 1: Create the Layout File
+## Krok 1: Tworzenie pliku layoutu
 
-Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system uses a coordinate model where each widget has a position and size expressed as proportional values (0.0 to 1.0 of the parent) plus pixel offsets.
+Pliki layoutu (`.layout`) definiują hierarchię widgetów w XML. System GUI DayZ używa modelu współrzędnych, w którym każdy widget ma pozycję i rozmiar wyrażony jako wartości proporcjonalne (0.0 do 1.0 rodzica) plus przesunięcia pikselowe.
 
 ### `GUI/layouts/ServerInfoHUD.layout`
 
@@ -88,7 +92,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 <?xml version="1.0" encoding="UTF-8"?>
 <layoutset>
   <children>
-    <!-- Root frame: covers the full screen, does not consume input -->
+    <!-- Ramka główna: pokrywa cały ekran, nie konsumuje wejścia -->
     <Widget name="ServerInfoRoot" type="FrameWidgetClass">
       <Attribute name="position" value="0 0" />
       <Attribute name="size" value="1 1" />
@@ -99,7 +103,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
       <Attribute name="hexactsize" value="0" />
       <Attribute name="vexactsize" value="0" />
       <children>
-        <!-- Background panel: top-right corner -->
+        <!-- Panel tła: prawy górny róg -->
         <Widget name="ServerInfoPanel" type="ImageWidgetClass">
           <Attribute name="position" value="1 0" />
           <Attribute name="size" value="220 70" />
@@ -111,7 +115,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
           <Attribute name="vexactsize" value="1" />
           <Attribute name="color" value="0 0 0 0.55" />
           <children>
-            <!-- Server name text -->
+            <!-- Tekst nazwy serwera -->
             <Widget name="ServerNameText" type="TextWidgetClass">
               <Attribute name="position" value="8 6" />
               <Attribute name="size" value="204 20" />
@@ -126,7 +130,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- Player count text -->
+            <!-- Tekst liczby graczy -->
             <Widget name="PlayerCountText" type="TextWidgetClass">
               <Attribute name="position" value="8 28" />
               <Attribute name="size" value="204 18" />
@@ -141,7 +145,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- In-game time text -->
+            <!-- Tekst czasu w grze -->
             <Widget name="TimeText" type="TextWidgetClass">
               <Attribute name="position" value="8 48" />
               <Attribute name="size" value="204 18" />
@@ -164,25 +168,25 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 </layoutset>
 ```
 
-### Key Layout Koncepcjas
+### Kluczowe koncepcje layoutu
 
-| Attribute | Znaczenie |
-|-----------|---------|
-| `halign="2"` | Horizontal alignment: **right**. The widget anchors to the right edge of its parent. |
-| `valign="0"` | Vertical alignment: **top**. |
-| `hexactpos="0"` + `vexactpos="1"` | Horizontal position is proportional (1.0 = right edge), vertical position is in pixels. |
-| `hexactsize="1"` + `vexactsize="1"` | Width and height are in pixels (220 x 70). |
-| `color="0 0 0 0.55"` | RGBA as floats. Black at 55% opacity for the background panel. |
+| Atrybut | Znaczenie |
+|---------|-----------|
+| `halign="2"` | Wyrównanie poziome: **prawo**. Widget jest zakotwiczony do prawej krawędzi rodzica. |
+| `valign="0"` | Wyrównanie pionowe: **góra**. |
+| `hexactpos="0"` + `vexactpos="1"` | Pozycja pozioma jest proporcjonalna (1.0 = prawa krawędź), pozycja pionowa w pikselach. |
+| `hexactsize="1"` + `vexactsize="1"` | Szerokość i wysokość w pikselach (220 x 70). |
+| `color="0 0 0 0.55"` | RGBA jako ułamki. Czarny z 55% przezroczystości dla panelu tła. |
 
-The `ServerInfoPanel` is positioned at proportional X=1.0 (right edge) with `halign="2"` (right-aligned), so the panel's right edge touches the right side of the screen. The Y position is 0 pixels from the top. This places our HUD in the top-right corner.
+`ServerInfoPanel` jest pozycjonowany na proporcjonalnym X=1.0 (prawa krawędź) z `halign="2"` (wyrównanie do prawej), więc prawa krawędź panelu dotyka prawej strony ekranu. Pozycja Y to 0 pikseli od góry. To umieszcza nasz HUD w prawym górnym rogu.
 
-**Why pixel sizes for the panel?** Proportional sizing would make the panel scale with resolution, but for small info widgets you want a fixed pixel footprint so the text stays readable at all resolutions.
+**Dlaczego rozmiary pikselowe dla panelu?** Rozmiar proporcjonalny sprawiłby, że panel skalowałby się z rozdzielczością, ale dla małych widgetów informacyjnych chcesz stałego śladu pikselowego, aby tekst pozostał czytelny we wszystkich rozdzielczościach.
 
 ---
 
-## Step 2: Create the HUD Controller Class
+## Krok 2: Tworzenie klasy kontrolera HUD
 
-The controller class loads the layout, finds widgets by name, and exposes methods to update the displayed text. It extends `ScriptedWidgetEventHandler` so it can receive widget events if needed later.
+Klasa kontrolera ładuje layout, znajduje widgety po nazwie i udostępnia metody do aktualizacji wyświetlanego tekstu. Rozszerza `ScriptedWidgetEventHandler`, aby mogła odbierać zdarzenia widgetów w razie potrzeby później.
 
 ### `Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
@@ -198,7 +202,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
     protected bool m_IsVisible;
     protected float m_UpdateTimer;
 
-    // How often to refresh displayed data (seconds)
+    // Jak często odświeżać wyświetlane dane (w sekundach)
     static const float UPDATE_INTERVAL = 1.0;
 
     void ServerInfoHUD()
@@ -212,7 +216,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         Destroy();
     }
 
-    // Create and show the HUD
+    // Utwórz i pokaż HUD
     void Init()
     {
         if (m_Root)
@@ -242,11 +246,11 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_Root.Show(true);
         m_IsVisible = true;
 
-        // Request initial data from server
+        // Zażądaj początkowych danych z serwera
         RequestServerInfo();
     }
 
-    // Remove all widgets
+    // Usuń wszystkie widgety
     void Destroy()
     {
         if (m_Root)
@@ -256,7 +260,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Called every frame from MissionGameplay.OnUpdate
+    // Wywoływane co klatkę z MissionGameplay.OnUpdate
     void Update(float timeslice)
     {
         if (!m_Root)
@@ -275,7 +279,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Update the in-game time display (client-side, no RPC needed)
+    // Aktualizuj wyświetlanie czasu w grze (po stronie klienta, bez potrzeby RPC)
     protected void RefreshTime()
     {
         if (!m_TimeText)
@@ -296,12 +300,12 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_TimeText.SetText("Time: " + hourStr + ":" + minStr);
     }
 
-    // Send RPC to server asking for player count and server name
+    // Wyślij RPC do serwera z żądaniem liczby graczy i nazwy serwera
     protected void RequestServerInfo()
     {
         if (!GetGame().IsMultiplayer())
         {
-            // Offline mode: just show local info
+            // Tryb offline: pokaż tylko lokalne informacje
             SetServerName("Offline Mode");
             SetPlayerCount(1, 1);
             return;
@@ -315,7 +319,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         rpc.Send(player, SIH_RPC_REQUEST_INFO, true, NULL);
     }
 
-    // --- Setters called when data arrives ---
+    // --- Settery wywoływane gdy dane dotrą ---
 
     void SetServerName(string name)
     {
@@ -333,7 +337,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Toggle visibility
+    // Przełącz widoczność
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -342,7 +346,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
             m_Root.Show(m_IsVisible);
     }
 
-    // Hide when menus are open
+    // Ukryj gdy menu są otwarte
     void SetMenuState(bool menuOpen)
     {
         if (!m_Root)
@@ -370,18 +374,18 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 ```
 
-### Important Szczegols
+### Ważne szczegóły
 
-1. **`CreateWidgets` path**: The path is relative to the mod root. Since we pack the `GUI/` folder inside the PBO, the engine resolves `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` using the mod prefix.
-2. **`FindAnyWidget`**: Searches the widget tree recursively by name. Always check for NULL after casting.
-3. **`Widget.Unlink()`**: Properly removes the widget and all its children from the UI tree. Always call this in cleanup.
-4. **Timer accumulator pattern**: We add `timeslice` each frame and act only when the accumulated time exceeds `UPDATE_INTERVAL`. This prevents doing work every single frame.
+1. **Ścieżka `CreateWidgets`**: Ścieżka jest relatywna do katalogu głównego moda. Ponieważ pakujemy folder `GUI/` wewnątrz PBO, silnik rozwiązuje `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` używając prefiksu moda.
+2. **`FindAnyWidget`**: Przeszukuje drzewo widgetów rekurencyjnie po nazwie. Zawsze sprawdzaj NULL po rzutowaniu.
+3. **`Widget.Unlink()`**: Prawidłowo usuwa widget i wszystkie jego dzieci z drzewa UI. Zawsze wywołuj to przy czyszczeniu.
+4. **Wzorzec akumulatora timera**: Dodajemy `timeslice` w każdej klatce i działamy tylko gdy skumulowany czas przekroczy `UPDATE_INTERVAL`. To zapobiega wykonywaniu pracy w każdej pojedynczej klatce.
 
 ---
 
-## Step 3: Hook into MissionGameplay
+## Krok 3: Podpięcie do MissionGameplay
 
-The `MissionGameplay` class is the mission controller on the client side. We use `modded class` to inject our HUD into its lifecycle without replacing the vanilla file.
+Klasa `MissionGameplay` jest kontrolerem misji po stronie klienta. Używamy `modded class` do wstrzyknięcia naszego HUD w jego cykl życia bez zastępowania pliku vanilla.
 
 ### `Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
@@ -394,14 +398,14 @@ modded class MissionGameplay
     {
         super.OnInit();
 
-        // Create the HUD overlay
+        // Utwórz nakładkę HUD
         m_ServerInfoHUD = new ServerInfoHUD();
         m_ServerInfoHUD.Init();
     }
 
     override void OnMissionFinish()
     {
-        // Clean up BEFORE calling super
+        // Wyczyść PRZED wywołaniem super
         if (m_ServerInfoHUD)
         {
             m_ServerInfoHUD.Destroy();
@@ -418,7 +422,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Hide HUD when inventory or any menu is open
+        // Ukryj HUD gdy ekwipunek lub jakiekolwiek menu jest otwarte
         UIManager uiMgr = GetGame().GetUIManager();
         bool menuOpen = false;
 
@@ -431,10 +435,10 @@ modded class MissionGameplay
 
         m_ServerInfoHUD.SetMenuState(menuOpen);
 
-        // Update HUD data (throttled internally)
+        // Aktualizuj dane HUD (ograniczane wewnętrznie)
         m_ServerInfoHUD.Update(timeslice);
 
-        // Check toggle key
+        // Sprawdź klawisz przełącznika
         Input input = GetGame().GetInput();
         if (input)
         {
@@ -445,7 +449,7 @@ modded class MissionGameplay
         }
     }
 
-    // Accessor so the RPC handler can reach the HUD
+    // Akcesor, aby handler RPC mógł dotrzeć do HUD
     ServerInfoHUD GetServerInfoHUD()
     {
         return m_ServerInfoHUD;
@@ -453,41 +457,41 @@ modded class MissionGameplay
 };
 ```
 
-### Why This Wzorzec Works
+### Dlaczego ten wzorzec działa
 
-- **`OnInit`** runs once when the player enters gameplay. We create and initialize the HUD here.
-- **`OnUpdate`** runs every frame. We pass `timeslice` to the HUD, which internally throttles to once per second. We also check for the toggle key press and menu visibility here.
-- **`OnMissionFinish`** runs when the player disconnects or the mission ends. We destroy our widgets here to prevent memory leaks.
+- **`OnInit`** wykonuje się raz, gdy gracz wchodzi do rozgrywki. Tworzymy i inicjalizujemy tu HUD.
+- **`OnUpdate`** wykonuje się co klatkę. Przekazujemy `timeslice` do HUD, który wewnętrznie ogranicza się do raz na sekundę. Sprawdzamy tu również naciśnięcie klawisza przełącznika i widoczność menu.
+- **`OnMissionFinish`** wykonuje się, gdy gracz rozłącza się lub misja się kończy. Niszczymy tu nasze widgety, aby zapobiec wyciekom pamięci.
 
-### Critical Rule: Always Clean Up
+### Krytyczna zasada: Zawsze sprzątaj
 
-If you forget to destroy your widgets in `OnMissionFinish`, the widget root will leak into the next session. After a few server hops, the player ends up with stacked ghost widgets consuming memory. Always pair `Init()` with `Destroy()`.
+Jeśli zapomnisz zniszczyć swoje widgety w `OnMissionFinish`, korzeń widgetów wycieknie do następnej sesji. Po kilku przeskokach między serwerami gracz kończy ze spiętrzonymymi widgetami-duchami zużywającymi pamięć. Zawsze łącz `Init()` z `Destroy()`.
 
 ---
 
-## Step 4: Request Data from Server
+## Krok 4: Żądanie danych z serwera
 
-The player count is only known on the server. We need a simple RPC (Remote Procedure Call) round-trip: the client sends a request, the server reads the data and sends it back.
+Liczba graczy jest znana tylko na serwerze. Potrzebujemy prostego cyklu RPC (Remote Procedure Call): klient wysyła żądanie, serwer odczytuje dane i odsyła je z powrotem.
 
-### Step 4a: Define the RPC ID
+### Krok 4a: Zdefiniuj identyfikator RPC
 
-RPC IDs must be unique across all mods. We define ours in the `3_Game` layer so both client and server code can reference it.
+Identyfikatory RPC muszą być unikalne we wszystkich modach. Definiujemy nasz w warstwie `3_Game`, aby zarówno kod klienta, jak i serwera mógł się do niego odwoływać.
 
 ### `Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for the Server Info HUD.
-// Using high numbers to avoid conflicts with vanilla and other mods.
+// Identyfikatory RPC dla Server Info HUD.
+// Używanie wysokich numerów, aby uniknąć konfliktów z vanilla i innymi modami.
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-**Why `3_Game`?** Stale and enums belong in the lowest layer that both client and server can access. The `3_Game` layer loads before `4_World` and `5_Mission`, so both sides can see these values.
+**Dlaczego `3_Game`?** Stałe i enumy należą do najniższej warstwy, do której zarówno klient, jak i serwer mają dostęp. Warstwa `3_Game` ładuje się przed `4_World` i `5_Mission`, więc obie strony widzą te wartości.
 
-### Step 4b: Server-Side Handler
+### Krok 4b: Handler po stronie serwera
 
-The server listens for `SIH_RPC_REQUEST_INFO`, gathers the data, and responds with `SIH_RPC_RESPONSE_INFO`.
+Serwer nasłuchuje `SIH_RPC_REQUEST_INFO`, zbiera dane i odpowiada `SIH_RPC_RESPONSE_INFO`.
 
 ### `Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
@@ -516,22 +520,22 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Gather server info
+        // Zbierz informacje o serwerze
         string serverName = "";
         GetGame().GetHostName(serverName);
 
         int playerCount = 0;
         int maxPlayers = 0;
 
-        // Get the player list
+        // Pobierz listę graczy
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         playerCount = players.Count();
 
-        // Max players from server config
+        // Maksymalna liczba graczy z konfiguracji serwera
         maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send response back to the requesting client
+        // Wyślij odpowiedź z powrotem do żądającego klienta
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -541,13 +545,13 @@ modded class PlayerBase
 };
 ```
 
-### Step 4c: Client-Side RPC Receiver
+### Krok 4c: Odbiornik RPC po stronie klienta
 
-The client receives the response and updates the HUD.
+Klient odbiera odpowiedź i aktualizuje HUD.
 
-Add this to the same `ServerInfoHUD.c` file (at the bottom, outside the class), or create a separate file in `5_Mission/ServerInfoHUD/`:
+Dodaj to do tego samego pliku `ServerInfoHUD.c` (na dole, poza klasą) lub utwórz osobny plik w `5_Mission/ServerInfoHUD/`:
 
-Add the following **below** the `ServerInfoHUD` class in `ServerInfoHUD.c`:
+Dodaj poniższe **pod** klasą `ServerInfoHUD` w `ServerInfoHUD.c`:
 
 ```c
 modded class PlayerBase
@@ -582,7 +586,7 @@ modded class PlayerBase
         if (!ctx.Read(maxPlayers))
             return;
 
-        // Access the HUD through MissionGameplay
+        // Dostęp do HUD przez MissionGameplay
         MissionGameplay mission = MissionGameplay.Cast(
             GetGame().GetMission()
         );
@@ -600,29 +604,29 @@ modded class PlayerBase
 };
 ```
 
-### How the RPC Flow Works
+### Jak działa przepływ RPC
 
 ```
-CLIENT                           SERVER
+KLIENT                           SERWER
   |                                |
   |--- SIH_RPC_REQUEST_INFO ----->|
-  |                                | reads serverName, playerCount, maxPlayers
+  |                                | odczytuje serverName, playerCount, maxPlayers
   |<-- SIH_RPC_RESPONSE_INFO ----|
   |                                |
-  | updates HUD text              |
+  | aktualizuje tekst HUD         |
 ```
 
-The client sends the request once per second (throttled by the update timer). The server responds with three values packed into the RPC context. The client reads them in the same order they were written.
+Klient wysyła żądanie raz na sekundę (ograniczane przez timer aktualizacji). Serwer odpowiada trzema wartościami zapakowanymi w kontekst RPC. Klient odczytuje je w tej samej kolejności, w jakiej zostały zapisane.
 
-**Wazne:** `rpc.Write()` and `ctx.Read()` must use the same types in the same order. If the server writes a `string` then two `int` values, the client must read a `string` then two `int` values.
+**Ważne:** `rpc.Write()` i `ctx.Read()` muszą używać tych samych typów w tej samej kolejności. Jeśli serwer zapisuje `string` a potem dwie wartości `int`, klient musi odczytać `string` a potem dwie wartości `int`.
 
 ---
 
-## Step 5: Add Toggle with Keybind
+## Krok 5: Dodanie przełącznika ze skrótem klawiszowym
 
-### Step 5a: Define the Input in `inputs.xml`
+### Krok 5a: Zdefiniuj wejście w `inputs.xml`
 
-DayZ uses `inputs.xml` to register custom key actions. The file must be placed in `Scripts/data/inputs.xml` and referenced from `config.cpp`.
+DayZ używa `inputs.xml` do rejestrowania własnych akcji klawiszy. Plik musi być umieszczony w `Scripts/data/inputs.xml` i odwoływany z `config.cpp`.
 
 ### `Scripts/data/inputs.xml`
 
@@ -643,13 +647,13 @@ DayZ uses `inputs.xml` to register custom key actions. The file must be placed i
 ```
 
 | Element | Przeznaczenie |
-|---------|---------|
-| `<actions>` | Declares the input action by name. `loc` is the display string shown in the keybinding options menu. |
-| `<preset>` | Assigns the default key. `kF7` maps to the F7 key. |
+|---------|---------------|
+| `<actions>` | Deklaruje akcję wejścia po nazwie. `loc` to ciąg wyświetlany w menu opcji przypisywania klawiszy. |
+| `<preset>` | Przypisuje domyślny klawisz. `kF7` mapuje się na klawisz F7. |
 
-### Step 5b: Reference `inputs.xml` in `config.cpp`
+### Krok 5b: Odwołanie do `inputs.xml` w `config.cpp`
 
-Your `config.cpp` must tell the engine where to find the inputs file. Add an `inputs` entry inside the `defs` block:
+Twój `config.cpp` musi powiedzieć silnikowi, gdzie znaleźć plik inputs. Dodaj wpis `inputs` wewnątrz bloku `defs`:
 
 ```cpp
 class defs
@@ -680,9 +684,9 @@ class defs
 };
 ```
 
-### Step 5c: Read the Key Press
+### Krok 5c: Odczyt naciśnięcia klawisza
 
-We already handle this in the `MissionGameplay` hook from Step 3:
+Obsługujemy to już w hooku `MissionGameplay` z Kroku 3:
 
 ```c
 if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
@@ -691,22 +695,22 @@ if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
 }
 ```
 
-`GetUApi()` returns the input API singleton. `GetInputByName` looks up our registered action. `LocalPress()` returns `true` for exactly one frame when the key is pressed down.
+`GetUApi()` zwraca singleton API wejścia. `GetInputByName` wyszukuje naszą zarejestrowaną akcję. `LocalPress()` zwraca `true` przez dokładnie jedną klatkę, gdy klawisz jest wciśnięty.
 
-### Key Name Reference
+### Referencja nazw klawiszy
 
-Common key names for `<btn>`:
+Popularne nazwy klawiszy dla `<btn>`:
 
-| Key Name | Key |
-|----------|-----|
-| `kF1` through `kF12` | Function keys |
-| `kH`, `kI`, etc. | Letter keys |
-| `kNumpad0` through `kNumpad9` | Numpad |
-| `kLControl` | Left Control |
-| `kLShift` | Left Shift |
-| `kLAlt` | Left Alt |
+| Nazwa klawisza | Klawisz |
+|----------------|---------|
+| `kF1` do `kF12` | Klawisze funkcyjne |
+| `kH`, `kI` itp. | Klawisze literowe |
+| `kNumpad0` do `kNumpad9` | Klawiatura numeryczna |
+| `kLControl` | Lewy Control |
+| `kLShift` | Lewy Shift |
+| `kLAlt` | Lewy Alt |
 
-Modyfikator combos use nesting:
+Kombinacje z modyfikatorami używają zagnieżdżenia:
 
 ```xml
 <input name="UAServerInfoToggle">
@@ -716,20 +720,20 @@ Modyfikator combos use nesting:
 </input>
 ```
 
-This means "hold Left Control and press H."
+To oznacza "przytrzymaj lewy Control i naciśnij H."
 
 ---
 
-## Step 6: Polish
+## Krok 6: Polerowanie
 
-### 6a: Fade In/Out Animation
+### 6a: Animacja zanikania i pojawiania się
 
-DayZ provides `WidgetFadeTimer` for smooth alpha transitions. Update the `ServerInfoHUD` class to use it:
+DayZ udostępnia `WidgetFadeTimer` do płynnych przejść alpha. Zaktualizuj klasę `ServerInfoHUD`, aby go używała:
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
 {
-    // ... existing fields ...
+    // ... istniejące pola ...
 
     protected ref WidgetFadeTimer m_FadeTimer;
 
@@ -740,7 +744,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_FadeTimer = new WidgetFadeTimer();
     }
 
-    // Replace the ToggleVisibility method:
+    // Zastąp metodę ToggleVisibility:
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -759,15 +763,15 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // ... rest of class ...
+    // ... reszta klasy ...
 };
 ```
 
-`FadeIn(widget, duration)` animates the widget's alpha from 0 to 1 over the given duration in seconds. `FadeOut` goes from 1 to 0 and hides the widget when done.
+`FadeIn(widget, duration)` animuje alpha widgetu od 0 do 1 w podanym czasie w sekundach. `FadeOut` przechodzi od 1 do 0 i ukrywa widget po zakończeniu.
 
-### 6b: Background Panel with Alpha
+### 6b: Panel tła z alpha
 
-We already set this in the layout (`color="0 0 0 0.55"`), giving a dark overlay at 55% opacity. If you want to adjust the alpha at runtime:
+Ustawiliśmy to już w layoucie (`color="0 0 0 0.55"`), dając ciemną nakładkę z 55% przezroczystości. Jeśli chcesz dostosować alpha w czasie wykonania:
 
 ```c
 void SetBackgroundAlpha(float alpha)
@@ -783,20 +787,20 @@ void SetBackgroundAlpha(float alpha)
 }
 ```
 
-The `ARGB()` function takes integer values 0-255 for alpha, red, green, and blue.
+Funkcja `ARGB()` przyjmuje wartości całkowite 0-255 dla alpha, czerwonego, zielonego i niebieskiego.
 
-### 6c: Font and Color Choices
+### 6c: Wybór czcionek i kolorów
 
-DayZ ships several fonts you can reference in layouts:
+DayZ dostarcza kilka czcionek, do których można się odwoływać w layoutach:
 
-| Font Path | Style |
-|-----------|-------|
-| `gui/fonts/MetronBook` | Clean sans-serif (used in vanilla HUD) |
-| `gui/fonts/MetronMedium` | Bolder version of MetronBook |
-| `gui/fonts/Metron` | Thinnest variant |
-| `gui/fonts/luxuriousscript` | Decorative script (avoid for HUD) |
+| Ścieżka czcionki | Styl |
+|-------------------|------|
+| `gui/fonts/MetronBook` | Czysty sans-serif (używany w vanilla HUD) |
+| `gui/fonts/MetronMedium` | Pogrubiona wersja MetronBook |
+| `gui/fonts/Metron` | Najcieńszy wariant |
+| `gui/fonts/luxuriousscript` | Dekoracyjny skrypt (unikaj w HUD) |
 
-To change text color at runtime:
+Aby zmienić kolor tekstu w czasie wykonania:
 
 ```c
 void SetTextColor(TextWidget widget, int r, int g, int b, int a)
@@ -806,12 +810,12 @@ void SetTextColor(TextWidget widget, int r, int g, int b, int a)
 }
 ```
 
-### 6d: Respecting Other UI
+### 6d: Respektowanie innych elementów UI
 
-Our `MissionHook.c` already detects when a menu is open and calls `SetMenuState(true)`. Here is a more thorough approach that checks the inventory specifically:
+Nasz `MissionHook.c` już wykrywa, gdy menu jest otwarte i wywołuje `SetMenuState(true)`. Oto dokładniejsze podejście, które sprawdza konkretnie ekwipunek:
 
 ```c
-// In the OnUpdate override of modded MissionGameplay:
+// W nadpisaniu OnUpdate zmodyfikowanego MissionGameplay:
 bool menuOpen = false;
 
 UIManager uiMgr = GetGame().GetUIManager();
@@ -822,22 +826,22 @@ if (uiMgr)
         menuOpen = true;
 }
 
-// Also check if inventory is open
+// Sprawdź również, czy ekwipunek jest otwarty
 if (uiMgr && uiMgr.FindMenu(MENU_INVENTORY))
     menuOpen = true;
 
 m_ServerInfoHUD.SetMenuState(menuOpen);
 ```
 
-This ensures your HUD hides behind the inventory screen, the pause menu, the options screen, and any other scripted menu.
+To zapewnia, że twój HUD chowa się za ekranem ekwipunku, menu pauzy, ekranem opcji i każdym innym menu skryptowym.
 
 ---
 
-## Complete Code Reference
+## Kompletna referencja kodu
 
-Below is every file in the mod, in its final form with all polish applied.
+Poniżej każdy plik w modzie, w jego finalnej formie ze wszystkimi udoskonaleniami.
 
-### File 1: `ServerInfoHUD/mod.cpp`
+### Plik 1: `ServerInfoHUD/mod.cpp`
 
 ```cpp
 name = "Server Info HUD";
@@ -846,7 +850,7 @@ version = "1.0";
 overview = "Displays server name, player count, and in-game time.";
 ```
 
-### File 2: `ServerInfoHUD/Scripts/config.cpp`
+### Plik 2: `ServerInfoHUD/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -905,7 +909,7 @@ class CfgMods
 };
 ```
 
-### File 3: `ServerInfoHUD/Scripts/data/inputs.xml`
+### Plik 3: `ServerInfoHUD/Scripts/data/inputs.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -923,17 +927,17 @@ class CfgMods
 </modded_inputs>
 ```
 
-### File 4: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
+### Plik 4: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for Server Info HUD.
-// Use high numbers to avoid collisions with vanilla ERPCs and other mods.
+// Identyfikatory RPC dla Server Info HUD.
+// Używanie wysokich numerów, aby uniknąć konfliktów z vanilla ERPC i innymi modami.
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-### File 5: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
+### Plik 5: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
 ```c
 modded class PlayerBase
@@ -946,7 +950,7 @@ modded class PlayerBase
     {
         super.OnRPC(sender, rpc_type, ctx);
 
-        // Only the server handles this RPC
+        // Tylko serwer obsługuje to RPC
         if (!GetGame().IsServer())
             return;
 
@@ -961,19 +965,19 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Get server name
+        // Pobierz nazwę serwera
         string serverName = "";
         GetGame().GetHostName(serverName);
 
-        // Count players
+        // Policz graczy
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         int playerCount = players.Count();
 
-        // Get max player slots
+        // Pobierz maksymalną liczbę slotów graczy
         int maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send the data back to the requesting client
+        // Wyślij dane z powrotem do żądającego klienta
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -983,7 +987,7 @@ modded class PlayerBase
 };
 ```
 
-### File 6: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
+### Plik 6: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
@@ -1166,7 +1170,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 
 // -----------------------------------------------
-// Client-side RPC receiver
+// Odbiornik RPC po stronie klienta
 // -----------------------------------------------
 modded class PlayerBase
 {
@@ -1216,7 +1220,7 @@ modded class PlayerBase
 };
 ```
 
-### File 7: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
+### Plik 7: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
 ```c
 modded class MissionGameplay
@@ -1249,7 +1253,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Detect open menus
+        // Wykryj otwarte menu
         bool menuOpen = false;
         UIManager uiMgr = GetGame().GetUIManager();
         if (uiMgr)
@@ -1262,7 +1266,7 @@ modded class MissionGameplay
         m_ServerInfoHUD.SetMenuState(menuOpen);
         m_ServerInfoHUD.Update(timeslice);
 
-        // Toggle key
+        // Klawisz przełącznika
         if (GetUApi().GetInputByName(
             "UAServerInfoToggle"
         ).LocalPress())
@@ -1278,7 +1282,7 @@ modded class MissionGameplay
 };
 ```
 
-### File 8: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
+### Plik 8: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1351,16 +1355,16 @@ modded class MissionGameplay
 
 ---
 
-## Extending the HUD
+## Rozszerzanie HUD
 
-Once you have the basic HUD working, here are natural extensions.
+Gdy podstawowy HUD już działa, oto naturalne rozszerzenia.
 
-### Adding FPS Display
+### Dodawanie wyświetlania FPS
 
-FPS can be read client-side without any RPC:
+FPS można odczytać po stronie klienta bez żadnego RPC:
 
 ```c
-// Add a TextWidget m_FPSText field and find it in Init()
+// Dodaj pole TextWidget m_FPSText i znajdź je w Init()
 
 protected void RefreshFPS()
 {
@@ -1372,7 +1376,7 @@ protected void RefreshFPS()
 }
 ```
 
-Call `RefreshFPS()` alongside `RefreshTime()` in the update method. Note that `GetDeltaT()` returns the time of the current frame, so the FPS value will fluctuate. For a smoother display, average over several frames:
+Wywołuj `RefreshFPS()` obok `RefreshTime()` w metodzie aktualizacji. Zauważ, że `GetDeltaT()` zwraca czas bieżącej klatki, więc wartość FPS będzie fluktuować. Dla płynniejszego wyświetlania, uśredniaj po kilku klatkach:
 
 ```c
 protected float m_FPSAccum;
@@ -1389,13 +1393,13 @@ protected void RefreshFPS()
     float avgFPS = m_FPSFrames / m_FPSAccum;
     m_FPSText.SetText("FPS: " + Math.Round(avgFPS).ToString());
 
-    // Reset every second (when main timer fires)
+    // Resetuj co sekundę (gdy główny timer się odpala)
     m_FPSAccum = 0;
     m_FPSFrames = 0;
 }
 ```
 
-### Adding Player Position
+### Dodawanie pozycji gracza
 
 ```c
 protected void RefreshPosition()
@@ -1414,9 +1418,9 @@ protected void RefreshPosition()
 }
 ```
 
-### Multiple HUD Panels
+### Wiele paneli HUD
 
-For multiple panels (compass, status, minimap), create a parent manager class that holds an array of HUD elements:
+Dla wielu paneli (kompas, status, minimapa) utwórz nadrzędną klasę menadżera, która przechowuje tablicę elementów HUD:
 
 ```c
 class HUDManager
@@ -1446,9 +1450,9 @@ class HUDManager
 };
 ```
 
-### Draggable HUD Elements
+### Przeciągalne elementy HUD
 
-Making a widget draggable requires handling mouse events via `ScriptedWidgetEventHandler`:
+Uczynienie widgetu przeciąganym wymaga obsługi zdarzeń myszy przez `ScriptedWidgetEventHandler`:
 
 ```c
 class DraggableHUD : ScriptedWidgetEventHandler
@@ -1491,30 +1495,30 @@ class DraggableHUD : ScriptedWidgetEventHandler
 };
 ```
 
-Uwaga: for dragging to work, the widget must have `SetHandler(this)` called on it so the event handler receives events. Also, the cursor must be visible, which limits draggable HUDs to situations where a menu or edit mode is active.
+Uwaga: aby przeciąganie działało, widget musi mieć wywołane `SetHandler(this)`, aby handler zdarzeń odbierał zdarzenia. Ponadto kursor musi być widoczny, co ogranicza przeciągalne HUD do sytuacji, gdy aktywne jest menu lub tryb edycji.
 
 ---
 
-## Czeste bledy
+## Częste błędy
 
-### 1. Updating Every Frame Instead of Throttled
+### 1. Aktualizacja co klatkę zamiast z ograniczeniem
 
-**Wrong:**
+**Źle:**
 
 ```c
 override void OnUpdate(float timeslice)
 {
     super.OnUpdate(timeslice);
-    m_ServerInfoHUD.RefreshTime();      // Runs 60+ times per second!
-    m_ServerInfoHUD.RequestServerInfo(); // Sends 60+ RPCs per second!
+    m_ServerInfoHUD.RefreshTime();      // Wykonuje się 60+ razy na sekundę!
+    m_ServerInfoHUD.RequestServerInfo(); // Wysyła 60+ RPC na sekundę!
 }
 ```
 
-**Right:** Use a timer accumulator (as shown in the tutorial) so expensive operations run at most once per second. HUD text that changes every frame (like an FPS counter) is fine to update per-frame, but RPC requests must be throttled.
+**Dobrze:** Użyj akumulatora timera (jak pokazano w samouczku), aby kosztowne operacje wykonywały się najwyżej raz na sekundę. Tekst HUD zmieniający się co klatkę (jak licznik FPS) może być aktualizowany per klatkę, ale żądania RPC muszą być ograniczane.
 
-### 2. Not Cleaning Up in OnMissionFinish
+### 2. Brak czyszczenia w OnMissionFinish
 
-**Wrong:**
+**Źle:**
 
 ```c
 modded class MissionGameplay
@@ -1526,88 +1530,88 @@ modded class MissionGameplay
         super.OnInit();
         m_HUD = new ServerInfoHUD();
         m_HUD.Init();
-        // No cleanup anywhere -- widget leaks on disconnect!
+        // Brak czyszczenia gdziekolwiek -- widget wycieka przy rozłączeniu!
     }
 };
 ```
 
-**Right:** Always destroy widgets and null references in `OnMissionFinish()`. The destructor (`~ServerInfoHUD`) is a safety net, but do not rely on it -- `OnMissionFinish` is the correct place for explicit cleanup.
+**Dobrze:** Zawsze niszcz widgety i nulluj referencje w `OnMissionFinish()`. Destruktor (`~ServerInfoHUD`) jest siatką bezpieczeństwa, ale nie polegaj na nim -- `OnMissionFinish` jest właściwym miejscem na jawne czyszczenie.
 
-### 3. HUD Behind Other UI Elements
+### 3. HUD za innymi elementami UI
 
-Widgets created later render on top of widgets created earlier. If your HUD appears behind vanilla UI, it was created too early. Solutions:
+Widgety utworzone później renderują się nad widgetami utworzonymi wcześniej. Jeśli twój HUD pojawia się za vanilla UI, został utworzony zbyt wcześnie. Rozwiązania:
 
-- Create the HUD later in the initialization sequence (e.g., on the first `OnUpdate` call rather than in `OnInit`).
-- Use `m_Root.SetSort(100)` to force a higher sort order, pushing your widget above others.
+- Utwórz HUD później w sekwencji inicjalizacji (np. przy pierwszym wywołaniu `OnUpdate` zamiast w `OnInit`).
+- Użyj `m_Root.SetSort(100)` aby wymusić wyższy porządek sortowania, przesuwając twój widget nad inne.
 
-### 4. Requesting Data Too Frequently (RPC Spam)
+### 4. Żądanie danych zbyt często (spam RPC)
 
-Sending an RPC every frame creates 60+ network packets per second per connected player. On a 60-player server, that is 3,600 packets per second of unnecessary traffic. Always throttle RPC requests. Once per second is reasonable for non-critical info. For data that rarely changes (like server name), you could request it only once at init and cache it.
+Wysyłanie RPC co klatkę tworzy 60+ pakietów sieciowych na sekundę na podłączonego gracza. Na serwerze z 60 graczami to 3600 pakietów na sekundę niepotrzebnego ruchu. Zawsze ograniczaj żądania RPC. Raz na sekundę jest rozsądne dla niekrytycznych informacji. Dla danych, które rzadko się zmieniają (jak nazwa serwera), możesz żądać ich tylko raz przy inicjalizacji i cachować.
 
-### 5. Forgetting the `super` Call
+### 5. Zapominanie o wywołaniu `super`
 
 ```c
-// WRONG: breaks vanilla HUD functionality
+// ŹLE: łamie funkcjonalność vanilla HUD
 override void OnInit()
 {
     m_HUD = new ServerInfoHUD();
     m_HUD.Init();
-    // Missing super.OnInit()! Vanilla HUD will not initialize.
+    // Brak super.OnInit()! Vanilla HUD nie zostanie zainicjalizowany.
 }
 ```
 
-Always call `super.OnInit()` (and `super.OnUpdate()`, `super.OnMissionFinish()`) first. Omitting the super call breaks the vanilla implementation and every other mod that hooks the same method.
+Zawsze wywołuj `super.OnInit()` (oraz `super.OnUpdate()`, `super.OnMissionFinish()`) jako pierwsze. Pominięcie wywołania super łamie implementację vanilla i każdy inny mod, który hookuje tę samą metodę.
 
-### 6. Using Wrong Script Layer
+### 6. Użycie niewłaściwej warstwy skryptowej
 
-If you try to reference `MissionGameplay` from `4_World`, you will get an "Undefined type" error because `5_Mission` types are not visible to `4_World`. The RPC constants go in `3_Game`, the server handler goes in `4_World` (modding `PlayerBase` which lives there), and the HUD class and mission hook go in `5_Mission`.
+Jeśli spróbujesz odwołać się do `MissionGameplay` z `4_World`, otrzymasz błąd "Undefined type", ponieważ typy `5_Mission` nie są widoczne dla `4_World`. Stałe RPC trafiają do `3_Game`, handler serwera do `4_World` (modyfikując `PlayerBase`, który tam mieszka), a klasa HUD i hook misji do `5_Mission`.
 
-### 7. Hardcoded Layout Path
+### 7. Zahardkodowana ścieżka layoutu
 
-The layout path in `CreateWidgets()` is relative to the game's search paths. If your PBO prefix does not match the path string, the layout will not load and `CreateWidgets` returns NULL. Always check for NULL after `CreateWidgets` and log an error if it fails.
+Ścieżka layoutu w `CreateWidgets()` jest relatywna do ścieżek wyszukiwania gry. Jeśli prefiks twojego PBO nie pasuje do ciągu ścieżki, layout się nie załaduje i `CreateWidgets` zwróci NULL. Zawsze sprawdzaj NULL po `CreateWidgets` i loguj błąd, jeśli się nie powiodło.
 
 ---
 
-## Nastepne kroki
+## Następne kroki
 
-Now that you have a working HUD overlay, consider these progressions:
+Teraz, gdy masz działającą nakładkę HUD, rozważ następujące progresje:
 
-1. **Save user preferences** -- Store whether the HUD is visible in a local JSON file so the toggle state persists across sessions. 
-2. **Add server-side configuration** -- Let server admins enable/disable the HUD or choose which fields to show via a JSON config file.
-3. **Build an admin overlay** -- Expand the HUD to show admin-only information (server performance, entity count, restart timer) using permission checks.
-4. **Create a compass HUD** -- Use `GetGame().GetCurrentCameraDirection()` to calculate heading and display a compass bar at the top of the screen.
-5. **Study existing mods** -- Look at DayZ Expansion's quest HUD and Colorful UI's overlay system for production-quality HUD implementations.
+1. **Zapisuj preferencje użytkownika** -- Przechowuj, czy HUD jest widoczny w lokalnym pliku JSON, aby stan przełącznika był zachowany między sesjami.
+2. **Dodaj konfigurację po stronie serwera** -- Pozwól administratorom serwera włączać/wyłączać HUD lub wybierać, które pola pokazywać przez plik JSON konfiguracji.
+3. **Zbuduj nakładkę administratora** -- Rozszerz HUD o wyświetlanie informacji tylko dla administratorów (wydajność serwera, liczba encji, timer restartu) używając sprawdzania uprawnień.
+4. **Utwórz HUD kompasu** -- Użyj `GetGame().GetCurrentCameraDirection()` do obliczenia kierunku i wyświetl pasek kompasu na górze ekranu.
+5. **Przestudiuj istniejące mody** -- Spójrz na HUD questów DayZ Expansion i system nakładek Colorful UI dla implementacji HUD klasy produkcyjnej.
 
 ---
 
 ## Najlepsze praktyki
 
-- **Throttle `OnUpdate` to 1-second intervals minimum.** Use a timer accumulator to avoid running expensive operations (RPC requests, text formatting) 60+ times per second. Only per-frame visuals like FPS counters should update every frame.
-- **Hide the HUD when inventory or any menu is open.** Check `GetGame().GetUIManager().GetMenu()` on each update and suppress your overlay. Overlapping UI elements confuse players and block interaction.
-- **Always clean up widgets in `OnMissionFinish`.** Leaked widget roots persist across server hops, stacking ghost panels that consume memory and eventually cause visual glitches.
-- **Use `SetSort()` to control render order.** If your HUD appears behind vanilla elements, call `m_Root.SetSort(100)` to push it above. Without explicit sort order, creation timing determines layering.
-- **Cache server data that rarely changes.** The server name does not change during a session. Request it once at init and cache it locally instead of re-requesting it every second.
+- **Ograniczaj `OnUpdate` do interwałów minimum 1-sekundowych.** Używaj akumulatora timera, aby uniknąć uruchamiania kosztownych operacji (żądania RPC, formatowanie tekstu) 60+ razy na sekundę. Tylko per-klatkowe wizualizacje jak liczniki FPS powinny być aktualizowane co klatkę.
+- **Ukrywaj HUD gdy ekwipunek lub jakiekolwiek menu jest otwarte.** Sprawdzaj `GetGame().GetUIManager().GetMenu()` przy każdej aktualizacji i tłum swoją nakładkę. Nakładające się elementy UI dezorientują graczy i blokują interakcję.
+- **Zawsze sprzątaj widgety w `OnMissionFinish`.** Wyciekające korzenie widgetów utrzymują się między przeskokami serwerów, piętrzą panele-duchy, które konsumują pamięć i ostatecznie powodują glicze wizualne.
+- **Używaj `SetSort()` do kontrolowania kolejności renderowania.** Jeśli twój HUD pojawia się za elementami vanilla, wywołaj `m_Root.SetSort(100)`, aby go przesunąć wyżej. Bez jawnego porządku sortowania, czas tworzenia determinuje warstwowanie.
+- **Cachuj dane serwera, które rzadko się zmieniają.** Nazwa serwera nie zmienia się podczas sesji. Zażądaj jej raz przy inicjalizacji i cachuj lokalnie zamiast ponownie żądać co sekundę.
 
 ---
 
-## Teoria vs praktyka
+## Teoria a praktyka
 
-| Koncepcja | Teoria | Rzeczywistosc |
-|---------|--------|---------|
-| `OnUpdate(float timeslice)` | Called once per frame with the frame delta time | On a 144 FPS client, this fires 144 times per second. Sending an RPC each call creates 144 network packets/second per player. Always accumulate `timeslice` and act only when the sum exceeds your interval. |
-| `CreateWidgets()` layout path | Loads the layout from the path you provide | The path is relative to the PBO prefix, not the file system. If your PBO prefix does not match the path string, `CreateWidgets` silently returns NULL with no error in the log. |
-| `WidgetFadeTimer` | Smoothly animates widget opacity | `FadeOut` hides the widget after the animation completes, but `FadeIn` does NOT call `Show(true)` first. You must manually show the widget before calling `FadeIn`, or nothing appears. |
-| `GetUApi().GetInputByName()` | Zwraca the input action for your custom keybind | If `inputs.xml` is not referenced in `config.cpp` under `class inputs`, the action name is unknown and `GetInputByName` returns null, causing a crash on `.LocalPress()`. |
+| Koncepcja | Teoria | Rzeczywistość |
+|-----------|--------|---------------|
+| `OnUpdate(float timeslice)` | Wywoływane raz na klatkę z deltą czasu klatki | Na kliencie z 144 FPS, to odpala się 144 razy na sekundę. Wysyłanie RPC przy każdym wywołaniu tworzy 144 pakiety sieciowe na sekundę na gracza. Zawsze akumuluj `timeslice` i działaj tylko gdy suma przekroczy twój interwał. |
+| Ścieżka layoutu w `CreateWidgets()` | Ładuje layout ze wskazanej ścieżki | Ścieżka jest relatywna do prefiksu PBO, nie do systemu plików. Jeśli prefiks twojego PBO nie pasuje do ciągu ścieżki, `CreateWidgets` cicho zwraca NULL bez błędu w logu. |
+| `WidgetFadeTimer` | Płynnie animuje przezroczystość widgetu | `FadeOut` ukrywa widget po zakończeniu animacji, ale `FadeIn` NIE wywołuje `Show(true)` jako pierwsze. Musisz ręcznie pokazać widget przed wywołaniem `FadeIn`, inaczej nic się nie pojawi. |
+| `GetUApi().GetInputByName()` | Zwraca akcję wejścia dla twojego własnego skrótu klawiszowego | Jeśli `inputs.xml` nie jest odwoływany w `config.cpp` pod `class inputs`, nazwa akcji jest nieznana i `GetInputByName` zwraca null, powodując crash na `.LocalPress()`. |
 
 ---
 
-## What You Learned
+## Czego się nauczyłeś
 
-In this tutorial you learned:
-- How to create a HUD layout with anchored, semi-transparent panels
-- How to build a controller class that throttles updates to a fixed interval
-- How to hook into `MissionGameplay` for HUD lifecycle management (init, update, cleanup)
-- How to request server data via RPC and display it on the client
-- How to register a custom keybind via `inputs.xml` and toggle HUD visibility with fade animations
+W tym samouczku nauczyłeś się:
+- Jak tworzyć layout HUD z zakotwiczonymi, półprzezroczystymi panelami
+- Jak budować klasę kontrolera, która ogranicza aktualizacje do stałego interwału
+- Jak podpinać się do `MissionGameplay` do zarządzania cyklem życia HUD (inicjalizacja, aktualizacja, czyszczenie)
+- Jak żądać danych serwera przez RPC i wyświetlać je na kliencie
+- Jak rejestrować własny skrót klawiszowy przez `inputs.xml` i przełączać widoczność HUD z animacjami zanikania
 
-**Poprzedni:** [Chapter 8.7: Publishing to Steam Workshop](07-publishing-workshop.md)
+**Poprzedni:** [Rozdział 8.7: Publikacja na Steam Workshop](07-publishing-workshop.md)

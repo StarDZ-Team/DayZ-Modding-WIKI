@@ -1,30 +1,34 @@
-# Chapter 8.12: Building a Trading System
+# 8.12. fejezet: Kereskedési rendszer építése
 
-[Home](../../README.md) | [<< Previous: Creating Custom Clothing](11-clothing-mod.md) | **Building a Trading System** | [Next: The Diagnostic Menu >>](13-diag-menu.md)
-
----
-
-## Tartalomjegyzek
-
-- [What We Are Building](#what-we-are-building)
-- [Step 1: Data Model (3_Game)](#step-1-data-model-3_game)
-- [Step 2: RPC Konstansok (3_Game)](#step-2-rpc-constants-3_game)
-- [Step 3: Server-Side Shop Manager (4_World)](#step-3-server-side-shop-manager-4_world)
-- [Step 4: Client-Side Shop UI (5_Mission)](#step-4-client-side-shop-ui-5_mission)
-- [Step 5: Layout File](#step-5-layout-file)
-- [Step 6: Mission Hook and Keybind](#step-6-mission-hook-and-keybind)
-- [Step 7: Currency Item](#step-7-currency-item)
-- [Step 8: Shop Config JSON](#step-8-shop-config-json)
-- [Step 9: Build and Test](#step-9-build-and-test)
-- [Security Considerations](#security-considerations)
-- [Complete Code Reference](#complete-code-reference)
-- [Legjobb gyakorlatok / Gyakori hibak / What You Learned](#best-practices)
+[Kezdőlap](../../README.md) | [<< Előző: Egyedi ruházat készítése](11-clothing-mod.md) | **Kereskedési rendszer építése** | [Következő: A diagnosztikai menü >>](13-diag-menu.md)
 
 ---
 
-## What We Are Building
+> **Összefoglalás:** Építs egy komplett NPC-mentes bolt rendszert: JSON konfiguráció, szerver-validált vétel/eladás, kategorizált UI, pénznem-alapú tranzakciók. A wiki legösszetettebb oktatóanyaga -- adatmodellezést, RPC körutakat, leltárkezelést és csalás elleni elveket fed le.
 
-Players press F6 to open a shop menu, browse items by category (Weapons, Food, Medical), and buy/sell using a currency item. The server validates every transaction -- the client never decides prices or spawns items.
+---
+
+## Tartalomjegyzék
+
+- [Mit építünk](#mit-építünk)
+- [1. lépés: Adatmodell (3_Game)](#1-lépés-adatmodell-3_game)
+- [2. lépés: RPC konstansok (3_Game)](#2-lépés-rpc-konstansok-3_game)
+- [3. lépés: Szerver oldali bolt kezelő (4_World)](#3-lépés-szerver-oldali-bolt-kezelő-4_world)
+- [4. lépés: Kliens oldali bolt UI (5_Mission)](#4-lépés-kliens-oldali-bolt-ui-5_mission)
+- [5. lépés: Layout fájl](#5-lépés-layout-fájl)
+- [6. lépés: Mission hook és billentyűkiosztás](#6-lépés-mission-hook-és-billentyűkiosztás)
+- [7. lépés: Pénznem tárgy](#7-lépés-pénznem-tárgy)
+- [8. lépés: Bolt konfiguráció JSON](#8-lépés-bolt-konfiguráció-json)
+- [9. lépés: Build és tesztelés](#9-lépés-build-és-tesztelés)
+- [Biztonsági szempontok](#biztonsági-szempontok)
+- [Teljes kódreferencia](#teljes-kódreferencia)
+- [Legjobb gyakorlatok / Gyakori hibák / Mit tanultál](#legjobb-gyakorlatok)
+
+---
+
+## Mit építünk
+
+A játékosok F6-ot nyomnak a bolt menü megnyitásához, kategóriánként (Fegyverek, Élelmiszer, Gyógyszer) böngészhetik a tárgyakat, és pénznem tárggyal vásárolhatnak/eladhatnak. A szerver minden tranzakciót validál -- a kliens soha nem dönt árakról és nem spawnol tárgyakat.
 
 ```mermaid
 sequenceDiagram
@@ -46,18 +50,18 @@ sequenceDiagram
 ```
 
 ```
-CLIENT                                SERVER
-1. Press F6 --> REQUEST_SHOP_DATA ->  2. Load config, count currency
+KLIENS                                SZERVER
+1. F6 lenyomása --> REQUEST_SHOP_DATA ->  2. Konfig betöltése, pénznem számlálása
                                          SHOP_DATA_RESPONSE ->
-3. Show categories + items
-   Click Buy --> BUY_ITEM (cls,qty) -> 4. Validate, remove currency, spawn
+3. Kategóriák + tárgyak megjelenítése
+   Kattintás: Buy --> BUY_ITEM (cls,qty) -> 4. Validálás, pénznem eltávolítása, spawnolás
                                          TRANSACTION_RESULT ->
-5. Show result, update balance
+5. Eredmény megjelenítése, egyenleg frissítése
 ```
 
-**Key rule:** Client sends `(className, quantity)` only. Server looks up the price.
+**Kulcsszabály:** A kliens csak `(className, quantity)` értéket küld. A szerver keresi ki az árat.
 
-### Mod Structure
+### Mod struktúra
 
 ```
 ShopDemo/
@@ -71,7 +75,7 @@ ShopDemo/
 
 ---
 
-## Step 1: Data Model (3_Game)
+## 1. lépés: Adatmodell (3_Game)
 
 ### `Scripts/3_Game/ShopDemo/ShopDemoData.c`
 
@@ -100,28 +104,28 @@ class ShopConfig
 };
 ```
 
-Keep `SellPrice < BuyPrice` always to prevent infinite money loops.
+Tartsd a `SellPrice < BuyPrice` értéket mindig, hogy megelőzd a végtelen pénz hurkokat.
 
 ---
 
-## Step 2: RPC Konstansok (3_Game)
+## 2. lépés: RPC konstansok (3_Game)
 
 ### `Scripts/3_Game/ShopDemo/ShopDemoRPC.c`
 
 ```c
 class ShopDemoRPC
 {
-    static const int REQUEST_SHOP_DATA   = 79101;  // Client -> Server
+    static const int REQUEST_SHOP_DATA   = 79101;  // Kliens -> Szerver
     static const int BUY_ITEM            = 79102;
     static const int SELL_ITEM           = 79103;
-    static const int SHOP_DATA_RESPONSE  = 79201;  // Server -> Client
+    static const int SHOP_DATA_RESPONSE  = 79201;  // Szerver -> Kliens
     static const int TRANSACTION_RESULT  = 79202;
 };
 ```
 
 ---
 
-## Step 3: Server-Side Shop Manager (4_World)
+## 3. lépés: Szerver oldali bolt kezelő (4_World)
 
 ### `Scripts/4_World/ShopDemo/ShopDemoManager.c`
 
@@ -316,7 +320,7 @@ modded class PlayerBase
         if (!player) return;
         ShopDemoManager mgr = ShopDemoManager.Get();
         ShopConfig cfg = mgr.GetConfig();
-        // Serialize: "CatName|cls,name,buy,sell;cls2,...\nCat2|..."
+        // Szerializáció: "CatName|cls,name,buy,sell;cls2,...\nCat2|..."
         string payload = "";
         for (int c = 0; c < cfg.Categories.Count(); c++)
         {
@@ -357,11 +361,11 @@ modded class MissionServer
 };
 ```
 
-**Key decisions:** Currency removed *before* spawning items (prevents duplication). Always `DeleteSafe()` for networked items. Quantity clamped to 1-10 to prevent abuse.
+**Kulcsfontosságú döntések:** A pénznem eltávolítása *a tárgyak spawnolása előtt* történik (megelőzi a duplikációt). Mindig `DeleteSafe()` a hálózati tárgyakhoz. A mennyiség 1-10 közé korlátozva a visszaélések megelőzésére.
 
 ---
 
-## Step 4: Client-Side Shop UI (5_Mission)
+## 4. lépés: Kliens oldali bolt UI (5_Mission)
 
 ### `Scripts/5_Mission/ShopDemo/ShopDemoMenu.c`
 
@@ -454,7 +458,7 @@ class ShopDemoMenu extends ScriptedWidgetEventHandler
             }
             m_CatItems.Insert(ci);
         }
-        // Build category buttons
+        // Kategória gombok felépítése
         if (m_CategoryPanel)
         {
             for (int b = 0; b < m_CatNames.Count(); b++)
@@ -531,11 +535,11 @@ class ShopDemoMenu extends ScriptedWidgetEventHandler
 
 ---
 
-## Step 5: Layout File
+## 5. lépés: Layout fájl
 
 ### `GUI/layouts/shop_menu.layout`
 
-Three columns: Categories (left 20%), Items (center 46%), Reszlets (right 26%).
+Három oszlop: Kategóriák (bal 20%), Tárgyak (közép 46%), Részletek (jobb 26%).
 
 ```
 FrameWidgetClass ShopMenuRoot {
@@ -568,7 +572,7 @@ FrameWidgetClass ShopMenuRoot {
 
 ---
 
-## Step 6: Mission Hook and Keybind
+## 6. lépés: Mission hook és billentyűkiosztás
 
 ### `Scripts/5_Mission/ShopDemo/ShopDemoMission.c`
 
@@ -608,7 +612,7 @@ modded class MissionGameplay
 };
 ```
 
-For released mods, use `inputs.xml` so players can remap the key:
+Kiadott modokhoz használj `inputs.xml` fájlt, hogy a játékosok átmapelhessék a billentyűt:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -621,95 +625,95 @@ For released mods, use `inputs.xml` so players can remap the key:
 
 ---
 
-## Step 7: Currency Item
+## 7. lépés: Pénznem tárgy
 
-You can use any existing item -- set `CurrencyClassName` to `"Rag"` in the JSON and rags become money. For a custom coin, see [Chapter 8.2: Custom Item](02-custom-item.md).
-
----
-
-## Step 8: Shop Config JSON
-
-Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edit prices, add categories/items, restart server. Always keep `SellPrice < BuyPrice`.
+Használhatsz bármely meglévő tárgyat -- állítsd a `CurrencyClassName` értéket `"Rag"`-ra a JSON-ban, és a rongyok válnak pénzzé. Egyedi érmekhez lásd a [8.2. fejezet: Egyedi tárgy](02-custom-item.md) részt.
 
 ---
 
-## Step 9: Build and Test
+## 8. lépés: Bolt konfiguráció JSON
 
-1. Pack `ShopDemo/` into PBO, add to server+client `@ShopDemo/addons/`, add `-mod=@ShopDemo`
-2. Spawn currency, press F6, browse, buy/sell
-3. Check server log for `[ShopDemo]` lines
-
-| Test Case | Expected |
-|-----------|----------|
-| Buy with no currency | "Need X, have 0" |
-| Buy unknown class (hacked) | "Item not in shop" |
-| Sell item not owned | "You don't have that item" |
-| Inventory full on buy | Item drops on ground |
+Az első szerver indításkor automatikusan generálódik a `$profile:ShopDemo/ShopConfig.json` helyen. Szerkeszd az árakat, adj hozzá kategóriákat/tárgyakat, indítsd újra a szervert. Mindig tartsd: `SellPrice < BuyPrice`.
 
 ---
 
-## Security Considerations
+## 9. lépés: Build és tesztelés
 
-1. **NEVER trust client-sent prices.** Client sends `(className, qty)` only. Server looks up price.
-2. **Delete before spawn.** Remove currency first, then create items. Prevents duplication.
-3. **Validate existence.** Confirm item is in inventory before giving sell currency.
-4. **Log everything.** Print player name, item, amount for every transaction.
-5. **Quantity bounds.** Reject `qty <= 0` or `qty > 10`.
-6. **Rate limit** in production: 500ms cooldown per player per transaction.
+1. Csomagold a `ShopDemo/` mappát PBO-ba, add hozzá a szerver+kliens `@ShopDemo/addons/` mappájához, add hozzá a `-mod=@ShopDemo` paramétert
+2. Spawnolj pénznemet, nyomd meg az F6-ot, böngéssz, vásárolj/adj el
+3. Ellenőrizd a szerver naplót `[ShopDemo]` sorokért
+
+| Tesztelési eset | Elvárt eredmény |
+|-----------------|-----------------|
+| Vásárlás pénznem nélkül | "Need X, have 0" |
+| Ismeretlen osztály vásárlása (hackelve) | "Item not in shop" |
+| Nem birtokolt tárgy eladása | "You don't have that item" |
+| Tele leltár vásárláskor | A tárgy a földre kerül |
 
 ---
 
-## Complete Code Reference
+## Biztonsági szempontok
 
-| File | Layer | Cel |
-|------|-------|---------|
-| `ShopDemoRPC.c` | 3_Game | RPC ID constants |
-| `ShopDemoData.c` | 3_Game | Data classes: ShopItem, ShopKategoria, ShopConfig |
-| `ShopDemoManager.c` | 4_World | Server: config, buy/sell logic, inventory, RPC handlers |
-| `ShopDemoMenu.c` | 5_Mission | Client: UI, dynamic widgets, RPC send/receive |
-| `ShopDemoMission.c` | 5_Mission | Mission hook: init, keybind, RPC routing |
-| `shop_menu.layout` | GUI | 3-panel layout |
+1. **SOHA ne bízz a kliens által küldött árakban.** A kliens csak `(className, qty)` értéket küld. A szerver keresi ki az árat.
+2. **Törlés a spawnolás előtt.** Először távolítsd el a pénznemet, aztán hozd létre a tárgyakat. Megelőzi a duplikációt.
+3. **Meglét validálása.** Erősítsd meg, hogy a tárgy a leltárban van, mielőtt eladási pénznemet adnál.
+4. **Naplózz mindent.** Írd ki a játékos nevét, tárgyat, mennyiséget minden tranzakciónál.
+5. **Mennyiségi korlátok.** Utasítsd el a `qty <= 0` vagy `qty > 10` értékeket.
+6. **Sebességkorlátozás** éles üzemben: 500ms visszahívási idő játékosonként tranzakciónként.
+
+---
+
+## Teljes kódreferencia
+
+| Fájl | Réteg | Cél |
+|------|-------|-----|
+| `ShopDemoRPC.c` | 3_Game | RPC ID konstansok |
+| `ShopDemoData.c` | 3_Game | Adatosztályok: ShopItem, ShopCategory, ShopConfig |
+| `ShopDemoManager.c` | 4_World | Szerver: konfig, vétel/eladás logika, leltár, RPC kezelők |
+| `ShopDemoMenu.c` | 5_Mission | Kliens: UI, dinamikus widgetek, RPC küldés/fogadás |
+| `ShopDemoMission.c` | 5_Mission | Mission hook: init, billentyűkiosztás, RPC továbbítás |
+| `shop_menu.layout` | GUI | 3 paneles layout |
 
 ---
 
 ## Legjobb gyakorlatok
 
-- **Server is the single source of truth.** Client is a display terminal.
-- **Use `DeleteSafe()` not `Delete()`.** Handles network sync and locked slots.
-- **Data classes in 3_Game.** Visible to both 4_World and 5_Mission.
-- **Always call `super` in overrides.** Breaking the chain breaks other mods.
-- **Clean up dynamic widgets.** Every `CreateWidget` needs `Unlink` on close.
+- **A szerver az egyetlen igazságforrás.** A kliens megjelenítő terminál.
+- **Használj `DeleteSafe()`-et, ne `Delete()`-et.** Kezeli a hálózati szinkronizációt és a zárolt slotokat.
+- **Adatosztályok a 3_Game-ben.** Láthatók mind a 4_World, mind az 5_Mission számára.
+- **Mindig hívd meg a `super`-t a felülírásokban.** A lánc megszakítása más modokat is elront.
+- **Takaríts fel dinamikus widgeteket.** Minden `CreateWidget`-nek szüksége van `Unlink`-re a bezáráskor.
 
-## Elmelet vs gyakorlat
+## Elmélet vs gyakorlat
 
-| Fogalom | Elmelet | Valosag |
-|---------|--------|---------|
-| `JsonFileLoader.LoadFile()` | Loads cleanly | Trailing commas cause silent failures. Validate JSON externally. |
-| String RPC serialization | Simple | 500+ items may hit size limits. Paginate for large shops. |
-| `CreateInInventory()` | Always works | Visszaad null if inventory full. Always check. |
-| Listen server testing | Fast iteration | Hides network bugs. Test on dedicated server. |
+| Fogalom | Elmélet | Valóság |
+|---------|---------|---------|
+| `JsonFileLoader.LoadFile()` | Tisztán betöltődik | Az elmaradó vesszők csendes hibákat okoznak. Validáld a JSON-t külsőleg. |
+| String RPC szerializáció | Egyszerű | 500+ tárgy méretkorlátba ütközhet. Lapozz nagy boltoknál. |
+| `CreateInInventory()` | Mindig működik | Null-t ad vissza, ha a leltár tele van. Mindig ellenőrizd. |
+| Listen szerver tesztelés | Gyors iteráció | Elrejti a hálózati hibákat. Tesztelj dedikált szerveren. |
 
-## What You Learned
+## Mit tanultál
 
-- JSON config loading with `JsonFileLoader<T>` and auto-generation of defaults
-- Singleton pattern for server-side game managers
-- Inventory enumeration, counting, deletion (`DeleteSafe`), and spawning
-- String serialization of complex data over RPC (categories, items, prices)
-- Dynamic widget creation for data-driven UI
-- Full buy/sell transaction flow with server-only authority
-- Security principles for multiplayer economy systems
+- JSON konfiguráció betöltése `JsonFileLoader<T>`-vel és alapértelmezett értékek automatikus generálása
+- Singleton minta szerver oldali játékkezelőkhöz
+- Leltár bejárás, számlálás, törlés (`DeleteSafe`) és spawnolás
+- Összetett adatok string szerializációja RPC-n keresztül (kategóriák, tárgyak, árak)
+- Dinamikus widget létrehozás adatvezérelt UI-hoz
+- Teljes vétel/eladás tranzakciós folyamat szerver-kizárólagos autoritással
+- Biztonsági elvek többjátékos gazdasági rendszerekhez
 
-## Gyakori hibak
+## Gyakori hibák
 
-| Hiba | Javitas |
-|---------|-----|
-| Client sends price | Send `(className, qty)` only. Server decides price. |
-| Spawn before paying | Remove currency first, then create items. |
-| Skip `super.OnRPC()` | Always call super -- other mods need the chain. |
-| `Delete()` on networked items | Use `DeleteSafe()`. |
-| Ignore `CreateInInventory` return | Check for null, fall back to ground spawn. |
-| Redeclare vars in else-if | Declare once before the if-chain (Enforce Script rule). |
+| Hiba | Javítás |
+|------|---------|
+| A kliens árat küld | Csak `(className, qty)` értéket küldj. A szerver dönt az árról. |
+| Spawnolás fizetés előtt | Először távolítsd el a pénznemet, aztán hozd létre a tárgyakat. |
+| `super.OnRPC()` kihagyása | Mindig hívd meg a super-t -- más modoknak szükségük van a láncra. |
+| `Delete()` hálózati tárgyakon | Használj `DeleteSafe()`-et. |
+| `CreateInInventory` visszatérési érték figyelmen kívül hagyása | Ellenőrizd null-ra, használj földre spawnolást tartalékként. |
+| Változó újradeklarálás else-if ágakban | Deklaráld egyszer az if-lánc előtt (Enforce Script szabály). |
 
 ---
 
-**Elozo:** [Chapter 8.11: Clothing Mod](11-clothing-mod.md)
+**Előző:** [8.11. fejezet: Ruházat mod](11-clothing-mod.md)

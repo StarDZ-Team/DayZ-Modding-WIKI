@@ -1,69 +1,73 @@
-# Chapter 8.11: Creating Custom Clothing
+# 8.11. fejezet: Egyedi ruházat készítése
 
-[Home](../../README.md) | [<< Previous: Creating a Custom Vehicle](10-vehicle-mod.md) | **Creating Custom Clothing** | [Next: Building a Trading System >>](12-trading-system.md)
-
----
-
-## Tartalomjegyzek
-
-- [What We Are Building](#what-we-are-building)
-- [Step 1: Choose a Alaposztaly](#step-1-choose-a-base-class)
-- [Step 2: config.cpp for Clothing](#step-2-configcpp-for-clothing)
-- [Step 3: Create Textures](#step-3-create-textures)
-- [Step 4: Add Cargo Space](#step-4-add-cargo-space)
-- [Step 5: Localization and Spawning](#step-5-localization-and-spawning)
-- [Step 6: Script Behavior (Optional)](#step-6-script-behavior-optional)
-- [Step 7: Build, Test, Polish](#step-7-build-test-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Gyakori hibak](#common-mistakes)
-- [Legjobb gyakorlatok](#best-practices)
-- [Elmelet vs gyakorlat](#theory-vs-practice)
-- [What You Learned](#what-you-learned)
+[Kezdőlap](../../README.md) | [<< Előző: Egyedi jármű készítése](10-vehicle-mod.md) | **Egyedi ruházat készítése** | [Következő: Kereskedési rendszer építése >>](12-trading-system.md)
 
 ---
 
-## What We Are Building
-
-We will create a **Tactical Camo Jacket** -- a military-style jacket with woodland camouflage that players can find and wear. It will:
-
-- Extend the vanilla Gorka jacket model (no 3D modeling required)
-- Have a custom camo retexture using hidden selections
-- Provide warmth through `heatIsolation` values
-- Carry items in its pockets (cargo space)
-- Take damage with visual degradation across health states
-- Spawn at military locations in the world
-
-**Elofeletelek:** A working mod structure (complete [Chapter 8.1](01-first-mod.md) and [Chapter 8.2](02-custom-item.md) first), a text editor, DayZ Tools installed (for TexView2), and an image editor for creating camo textures.
+> **Összefoglalás:** Ez az oktatóanyag végigvezet egy egyedi taktikai kabát készítésén a DayZ-hez. Kiválasztasz egy alaposztályt, meghatározod a ruhadarabot a config.cpp-ben szigetelési és rakodótér tulajdonságokkal, újratextúrázod terepszínű mintával rejtett kiválasztások segítségével, hozzáadsz lokalizációt és spawnolást, és opcionálisan szkriptezett viselkedéssel bővíted. A végére egy viselhető kabátot kapsz, amely melegen tartja a játékosokat, tárgyakat tárol, és megjelenik a világban.
 
 ---
 
-## Step 1: Choose a Alaposztaly
+## Tartalomjegyzék
 
-Clothing in DayZ inherits from `Clothing_Base`, but you almost never extend that directly. DayZ provides intermediate base classes for each body slot:
+- [Mit építünk](#mit-építünk)
+- [1. lépés: Alaposztály kiválasztása](#1-lépés-alaposztály-kiválasztása)
+- [2. lépés: config.cpp a ruházathoz](#2-lépés-configcpp-a-ruházathoz)
+- [3. lépés: Textúrák készítése](#3-lépés-textúrák-készítése)
+- [4. lépés: Rakodótér hozzáadása](#4-lépés-rakodótér-hozzáadása)
+- [5. lépés: Lokalizáció és spawnolás](#5-lépés-lokalizáció-és-spawnolás)
+- [6. lépés: Szkript viselkedés (opcionális)](#6-lépés-szkript-viselkedés-opcionális)
+- [7. lépés: Build, tesztelés, finomítás](#7-lépés-build-tesztelés-finomítás)
+- [Teljes kódreferencia](#teljes-kódreferencia)
+- [Gyakori hibák](#gyakori-hibák)
+- [Legjobb gyakorlatok](#legjobb-gyakorlatok)
+- [Elmélet vs gyakorlat](#elmélet-vs-gyakorlat)
+- [Mit tanultál](#mit-tanultál)
 
-| Alaposztaly | Body Slot | Peldas |
-|------------|-----------|----------|
-| `Top_Base` | Body (torso) | Jackets, shirts, hoodies |
-| `Pants_Base` | Legs | Jeans, cargo pants |
-| `Shoes_Base` | Feet | Boots, sneakers |
-| `HeadGear_Base` | Head | Helmets, hats |
-| `Mask_Base` | Face | Gas masks, balaclavas |
-| `Gloves_Base` | Hands | Tactical gloves |
-| `Vest_Base` | Vest slot | Plate carriers, chest rigs |
-| `Glasses_Base` | Eyewear | Sunglasses |
-| `Backpack_Base` | Back | Backpacks, bags |
+---
 
-The full inheritance chain is: `Clothing_Base -> Clothing -> Top_Base -> GorkaEJacket_ColorBase -> YourJacket`
+## Mit építünk
 
-### Why Extend an Existing Vanilla Item
+Egy **taktikai terepszínű kabátot** készítünk -- egy katonai stílusú kabátot erdei álcamintával, amelyet a játékosok megtalálhatnak és viselhetnek. A kabát:
 
-You can extend at different levels:
+- A vanilla Gorka kabát modelljét terjeszti ki (nincs szükség 3D modellezésre)
+- Egyedi terepszínű újratextúrával rendelkezik rejtett kiválasztások segítségével
+- Meleget biztosít `heatIsolation` értékeken keresztül
+- Tárgyakat tárol a zsebeiben (rakodótér)
+- Sérülés hatására vizuálisan degradálódik az egészségi állapotok szerint
+- Katonai helyszíneken jelenik meg a világban
 
-1. **Extend a specific item** (like `GorkaEJacket_ColorBase`) -- easiest. You inherit the model, animations, slot, and all properties. Only change textures and tweak values. This is what Bohemia's `Test_ClothingRetexture` sample does.
-2. **Extend a slot base** (like `Top_Base`) -- clean starting point, but you must specify a model and all properties.
-3. **Extend `Clothing` directly** -- only for completely custom slot behavior. Rarely needed.
+**Előfeltételek:** Működő mod struktúra (először végezd el a [8.1. fejezetet](01-first-mod.md) és a [8.2. fejezetet](02-custom-item.md)), szövegszerkesztő, telepített DayZ Tools (a TexView2-höz), és képszerkesztő a terepszínű textúrák készítéséhez.
 
-For our tactical jacket, we will extend `GorkaEJacket_ColorBase`. Looking at the vanilla script:
+---
+
+## 1. lépés: Alaposztály kiválasztása
+
+A DayZ-ben a ruházat a `Clothing_Base` osztályból öröklődik, de szinte soha nem terjeszted ki közvetlenül. A DayZ köztes alaposztályokat biztosít minden testhelyre:
+
+| Alaposztály | Testhely | Példák |
+|-------------|----------|--------|
+| `Top_Base` | Test (törzs) | Kabátok, ingek, pulóverek |
+| `Pants_Base` | Lábak | Farmerek, cargo nadrágok |
+| `Shoes_Base` | Lábfej | Bakancsok, sportcipők |
+| `HeadGear_Base` | Fej | Sisakok, kalapok |
+| `Mask_Base` | Arc | Gázálarcok, símaszkek |
+| `Gloves_Base` | Kezek | Taktikai kesztyűk |
+| `Vest_Base` | Mellény slot | Lemezhordozók, mellkaskosarak |
+| `Glasses_Base` | Szemüveg | Napszemüvegek |
+| `Backpack_Base` | Hát | Hátizsákok, táskák |
+
+A teljes öröklési lánc: `Clothing_Base -> Clothing -> Top_Base -> GorkaEJacket_ColorBase -> SajátKabát`
+
+### Miért terjessz ki egy meglévő vanilla tárgyat
+
+Különböző szinteken terjeszthetsz ki:
+
+1. **Konkrét tárgy kiterjesztése** (mint a `GorkaEJacket_ColorBase`) -- legegyszerűbb. Örökölöd a modellt, animációkat, slotot és az összes tulajdonságot. Csak textúrákat változtatsz és értékeket módosítasz. Ezt csinálja a Bohemia `Test_ClothingRetexture` mintája.
+2. **Slot alap kiterjesztése** (mint a `Top_Base`) -- tiszta kiindulópont, de meg kell adnod a modellt és az összes tulajdonságot.
+3. **`Clothing` közvetlen kiterjesztése** -- csak teljesen egyedi slot viselkedéshez. Ritkán szükséges.
+
+A taktikai kabátunkhoz a `GorkaEJacket_ColorBase` osztályt terjesztjük ki. A vanilla szkriptet vizsgálva:
 
 ```c
 class GorkaEJacket_ColorBase extends Top_Base
@@ -78,15 +82,15 @@ class GorkaEJacket_Summer extends GorkaEJacket_ColorBase {};
 class GorkaEJacket_Flat extends GorkaEJacket_ColorBase {};
 ```
 
-Notice the pattern: a `_ColorBase` class handles shared behavior, and individual color variants extend it with no additional code. Their config.cpp entries provide different textures. We will follow the same pattern.
+Figyeld meg a mintát: egy `_ColorBase` osztály kezeli a közös viselkedést, és az egyes színváltozatok további kód nélkül terjesztik ki. A config.cpp bejegyzéseik különböző textúrákat biztosítanak. Ugyanezt a mintát fogjuk követni.
 
-To find base classes, look in `scripts/4_world/entities/itembase/clothing_base.c` (defines all slot bases) and `scripts/4_world/entities/itembase/clothing/` (one file per clothing family).
+Az alaposztályok megtalálásához nézd meg a `scripts/4_world/entities/itembase/clothing_base.c` fájlt (az összes slot alapot definiálja) és a `scripts/4_world/entities/itembase/clothing/` mappát (ruhacsaládonként egy fájl).
 
 ---
 
-## Step 2: config.cpp for Clothing
+## 2. lépés: config.cpp a ruházathoz
 
-Create `MyClothingMod/Data/config.cpp`:
+Hozd létre a `MyClothingMod/Data/config.cpp` fájlt:
 
 ```cpp
 class CfgPatches
@@ -184,73 +188,73 @@ class CfgVehicles
 };
 ```
 
-### Clothing-Specific Mezos Explained
+### Ruházat-specifikus mezők magyarázata
 
-**Thermal and stealth:**
+**Hőszabályozás és rejtőzés:**
 
-| Mezo | Ertek | Explanation |
-|-------|-------|-------------|
-| `heatIsolation` | `0.8` | Warmth provided (0.0-1.0 range). The engine multiplies this by health and wetness factors. A pristine dry jacket gives full warmth; a ruined, soaked one gives almost none. |
-| `visibilityModosito` | `0.7` | Player visibility to AI (lower = harder to detect). |
-| `absorbency` | `0.3` | Water absorption (0 = waterproof, 1 = sponge). Lower is better for rain resistance. |
+| Mező | Érték | Magyarázat |
+|------|-------|------------|
+| `heatIsolation` | `0.8` | Biztosított melegség (0.0-1.0 tartomány). A motor ezt szorozza az egészségi állapot és nedvesség tényezőkkel. Egy hibátlan, száraz kabát teljes melegséget ad; egy tönkrement, átnedvesedett szinte semmit. |
+| `visibilityModifier` | `0.7` | Játékos láthatósága az AI számára (alacsonyabb = nehezebben észlelhető). |
+| `absorbency` | `0.3` | Vízfelszívás (0 = vízálló, 1 = szivacs). Alacsonyabb jobb az esőállósághoz. |
 
-**Vanilla heatIsolation reference:** T-shirt 0.2, Hoodie 0.5, Gorka Jacket 0.7, Mezo Jacket 0.8, Wool Coat 0.9.
+**Vanilla heatIsolation referencia:** Póló 0.2, Kapucnis pulóver 0.5, Gorka kabát 0.7, Tábori kabát 0.8, Gyapjú kabát 0.9.
 
-**Repair:** `repairableWithKits[] = { 5, 2 }` lists kit types (5=Sewing Kit, 2=Leather Sewing Kit). `repairCosts[]` gives material consumed per repair, in matching order.
+**Javítás:** A `repairableWithKits[] = { 5, 2 }` felsorolja a készlet típusokat (5=Varródoboz, 2=Bőrvarró készlet). A `repairCosts[]` megadja a javításonként felhasznált anyagot, egyező sorrendben.
 
-**Armor:** A `damage` value of 0.8 means the player receives 80% of incoming damage (20% absorbed). Lower values = more protection.
+**Páncélzat:** A `damage` 0.8-as értéke azt jelenti, hogy a játékos a beérkező sérülés 80%-át kapja meg (20% elnyelve). Alacsonyabb értékek = több védelem.
 
-**Wetness:** `Soaking` controls how fast rain/water soaks the item. `Drying` negative values represent moisture loss from body heat, fires, and wringing.
+**Nedvesség:** A `Soaking` szabályozza, milyen gyorsan ázik át a tárgy esőtől/víztől. A `Drying` negatív értékek a testhőtől, tüzektől és kicsavarástól származó nedvességveszteséget jelölik.
 
-**Hidden selections:** The Gorka model has 3 selections -- index 0 is the ground model, indices 1 and 2 are the worn model. You override `hiddenSelectionsTextures[]` with your custom PAA paths.
+**Rejtett kiválasztások:** A Gorka modellnek 3 kiválasztása van -- a 0. index a földi modell, az 1. és 2. index a viselt modell. A `hiddenSelectionsTextures[]` tömböt felülírod az egyedi PAA útvonalaiddal.
 
-**Health levels:** Each entry is `{ healthThreshold, { materialPath } }`. When health drops below a threshold, the engine swaps the material. Vanilla damage rvmats add wear marks and tears.
-
----
-
-## Step 3: Create Textures
-
-### Finding and Creating Textures
-
-The Gorka jacket textures live at `DZ\characters\tops\data\` -- extract the `gorka_upper_summer_co.paa` (color), `gorka_upper_nohq.paa` (normal), and `gorka_upper_smdi.paa` (specular) from the P: drive to use as templates.
-
-**Creating the camo pattern:**
-
-1. Open the vanilla `_co` texture in TexView2, export as TGA/PNG
-2. Paint your woodland camo in your image editor, following the UV layout
-3. Keep the same dimensions (typically 2048x2048 or 1024x1024)
-4. Save as TGA, convert to PAA using TexView2 (File > Save As > .paa)
-
-### Texture Tipuss
-
-| Suffix | Cel | Required? |
-|--------|---------|-----------|
-| `_co` | Main color/pattern | Yes |
-| `_nohq` | Normal map (fabric detail) | No -- uses vanilla default |
-| `_smdi` | Specular (shininess) | No -- uses vanilla default |
-| `_as` | Alpha/surface mask | No |
-
-For a retexture, you only need `_co` textures. The normal and specular maps from the vanilla model continue to work.
-
-For full material control, create `.rvmat` files and reference them in `hiddenSelectionsMaterials[]`. See Bohemia's `Test_ClothingRetexture` sample for working rvmat examples with damage and destruct variants.
+**Egészségi szintek:** Minden bejegyzés `{ egészségKüszöb, { anyagÚtvonal } }`. Amikor az egészség egy küszöb alá esik, a motor kicseréli az anyagot. A vanilla damage rvmat-ok kopásnyomokat és szakadásokat adnak hozzá.
 
 ---
 
-## Step 4: Add Cargo Space
+## 3. lépés: Textúrák készítése
 
-When extending `GorkaEJacket_ColorBase`, you inherit its cargo grid (4x3) and inventory slot (`"Body"`) automatically. The `itemSize[] = { 3, 4 }` property defines how large the jacket is when stored as loot -- NOT its cargo capacity.
+### Textúrák keresése és létrehozása
 
-Common clothing slots: `"Body"` (jackets), `"Legs"` (pants), `"Feet"` (boots), `"Headgear"` (hats), `"Vest"` (chest rigs), `"Gloves"`, `"Mask"`, `"Back"` (backpacks).
+A Gorka kabát textúrái a `DZ\characters\tops\data\` helyen találhatók -- csomagold ki a `gorka_upper_summer_co.paa` (szín), `gorka_upper_nohq.paa` (normál) és `gorka_upper_smdi.paa` (tükrös) fájlokat a P: meghajtóról sablonként való használathoz.
 
-Some clothing accepts attachments (like Plate Carrier pouches). Add them with `attachments[] = { "Shoulder", "Armband" };`. For a basic jacket, the inherited cargo is sufficient.
+**A terepszínű minta létrehozása:**
+
+1. Nyisd meg a vanilla `_co` textúrát a TexView2-ben, exportáld TGA/PNG formátumba
+2. Fesd meg az erdei álcamintádat a képszerkesztőben, az UV elrendezést követve
+3. Tartsd meg az eredeti méreteket (általában 2048x2048 vagy 1024x1024)
+4. Mentsd TGA-ként, konvertáld PAA-ra a TexView2-vel (File > Save As > .paa)
+
+### Textúra típusok
+
+| Utótag | Cél | Szükséges? |
+|--------|-----|------------|
+| `_co` | Fő szín/minta | Igen |
+| `_nohq` | Normál térkép (szövet részlet) | Nem -- a vanilla alapértelmezést használja |
+| `_smdi` | Tükrös (fényesség) | Nem -- a vanilla alapértelmezést használja |
+| `_as` | Alfa/felületi maszk | Nem |
+
+Újratextúrázásnál csak `_co` textúrákra van szükséged. A vanilla modell normál és tükrös térképei továbbra is működnek.
+
+Teljes anyagvezérléshez hozz létre `.rvmat` fájlokat és hivatkozz rájuk a `hiddenSelectionsMaterials[]` tömbben. A Bohemia `Test_ClothingRetexture` mintájában találsz működő rvmat példákat sérülés és pusztulás változatokkal.
 
 ---
 
-## Step 5: Localization and Spawning
+## 4. lépés: Rakodótér hozzáadása
+
+A `GorkaEJacket_ColorBase` kiterjesztésekor automatikusan örökölöd annak rakodórácsát (4x3) és inventory slotját (`"Body"`). Az `itemSize[] = { 3, 4 }` tulajdonság azt határozza meg, milyen nagy a kabát lootként tárolva -- NEM a rakodókapacitását.
+
+Gyakori ruházati slotok: `"Body"` (kabátok), `"Legs"` (nadrágok), `"Feet"` (csizmák), `"Headgear"` (kalapok), `"Vest"` (mellkaskosarak), `"Gloves"`, `"Mask"`, `"Back"` (hátizsákok).
+
+Néhány ruhadarab csatolmányokat fogad el (mint a lemez hordozó zsebek). Add hozzá őket az `attachments[] = { "Shoulder", "Armband" };` sorral. Egy alap kabáthoz az örökölt rakodótér elegendő.
+
+---
+
+## 5. lépés: Lokalizáció és spawnolás
 
 ### Stringtable
 
-Create `MyClothingMod/Data/Stringtable.csv`:
+Hozd létre a `MyClothingMod/Data/Stringtable.csv` fájlt:
 
 ```csv
 "Language","English","Czech","German","Russian","Polish","Hungarian","Italian","Spanish","French","Chinese","Japanese","Portuguese","ChineseSimp","Korean"
@@ -258,9 +262,9 @@ Create `MyClothingMod/Data/Stringtable.csv`:
 "STR_MCM_TacticalJacket_Woodland_Desc","A rugged tactical jacket with woodland camouflage. Provides good insulation and has multiple pockets.","","","","","","","","","","","","",""
 ```
 
-### Spawning (types.xml)
+### Spawnolás (types.xml)
 
-Add to your server's mission folder `types.xml`:
+Add hozzá a szervered mission mappájában lévő `types.xml` fájlhoz:
 
 ```xml
 <type name="MCM_TacticalJacket_Woodland">
@@ -279,13 +283,13 @@ Add to your server's mission folder `types.xml`:
 </type>
 ```
 
-Use `category name="clothes"` for all clothing. Set `usage` to match where the item should spawn (Military, Town, Police, etc.) and `value` for the map tier (Tier1=coast through Tier4=deep inland).
+Használd a `category name="clothes"` értéket minden ruházathoz. Állítsd be a `usage` értéket annak megfelelően, hol spawnoljon a tárgy (Military, Town, Police stb.), és a `value` értéket a térkép szintjéhez (Tier1=part, Tier4=mély szárazföld).
 
 ---
 
-## Step 6: Script Behavior (Optional)
+## 6. lépés: Szkript viselkedés (opcionális)
 
-For a simple retexture, you do not need scripts. But to add behavior when the jacket is worn, create a script class.
+Egyszerű újratextúrázáshoz nincs szükséged szkriptekre. De ha viselkedést akarsz hozzáadni a kabát viselésekor, hozz létre egy szkript osztályt.
 
 ### Scripts config.cpp
 
@@ -322,9 +326,9 @@ class CfgMods
 };
 ```
 
-### Custom Jacket Script
+### Egyedi kabát szkript
 
-Create `Scripts/4_World/MyClothingMod/MCM_TacticalJacket.c`:
+Hozd létre a `Scripts/4_World/MyClothingMod/MCM_TacticalJacket.c` fájlt:
 
 ```c
 class MCM_TacticalJacket_ColorBase extends GorkaEJacket_ColorBase
@@ -357,42 +361,42 @@ class MCM_TacticalJacket_ColorBase extends GorkaEJacket_ColorBase
 };
 ```
 
-### Key Clothing Events
+### Főbb ruházati események
 
-| Event | When It Fires | Common Use |
-|-------|---------------|------------|
-| `OnWasAttached(parent, slot_id)` | Player equips the item | Apply buffs, show effects |
-| `OnWasDetached(parent, slot_id)` | Player unequips the item | Remove buffs, clean up |
-| `EEItemAttached(item, slot_name)` | Item attached to this clothing | Show/hide model selections |
-| `EEItemDetached(item, slot_name)` | Item detached from this clothing | Reverse visual changes |
-| `EEHealthLevelValtozasd(old, new, zone)` | Health crosses a threshold | Update visual state |
+| Esemény | Mikor aktiválódik | Gyakori használat |
+|---------|-------------------|-------------------|
+| `OnWasAttached(parent, slot_id)` | A játékos felszereli a tárgyat | Bónuszok alkalmazása, effektek megjelenítése |
+| `OnWasDetached(parent, slot_id)` | A játékos leveszi a tárgyat | Bónuszok eltávolítása, takarítás |
+| `EEItemAttached(item, slot_name)` | Tárgy csatolva ehhez a ruhadarabhoz | Modell kiválasztások megjelenítése/elrejtése |
+| `EEItemDetached(item, slot_name)` | Tárgy leválasztva erről a ruhadarabról | Vizuális változtatások visszaállítása |
+| `EEHealthLevelChanged(old, new, zone)` | Az egészség átlép egy küszöböt | Vizuális állapot frissítése |
 
-**Fontos:** Always call `super` at the start of every override. The parent class handles critical engine behavior.
+**Fontos:** Mindig hívd meg a `super`-t minden felülírás elején. A szülőosztály kritikus motor viselkedéseket kezel.
 
 ---
 
-## Step 7: Build, Test, Polish
+## 7. lépés: Build, tesztelés, finomítás
 
-### Build and Spawn
+### Build és spawnolás
 
-Pack `Data/` and `Scripts/` as separate PBOs. Launch DayZ with your mod and spawn the jacket:
+Csomagold a `Data/` és `Scripts/` könyvtárakat külön PBO-kba. Indítsd el a DayZ-t a mododdal és spawnold a kabátot:
 
 ```c
 GetGame().GetPlayer().GetInventory().CreateInInventory("MCM_TacticalJacket_Woodland");
 ```
 
-### Verification Checklist
+### Ellenőrző lista
 
-1. **Does it appear in inventory?** If not, check `scope=2` and class name match.
-2. **Correct texture?** Alapertelmezett Gorka texture = wrong paths. White/pink = missing texture file.
-3. **Can you equip it?** Should go to Body slot. If not, check the parent class chain.
-4. **Display name shows?** If you see raw `$STR_` text, the stringtable is not loading.
-5. **Provides warmth?** Check `heatIsolation` in the debug/inspect menu.
-6. **Damage degrades visuals?** Test with: `ItemBase.Cast(GetGame().GetPlayer().GetItemOnSlot("Body")).SetHealth("", "", 40);`
+1. **Megjelenik a leltárban?** Ha nem, ellenőrizd a `scope=2` értéket és az osztálynév egyezését.
+2. **Helyes a textúra?** Alapértelmezett Gorka textúra = hibás útvonalak. Fehér/rózsaszín = hiányzó textúra fájl.
+3. **Felszerelheted?** A Body slotba kell kerülnie. Ha nem, ellenőrizd a szülőosztály láncot.
+4. **Megjelenik a megjelenítési név?** Ha nyers `$STR_` szöveget látsz, a stringtable nem töltődik be.
+5. **Meleget biztosít?** Ellenőrizd a `heatIsolation` értéket a debug/inspect menüben.
+6. **Sérülés degradálja a vizuált?** Teszteld ezzel: `ItemBase.Cast(GetGame().GetPlayer().GetItemOnSlot("Body")).SetHealth("", "", 40);`
 
-### Adding Color Variants
+### Színváltozatok hozzáadása
 
-Follow the `_ColorBase` pattern -- add sibling classes that only differ in textures:
+Kövesd a `_ColorBase` mintát -- adj hozzá testvérosztályokat, amelyek csak a textúrákban különböznek:
 
 ```cpp
 class MCM_TacticalJacket_Desert : MCM_TacticalJacket_ColorBase
@@ -409,25 +413,25 @@ class MCM_TacticalJacket_Desert : MCM_TacticalJacket_ColorBase
 };
 ```
 
-Each variant needs its own `scope=2`, display name, textures, stringtable entries, and types.xml entry.
+Minden változatnak saját `scope=2` értékre, megjelenítési névre, textúrákra, stringtable bejegyzésekre és types.xml bejegyzésre van szüksége.
 
 ---
 
-## Complete Code Reference
+## Teljes kódreferencia
 
-### Directory Structure
+### Könyvtárstruktúra
 
 ```
 MyClothingMod/
     mod.cpp
     Data/
-        config.cpp              <-- Item definitions (see Step 2)
-        Stringtable.csv         <-- Display names (see Step 5)
+        config.cpp              <-- Tárgy definíciók (lásd 2. lépés)
+        Stringtable.csv         <-- Megjelenítési nevek (lásd 5. lépés)
         Textures/
             tactical_jacket_woodland_co.paa
             tactical_jacket_g_woodland_co.paa
-    Scripts/                    <-- Only needed for script behavior
-        config.cpp              <-- CfgMods entry (see Step 6)
+    Scripts/                    <-- Csak szkript viselkedéshez szükséges
+        config.cpp              <-- CfgMods bejegyzés (lásd 6. lépés)
         4_World/
             MyClothingMod/
                 MCM_TacticalJacket.c
@@ -442,64 +446,64 @@ version = "1.0";
 overview = "Adds a tactical jacket with camo variants to DayZ.";
 ```
 
-All other files are shown in full in their respective steps above.
+Minden egyéb fájl teljes egészében a fenti megfelelő lépésekben szerepel.
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-| Hiba | Kovetkezmeny | Javitas |
-|---------|-------------|-----|
-| Forgetting `scope=2` on variants | Item does not spawn or appear in admin tools | Set `scope=0` on base, `scope=2` on each spawnable variant |
-| Wrong texture array count | White/pink textures on some parts | Match `hiddenSelectionsTextures` count to the model's hidden selections (Gorka has 3) |
-| Forward slashes in texture paths | Textures fail to load silently | Use backslashes: `"MyMod\Data\tex.paa"` |
-| Missing `requiredAddons` | Config parser cannot resolve parent class | Include `"DZ_Characters_Tops"` for tops |
-| `heatIsolation` above 1.0 | Player overheats in warm weather | Keep values in 0.0-1.0 range |
-| Empty `healthLevels` materials | No visual damage degradation | Always reference at least vanilla rvmats |
-| Skipping `super` in overrides | Broken inventory, damage, or attachment behavior | Always call `super.MetodusName()` first |
+| Hiba | Következmény | Javítás |
+|------|-------------|---------|
+| `scope=2` elfelejtése a változatokon | A tárgy nem spawnol és nem jelenik meg az admin eszközökben | Állítsd `scope=0`-ra az alapon, `scope=2`-re minden spawnolható változaton |
+| Hibás textúra tömb elemszám | Fehér/rózsaszín textúrák egyes részeken | Egyeztesd a `hiddenSelectionsTextures` elemszámát a modell rejtett kiválasztásaival (Gorka-nak 3 van) |
+| Perjel a textúra útvonalakban | A textúrák csendben nem töltődnek be | Használj fordított perjelet: `"MyMod\Data\tex.paa"` |
+| Hiányzó `requiredAddons` | A config elemző nem tudja feloldani a szülőosztályt | Írd bele a `"DZ_Characters_Tops"` értéket felsőruházathoz |
+| `heatIsolation` 1.0 felett | A játékos túlmelegszik meleg időben | Tartsd az értékeket 0.0-1.0 tartományban |
+| Üres `healthLevels` anyagok | Nincs vizuális sérülés degradáció | Mindig hivatkozz legalább vanilla rvmat-okra |
+| `super` kihagyása felülírásokban | Hibás leltár, sérülés vagy csatolási viselkedés | Mindig hívd meg a `super.MetódusNév()` függvényt először |
 
 ---
 
 ## Legjobb gyakorlatok
 
-- **Start with a simple retexture.** Get a working mod with a texture swap before adding custom properties or scripts. This isolates config issues from texture issues.
-- **Use the _ColorBase pattern.** Shared properties in `scope=0` base, only textures and names in `scope=2` variants. No duplication.
-- **Keep insulation values realistic.** Reference vanilla items with similar real-world equivalents.
-- **Test with script console before types.xml.** Confirm the item works before debugging spawn tables.
-- **Use `$STR_` references for all player-facing text.** Enables future localization without config changes.
-- **Pack Data and Scripts as separate PBOs.** Update textures without rebuilding scripts.
-- **Provide ground textures.** The `_g_` texture makes dropped items look correct.
+- **Kezdd egyszerű újratextúrázással.** Szerezz egy működő modot textúracserével, mielőtt egyedi tulajdonságokat vagy szkripteket adnál hozzá. Ez elkülöníti a config problémákat a textúra problémáktól.
+- **Használd a _ColorBase mintát.** Közös tulajdonságok a `scope=0` alapban, csak textúrák és nevek a `scope=2` változatokban. Nincs duplikáció.
+- **Tartsd realisztikusan a szigetelési értékeket.** Hivatkozz vanilla tárgyakra hasonló valós világbeli megfelelőkkel.
+- **Tesztelj szkript konzollal a types.xml előtt.** Erősítsd meg, hogy a tárgy működik, mielőtt a spawn táblákat debugolnád.
+- **Használj `$STR_` hivatkozásokat minden játékos felé néző szöveghez.** Lehetővé teszi a jövőbeli lokalizációt config változtatások nélkül.
+- **Csomagold a Data és Scripts könyvtárakat külön PBO-kba.** Textúrák frissítése szkriptek újraépítése nélkül.
+- **Biztosíts földi textúrákat.** A `_g_` textúra gondoskodik arról, hogy az eldobott tárgyak helyesen nézzenek ki.
 
 ---
 
-## Elmelet vs gyakorlat
+## Elmélet vs gyakorlat
 
-| Fogalom | Elmelet | Valosag |
-|---------|--------|---------|
-| `heatIsolation` | A simple warmth number | Effective warmth depends on health and wetness. The engine multiplies it by factors in `MiscGameplayFunctions.GetCurrentItemHeatIsolation()`. |
-| Armor `damage` values | Lower = more protection | A value of 0.8 means the player receives 80% damage (only 20% absorbed). Many modders read 0.9 as "90% protection" when it is actually 10%. |
-| `scope` inheritance | Children inherit parent scope | They do NOT. Each class must explicitly set `scope`. Parent `scope=0` defaults all children to `scope=0`. |
-| `absorbency` | Controls rain protection | It controls moisture absorption, which REDUCES warmth. Waterproof = LOW absorbency (0.1). High absorbency (0.8+) = soaks like a sponge. |
-| Hidden selections | Work on any model | Not all models expose the same selections. Check with Object Builder or vanilla config before choosing a base model. |
-
----
-
-## What You Learned
-
-In this tutorial you learned:
-
-- How DayZ clothing inherits from slot-specific base classes (`Top_Base`, `Pants_Base`, etc.)
-- How to define a clothing item in config.cpp with thermal, armor, and wetness properties
-- How hidden selections allow retexturing vanilla models with custom camo patterns
-- How `heatIsolation`, `visibilityModosito`, and `absorbency` affect gameplay
-- How the `DamageSystem` controls visual degradation and armor protection
-- How to create color variants using the `_ColorBase` pattern
-- How to add spawn entries with `types.xml` and display names with `Stringtable.csv`
-- How to optionally add script behavior with `OnWasAttached` and `OnWasDetached` events
-
-**Kovetkezo:** Apply the same techniques to create pants (`Pants_Base`), boots (`Shoes_Base`), or a vest (`Vest_Base`). The config structure is identical -- only the parent class and inventory slot change.
+| Fogalom | Elmélet | Valóság |
+|---------|---------|---------|
+| `heatIsolation` | Egyszerű melegség szám | A tényleges melegség függ az egészségi állapottól és nedvességtől. A motor tényezőkkel szorozza a `MiscGameplayFunctions.GetCurrentItemHeatIsolation()` függvényben. |
+| Páncélzat `damage` értékek | Alacsonyabb = több védelem | A 0.8-as érték azt jelenti, hogy a játékos a sérülés 80%-át kapja (csak 20% elnyelve). Sok modder a 0.9-et "90% védelemnek" olvassa, holott valójában 10%. |
+| `scope` öröklés | A gyermekek öröklik a szülő scope-ját | NEM teszik. Minden osztálynak explicit módon be kell állítania a `scope` értéket. A szülő `scope=0` minden gyermeket alapértelmezés szerint `scope=0`-ra állít. |
+| `absorbency` | Esővédelmet szabályoz | A nedvességfelszívást szabályozza, ami CSÖKKENTI a melegséget. Vízálló = ALACSONY absorbency (0.1). Magas absorbency (0.8+) = szivacsként szívja a vizet. |
+| Rejtett kiválasztások | Bármely modellen működnek | Nem minden modell teszi elérhetővé ugyanazokat a kiválasztásokat. Ellenőrizd az Object Builder-rel vagy vanilla config-gal az alapmodell kiválasztása előtt. |
 
 ---
 
-**Elozo:** [Chapter 8.8: HUD Overlay](08-hud-overlay.md)
-**Kovetkezo:** Coming soon
+## Mit tanultál
+
+Ebben az oktatóanyagban megtanultad:
+
+- Hogyan öröklődik a DayZ ruházat slot-specifikus alaposztályokból (`Top_Base`, `Pants_Base` stb.)
+- Hogyan definiálj egy ruhadarabot a config.cpp-ben hőszabályozási, páncélzati és nedvességi tulajdonságokkal
+- Hogyan teszik lehetővé a rejtett kiválasztások a vanilla modellek egyedi terepszínű mintákkal való újratextúrázását
+- Hogyan befolyásolja a `heatIsolation`, `visibilityModifier` és `absorbency` a játékmenetet
+- Hogyan vezérli a `DamageSystem` a vizuális degradációt és a páncélvédelmet
+- Hogyan hozz létre színváltozatokat a `_ColorBase` minta használatával
+- Hogyan adj hozzá spawn bejegyzéseket a `types.xml`-lel és megjelenítési neveket a `Stringtable.csv`-vel
+- Hogyan adj opcionálisan szkript viselkedést az `OnWasAttached` és `OnWasDetached` eseményekkel
+
+**Következő:** Alkalmazd ugyanezeket a technikákat nadrág (`Pants_Base`), csizma (`Shoes_Base`) vagy mellény (`Vest_Base`) készítéséhez. A config struktúra azonos -- csak a szülőosztály és az inventory slot változik.
+
+---
+
+**Előző:** [8.8. fejezet: HUD Overlay](08-hud-overlay.md)
+**Következő:** Hamarosan

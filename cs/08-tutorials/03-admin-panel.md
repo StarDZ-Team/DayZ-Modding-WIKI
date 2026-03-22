@@ -1,51 +1,55 @@
-# Chapter 8.3: Building an Admin Panel Module
+# Kapitola 8.3: Tvorba modulu administrátorského panelu
 
-[Home](../../README.md) | [<< Previous: Creating a Custom Item](02-custom-item.md) | **Building an Admin Panel** | [Next: Adding Chat Commands >>](04-chat-commands.md)
-
----
-
-## Table of Contents
-
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Step 1: Create the Module Class](#step-1-create-the-module-class)
-- [Step 2: Create the Layout File](#step-2-create-the-layout-file)
-- [Step 3: Bind Widgets in OnActivated](#step-3-bind-widgets-in-onactivated)
-- [Step 4: Handle Button Clicks](#step-4-handle-button-clicks)
-- [Step 5: Send an RPC to the Server](#step-5-send-an-rpc-to-the-server)
-- [Step 6: Handle the Server-Side Response](#step-6-handle-the-server-side-response)
-- [Step 7: Update the UI with Received Data](#step-7-update-the-ui-with-received-data)
-- [Step 8: Register the Module](#step-8-register-the-module)
-- [Complete File Reference](#complete-file-reference)
-- [The Full Roundtrip Explained](#the-full-roundtrip-explained)
-- [Troubleshooting](#troubleshooting)
-- [Next Steps](#next-steps)
+[Domů](../../README.md) | [<< Předchozí: Vytvoření vlastního předmětu](02-custom-item.md) | **Tvorba administrátorského panelu** | [Další: Přidání chatových příkazů >>](04-chat-commands.md)
 
 ---
 
-## What We Are Building
-
-We will create an **Admin Player Info** panel that:
-
-1. Shows a "Refresh" button in a simple UI panel
-2. When the admin clicks Refresh, sends an RPC to the server requesting player count data
-3. The server receives the request, gathers the information, and sends it back
-4. The client receives the response and displays the player count and list in the UI
-
-This demonstrates the fundamental pattern used by every networked admin tool, mod configuration panel, and multiplayer UI in DayZ.
+> **Shrnutí:** Tento tutoriál vás provede tvorbou kompletního modulu administrátorského panelu od základu. Vytvoříte UI rozvržení, propojíte widgety ve skriptu, zpracujete kliknutí na tlačítka, odešlete RPC z klienta na server, zpracujete požadavek na serveru, odešlete odpověď zpět a zobrazíte výsledek v uživatelském rozhraní. Tím pokryjete kompletní komunikační cestu klient-server-klient, kterou potřebuje každý síťový mod.
 
 ---
 
-## Prerequisites
+## Obsah
 
-- A working mod from [Chapter 8.1](01-first-mod.md) or a new mod with the standard structure
-- Understanding of the [5-Layer Script Hierarchy](../02-mod-structure/01-five-layers.md) (we will use `3_Game`, `4_World`, and `5_Mission`)
-- Basic comfort reading Enforce Script code
+- [Co budeme vytvářet](#co-budeme-vytvářet)
+- [Předpoklady](#předpoklady)
+- [Přehled architektury](#přehled-architektury)
+- [Krok 1: Vytvoření třídy modulu](#krok-1-vytvoření-třídy-modulu)
+- [Krok 2: Vytvoření souboru rozvržení](#krok-2-vytvoření-souboru-rozvržení)
+- [Krok 3: Propojení widgetů v OnActivated](#krok-3-propojení-widgetů-v-onactivated)
+- [Krok 4: Zpracování kliknutí na tlačítka](#krok-4-zpracování-kliknutí-na-tlačítka)
+- [Krok 5: Odeslání RPC na server](#krok-5-odeslání-rpc-na-server)
+- [Krok 6: Zpracování odpovědi na straně serveru](#krok-6-zpracování-odpovědi-na-straně-serveru)
+- [Krok 7: Aktualizace UI přijatými daty](#krok-7-aktualizace-ui-přijatými-daty)
+- [Krok 8: Registrace modulu](#krok-8-registrace-modulu)
+- [Kompletní referenční soubory](#kompletní-referenční-soubory)
+- [Vysvětlení kompletní komunikační cesty](#vysvětlení-kompletní-komunikační-cesty)
+- [Řešení problémů](#řešení-problémů)
+- [Další kroky](#další-kroky)
 
-### Mod Structure for This Tutorial
+---
 
-We will create these new files:
+## Co budeme vytvářet
+
+Vytvoříme panel **Admin Player Info**, který:
+
+1. Zobrazí tlačítko "Refresh" v jednoduchém UI panelu
+2. Když administrátor klikne na Refresh, odešle RPC na server s požadavkem na data o počtu hráčů
+3. Server přijme požadavek, shromáždí informace a odešle je zpět
+4. Klient přijme odpověď a zobrazí počet hráčů a jejich seznam v UI
+
+Toto demonstruje základní vzor používaný každým síťovým administrátorským nástrojem, konfiguračním panelem modu a multiplayerovým UI v DayZ.
+
+---
+
+## Předpoklady
+
+- Funkční mod z [Kapitoly 8.1](01-first-mod.md) nebo nový mod se standardní strukturou
+- Pochopení [5-vrstvé hierarchie skriptů](../02-mod-structure/01-five-layers.md) (použijeme `3_Game`, `4_World` a `5_Mission`)
+- Základní znalost čtení kódu v Enforce Script
+
+### Struktura modu pro tento tutoriál
+
+Vytvoříme tyto nové soubory:
 
 ```
 AdminDemo/
@@ -69,62 +73,62 @@ AdminDemo/
 
 ---
 
-## Architecture Overview
+## Přehled architektury
 
-Before writing code, understand the data flow:
+Před psaním kódu pochopte tok dat:
 
 ```
-CLIENT                              SERVER
+KLIENT                              SERVER
 ------                              ------
 
-1. Admin clicks "Refresh"
-2. Client sends RPC ------>  3. Server receives RPC
-   (AdminDemo_RequestInfo)       Gathers player data
-                             4. Server sends RPC ------>  CLIENT
+1. Admin klikne na "Refresh"
+2. Klient odešle RPC ------>  3. Server přijme RPC
+   (AdminDemo_RequestInfo)       Shromáždí data hráčů
+                             4. Server odešle RPC ------>  KLIENT
                                 (AdminDemo_ResponseInfo)
-                                                     5. Client receives RPC
-                                                        Updates UI text
+                                                     5. Klient přijme RPC
+                                                        Aktualizuje UI text
 ```
 
-The RPC (Remote Procedure Call) system is how client and server communicate in DayZ. The engine provides `GetGame().RPCSingleParam()` and `GetGame().RPC()` methods to send data, and an `OnRPC()` override to receive it.
+Systém RPC (Remote Procedure Call) je způsob, jakým klient a server komunikují v DayZ. Engine poskytuje metody `GetGame().RPCSingleParam()` a `GetGame().RPC()` pro odesílání dat a override `OnRPC()` pro jejich příjem.
 
-**Key constraints:**
-- Clients cannot directly read server-side data (player list, server state)
-- All cross-boundary communication must go through RPC
-- RPC messages are identified by integer IDs
-- Data is sent as serialized parameters using `Param` classes
+**Klíčová omezení:**
+- Klienti nemohou přímo číst data na straně serveru (seznam hráčů, stav serveru)
+- Veškerá komunikace přes hranici musí probíhat přes RPC
+- RPC zprávy jsou identifikovány celočíselnými ID
+- Data se odesílají jako serializované parametry pomocí tříd `Param`
 
 ---
 
-## Step 1: Create the Module Class
+## Krok 1: Vytvoření třídy modulu
 
-First, define the RPC identifiers in `3_Game` (the earliest layer where game types are available). RPC IDs must be defined in `3_Game` because both `4_World` (server handler) and `5_Mission` (client handler) need to reference them.
+Nejprve definujte identifikátory RPC v `3_Game` (nejnižší vrstva, kde jsou dostupné herní typy). RPC ID musí být definována v `3_Game`, protože jak `4_World` (handler na serveru), tak `5_Mission` (handler na klientu) na ně potřebují odkazovat.
 
-### Create `Scripts/3_Game/AdminDemo/AdminDemoRPC.c`
+### Vytvořte `Scripts/3_Game/AdminDemo/AdminDemoRPC.c`
 
 ```c
 class AdminDemoRPC
 {
-    // RPC IDs -- pick unique numbers that do not collide with other mods
-    // Using high numbers reduces collision risk
+    // RPC ID -- zvolte unikátní čísla, která nekolidují s jinými mody
+    // Použití vysokých čísel snižuje riziko kolize
     static const int REQUEST_PLAYER_INFO  = 78001;
     static const int RESPONSE_PLAYER_INFO = 78002;
 };
 ```
 
-These constants will be used by both the client (to send requests) and the server (to identify incoming requests and send responses).
+Tyto konstanty budou používány jak klientem (pro odesílání požadavků), tak serverem (pro identifikaci příchozích požadavků a odesílání odpovědí).
 
-### Why 3_Game?
+### Proč 3_Game?
 
-RPC IDs are pure data -- integers with no dependency on world entities or UI. Placing them in `3_Game` makes them visible to both `4_World` (where the server handler lives) and `5_Mission` (where the client UI lives).
+RPC ID jsou čistá data -- celá čísla bez závislosti na světových entitách nebo UI. Umístění do `3_Game` je zpřístupní jak pro `4_World` (kde žije handler serveru), tak pro `5_Mission` (kde žije klientské UI).
 
 ---
 
-## Step 2: Create the Layout File
+## Krok 2: Vytvoření souboru rozvržení
 
-The layout file defines the visual structure of your panel. DayZ uses a custom text-based format (not XML) for `.layout` files.
+Soubor rozvržení definuje vizuální strukturu vašeho panelu. DayZ používá vlastní textový formát (ne XML) pro soubory `.layout`.
 
-### Create `GUI/layouts/admin_player_info.layout`
+### Vytvořte `GUI/layouts/admin_player_info.layout`
 
 ```
 FrameWidgetClass AdminDemoPanel {
@@ -211,27 +215,27 @@ FrameWidgetClass AdminDemoPanel {
 }
 ```
 
-### Layout Breakdown
+### Popis rozvržení
 
-| Widget | Purpose |
-|--------|---------|
-| `AdminDemoPanel` | Root frame, 40% wide and 50% tall, centered on screen |
-| `Background` | Dark semi-transparent background filling the entire panel |
-| `Title` | "Player Info Panel" text at the top |
-| `RefreshButton` | Button the admin clicks to request data |
-| `PlayerCountText` | Displays the player count number |
-| `PlayerListText` | Displays the list of player names |
-| `CloseButton` | Closes the panel |
+| Widget | Účel |
+|--------|------|
+| `AdminDemoPanel` | Kořenový rámec, 40% šířky a 50% výšky, vycentrovaný na obrazovce |
+| `Background` | Tmavé poloprůhledné pozadí vyplňující celý panel |
+| `Title` | Text "Player Info Panel" nahoře |
+| `RefreshButton` | Tlačítko, na které admin klikne pro vyžádání dat |
+| `PlayerCountText` | Zobrazuje číslo počtu hráčů |
+| `PlayerListText` | Zobrazuje seznam jmen hráčů |
+| `CloseButton` | Zavře panel |
 
-All sizes use proportional coordinates (0.0 to 1.0 relative to parent) because `hexactsize` and `vexactsize` are set to `0`.
+Všechny velikosti používají proporcionální souřadnice (0.0 až 1.0 relativně k rodiči), protože `hexactsize` a `vexactsize` jsou nastaveny na `0`.
 
 ---
 
-## Step 3: Bind Widgets in OnActivated
+## Krok 3: Propojení widgetů v OnActivated
 
-Now create the client-side panel script that loads the layout and connects widgets to variables.
+Nyní vytvořte skript panelu na straně klienta, který načte rozvržení a propojí widgety s proměnnými.
 
-### Create `Scripts/5_Mission/AdminDemo/AdminDemoPanel.c`
+### Vytvořte `Scripts/5_Mission/AdminDemo/AdminDemoPanel.c`
 
 ```c
 class AdminDemoPanel extends ScriptedWidgetEventHandler
@@ -255,14 +259,14 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Open the panel: create widgets and bind references
+    // Otevření panelu: vytvoření widgetů a propojení referencí
     // -------------------------------------------------------
     void Open()
     {
         if (m_IsOpen)
             return;
 
-        // Load the layout file and get the root widget
+        // Načtení souboru rozvržení a získání kořenového widgetu
         m_Root = GetGame().GetWorkspace().CreateWidgets("AdminDemo/GUI/layouts/admin_player_info.layout");
         if (!m_Root)
         {
@@ -270,13 +274,13 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
             return;
         }
 
-        // Bind widget references by name
+        // Propojení referencí widgetů podle názvu
         m_RefreshButton  = ButtonWidget.Cast(m_Root.FindAnyWidget("RefreshButton"));
         m_CloseButton    = ButtonWidget.Cast(m_Root.FindAnyWidget("CloseButton"));
         m_PlayerCountText = TextWidget.Cast(m_Root.FindAnyWidget("PlayerCountText"));
         m_PlayerListText  = TextWidget.Cast(m_Root.FindAnyWidget("PlayerListText"));
 
-        // Register this class as the event handler for our widgets
+        // Registrace této třídy jako event handleru pro naše widgety
         if (m_RefreshButton)
             m_RefreshButton.SetHandler(this);
 
@@ -286,7 +290,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
         m_Root.Show(true);
         m_IsOpen = true;
 
-        // Show the mouse cursor so the admin can click buttons
+        // Zobrazení kurzoru myši, aby admin mohl klikat na tlačítka
         GetGame().GetMission().PlayerControlDisable(INPUT_EXCLUDE_ALL);
         GetGame().GetUIManager().ShowUICursor(true);
 
@@ -294,7 +298,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Close the panel: destroy widgets and restore controls
+    // Zavření panelu: zničení widgetů a obnovení ovládání
     // -------------------------------------------------------
     void Close()
     {
@@ -309,7 +313,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 
         m_IsOpen = false;
 
-        // Restore player controls and hide cursor
+        // Obnovení ovládání hráče a skrytí kurzoru
         GetGame().GetMission().PlayerControlEnable(true);
         GetGame().GetUIManager().ShowUICursor(false);
 
@@ -322,7 +326,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Toggle open/close
+    // Přepnutí otevření/zavření
     // -------------------------------------------------------
     void Toggle()
     {
@@ -333,7 +337,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Handle button click events
+    // Zpracování událostí kliknutí na tlačítka
     // -------------------------------------------------------
     override bool OnClick(Widget w, int x, int y, int button)
     {
@@ -353,21 +357,21 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Called when admin clicks Refresh
+    // Voláno při kliknutí admina na Refresh
     // -------------------------------------------------------
     protected void OnRefreshClicked()
     {
         Print("[AdminDemo] Refresh clicked, sending RPC to server...");
 
-        // Update UI to show loading state
+        // Aktualizace UI pro zobrazení stavu načítání
         if (m_PlayerCountText)
             m_PlayerCountText.SetText("Player Count: Loading...");
 
         if (m_PlayerListText)
             m_PlayerListText.SetText("Requesting data from server...");
 
-        // Send RPC to server
-        // Parameters: target object, RPC ID, data, recipient (null = server)
+        // Odeslání RPC na server
+        // Parametry: cílový objekt, RPC ID, data, příjemce (null = server)
         Man player = GetGame().GetPlayer();
         if (player)
         {
@@ -377,7 +381,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Called when server response arrives (from mission OnRPC)
+    // Voláno při příchodu odpovědi ze serveru (z mission OnRPC)
     // -------------------------------------------------------
     void OnPlayerInfoReceived(int playerCount, string playerNames)
     {
@@ -392,25 +396,25 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 };
 ```
 
-### Key Concepts
+### Klíčové koncepty
 
-**`CreateWidgets()`** loads the `.layout` file and creates actual widget objects in memory. It returns the root widget.
+**`CreateWidgets()`** načte soubor `.layout` a vytvoří skutečné objekty widgetů v paměti. Vrací kořenový widget.
 
-**`FindAnyWidget("name")`** searches the widget tree for a widget with the given name. The name must match the widget name in the layout file exactly.
+**`FindAnyWidget("name")`** prohledá strom widgetů a najde widget s daným názvem. Název musí přesně odpovídat názvu widgetu v souboru rozvržení.
 
-**`Cast()`** converts the generic `Widget` reference to a specific type (like `ButtonWidget`). This is required because `FindAnyWidget` returns the base `Widget` type.
+**`Cast()`** převádí obecnou referenci `Widget` na konkrétní typ (jako `ButtonWidget`). To je nutné, protože `FindAnyWidget` vrací základní typ `Widget`.
 
-**`SetHandler(this)`** registers this class as the event handler for the widget. When the button is clicked, the engine calls `OnClick()` on this object.
+**`SetHandler(this)`** registruje tuto třídu jako event handler pro widget. Když je tlačítko stisknuto, engine zavolá `OnClick()` na tomto objektu.
 
-**`PlayerControlDisable` / `PlayerControlEnable`** disables/re-enables player movement and actions. Without this, the player would walk around while trying to click buttons.
+**`PlayerControlDisable` / `PlayerControlEnable`** deaktivuje/reaktivuje pohyb a akce hráče. Bez toho by se hráč pohyboval, zatímco se snaží klikat na tlačítka.
 
 ---
 
-## Step 4: Handle Button Clicks
+## Krok 4: Zpracování kliknutí na tlačítka
 
-The button click handling is already implemented in Step 3's `OnClick()` method. Let us examine the pattern more closely.
+Zpracování kliknutí na tlačítka je již implementováno v metodě `OnClick()` z kroku 3. Podívejme se na vzor podrobněji.
 
-### The OnClick Pattern
+### Vzor OnClick
 
 ```c
 override bool OnClick(Widget w, int x, int y, int button)
@@ -418,7 +422,7 @@ override bool OnClick(Widget w, int x, int y, int button)
     if (w == m_RefreshButton)
     {
         OnRefreshClicked();
-        return true;    // Event consumed -- stop propagation
+        return true;    // Událost zpracována -- zastavit šíření
     }
 
     if (w == m_CloseButton)
@@ -427,30 +431,30 @@ override bool OnClick(Widget w, int x, int y, int button)
         return true;
     }
 
-    return false;        // Event not consumed -- let it propagate
+    return false;        // Událost nezpracována -- nechat šířit dál
 }
 ```
 
-**Parameters:**
-- `w` -- The widget that was clicked
-- `x`, `y` -- Mouse coordinates at the time of the click
-- `button` -- Which mouse button (0 = left, 1 = right, 2 = middle)
+**Parametry:**
+- `w` -- Widget, na který bylo kliknuto
+- `x`, `y` -- Souřadnice myši v okamžiku kliknutí
+- `button` -- Které tlačítko myši (0 = levé, 1 = pravé, 2 = střední)
 
-**Return value:**
-- `true` means you handled the event. It stops propagating to parent widgets.
-- `false` means you did not handle it. The engine passes it to the next handler.
+**Návratová hodnota:**
+- `true` znamená, že jste událost zpracovali. Zastaví se šíření k rodičovským widgetům.
+- `false` znamená, že jste ji nezpracovali. Engine ji předá dalšímu handleru.
 
-**Pattern:** Compare the clicked widget `w` against your known widget references. Call a handler method for each recognized button. Return `true` for handled clicks, `false` for everything else.
+**Vzor:** Porovnejte kliknutý widget `w` s vašimi známými referencemi widgetů. Zavolejte metodu handleru pro každé rozpoznané tlačítko. Vraťte `true` pro zpracovaná kliknutí, `false` pro všechno ostatní.
 
 ---
 
-## Step 5: Send an RPC to the Server
+## Krok 5: Odeslání RPC na server
 
-When the admin clicks Refresh, we need to send a message from the client to the server. DayZ provides the RPC system for this.
+Když admin klikne na Refresh, potřebujeme odeslat zprávu z klienta na server. DayZ pro to poskytuje systém RPC.
 
-### RPC Sending (Client to Server)
+### Odesílání RPC (klient na server)
 
-The core send call from Step 3:
+Klíčové volání odeslání z kroku 3:
 
 ```c
 Man player = GetGame().GetPlayer();
@@ -463,24 +467,24 @@ if (player)
 
 **`GetGame().RPCSingleParam(target, rpcID, params, guaranteed)`:**
 
-| Parameter | Meaning |
-|-----------|---------|
-| `target` | The object this RPC is associated with. Using the player is standard. |
-| `rpcID` | Your unique integer identifier (defined in `AdminDemoRPC`). |
-| `params` | A `Param` object carrying the data payload. |
-| `guaranteed` | `true` = TCP-like reliable delivery. `false` = UDP-like fire-and-forget. Always use `true` for admin operations. |
+| Parametr | Význam |
+|----------|--------|
+| `target` | Objekt, ke kterému je toto RPC přiřazeno. Použití hráče je standardní. |
+| `rpcID` | Váš unikátní celočíselný identifikátor (definovaný v `AdminDemoRPC`). |
+| `params` | Objekt `Param` nesoucí datový obsah. |
+| `guaranteed` | `true` = spolehlivé doručení podobné TCP. `false` = doručení typu "vyslat a zapomenout" podobné UDP. Pro administrátorské operace vždy používejte `true`. |
 
-### Param Classes
+### Třídy Param
 
-DayZ provides template `Param` classes for sending data:
+DayZ poskytuje šablonové třídy `Param` pro odesílání dat:
 
-| Class | Usage |
-|-------|-------|
-| `Param1<T>` | One value |
-| `Param2<T1, T2>` | Two values |
-| `Param3<T1, T2, T3>` | Three values |
+| Třída | Použití |
+|-------|---------|
+| `Param1<T>` | Jedna hodnota |
+| `Param2<T1, T2>` | Dvě hodnoty |
+| `Param3<T1, T2, T3>` | Tři hodnoty |
 
-You can send strings, ints, floats, bools, and vectors. Example with multiple values:
+Můžete posílat řetězce, celá čísla, čísla s plovoucí řádovou čárkou, booleany a vektory. Příklad s více hodnotami:
 
 ```c
 Param3<string, int, float> data = new Param3<string, int, float>("hello", 42, 3.14);
@@ -489,23 +493,23 @@ GetGame().RPCSingleParam(player, MY_RPC_ID, data, true);
 
 ---
 
-## Step 6: Handle the Server-Side Response
+## Krok 6: Zpracování odpovědi na straně serveru
 
-The server receives the client's RPC, gathers data, and sends a response back.
+Server přijme RPC klienta, shromáždí data a odešle odpověď zpět.
 
-### Create `Scripts/4_World/AdminDemo/AdminDemoServer.c`
+### Vytvořte `Scripts/4_World/AdminDemo/AdminDemoServer.c`
 
 ```c
 modded class PlayerBase
 {
     // -------------------------------------------------------
-    // Server-side RPC handler
+    // RPC handler na straně serveru
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, rpc_type, ctx);
 
-        // Only handle on server
+        // Zpracovat pouze na serveru
         if (!GetGame().IsServer())
             return;
 
@@ -518,7 +522,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Gather player data and send response
+    // Shromáždění dat hráčů a odeslání odpovědi
     // -------------------------------------------------------
     protected void HandlePlayerInfoRequest(PlayerIdentity requestor)
     {
@@ -527,12 +531,12 @@ modded class PlayerBase
 
         Print("[AdminDemo] Server received player info request from: " + requestor.GetName());
 
-        // --- Permission check (optional but recommended) ---
-        // In a real mod, check if the requestor is an admin:
+        // --- Kontrola oprávnění (volitelná, ale doporučená) ---
+        // Ve skutečném modu ověřte, zda je žadatel administrátor:
         // if (!IsAdmin(requestor))
         //     return;
 
-        // --- Gather player data ---
+        // --- Shromáždění dat hráčů ---
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
 
@@ -558,10 +562,10 @@ modded class PlayerBase
         if (playerNames == "")
             playerNames = "(No players connected)";
 
-        // --- Send response back to the requesting client ---
+        // --- Odeslání odpovědi zpět žádajícímu klientovi ---
         Param2<int, string> responseData = new Param2<int, string>(playerCount, playerNames);
 
-        // RPCSingleParam with the requestor's player object sends to that specific client
+        // RPCSingleParam s objektem hráče žadatele odešle tomuto konkrétnímu klientovi
         Man requestorPlayer = null;
         for (int j = 0; j < players.Count(); j++)
         {
@@ -583,39 +587,39 @@ modded class PlayerBase
 };
 ```
 
-### How Server-Side RPC Reception Works
+### Jak funguje příjem RPC na straně serveru
 
-1. **`OnRPC()` is called on the target object.** When the client sent the RPC with `target = player`, the server-side `PlayerBase.OnRPC()` fires.
+1. **`OnRPC()` je volán na cílovém objektu.** Když klient odeslal RPC s `target = player`, spustí se `PlayerBase.OnRPC()` na straně serveru.
 
-2. **Always call `super.OnRPC()`.** Other mods and vanilla code may also handle RPCs on this object.
+2. **Vždy volejte `super.OnRPC()`.** Ostatní mody a vanilkový kód mohou také zpracovávat RPC na tomto objektu.
 
-3. **Check `GetGame().IsServer()`.** This code is in `4_World`, which compiles on both client and server. The `IsServer()` check ensures we only process the request on the server.
+3. **Zkontrolujte `GetGame().IsServer()`.** Tento kód je v `4_World`, který se kompiluje na klientu i serveru. Kontrola `IsServer()` zajistí, že požadavek zpracujeme pouze na serveru.
 
-4. **Switch on `rpc_type`.** Match against your RPC ID constants.
+4. **Přepněte podle `rpc_type`.** Porovnejte s vašimi konstantami RPC ID.
 
-5. **Send the response.** Use `RPCSingleParam` with the fifth parameter (`recipient`) set to the requesting player's identity. This sends the response only to that specific client.
+5. **Odešlete odpověď.** Použijte `RPCSingleParam` s pátým parametrem (`recipient`) nastaveným na identitu žádajícího hráče. Tím se odpověď odešle pouze tomuto konkrétnímu klientovi.
 
-### RPCSingleParam Response Signature
+### Signatura odpovědi RPCSingleParam
 
 ```c
 GetGame().RPCSingleParam(
-    requestorPlayer,                        // Target object (the player)
+    requestorPlayer,                        // Cílový objekt (hráč)
     AdminDemoRPC.RESPONSE_PLAYER_INFO,      // RPC ID
-    responseData,                           // Data payload
-    true,                                   // Guaranteed delivery
-    requestor                               // Recipient identity (specific client)
+    responseData,                           // Datový obsah
+    true,                                   // Garantované doručení
+    requestor                               // Identita příjemce (konkrétní klient)
 );
 ```
 
-The fifth parameter `requestor` (a `PlayerIdentity`) is what makes this a targeted response. Without it, the RPC would go to all clients.
+Pátý parametr `requestor` (typu `PlayerIdentity`) je to, co z toho dělá cílenou odpověď. Bez něj by RPC šlo všem klientům.
 
 ---
 
-## Step 7: Update the UI with Received Data
+## Krok 7: Aktualizace UI přijatými daty
 
-Back on the client side, we need to intercept the server's response RPC and route it to the panel.
+Zpět na straně klienta potřebujeme zachytit odpověďové RPC ze serveru a směrovat ho do panelu.
 
-### Create `Scripts/5_Mission/AdminDemo/AdminDemoMission.c`
+### Vytvořte `Scripts/5_Mission/AdminDemo/AdminDemoMission.c`
 
 ```c
 modded class MissionGameplay
@@ -623,7 +627,7 @@ modded class MissionGameplay
     protected ref AdminDemoPanel m_AdminDemoPanel;
 
     // -------------------------------------------------------
-    // Initialize the panel on mission start
+    // Inicializace panelu při spuštění mise
     // -------------------------------------------------------
     override void OnInit()
     {
@@ -636,7 +640,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Clean up on mission end
+    // Úklid při ukončení mise
     // -------------------------------------------------------
     override void OnMissionFinish()
     {
@@ -650,13 +654,13 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Handle keyboard input to toggle the panel
+    // Zpracování vstupu z klávesnice pro přepnutí panelu
     // -------------------------------------------------------
     override void OnKeyPress(int key)
     {
         super.OnKeyPress(key);
 
-        // F5 key toggles the admin panel
+        // Klávesa F5 přepíná administrátorský panel
         if (key == KeyCode.KC_F5)
         {
             if (m_AdminDemoPanel)
@@ -665,7 +669,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Receive server RPCs on the client side
+    // Příjem serverových RPC na straně klienta
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
@@ -680,7 +684,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Deserialize server response and update the panel
+    // Deserializace odpovědi serveru a aktualizace panelu
     // -------------------------------------------------------
     protected void HandlePlayerInfoResponse(ParamsReadContext ctx)
     {
@@ -702,17 +706,17 @@ modded class MissionGameplay
 };
 ```
 
-### How Client-Side RPC Reception Works
+### Jak funguje příjem RPC na straně klienta
 
-1. **`MissionGameplay.OnRPC()`** is a catch-all handler for RPCs received on the client. It fires for every incoming RPC.
+1. **`MissionGameplay.OnRPC()`** je univerzální handler pro RPC přijatá na klientu. Spouští se pro každé příchozí RPC.
 
-2. **`ParamsReadContext ctx`** contains the serialized data sent by the server. You must deserialize it using `ctx.Read()` with a matching `Param` type.
+2. **`ParamsReadContext ctx`** obsahuje serializovaná data odeslaná serverem. Musíte je deserializovat pomocí `ctx.Read()` s odpovídajícím typem `Param`.
 
-3. **Matching Param types is critical.** The server sent `Param2<int, string>`. The client must read with `Param2<int, string>`. A mismatch causes `ctx.Read()` to return `false` and no data is retrieved.
+3. **Shoda typů Param je kritická.** Server odeslal `Param2<int, string>`. Klient musí číst s `Param2<int, string>`. Neshoda způsobí, že `ctx.Read()` vrátí `false` a žádná data nejsou načtena.
 
-4. **Route data to the panel.** After deserializing, call a method on the panel object to update the UI.
+4. **Směrování dat do panelu.** Po deserializaci zavolejte metodu na objektu panelu pro aktualizaci UI.
 
-### The OnKeyPress Handler
+### Handler OnKeyPress
 
 ```c
 override void OnKeyPress(int key)
@@ -727,15 +731,15 @@ override void OnKeyPress(int key)
 }
 ```
 
-This hooks into the mission's keyboard input. When the admin presses F5, the panel opens or closes. `KeyCode.KC_F5` is a built-in constant for the F5 key.
+Toto se napojuje na vstup z klávesnice mise. Když admin stiskne F5, panel se otevře nebo zavře. `KeyCode.KC_F5` je vestavěná konstanta pro klávesu F5.
 
 ---
 
-## Step 8: Register the Module
+## Krok 8: Registrace modulu
 
-Finally, tie everything together in config.cpp.
+Nakonec vše propojte v config.cpp.
 
-### Create `AdminDemo/mod.cpp`
+### Vytvořte `AdminDemo/mod.cpp`
 
 ```cpp
 name = "Admin Demo";
@@ -744,7 +748,7 @@ version = "1.0";
 overview = "Tutorial admin panel demonstrating the full RPC roundtrip pattern.";
 ```
 
-### Create `AdminDemo/Scripts/config.cpp`
+### Vytvořte `AdminDemo/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -795,19 +799,19 @@ class CfgMods
 };
 ```
 
-### Why Three Layers?
+### Proč tři vrstvy?
 
-| Layer | Contains | Reason |
-|-------|----------|--------|
-| `3_Game` | `AdminDemoRPC.c` | RPC ID constants need to be visible to both `4_World` and `5_Mission` |
-| `4_World` | `AdminDemoServer.c` | Server-side handler modding `PlayerBase` (a world entity) |
-| `5_Mission` | `AdminDemoPanel.c`, `AdminDemoMission.c` | Client UI and mission hooks |
+| Vrstva | Obsahuje | Důvod |
+|--------|----------|-------|
+| `3_Game` | `AdminDemoRPC.c` | Konstanty RPC ID musí být viditelné jak pro `4_World`, tak pro `5_Mission` |
+| `4_World` | `AdminDemoServer.c` | Handler na straně serveru moddující `PlayerBase` (světovou entitu) |
+| `5_Mission` | `AdminDemoPanel.c`, `AdminDemoMission.c` | Klientské UI a hooky mise |
 
 ---
 
-## Complete File Reference
+## Kompletní referenční soubory
 
-### Final Directory Structure
+### Finální adresářová struktura
 
 ```
 AdminDemo/
@@ -1121,88 +1125,122 @@ modded class MissionGameplay
 
 ---
 
-## The Full Roundtrip Explained
+## Vysvětlení kompletní komunikační cesty
 
-Here is the exact sequence of events when the admin presses F5 and clicks Refresh:
+Zde je přesná sekvence událostí, když admin stiskne F5 a klikne na Refresh:
 
 ```
-1. [CLIENT] Admin presses F5
-   --> MissionGameplay.OnKeyPress(KC_F5) fires
-   --> AdminDemoPanel.Toggle() is called
-   --> Panel opens, layout is created, cursor appears
+1. [KLIENT] Admin stiskne F5
+   --> MissionGameplay.OnKeyPress(KC_F5) se spustí
+   --> AdminDemoPanel.Toggle() je zavolán
+   --> Panel se otevře, rozvržení je vytvořeno, kurzor se objeví
 
-2. [CLIENT] Admin clicks "Refresh" button
-   --> AdminDemoPanel.OnClick() fires with w == m_RefreshButton
-   --> OnRefreshClicked() is called
-   --> UI shows "Loading..."
-   --> RPCSingleParam sends REQUEST_PLAYER_INFO (78001) to server
+2. [KLIENT] Admin klikne na tlačítko "Refresh"
+   --> AdminDemoPanel.OnClick() se spustí s w == m_RefreshButton
+   --> OnRefreshClicked() je zavolán
+   --> UI zobrazí "Loading..."
+   --> RPCSingleParam odešle REQUEST_PLAYER_INFO (78001) na server
 
-3. [NETWORK] RPC travels from client to server
+3. [SÍŤ] RPC cestuje z klienta na server
 
-4. [SERVER] PlayerBase.OnRPC() fires
-   --> rpc_type matches REQUEST_PLAYER_INFO
-   --> HandlePlayerInfoRequest(sender) is called
-   --> Server iterates all connected players
-   --> Builds player count and name list
-   --> RPCSingleParam sends RESPONSE_PLAYER_INFO (78002) back to client
+4. [SERVER] PlayerBase.OnRPC() se spustí
+   --> rpc_type odpovídá REQUEST_PLAYER_INFO
+   --> HandlePlayerInfoRequest(sender) je zavolán
+   --> Server projde všechny připojené hráče
+   --> Sestaví počet hráčů a seznam jmen
+   --> RPCSingleParam odešle RESPONSE_PLAYER_INFO (78002) zpět klientovi
 
-5. [NETWORK] RPC travels from server to client
+5. [SÍŤ] RPC cestuje ze serveru na klienta
 
-6. [CLIENT] MissionGameplay.OnRPC() fires
-   --> rpc_type matches RESPONSE_PLAYER_INFO
-   --> HandlePlayerInfoResponse(ctx) is called
-   --> Data is deserialized from ParamsReadContext
-   --> AdminDemoPanel.OnPlayerInfoReceived() is called
-   --> UI updates with player count and names
+6. [KLIENT] MissionGameplay.OnRPC() se spustí
+   --> rpc_type odpovídá RESPONSE_PLAYER_INFO
+   --> HandlePlayerInfoResponse(ctx) je zavolán
+   --> Data jsou deserializována z ParamsReadContext
+   --> AdminDemoPanel.OnPlayerInfoReceived() je zavolán
+   --> UI se aktualizuje s počtem a jmény hráčů
 
-Total time: typically under 100ms on a local network.
+Celkový čas: typicky pod 100 ms v lokální síti.
 ```
 
 ---
 
-## Troubleshooting
+## Řešení problémů
 
-### Panel Does Not Open When Pressing F5
+### Panel se neotevře po stisknutí F5
 
-- **Check OnKeyPress override:** Make sure `super.OnKeyPress(key)` is called first.
-- **Check key code:** `KeyCode.KC_F5` is the correct constant. If using a different key, find the right constant in the Enforce Script API.
-- **Check initialization:** Ensure `m_AdminDemoPanel` is created in `OnInit()`.
+- **Zkontrolujte override OnKeyPress:** Ujistěte se, že `super.OnKeyPress(key)` je volán jako první.
+- **Zkontrolujte kód klávesy:** `KeyCode.KC_F5` je správná konstanta. Pokud používáte jinou klávesu, najděte správnou konstantu v API Enforce Script.
+- **Zkontrolujte inicializaci:** Ujistěte se, že `m_AdminDemoPanel` je vytvořen v `OnInit()`.
 
-### Panel Opens But Buttons Do Not Work
+### Panel se otevře, ale tlačítka nefungují
 
-- **Check SetHandler:** Every button needs `button.SetHandler(this)` called on it.
-- **Check widget names:** `FindAnyWidget("RefreshButton")` is case-sensitive. The name must match the layout file exactly.
-- **Check OnClick return:** Make sure `OnClick` returns `true` for handled buttons.
+- **Zkontrolujte SetHandler:** Každé tlačítko potřebuje, aby na něm bylo voláno `button.SetHandler(this)`.
+- **Zkontrolujte názvy widgetů:** `FindAnyWidget("RefreshButton")` rozlišuje velká a malá písmena. Název musí přesně odpovídat souboru rozvržení.
+- **Zkontrolujte návratovou hodnotu OnClick:** Ujistěte se, že `OnClick` vrací `true` pro zpracovaná tlačítka.
 
-### RPC Never Reaches the Server
+### RPC nikdy nedorazí na server
 
-- **Check RPC ID uniqueness:** If another mod uses the same RPC ID number, there will be conflicts. Use high unique numbers.
-- **Check player reference:** `GetGame().GetPlayer()` returns `null` if called before the player is fully initialized. Ensure the panel only opens after the player spawns.
-- **Check server code compiles:** Look at the server script log for `SCRIPT (E)` errors in your `4_World` code.
+- **Zkontrolujte unikátnost RPC ID:** Pokud jiný mod používá stejné číslo RPC ID, dojde ke konfliktu. Používejte vysoká unikátní čísla.
+- **Zkontrolujte referenci hráče:** `GetGame().GetPlayer()` vrací `null`, pokud je voláno před úplnou inicializací hráče. Ujistěte se, že panel se otevírá až po spawnu hráče.
+- **Zkontrolujte, zda se kód serveru kompiluje:** Podívejte se do logu skriptů serveru na chyby `SCRIPT (E)` ve vašem kódu `4_World`.
 
-### Server Response Never Reaches the Client
+### Odpověď serveru nikdy nedorazí ke klientovi
 
-- **Check the recipient parameter:** The fifth parameter of `RPCSingleParam` must be the `PlayerIdentity` of the target client.
-- **Check Param type matching:** Server sends `Param2<int, string>`, client reads `Param2<int, string>`. A type mismatch causes `ctx.Read()` to fail.
-- **Check MissionGameplay.OnRPC override:** Make sure you call `super.OnRPC()` and the method signature is correct.
+- **Zkontrolujte parametr příjemce:** Pátý parametr `RPCSingleParam` musí být `PlayerIdentity` cílového klienta.
+- **Zkontrolujte shodu typů Param:** Server odesílá `Param2<int, string>`, klient čte `Param2<int, string>`. Neshoda typů způsobí selhání `ctx.Read()`.
+- **Zkontrolujte override MissionGameplay.OnRPC:** Ujistěte se, že voláte `super.OnRPC()` a signatura metody je správná.
 
-### UI Shows But Data Does Not Update
+### UI se zobrazí, ale data se neaktualizují
 
-- **Null widget references:** If `FindAnyWidget` returns `null` (widget name mismatch), `SetText()` calls silently fail.
-- **Check panel reference:** Make sure `m_AdminDemoPanel` in the mission class is the same object that was opened.
-- **Add Print statements:** Trace the data flow by adding `Print()` calls at each step.
-
----
-
-## Next Steps
-
-1. **[Chapter 8.4: Adding Chat Commands](04-chat-commands.md)** -- Create server-side chat commands for admin operations.
-2. **Add permissions** -- Check if the requesting player is an admin before processing RPCs.
-3. **Add more features** -- Extend the panel with tabs for weather control, player teleport, item spawning.
-4. **Use a framework** -- Frameworks like MyFramework provide built-in RPC routing, config management, and admin panel infrastructure that eliminates much of this boilerplate.
-5. **Style the UI** -- Learn about widget styles, imagesets, and fonts in [Chapter 3: GUI System](../03-gui-system/01-widget-types.md).
+- **Nulové reference widgetů:** Pokud `FindAnyWidget` vrátí `null` (nesoulad názvu widgetu), volání `SetText()` tiše selžou.
+- **Zkontrolujte referenci panelu:** Ujistěte se, že `m_AdminDemoPanel` ve třídě mise je stejný objekt, který byl otevřen.
+- **Přidejte příkazy Print:** Sledujte tok dat přidáním volání `Print()` v každém kroku.
 
 ---
 
-**Předchozí:** [Chapter 8.2: Creating a Custom Item](02-custom-item.md)
-**Další:** [Chapter 8.4: Adding Chat Commands](04-chat-commands.md)
+## Další kroky
+
+1. **[Kapitola 8.4: Přidání chatových příkazů](04-chat-commands.md)** -- Vytvořte chatové příkazy na straně serveru pro administrátorské operace.
+2. **Přidejte oprávnění** -- Ověřte, zda je žádající hráč administrátor, než zpracujete RPC.
+3. **Přidejte další funkce** -- Rozšiřte panel o záložky pro ovládání počasí, teleportaci hráčů, spawnování předmětů.
+4. **Použijte framework** -- Frameworky jako MyMod Core poskytují vestavěné směrování RPC, správu konfigurace a infrastrukturu administrátorského panelu, která eliminuje velkou část tohoto opakujícího se kódu.
+5. **Stylujte UI** -- Naučte se o stylech widgetů, imagesetech a fontech v [Kapitole 3: GUI systém](../03-gui-system/01-widget-types.md).
+
+---
+
+## Doporučené postupy
+
+- **Ověřte všechna RPC data na serveru před provedením.** Nikdy nedůvěřujte datům od klienta -- vždy kontrolujte oprávnění, validujte parametry a ošetřete nulové hodnoty před provedením jakékoli serverové akce.
+- **Cachujte reference widgetů v členských proměnných místo volání `FindAnyWidget` každý snímek.** Vyhledávání widgetů není zadarmo; opakované volání v `OnUpdate` nebo `OnClick` plýtvá výkonem.
+- **Vždy volejte `SetHandler(this)` na interaktivních widgetech.** Bez toho se `OnClick()` nikdy nespustí a neobjeví se žádná chybová zpráva -- tlačítka prostě tiše nic nedělají.
+- **Používejte vysoká, unikátní čísla RPC ID.** Vanilkové DayZ používá nízká ID. Jiné mody volí běžné rozsahy. Používejte čísla nad 70000 a přidejte prefix vašeho modu do komentářů, aby kolize byly dohledatelné.
+- **Uklízejte widgety v `OnMissionFinish`.** Neuklizenékořeny widgetů se hromadí při přepínání serverů, spotřebovávají paměť a způsobují duchy UI prvků.
+
+---
+
+## Teorie vs praxe
+
+| Koncept | Teorie | Realita |
+|---------|--------|---------|
+| Doručení `RPCSingleParam` | Nastavení `guaranteed=true` znamená, že RPC vždy dorazí | RPC mohou být stále ztraceny, pokud se hráč odpojí během letu nebo server spadne. Vždy ošetřete případ "žádná odpověď" ve vašem UI (např. zpráva o vypršení časového limitu). |
+| Porovnávání widgetů v `OnClick` | Porovnejte `w == m_Button` pro identifikaci kliknutí | Pokud `FindAnyWidget` vrátil NULL (překlep v názvu widgetu), `m_Button` je NULL a porovnání tiše selže. Vždy logujte varování, pokud se propojení widgetu v `Open()` nezdaří. |
+| Shoda typů Param | Klient a server používají stejný `Param2<int, string>` | Pokud typy nebo pořadí přesně neodpovídají, `ctx.Read()` vrátí false a data jsou tiše ztracena. Za běhu se neobjeví žádná chybová zpráva o kontrole typů. |
+| Testování na listen serveru | Dostatečné pro rychlou iteraci | Listen servery spouštějí klienta i server v jednom procesu, takže RPC dorazí okamžitě a nikdy neprocházejí sítí. Chyby v časování, ztráta paketů a problémy s autoritou se objeví pouze na skutečném dedikovaném serveru. |
+
+---
+
+## Co jste se naučili
+
+V tomto tutoriálu jste se naučili:
+- Jak vytvořit UI panel se soubory rozvržení a propojit widgety ve skriptu
+- Jak zpracovávat kliknutí na tlačítka pomocí `OnClick()` a `SetHandler()`
+- Jak odesílat RPC z klienta na server a zpět pomocí `RPCSingleParam` a tříd `Param`
+- Kompletní vzor komunikační cesty klient-server-klient používaný každým síťovým administrátorským nástrojem
+- Jak registrovat panel v `MissionGameplay` se správnou správou životního cyklu
+
+**Další:** [Kapitola 8.4: Přidání chatových příkazů](04-chat-commands.md)
+
+---
+
+**Předchozí:** [Kapitola 8.2: Vytvoření vlastního předmětu](02-custom-item.md)
+**Další:** [Kapitola 8.4: Přidání chatových příkazů](04-chat-commands.md)

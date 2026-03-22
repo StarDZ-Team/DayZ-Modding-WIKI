@@ -9,7 +9,17 @@
       "Bash(curl:*)",
       "Bash(wc -l D:/DayZProjects/.claude/skills/dayz-modding/*.md)",
       "Bash(grep -n \"Module-Form-Window\\\\|JMFormBase\\\\|UIActionManager\\\\|CanvasWidget\" /d/DayZProjects/.claude/skills/dayz-modding/*.md)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(cp \"D:/DayZProjects/.claude/skills/dayz-modding/enforce-script-reference.md\" \"D:/DayZProjects/dayz-modding-skill/skills/dayz-modding/references/\")",
+      "Bash(cp \"D:/DayZProjects/.claude/skills/dayz-modding/api-patterns.md\" \"D:/DayZProjects/dayz-modding-skill/skills/dayz-modding/references/\")",
+      "Bash(cp \"D:/DayZProjects/.claude/skills/dayz-modding/architecture.md\" \"D:/DayZProjects/dayz-modding-skill/skills/dayz-modding/references/\")",
+      "Bash(cp \"D:/DayZProjects/.claude/skills/dayz-modding/development-workflow.md\" \"D:/DayZProjects/dayz-modding-skill/skills/dayz-modding/references/\")",
+      "Bash(cp \"D:/DayZProjects/.claude/skills/dayz-modding/advanced-patterns.md\" \"D:/DayZProjects/dayz-modding-skill/skills/dayz-modding/references/\")",
+      "Bash(wc -l D:/DayZProjects/dayz-modding-skill/skills/dayz-modding/SKILL.md D:/DayZProjects/dayz-modding-skill/skills/dayz-modding/references/*.md)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(gh.exe repo:*)",
+      "Bash(where gh:*)"
     ]
   }
 }

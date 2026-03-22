@@ -1,46 +1,50 @@
-# Chapter 8.4: Adding Chat Commands
+# Rozdział 8.4: Dodawanie komend czatu
 
-[Home](../../README.md) | [<< Previous: Building an Admin Panel](03-admin-panel.md) | **Adding Chat Commands** | [Next: Using the DayZ Mod Template >>](05-mod-template.md)
-
----
-
-## Spis tresci
-
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Step 1: Hook Into Chat Input](#step-1-hook-into-chat-input)
-- [Step 2: Parse Command Prefix and Arguments](#step-2-parse-command-prefix-and-arguments)
-- [Step 3: Check Admin Permissions](#step-3-check-admin-permissions)
-- [Step 4: Execute the Server-Side Action](#step-4-execute-the-server-side-action)
-- [Step 5: Send Feedback to the Admin](#step-5-send-feedback-to-the-admin)
-- [Step 6: Register Commands](#step-6-register-commands)
-- [Step 7: Add to an Admin Panel Command List](#step-7-add-to-an-admin-panel-command-list)
-- [Complete Working Code: /heal Command](#complete-working-code-heal-command)
-- [Adding More Commands](#adding-more-commands)
-- [Troubleshooting](#troubleshooting)
-- [Next Steps](#next-steps)
+[Strona główna](../../README.md) | [<< Poprzedni: Budowanie panelu administratora](03-admin-panel.md) | **Dodawanie komend czatu** | [Dalej: Używanie szablonu moda DayZ >>](05-mod-template.md)
 
 ---
 
-## What We Are Building
-
-A chat command system with:
-
-- **`/heal`** -- Fully heals the admin's character (health, blood, shock, hunger, thirst)
-- **`/heal PlayerName`** -- Heals a specific player by name
-- A reusable framework for adding `/kill`, `/teleport`, `/time`, `/weather`, and any other command
-- Admin permission checking so regular players cannot use admin commands
-- Server-side execution with chat feedback messages
+> **Podsumowanie:** Ten samouczek przeprowadzi cię przez tworzenie systemu komend czatu dla DayZ. Podepniesz się do wejścia czatu, napiszesz parsowanie prefiksów i argumentów komend, dodasz sprawdzanie uprawnień administratora, wykonasz akcję po stronie serwera i wyślesz informację zwrotną do gracza. Pod koniec będziesz mieć działającą komendę `/heal`, która w pełni leczy postać administratora, wraz z frameworkiem do dodawania kolejnych komend.
 
 ---
 
-## Prerequisites
+## Spis treści
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Understanding of the [client-server RPC pattern](03-admin-panel.md) from Chapter 8.3
+- [Co budujemy](#co-budujemy)
+- [Wymagania wstępne](#wymagania-wstępne)
+- [Przegląd architektury](#przegląd-architektury)
+- [Krok 1: Podpięcie do wejścia czatu](#krok-1-podpięcie-do-wejścia-czatu)
+- [Krok 2: Parsowanie prefiksu i argumentów komendy](#krok-2-parsowanie-prefiksu-i-argumentów-komendy)
+- [Krok 3: Sprawdzanie uprawnień administratora](#krok-3-sprawdzanie-uprawnień-administratora)
+- [Krok 4: Wykonanie akcji po stronie serwera](#krok-4-wykonanie-akcji-po-stronie-serwera)
+- [Krok 5: Wysyłanie informacji zwrotnej do administratora](#krok-5-wysyłanie-informacji-zwrotnej-do-administratora)
+- [Krok 6: Rejestracja komend](#krok-6-rejestracja-komend)
+- [Krok 7: Dodanie do listy komend panelu administratora](#krok-7-dodanie-do-listy-komend-panelu-administratora)
+- [Kompletny działający kod: komenda /heal](#kompletny-działający-kod-komenda-heal)
+- [Dodawanie kolejnych komend](#dodawanie-kolejnych-komend)
+- [Rozwiązywanie problemów](#rozwiązywanie-problemów)
+- [Następne kroki](#następne-kroki)
 
-### Mod Structure for This Tutorial
+---
+
+## Co budujemy
+
+System komend czatu z:
+
+- **`/heal`** -- Całkowicie leczy postać administratora (zdrowie, krew, szok, głód, pragnienie)
+- **`/heal PlayerName`** -- Leczy konkretnego gracza po nazwie
+- Wielokrotnym frameworkiem do dodawania `/kill`, `/teleport`, `/time`, `/weather` i dowolnych innych komend
+- Sprawdzaniem uprawnień administratora, aby zwykli gracze nie mogli używać komend administracyjnych
+- Wykonywaniem po stronie serwera z wiadomościami zwrotnymi na czacie
+
+---
+
+## Wymagania wstępne
+
+- Działająca struktura moda (ukończ najpierw [Rozdział 8.1](01-first-mod.md))
+- Zrozumienie [wzorca RPC klient-serwer](03-admin-panel.md) z Rozdziału 8.3
+
+### Struktura moda dla tego samouczka
 
 ```
 ChatCommands/
@@ -64,52 +68,53 @@ ChatCommands/
 
 ---
 
-## Architecture Overview
+## Przegląd architektury
 
-Chat commands follow this flow:
+Komendy czatu podążają za następującym przepływem:
 
 ```
-CLIENT                                  SERVER
+KLIENT                                  SERWER
 ------                                  ------
 
-1. Admin types "/heal" in chat
-2. Chat hook intercepts the message
-   (prevents it from being sent as chat)
-3. Client sends command via RPC  ---->  4. Server receives RPC
-                                            Checks admin permissions
-                                            Looks up command handler
-                                            Executes the command
-                                        5. Server sends feedback  ---->  CLIENT
-                                            (chat message RPC)
-                                                                     6. Admin sees
-                                                                        feedback in chat
+1. Administrator wpisuje "/heal" na czacie
+2. Hook czatu przechwytuje wiadomość
+   (zapobiega wysłaniu jako zwykły czat)
+3. Klient wysyła komendę przez RPC  ---->  4. Serwer odbiera RPC
+                                               Sprawdza uprawnienia administratora
+                                               Wyszukuje handler komendy
+                                               Wykonuje komendę
+                                           5. Serwer wysyła informację zwrotną  ---->  KLIENT
+                                               (RPC wiadomości czatu)
+                                                                                    6. Administrator
+                                                                                       widzi informację
+                                                                                       zwrotną na czacie
 ```
 
-**Why process commands on the server?** Because the server has authority over game state. Only the server can reliably heal players, change weather, teleport characters, and modify world state. The client's role is limited to detecting the command and forwarding it.
+**Dlaczego komendy przetwarzamy na serwerze?** Ponieważ serwer ma autorytet nad stanem gry. Tylko serwer może niezawodnie leczyć graczy, zmieniać pogodę, teleportować postacie i modyfikować stan świata. Rola klienta ogranicza się do wykrywania komendy i przekazywania jej dalej.
 
 ---
 
-## Step 1: Hook Into Chat Input
+## Krok 1: Podpięcie do wejścia czatu
 
-We need to intercept chat messages before they are sent as regular chat. DayZ provides the `ChatInputMenu` class for this purpose.
+Musimy przechwytywać wiadomości czatu zanim zostaną wysłane jako zwykły czat. DayZ udostępnia klasę `ChatInputMenu` do tego celu.
 
-### The Chat Hook Approach
+### Podejście z hookiem czatu
 
-We will mod the `MissionGameplay` class to intercept chat input events. When the player submits a chat message starting with `/`, we intercept it, prevent it from being sent as normal chat, and instead send it as a command RPC to the server.
+Zmodyfikujemy klasę `MissionGameplay`, aby przechwytywać zdarzenia wejścia czatu. Gdy gracz wysyła wiadomość czatu zaczynającą się od `/`, przechwytujemy ją, zapobiegamy wysłaniu jako zwykły czat i zamiast tego wysyłamy ją jako RPC komendy do serwera.
 
-### Create `Scripts/5_Mission/ChatCommands/CCmdChatHook.c`
+### Utwórz `Scripts/5_Mission/ChatCommands/CCmdChatHook.c`
 
 ```c
 modded class MissionGameplay
 {
     // -------------------------------------------------------
-    // Intercept chat messages that start with /
+    // Przechwytywanie wiadomości czatu zaczynających się od /
     // -------------------------------------------------------
     override void OnEvent(EventType eventTypeId, Param params)
     {
         super.OnEvent(eventTypeId, params);
 
-        // ChatMessageEventTypeID fires when the player sends a chat message
+        // ChatMessageEventTypeID jest wywoływany, gdy gracz wysyła wiadomość czatu
         if (eventTypeId == ChatMessageEventTypeID)
         {
             Param3<int, string, string> chatParams;
@@ -117,10 +122,10 @@ modded class MissionGameplay
             {
                 string message = chatParams.param3;
 
-                // Check if it starts with /
+                // Sprawdź, czy zaczyna się od /
                 if (message.Length() > 0 && message.Substring(0, 1) == "/")
                 {
-                    // This is a command -- send it to the server
+                    // To jest komenda -- wyślij ją do serwera
                     SendChatCommand(message);
                 }
             }
@@ -128,7 +133,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Send the command string to the server via RPC
+    // Wyślij ciąg komendy do serwera przez RPC
     // -------------------------------------------------------
     protected void SendChatCommand(string fullCommand)
     {
@@ -143,7 +148,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Receive command feedback from the server
+    // Odbieranie informacji zwrotnej o komendzie z serwera
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
@@ -157,7 +162,7 @@ modded class MissionGameplay
                 string prefix = data.param1;
                 string message = data.param2;
 
-                // Display feedback as a system chat message
+                // Wyświetl informację zwrotną jako systemową wiadomość czatu
                 GetGame().Chat(prefix + " " + message, "colorStatusChannel");
 
                 Print("[ChatCommands] Feedback: " + prefix + " " + message);
@@ -167,23 +172,23 @@ modded class MissionGameplay
 };
 ```
 
-### How Chat Interception Works
+### Jak działa przechwytywanie czatu
 
-The `OnEvent` method on `MissionGameplay` is called for various game events. When `eventTypeId` is `ChatMessageEventTypeID`, it means the player just submitted a chat message. The `Param3` contains:
+Metoda `OnEvent` w `MissionGameplay` jest wywoływana dla różnych zdarzeń gry. Gdy `eventTypeId` to `ChatMessageEventTypeID`, oznacza to, że gracz właśnie wysłał wiadomość czatu. `Param3` zawiera:
 
-- `param1` -- Channel (int): the chat channel (global, direct, etc.)
-- `param2` -- Sender name (string)
-- `param3` -- Message text (string)
+- `param1` -- Kanał (int): kanał czatu (globalny, bezpośredni itp.)
+- `param2` -- Nazwa nadawcy (string)
+- `param3` -- Treść wiadomości (string)
 
-We check if the message starts with `/`. If it does, we forward the entire string to the server via RPC. The message is still sent as normal chat as well -- in a production mod, you would suppress it (covered in the notes at the end).
+Sprawdzamy, czy wiadomość zaczyna się od `/`. Jeśli tak, przekazujemy cały ciąg do serwera przez RPC. Wiadomość jest nadal wysyłana jako zwykły czat -- w produkcyjnym modzie należałoby ją wytłumić (omówione w uwagach na końcu).
 
 ---
 
-## Step 2: Parse Command Prefix and Arguments
+## Krok 2: Parsowanie prefiksu i argumentów komendy
 
-On the server side, we need to break a command string like `/heal PlayerName` into its parts: the command name (`heal`) and the arguments (`["PlayerName"]`).
+Po stronie serwera musimy rozbić ciąg komendy jak `/heal PlayerName` na jego części: nazwę komendy (`heal`) i argumenty (`["PlayerName"]`).
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRPC.c`
+### Utwórz `Scripts/3_Game/ChatCommands/CCmdRPC.c`
 
 ```c
 class CCmdRPC
@@ -193,54 +198,54 @@ class CCmdRPC
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdBase.c`
+### Utwórz `Scripts/3_Game/ChatCommands/CCmdBase.c`
 
 ```c
 // -------------------------------------------------------
-// Base class for all chat commands
+// Klasa bazowa dla wszystkich komend czatu
 // -------------------------------------------------------
 class CCmdBase
 {
-    // The command name without the / prefix (e.g., "heal")
+    // Nazwa komendy bez prefiksu / (np. "heal")
     string GetName()
     {
         return "";
     }
 
-    // Short description shown in help or command list
+    // Krótki opis wyświetlany w pomocy lub liście komend
     string GetDescription()
     {
         return "";
     }
 
-    // Usage syntax shown when the command is used incorrectly
+    // Składnia użycia wyświetlana przy nieprawidłowym użyciu komendy
     string GetUsage()
     {
         return "/" + GetName();
     }
 
-    // Whether this command requires admin privileges
+    // Czy ta komenda wymaga uprawnień administratora
     bool RequiresAdmin()
     {
         return true;
     }
 
-    // Execute the command on the server
-    // Returns true if successful, false if failed
+    // Wykonaj komendę na serwerze
+    // Zwraca true jeśli sukces, false jeśli niepowodzenie
     bool Execute(PlayerIdentity caller, array<string> args)
     {
         return false;
     }
 
     // -------------------------------------------------------
-    // Helper: Send feedback message to the command caller
+    // Helper: Wyślij wiadomość zwrotną do wywołującego komendę
     // -------------------------------------------------------
     protected void SendFeedback(PlayerIdentity caller, string prefix, string message)
     {
         if (!caller)
             return;
 
-        // Find the caller's player object
+        // Znajdź obiekt gracza wywołującego
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
 
@@ -266,7 +271,7 @@ class CCmdBase
     }
 
     // -------------------------------------------------------
-    // Helper: Find a player by partial name match
+    // Helper: Znajdź gracza po częściowym dopasowaniu nazwy
     // -------------------------------------------------------
     protected Man FindPlayerByName(string partialName)
     {
@@ -295,18 +300,18 @@ class CCmdBase
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRegistry.c`
+### Utwórz `Scripts/3_Game/ChatCommands/CCmdRegistry.c`
 
 ```c
 // -------------------------------------------------------
-// Registry that holds all available commands
+// Rejestr przechowujący wszystkie dostępne komendy
 // -------------------------------------------------------
 class CCmdRegistry
 {
     protected static ref map<string, ref CCmdBase> s_Commands;
 
     // -------------------------------------------------------
-    // Initialize the registry (call once at startup)
+    // Inicjalizacja rejestru (wywołaj raz przy starcie)
     // -------------------------------------------------------
     static void Init()
     {
@@ -315,7 +320,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Register a command instance
+    // Zarejestruj instancję komendy
     // -------------------------------------------------------
     static void Register(CCmdBase command)
     {
@@ -338,7 +343,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Look up a command by name
+    // Wyszukaj komendę po nazwie
     // -------------------------------------------------------
     static CCmdBase GetCommand(string name)
     {
@@ -356,7 +361,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Get all registered command names
+    // Pobierz nazwy wszystkich zarejestrowanych komend
     // -------------------------------------------------------
     static array<string> GetCommandNames()
     {
@@ -374,8 +379,8 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Parse a raw command string into name + args
-    // Example: "/heal PlayerName" --> name="heal", args=["PlayerName"]
+    // Parsuj surowy ciąg komendy na nazwę + argumenty
+    // Przykład: "/heal PlayerName" --> name="heal", args=["PlayerName"]
     // -------------------------------------------------------
     static void ParseCommand(string fullCommand, out string commandName, out array<string> args)
     {
@@ -385,12 +390,12 @@ class CCmdRegistry
         if (fullCommand.Length() == 0)
             return;
 
-        // Remove the leading /
+        // Usuń początkowy /
         string raw = fullCommand;
         if (raw.Substring(0, 1) == "/")
             raw = raw.Substring(1, raw.Length() - 1);
 
-        // Split by spaces
+        // Podziel po spacjach
         raw.Split(" ", args);
 
         if (args.Count() > 0)
@@ -403,68 +408,68 @@ class CCmdRegistry
 };
 ```
 
-### The Parse Logic Explained
+### Wyjaśnienie logiki parsowania
 
-Given the input `/heal SomePlayer`, `ParseCommand` does:
+Dla wejścia `/heal SomePlayer`, `ParseCommand` wykonuje:
 
-1. Removes the leading `/` to get `"heal SomePlayer"`
-2. Splits by spaces to get `["heal", "SomePlayer"]`
-3. Takes the first element as the command name: `"heal"`
-4. Removes it from the array, leaving args: `["SomePlayer"]`
+1. Usuwa początkowy `/`, otrzymując `"heal SomePlayer"`
+2. Dzieli po spacjach, otrzymując `["heal", "SomePlayer"]`
+3. Bierze pierwszy element jako nazwę komendy: `"heal"`
+4. Usuwa go z tablicy, pozostawiając argumenty: `["SomePlayer"]`
 
-The command name is converted to lowercase so `/Heal`, `/HEAL`, and `/heal` all work.
+Nazwa komendy jest konwertowana na małe litery, więc `/Heal`, `/HEAL` i `/heal` wszystkie działają.
 
 ---
 
-## Step 3: Check Admin Permissions
+## Krok 3: Sprawdzanie uprawnień administratora
 
-Admin permission checking prevents regular players from executing admin commands. DayZ does not have a built-in admin permission system in scripts, so we check against a simple admin list.
+Sprawdzanie uprawnień administratora zapobiega wykonywaniu komend administracyjnych przez zwykłych graczy. DayZ nie posiada wbudowanego systemu uprawnień administratora w skryptach, więc sprawdzamy na podstawie prostej listy administratorów.
 
-### The Admin Check in the Server Handler
+### Sprawdzanie administratora w handlerze serwera
 
-The simplest approach is to check the player's Steam64 ID against a list of known admin IDs. In a production mod, you would load this list from a config file.
+Najprostszym podejściem jest sprawdzanie Steam64 ID gracza na liście znanych identyfikatorów administratorów. W produkcyjnym modzie ładowałoby się tę listę z pliku konfiguracyjnego.
 
 ```c
-// Simple admin check -- in production, load from a JSON config file
+// Proste sprawdzanie administratora -- w produkcji ładuj z pliku JSON konfiguracji
 static bool IsAdmin(PlayerIdentity identity)
 {
     if (!identity)
         return false;
 
-    // Check the player's plain ID (Steam64 ID)
+    // Sprawdź zwykły ID gracza (Steam64 ID)
     string playerId = identity.GetPlainId();
 
-    // Hardcoded admin list -- replace with config file loading in production
+    // Zahardkodowana lista administratorów -- zastąp ładowaniem z pliku konfiguracji w produkcji
     ref array<string> adminIds = new array<string>;
-    adminIds.Insert("76561198000000001");    // Replace with real Steam64 IDs
+    adminIds.Insert("76561198000000001");    // Zastąp prawdziwymi Steam64 ID
     adminIds.Insert("76561198000000002");
 
     return (adminIds.Find(playerId) != -1);
 }
 ```
 
-### Where to Find Steam64 IDs
+### Gdzie znaleźć Steam64 ID
 
-- Open your Steam profile in a browser
-- The URL contains your Steam64 ID: `https://steamcommunity.com/profiles/76561198XXXXXXXXX`
-- Or use a tool like https://steamid.io to look up any player
+- Otwórz swój profil Steam w przeglądarce
+- URL zawiera twoje Steam64 ID: `https://steamcommunity.com/profiles/76561198XXXXXXXXX`
+- Lub użyj narzędzia takiego jak https://steamid.io do wyszukania dowolnego gracza
 
-### Production-Grade Permissions
+### Uprawnienia klasy produkcyjnej
 
-In a real mod, you would:
+W prawdziwym modzie należałoby:
 
-1. Store admin IDs in a JSON file (`$profile:ChatCommands/admins.json`)
-2. Load the file on server startup
-3. Support permission levels (moderator, admin, superadmin)
-4. Use a framework like MyFramework's `MyPermissions` system for hierarchical permissions
+1. Przechowywać ID administratorów w pliku JSON (`$profile:ChatCommands/admins.json`)
+2. Ładować plik przy starcie serwera
+3. Obsługiwać poziomy uprawnień (moderator, administrator, superadministrator)
+4. Używać frameworka takiego jak system `MyPermissions` z MyMod Core do hierarchicznych uprawnień
 
 ---
 
-## Step 4: Execute the Server-Side Action
+## Krok 4: Wykonanie akcji po stronie serwera
 
-Now we create the actual `/heal` command and the server handler that processes incoming command RPCs.
+Teraz tworzymy właściwą komendę `/heal` i handler serwera przetwarzający przychodzące RPC komend.
 
-### Create `Scripts/4_World/ChatCommands/commands/CCmdHeal.c`
+### Utwórz `Scripts/4_World/ChatCommands/commands/CCmdHeal.c`
 
 ```c
 class CCmdHeal extends CCmdBase
@@ -490,9 +495,9 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Execute the heal command
-    // /heal         --> heals the caller
-    // /heal Name    --> heals the named player
+    // Wykonaj komendę leczenia
+    // /heal         --> leczy wywołującego
+    // /heal Name    --> leczy wskazanego gracza
     // -------------------------------------------------------
     override bool Execute(PlayerIdentity caller, array<string> args)
     {
@@ -502,10 +507,10 @@ class CCmdHeal extends CCmdBase
         Man targetMan = null;
         string targetName = "";
 
-        // Determine the target player
+        // Określ docelowego gracza
         if (args.Count() > 0)
         {
-            // Heal a specific player by name
+            // Ulecz konkretnego gracza po nazwie
             string searchName = args.Get(0);
             targetMan = FindPlayerByName(searchName);
 
@@ -519,7 +524,7 @@ class CCmdHeal extends CCmdBase
         }
         else
         {
-            // Heal the caller themselves
+            // Ulecz samego wywołującego
             ref array<Man> allPlayers = new array<Man>;
             GetGame().GetPlayers(allPlayers);
 
@@ -545,7 +550,7 @@ class CCmdHeal extends CCmdBase
             targetName = "yourself";
         }
 
-        // Execute the heal
+        // Wykonaj leczenie
         PlayerBase targetPlayer;
         if (!Class.CastTo(targetPlayer, targetMan))
         {
@@ -555,7 +560,7 @@ class CCmdHeal extends CCmdBase
 
         HealPlayer(targetPlayer);
 
-        // Log and send feedback
+        // Loguj i wyślij informację zwrotną
         Print("[ChatCommands] " + caller.GetName() + " healed " + targetName);
         SendFeedback(caller, "[Heal]", "Successfully healed " + targetName + ".");
 
@@ -563,30 +568,30 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Apply full heal to a player
+    // Zastosuj pełne leczenie na graczu
     // -------------------------------------------------------
     protected void HealPlayer(PlayerBase player)
     {
         if (!player)
             return;
 
-        // Restore health to maximum
+        // Przywróć zdrowie do maksimum
         player.SetHealth("GlobalHealth", "Health", player.GetMaxHealth("GlobalHealth", "Health"));
 
-        // Restore blood to maximum
+        // Przywróć krew do maksimum
         player.SetHealth("GlobalHealth", "Blood", player.GetMaxHealth("GlobalHealth", "Blood"));
 
-        // Remove shock damage
+        // Usuń obrażenia od szoku
         player.SetHealth("GlobalHealth", "Shock", player.GetMaxHealth("GlobalHealth", "Shock"));
 
-        // Set hunger to full (energy value)
-        // PlayerBase has a stats system -- set the energy stat
+        // Ustaw głód na pełny (wartość energii)
+        // PlayerBase ma system statystyk -- ustaw statystykę energii
         player.GetStatEnergy().Set(player.GetStatEnergy().GetMax());
 
-        // Set thirst to full (water value)
+        // Ustaw pragnienie na pełne (wartość wody)
         player.GetStatWater().Set(player.GetStatWater().GetMax());
 
-        // Clear any bleeding sources
+        // Wyczyść wszystkie źródła krwawienia
         player.GetBleedingManagerServer().RemoveAllSources();
 
         Print("[ChatCommands] Healed player: " + player.GetIdentity().GetName());
@@ -594,70 +599,70 @@ class CCmdHeal extends CCmdBase
 };
 ```
 
-### Why 4_World?
+### Dlaczego 4_World?
 
-The heal command references `PlayerBase`, which is defined in the `4_World` layer. It also uses player stat methods (`GetStatEnergy`, `GetStatWater`, `GetBleedingManagerServer`) that are only available on world entities. The command **must** live in `4_World` or higher.
+Komenda leczenia odwołuje się do `PlayerBase`, który jest zdefiniowany w warstwie `4_World`. Używa również metod statystyk gracza (`GetStatEnergy`, `GetStatWater`, `GetBleedingManagerServer`), które są dostępne tylko na encjach świata. Komenda **musi** znajdować się w `4_World` lub wyżej.
 
-The base class `CCmdBase` lives in `3_Game` because it does not reference any world types. The concrete command classes that touch world entities live in `4_World`.
+Klasa bazowa `CCmdBase` znajduje się w `3_Game`, ponieważ nie odwołuje się do żadnych typów świata. Konkretne klasy komend, które operują na encjach świata, znajdują się w `4_World`.
 
 ---
 
-## Step 5: Send Feedback to the Admin
+## Krok 5: Wysyłanie informacji zwrotnej do administratora
 
-Feedback is handled by the `SendFeedback()` method in `CCmdBase`. Let us trace the complete feedback path:
+Informacja zwrotna jest obsługiwana przez metodę `SendFeedback()` w `CCmdBase`. Prześledźmy kompletną ścieżkę informacji zwrotnej:
 
-### Server Sends Feedback
+### Serwer wysyła informację zwrotną
 
 ```c
-// Inside CCmdBase.SendFeedback()
+// Wewnątrz CCmdBase.SendFeedback()
 Param2<string, string> data = new Param2<string, string>(prefix, message);
 GetGame().RPCSingleParam(callerPlayer, CCmdRPC.COMMAND_FEEDBACK, data, true, caller);
 ```
 
-The server sends a `COMMAND_FEEDBACK` RPC to the specific client who issued the command. The data contains a prefix (like `"[Heal]"`) and the message text.
+Serwer wysyła RPC `COMMAND_FEEDBACK` do konkretnego klienta, który wydał komendę. Dane zawierają prefiks (jak `"[Heal]"`) i treść wiadomości.
 
-### Client Receives and Displays Feedback
+### Klient odbiera i wyświetla informację zwrotną
 
-Back in `CCmdChatHook.c` (Step 1), the `OnRPC` handler catches this:
+Z powrotem w `CCmdChatHook.c` (Krok 1), handler `OnRPC` przechwytuje to:
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_FEEDBACK)
 {
-    // Deserialize the message
+    // Deserializuj wiadomość
     Param2<string, string> data = new Param2<string, string>("", "");
     if (ctx.Read(data))
     {
         string prefix = data.param1;
         string message = data.param2;
 
-        // Display in the chat window
+        // Wyświetl w oknie czatu
         GetGame().Chat(prefix + " " + message, "colorStatusChannel");
     }
 }
 ```
 
-`GetGame().Chat()` displays a message in the player's chat window. The second parameter is the color channel:
+`GetGame().Chat()` wyświetla wiadomość w oknie czatu gracza. Drugi parametr to kanał kolorów:
 
-| Channel | Color | Typical Use |
-|---------|-------|-------------|
-| `"colorStatusChannel"` | Yellow/orange | System messages |
-| `"colorAction"` | White | Action feedback |
-| `"colorFriendly"` | Green | Positive feedback |
-| `"colorImportant"` | Red | Warnings/errors |
+| Kanał | Kolor | Typowe użycie |
+|-------|-------|---------------|
+| `"colorStatusChannel"` | Żółty/pomarańczowy | Wiadomości systemowe |
+| `"colorAction"` | Biały | Informacja zwrotna o akcji |
+| `"colorFriendly"` | Zielony | Pozytywna informacja zwrotna |
+| `"colorImportant"` | Czerwony | Ostrzeżenia/błędy |
 
 ---
 
-## Step 6: Register Commands
+## Krok 6: Rejestracja komend
 
-The server handler receives command RPCs, looks up the command in the registry, and executes it.
+Handler serwera odbiera RPC komend, wyszukuje komendę w rejestrze i wykonuje ją.
 
-### Create `Scripts/4_World/ChatCommands/CCmdServerHandler.c`
+### Utwórz `Scripts/4_World/ChatCommands/CCmdServerHandler.c`
 
 ```c
 modded class MissionServer
 {
     // -------------------------------------------------------
-    // Register all commands when the server starts
+    // Zarejestruj wszystkie komendy podczas startu serwera
     // -------------------------------------------------------
     override void OnInit()
     {
@@ -665,10 +670,10 @@ modded class MissionServer
 
         CCmdRegistry.Init();
 
-        // Register all commands here
+        // Zarejestruj wszystkie komendy tutaj
         CCmdRegistry.Register(new CCmdHeal());
 
-        // Add more commands:
+        // Dodaj więcej komend:
         // CCmdRegistry.Register(new CCmdKill());
         // CCmdRegistry.Register(new CCmdTeleport());
         // CCmdRegistry.Register(new CCmdTime());
@@ -678,7 +683,7 @@ modded class MissionServer
 };
 
 // -------------------------------------------------------
-// Server-side RPC handler for incoming commands
+// Serwerowy handler RPC dla przychodzących komend
 // -------------------------------------------------------
 modded class PlayerBase
 {
@@ -700,7 +705,7 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Read the command string
+        // Odczytaj ciąg komendy
         Param1<string> data = new Param1<string>("");
         if (!ctx.Read(data))
         {
@@ -711,7 +716,7 @@ modded class PlayerBase
         string fullCommand = data.param1;
         Print("[ChatCommands] Received command from " + sender.GetName() + ": " + fullCommand);
 
-        // Parse the command
+        // Parsuj komendę
         string commandName;
         ref array<string> args;
         CCmdRegistry.ParseCommand(fullCommand, commandName, args);
@@ -719,7 +724,7 @@ modded class PlayerBase
         if (commandName == "")
             return;
 
-        // Look up the command
+        // Wyszukaj komendę
         CCmdBase command = CCmdRegistry.GetCommand(commandName);
         if (!command)
         {
@@ -727,7 +732,7 @@ modded class PlayerBase
             return;
         }
 
-        // Check admin permissions
+        // Sprawdź uprawnienia administratora
         if (command.RequiresAdmin() && !IsCommandAdmin(sender))
         {
             Print("[ChatCommands] Non-admin " + sender.GetName() + " tried to use /" + commandName);
@@ -735,7 +740,7 @@ modded class PlayerBase
             return;
         }
 
-        // Execute the command
+        // Wykonaj komendę
         bool success = command.Execute(sender, args);
 
         if (success)
@@ -745,7 +750,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Check if a player is an admin
+    // Sprawdź, czy gracz jest administratorem
     // -------------------------------------------------------
     protected bool IsCommandAdmin(PlayerIdentity identity)
     {
@@ -755,8 +760,8 @@ modded class PlayerBase
         string playerId = identity.GetPlainId();
 
         // ----------------------------------------------------------
-        // IMPORTANT: Replace these with your actual admin Steam64 IDs
-        // In production, load from a JSON config file instead
+        // WAŻNE: Zastąp te wartości swoimi rzeczywistymi Steam64 ID administratorów
+        // W produkcji ładuj z pliku JSON konfiguracji
         // ----------------------------------------------------------
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
@@ -766,7 +771,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Send feedback to a specific player
+    // Wyślij informację zwrotną do konkretnego gracza
     // -------------------------------------------------------
     protected void SendCommandFeedback(PlayerIdentity target, string prefix, string message)
     {
@@ -793,28 +798,28 @@ modded class PlayerBase
 };
 ```
 
-### The Registration Pattern
+### Wzorzec rejestracji
 
-Commands are registered in `MissionServer.OnInit()`:
+Komendy są rejestrowane w `MissionServer.OnInit()`:
 
 ```c
 CCmdRegistry.Init();
 CCmdRegistry.Register(new CCmdHeal());
 ```
 
-Each `Register()` call creates an instance of the command class and stores it in a map keyed by the command name. When a command RPC arrives, the handler looks up the name in the registry and calls `Execute()` on the matching command object.
+Każde wywołanie `Register()` tworzy instancję klasy komendy i przechowuje ją w mapie z kluczem będącym nazwą komendy. Gdy przychodzi RPC komendy, handler wyszukuje nazwę w rejestrze i wywołuje `Execute()` na odpowiednim obiekcie komendy.
 
-This pattern makes it trivial to add new commands -- create a new class extending `CCmdBase`, implement `Execute()`, and add one `Register()` line.
+Ten wzorzec sprawia, że dodawanie nowych komend jest banalne -- utwórz nową klasę rozszerzającą `CCmdBase`, zaimplementuj `Execute()` i dodaj jedną linię `Register()`.
 
 ---
 
-## Step 7: Add to an Admin Panel Command List
+## Krok 7: Dodanie do listy komend panelu administratora
 
-If you have an admin panel (from [Chapter 8.3](03-admin-panel.md)), you can display the list of available commands in the UI.
+Jeśli masz panel administratora (z [Rozdziału 8.3](03-admin-panel.md)), możesz wyświetlić listę dostępnych komend w interfejsie użytkownika.
 
-### Request the Command List from the Server
+### Żądanie listy komend z serwera
 
-Add a new RPC ID in `CCmdRPC.c`:
+Dodaj nowy identyfikator RPC w `CCmdRPC.c`:
 
 ```c
 class CCmdRPC
@@ -826,12 +831,12 @@ class CCmdRPC
 };
 ```
 
-### Server-Side: Send the Command List
+### Strona serwera: Wysyłanie listy komend
 
-Add this handler in your server-side code:
+Dodaj ten handler w swoim kodzie po stronie serwera:
 
 ```c
-// In the server handler, add a case for COMMAND_LIST_REQ
+// W handlerze serwera dodaj przypadek dla COMMAND_LIST_REQ
 if (rpc_type == CCmdRPC.COMMAND_LIST_REQ)
 {
     HandleCommandListRequest(sender);
@@ -842,7 +847,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
     if (!requestor)
         return;
 
-    // Build a formatted string of all commands
+    // Zbuduj sformatowany ciąg wszystkich komend
     array<string> names = CCmdRegistry.GetCommandNames();
     string commandList = "Available Commands:\n";
 
@@ -855,7 +860,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
         }
     }
 
-    // Send back to client
+    // Wyślij z powrotem do klienta
     ref array<Man> players = new array<Man>;
     GetGame().GetPlayers(players);
 
@@ -872,9 +877,9 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
 }
 ```
 
-### Client-Side: Display in a Panel
+### Strona klienta: Wyświetlanie w panelu
 
-On the client, catch the response and display it in a text widget:
+Po stronie klienta przechwyć odpowiedź i wyświetl ją w widgecie tekstowym:
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
@@ -883,7 +888,7 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
     if (ctx.Read(data))
     {
         string commandList = data.param1;
-        // Display in your admin panel text widget
+        // Wyświetl w widgecie tekstowym panelu administratora
         // m_CommandListText.SetText(commandList);
         Print("[ChatCommands] Command list received:\n" + commandList);
     }
@@ -892,11 +897,11 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
 
 ---
 
-## Complete Working Code: /heal Command
+## Kompletny działający kod: komenda /heal
 
-Here is every file needed for the complete working system. Create these files and your mod will have a functional `/heal` command.
+Oto każdy plik potrzebny do kompletnego działającego systemu. Utwórz te pliki, a twój mod będzie miał funkcjonalną komendę `/heal`.
 
-### config.cpp Setup
+### Konfiguracja config.cpp
 
 ```cpp
 class CfgPatches
@@ -1307,7 +1312,7 @@ modded class PlayerBase
 
         string playerId = identity.GetPlainId();
 
-        // REPLACE THESE WITH YOUR ACTUAL ADMIN STEAM64 IDs
+        // ZASTĄP TE WARTOŚCI SWOIMI RZECZYWISTYMI STEAM64 ID ADMINISTRATORÓW
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
         adminIds.Insert("76561198000000002");
@@ -1395,11 +1400,11 @@ modded class MissionGameplay
 
 ---
 
-## Adding More Commands
+## Dodawanie kolejnych komend
 
-The registry pattern makes adding new commands straightforward. Here are examples:
+Wzorzec rejestru sprawia, że dodawanie nowych komend jest proste. Oto przykłady:
 
-### /kill Command
+### Komenda /kill
 
 ```c
 class CCmdKill extends CCmdBase
@@ -1447,7 +1452,7 @@ class CCmdKill extends CCmdBase
 };
 ```
 
-### /time Command
+### Komenda /time
 
 ```c
 class CCmdTime extends CCmdBase
@@ -1478,9 +1483,9 @@ class CCmdTime extends CCmdBase
 };
 ```
 
-### Registering New Commands
+### Rejestracja nowych komend
 
-Add one line per command in `MissionServer.OnInit()`:
+Dodaj jedną linię na komendę w `MissionServer.OnInit()`:
 
 ```c
 CCmdRegistry.Register(new CCmdHeal());
@@ -1490,34 +1495,34 @@ CCmdRegistry.Register(new CCmdTime());
 
 ---
 
-## Rozwiazywanie problemow
+## Rozwiązywanie problemów
 
-### Command Is Not Recognized ("Unknown command")
+### Komenda nie jest rozpoznawana ("Unknown command")
 
-- **Registration missing:** Make sure `CCmdRegistry.Register(new CCmdYourCommand())` is called in `MissionServer.OnInit()`.
-- **GetName() typo:** The string returned by `GetName()` must match what the player types (without the `/`).
-- **Case mismatch:** The registry converts names to lowercase. `/Heal`, `/HEAL`, and `/heal` should all work.
+- **Brak rejestracji:** Upewnij się, że `CCmdRegistry.Register(new CCmdYourCommand())` jest wywołane w `MissionServer.OnInit()`.
+- **Literówka w GetName():** Ciąg zwracany przez `GetName()` musi odpowiadać temu, co gracz wpisuje (bez `/`).
+- **Niezgodność wielkości liter:** Rejestr konwertuje nazwy na małe litery. `/Heal`, `/HEAL` i `/heal` powinny wszystkie działać.
 
-### Permission Denied for Admins
+### Brak dostępu dla administratorów
 
-- **Wrong Steam64 ID:** Double-check the admin IDs in `IsCommandAdmin()`. They must be exact Steam64 IDs (17-digit numbers starting with `7656`).
-- **GetPlainId() vs GetId():** `GetPlainId()` returns the Steam64 ID. `GetId()` returns the DayZ session ID. Use `GetPlainId()` for admin checks.
+- **Nieprawidłowe Steam64 ID:** Sprawdź dokładnie ID administratorów w `IsCommandAdmin()`. Muszą to być dokładne Steam64 ID (17-cyfrowe numery zaczynające się od `7656`).
+- **GetPlainId() vs GetId():** `GetPlainId()` zwraca Steam64 ID. `GetId()` zwraca ID sesji DayZ. Używaj `GetPlainId()` do sprawdzania administratorów.
 
-### Feedback Message Does Not Appear in Chat
+### Wiadomość zwrotna nie pojawia się na czacie
 
-- **RPC not reaching client:** Add `Print()` statements on the server to confirm the feedback RPC is being sent.
-- **Client OnRPC not catching it:** Verify the RPC ID matches (`CCmdRPC.COMMAND_FEEDBACK`).
-- **GetGame().Chat() not working:** This function requires the game to be in a state where chat is available. It may not work on the loading screen.
+- **RPC nie dociera do klienta:** Dodaj instrukcje `Print()` na serwerze, aby potwierdzić, że RPC informacji zwrotnej jest wysyłany.
+- **OnRPC klienta nie przechwytuje go:** Zweryfikuj, czy ID RPC się zgadza (`CCmdRPC.COMMAND_FEEDBACK`).
+- **GetGame().Chat() nie działa:** Ta funkcja wymaga, aby gra była w stanie, w którym czat jest dostępny. Może nie działać na ekranie ładowania.
 
-### /heal Does Not Actually Heal
+### /heal faktycznie nie leczy
 
-- **Server-only execution:** `SetHealth()` and stat changes must run on the server. Verify `GetGame().IsServer()` is true when `Execute()` runs.
-- **PlayerBase cast fails:** If `Class.CastTo(targetPlayer, targetMan)` returns false, the target is not a valid PlayerBase. This can happen with AI or non-player entities.
-- **Stat getters return null:** `GetStatEnergy()` and `GetStatWater()` may return null if the player is dead or not fully initialized. Add null checks in production code.
+- **Wykonywanie tylko po stronie serwera:** `SetHealth()` i zmiany statystyk muszą być uruchamiane na serwerze. Zweryfikuj, że `GetGame().IsServer()` jest true gdy `Execute()` się wykonuje.
+- **Rzutowanie PlayerBase się nie powodzi:** Jeśli `Class.CastTo(targetPlayer, targetMan)` zwraca false, cel nie jest prawidłowym PlayerBase. Może się to zdarzyć z AI lub encjami innymi niż gracze.
+- **Gettery statystyk zwracają null:** `GetStatEnergy()` i `GetStatWater()` mogą zwrócić null, jeśli gracz jest martwy lub nie jest w pełni zainicjalizowany. Dodaj sprawdzanie null w kodzie produkcyjnym.
 
-### Command Appears in Chat as Regular Message
+### Komenda pojawia się na czacie jako zwykła wiadomość
 
-- The `OnEvent` hook intercepts the message but does not suppress it from being sent as chat. To suppress it in a production mod, you would need to mod the `ChatInputMenu` class to filter `/` messages before they are sent:
+- Hook `OnEvent` przechwytuje wiadomość, ale nie tłumi jej przed wysłaniem jako czat. Aby to wytłumić w produkcyjnym modzie, należałoby zmodyfikować klasę `ChatInputMenu`, aby filtrować wiadomości z `/` przed ich wysłaniem:
 
 ```c
 modded class ChatInputMenu
@@ -1525,29 +1530,63 @@ modded class ChatInputMenu
     override void OnChatInputSend()
     {
         string text = "";
-        // Get the current text from the edit widget
-        // If it starts with /, do NOT call super (which sends it as chat)
-        // Instead, handle it as a command
+        // Pobierz aktualny tekst z widgetu edycji
+        // Jeśli zaczyna się od /, NIE wywołuj super (który wysyła jako czat)
+        // Zamiast tego obsłuż jako komendę
 
-        // This approach varies by DayZ version -- check vanilla sources
+        // To podejście różni się w zależności od wersji DayZ -- sprawdź źródła vanilla
         super.OnChatInputSend();
     }
 };
 ```
 
-The exact implementation depends on the DayZ version and how `ChatInputMenu` exposes the text. The `OnEvent` approach in this tutorial is simpler and works for development, with the tradeoff that the command text also appears as a chat message.
+Dokładna implementacja zależy od wersji DayZ i tego, jak `ChatInputMenu` udostępnia tekst. Podejście z `OnEvent` w tym samouczku jest prostsze i działa do celów deweloperskich, z kompromisem, że tekst komendy pojawia się również jako wiadomość czatu.
 
 ---
 
-## Nastepne kroki
+## Następne kroki
 
-1. **Load admins from a config file** -- Use `JsonFileLoader` to load admin IDs from a JSON file instead of hardcoding them.
-2. **Add a /help command** -- List all available commands with their descriptions and usage.
-3. **Add logging** -- Write command usage to a log file for audit purposes.
-4. **Integrate with a framework** -- MyFramework provides `MyPermissions` for hierarchical permissions and `MyRPC` for string-routed RPCs that avoid integer ID collisions.
-5. **Add cooldowns** -- Prevent command spam by tracking the last execution time per player.
-6. **Build a command palette UI** -- Create an admin panel that lists all commands with clickable buttons (combining this tutorial with [Chapter 8.3](03-admin-panel.md)).
+1. **Ładuj administratorów z pliku konfiguracji** -- Użyj `JsonFileLoader` do ładowania ID administratorów z pliku JSON zamiast ich hardkodowania.
+2. **Dodaj komendę /help** -- Wylistuj wszystkie dostępne komendy z ich opisami i składnią użycia.
+3. **Dodaj logowanie** -- Zapisuj użycie komend do pliku dziennika w celach audytowych.
+4. **Integruj z frameworkiem** -- MyMod Core dostarcza `MyPermissions` dla hierarchicznych uprawnień i `MyRPC` dla routowania ciągów RPC, które unikają kolizji identyfikatorów liczbowych.
+5. **Dodaj cooldowny** -- Zapobiegaj spamowaniu komend poprzez śledzenie czasu ostatniego wykonania na gracza.
+6. **Zbuduj interfejs palety komend** -- Utwórz panel administratora, który wylistuje wszystkie komendy z klikanymi przyciskami (łącząc ten samouczek z [Rozdziałem 8.3](03-admin-panel.md)).
 
 ---
 
-**Previous:** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)
+## Najlepsze praktyki
+
+- **Zawsze sprawdzaj uprawnienia przed wykonaniem komend administracyjnych.** Brak sprawdzania uprawnień oznacza, że dowolny gracz może `/heal` lub `/kill` kogokolwiek. Waliduj Steam64 ID wywołującego (przez `GetPlainId()`) na serwerze przed przetwarzaniem.
+- **Wysyłaj informację zwrotną do administratora nawet przy nieudanych komendach.** Ciche niepowodzenia uniemożliwiają debugowanie. Zawsze wysyłaj wiadomość czatu wyjaśniającą, co poszło nie tak ("Player not found", "Permission denied").
+- **Używaj `GetPlainId()` do sprawdzania administratorów, nie `GetId()`.** `GetId()` zwraca ID specyficzne dla sesji DayZ, które zmienia się przy każdym ponownym połączeniu. `GetPlainId()` zwraca permanentne Steam64 ID.
+- **Przechowuj ID administratorów w pliku JSON konfiguracji, nie w kodzie.** Zahardkodowane ID wymagają przebudowy PBO do zmiany. Plik JSON w `$profile:` może być edytowany przez administratorów serwera bez wiedzy o moddingu.
+- **Konwertuj nazwy komend na małe litery przed dopasowaniem.** Gracze mogą wpisywać `/Heal`, `/HEAL` lub `/heal`. Normalizacja do małych liter zapobiega frustrującym błędom "unknown command".
+
+---
+
+## Teoria a praktyka
+
+| Koncepcja | Teoria | Rzeczywistość |
+|-----------|--------|---------------|
+| Hook czatu przez `OnEvent` | Przechwyć wiadomość i obsłuż ją jako komendę | Wiadomość nadal pojawia się na czacie dla wszystkich graczy. Wytłumienie jej wymaga modyfikacji `ChatInputMenu`, co różni się w zależności od wersji DayZ. |
+| `GetGame().Chat()` | Wyświetla wiadomość w oknie czatu gracza | Działa tylko gdy interfejs czatu jest aktywny. Na ekranie ładowania lub w niektórych stanach menu wiadomość jest cicho odrzucana. |
+| Wzorzec rejestru komend | Czysta architektura z jedną klasą na komendę | Każdy plik klasy komendy musi trafić do właściwej warstwy skryptowej. `CCmdBase` w `3_Game`, konkretne komendy odwołujące się do `PlayerBase` w `4_World`. Nieprawidłowe umieszczenie warstwy powoduje "Undefined type" przy ładowaniu. |
+| Wyszukiwanie gracza po nazwie | `FindPlayerByName` dopasowuje częściowe nazwy | Częściowe dopasowanie może trafić w niewłaściwego gracza na serwerze z podobnymi nazwami. W produkcji preferuj celowanie po Steam64 ID lub dodaj krok potwierdzenia. |
+
+---
+
+## Czego się nauczyłeś
+
+W tym samouczku nauczyłeś się:
+- Jak podpinać się do wejścia czatu używając `MissionGameplay.OnEvent` z `ChatMessageEventTypeID`
+- Jak parsować prefiksy i argumenty komend z tekstu czatu
+- Jak sprawdzać uprawnienia administratora na serwerze używając Steam64 ID
+- Jak wysyłać informację zwrotną o komendzie z powrotem do gracza przez RPC i `GetGame().Chat()`
+- Jak budować wielokrotny wzorzec rejestru komend do dodawania nowych komend
+
+**Dalej:** [Rozdział 8.6: Debugowanie i testowanie twojego moda](06-debugging-testing.md)
+
+---
+
+**Poprzedni:** [Rozdział 8.3: Budowanie modułu panelu administratora](03-admin-panel.md)

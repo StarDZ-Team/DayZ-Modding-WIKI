@@ -1,30 +1,34 @@
-# Chapter 8.8: Building a HUD Overlay
+# 第 8.8 章：构建 HUD 覆盖层
 
-[Home](../../README.md) | [<< Previous: Publishing to the Steam Workshop](07-publishing-workshop.md) | **Building a HUD Overlay** | [Next: Professional Mod Template >>](09-professional-template.md)
+[首页](../../README.md) | [<< 上一章：发布到 Steam 创意工坊](07-publishing-workshop.md) | **构建 HUD 覆盖层** | [下一章：专业模组模板 >>](09-professional-template.md)
+
+---
+
+> **摘要：** 本教程将引导你构建一个在屏幕右上角显示服务器信息的自定义 HUD 覆盖层。你将创建布局文件、编写控制器类、挂接到任务生命周期、通过 RPC 从服务器请求数据、添加切换快捷键，并通过淡入淡出动画和智能可见性来完善结果。完成后，你将拥有一个非侵入式的服务器信息 HUD，显示服务器名称、玩家数量和当前游戏内时间——以及对 DayZ 中 HUD 覆盖层工作原理的深入理解。
 
 ---
 
 ## 目录
 
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Mod Structure](#mod-structure)
-- [Step 1: Create the Layout File](#step-1-create-the-layout-file)
-- [Step 2: Create the HUD Controller Class](#step-2-create-the-hud-controller-class)
-- [Step 3: Hook into MissionGameplay](#step-3-hook-into-missiongameplay)
-- [Step 4: Request Data from Server](#step-4-request-data-from-server)
-- [Step 5: Add Toggle with Keybind](#step-5-add-toggle-with-keybind)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Extending the HUD](#extending-the-hud)
-- [Common Mistakes](#common-mistakes)
-- [Next Steps](#next-steps)
+- [我们要构建什么](#what-we-are-building)
+- [前提条件](#prerequisites)
+- [模组结构](#mod-structure)
+- [步骤 1：创建布局文件](#step-1-create-the-layout-file)
+- [步骤 2：创建 HUD 控制器类](#step-2-create-the-hud-controller-class)
+- [步骤 3：挂接到 MissionGameplay](#step-3-hook-into-missiongameplay)
+- [步骤 4：从服务器请求数据](#step-4-request-data-from-server)
+- [步骤 5：添加快捷键切换](#step-5-add-toggle-with-keybind)
+- [步骤 6：完善](#step-6-polish)
+- [完整代码参考](#complete-code-reference)
+- [扩展 HUD](#extending-the-hud)
+- [常见错误](#common-mistakes)
+- [下一步](#next-steps)
 
 ---
 
-## What We Are Building
+## 我们要构建什么
 
-A small, semi-transparent panel anchored to the top-right corner of the screen that displays three lines of information:
+一个锚定在屏幕右上角的小型半透明面板，显示三行信息：
 
 ```
   Aurora Survival [Official]
@@ -32,25 +36,25 @@ A small, semi-transparent panel anchored to the top-right corner of the screen t
   Time: 14:35
 ```
 
-The panel sits below the status indicators and above the quickbar. It updates once per second (not 每帧), fades in when shown and fades out when hidden, and automatically hides when the inventory or pause menu is open. The player can toggle it on and off with a configurable key (default: **F7**).
+面板位于状态指示器下方和快捷栏上方。它每秒更新一次（不是每帧），显示时淡入，隐藏时淡出，并在打开背包或暂停菜单时自动隐藏。玩家可以用一个可配置的按键（默认：**F7**）来切换它的开关。
 
-### Expected Result
+### 预期效果
 
-When loaded, you will see a dark semi-transparent rectangle in the top-right area of the screen. White text shows the server name on the first line, the current player count on the second line, and the in-game world time on the third line. Pressing F7 smoothly fades it out; pressing F7 again fades it back in.
-
----
-
-## 先决条件
-
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Basic understanding of Enforce Script syntax
-- Familiarity with DayZ's client-server model (the HUD runs on the client; player count comes from the server)
+加载后，你将在屏幕右上角看到一个深色半透明矩形。白色文本在第一行显示服务器名称，第二行显示当前玩家数量，第三行显示游戏内世界时间。按下 F7 平滑地淡出；再次按下 F7 淡入恢复。
 
 ---
 
-## Mod Structure
+## 前提条件
 
-Create the following directory tree:
+- 一个可用的模组结构（先完成[第 8.1 章](01-first-mod.md)）
+- 基本了解 Enforce Script 语法
+- 熟悉 DayZ 的客户端-服务器模型（HUD 在客户端运行；玩家数量来自服务器）
+
+---
+
+## 模组结构
+
+创建以下目录树：
 
 ```
 ServerInfoHUD/
@@ -74,13 +78,13 @@ ServerInfoHUD/
             ServerInfoHUD.layout
 ```
 
-The `3_Game` layer defines constants (our RPC ID). The `4_World` layer handles the server-side response. The `5_Mission` layer contains the HUD class and the mission hook. The layout file defines the widget tree.
+`3_Game` 层定义常量（我们的 RPC ID）。`4_World` 层处理服务器端响应。`5_Mission` 层包含 HUD 类和任务钩子。布局文件定义控件树。
 
 ---
 
-## Step 1: Create the Layout File
+## 步骤 1：创建布局文件
 
-Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system uses a coordinate model where each widget has a position and size expressed as proportional values (0.0 to 1.0 of the parent) plus pixel offsets.
+布局文件（`.layout`）用 XML 定义控件层次结构。DayZ 的 GUI 系统使用坐标模型，其中每个控件的位置和大小以比例值（父级的 0.0 到 1.0）加像素偏移来表示。
 
 ### `GUI/layouts/ServerInfoHUD.layout`
 
@@ -88,7 +92,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 <?xml version="1.0" encoding="UTF-8"?>
 <layoutset>
   <children>
-    <!-- Root frame: covers the full screen, does not consume input -->
+    <!-- 根框架：覆盖全屏，不消费输入 -->
     <Widget name="ServerInfoRoot" type="FrameWidgetClass">
       <Attribute name="position" value="0 0" />
       <Attribute name="size" value="1 1" />
@@ -99,7 +103,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
       <Attribute name="hexactsize" value="0" />
       <Attribute name="vexactsize" value="0" />
       <children>
-        <!-- Background panel: top-right corner -->
+        <!-- 背景面板：右上角 -->
         <Widget name="ServerInfoPanel" type="ImageWidgetClass">
           <Attribute name="position" value="1 0" />
           <Attribute name="size" value="220 70" />
@@ -111,7 +115,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
           <Attribute name="vexactsize" value="1" />
           <Attribute name="color" value="0 0 0 0.55" />
           <children>
-            <!-- Server name text -->
+            <!-- 服务器名称文本 -->
             <Widget name="ServerNameText" type="TextWidgetClass">
               <Attribute name="position" value="8 6" />
               <Attribute name="size" value="204 20" />
@@ -126,7 +130,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- Player count text -->
+            <!-- 玩家数量文本 -->
             <Widget name="PlayerCountText" type="TextWidgetClass">
               <Attribute name="position" value="8 28" />
               <Attribute name="size" value="204 18" />
@@ -141,7 +145,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- In-game time text -->
+            <!-- 游戏内时间文本 -->
             <Widget name="TimeText" type="TextWidgetClass">
               <Attribute name="position" value="8 48" />
               <Attribute name="size" value="204 18" />
@@ -164,25 +168,25 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 </layoutset>
 ```
 
-### Key Layout Concepts
+### 关键布局概念
 
-| Attribute | 含义 |
+| 属性 | 含义 |
 |-----------|---------|
-| `halign="2"` | Horizontal alignment: **right**. The widget anchors to the right edge of its parent. |
-| `valign="0"` | Vertical alignment: **top**. |
-| `hexactpos="0"` + `vexactpos="1"` | Horizontal position is proportional (1.0 = right edge), vertical position is in pixels. |
-| `hexactsize="1"` + `vexactsize="1"` | Width and height are in pixels (220 x 70). |
-| `color="0 0 0 0.55"` | RGBA as floats. Black at 55% opacity for the background panel. |
+| `halign="2"` | 水平对齐：**右对齐**。控件锚定到其父级的右边缘。 |
+| `valign="0"` | 垂直对齐：**顶部**。 |
+| `hexactpos="0"` + `vexactpos="1"` | 水平位置是比例值（1.0 = 右边缘），垂直位置是像素值。 |
+| `hexactsize="1"` + `vexactsize="1"` | 宽度和高度是像素值（220 x 70）。 |
+| `color="0 0 0 0.55"` | RGBA 浮点值。背景面板为 55% 不透明度的黑色。 |
 
-The `ServerInfoPanel` is positioned at proportional X=1.0 (right edge) with `halign="2"` (right-aligned), so the panel's right edge touches the right side of the screen. The Y position is 0 pixels from the top. This places our HUD in the top-right corner.
+`ServerInfoPanel` 位于比例 X=1.0（右边缘），`halign="2"`（右对齐），因此面板的右边缘与屏幕右侧齐平。Y 位置距顶部 0 像素。这将我们的 HUD 放在右上角。
 
-**Why pixel sizes for the panel?** Proportional sizing would make the panel scale with resolution, but for small info widgets you want a fixed pixel footprint so the text stays readable at all resolutions.
+**为什么面板使用像素大小？** 比例大小会让面板随分辨率缩放，但对于小型信息控件，你需要固定的像素占用空间，这样文本在所有分辨率下都保持可读。
 
 ---
 
-## Step 2: Create the HUD Controller Class
+## 步骤 2：创建 HUD 控制器类
 
-The controller class loads the layout, finds widgets by name, and exposes methods to update the displayed text. It extends `ScriptedWidgetEventHandler` so it can receive widget events if needed later.
+控制器类加载布局、按名称查找控件，并暴露更新显示文本的方法。它扩展 `ScriptedWidgetEventHandler`，以便在需要时可以接收控件事件。
 
 ### `Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
@@ -198,7 +202,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
     protected bool m_IsVisible;
     protected float m_UpdateTimer;
 
-    // How often to refresh displayed data (seconds)
+    // 刷新显示数据的频率（秒）
     static const float UPDATE_INTERVAL = 1.0;
 
     void ServerInfoHUD()
@@ -212,7 +216,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         Destroy();
     }
 
-    // Create and show the HUD
+    // 创建并显示 HUD
     void Init()
     {
         if (m_Root)
@@ -242,11 +246,11 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_Root.Show(true);
         m_IsVisible = true;
 
-        // Request initial data from server
+        // 从服务器请求初始数据
         RequestServerInfo();
     }
 
-    // Remove all widgets
+    // 移除所有控件
     void Destroy()
     {
         if (m_Root)
@@ -256,7 +260,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Called every frame from MissionGameplay.OnUpdate
+    // 每帧从 MissionGameplay.OnUpdate 调用
     void Update(float timeslice)
     {
         if (!m_Root)
@@ -275,7 +279,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Update the in-game time display (client-side, no RPC needed)
+    // 更新游戏内时间显示（客户端，不需要 RPC）
     protected void RefreshTime()
     {
         if (!m_TimeText)
@@ -296,12 +300,12 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_TimeText.SetText("Time: " + hourStr + ":" + minStr);
     }
 
-    // Send RPC to server asking for player count and server name
+    // 向服务器发送 RPC 请求玩家数量和服务器名称
     protected void RequestServerInfo()
     {
         if (!GetGame().IsMultiplayer())
         {
-            // Offline mode: just show local info
+            // 离线模式：只显示本地信息
             SetServerName("Offline Mode");
             SetPlayerCount(1, 1);
             return;
@@ -315,7 +319,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         rpc.Send(player, SIH_RPC_REQUEST_INFO, true, NULL);
     }
 
-    // --- Setters called when data arrives ---
+    // --- 数据到达时调用的设置方法 ---
 
     void SetServerName(string name)
     {
@@ -333,7 +337,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Toggle visibility
+    // 切换可见性
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -342,7 +346,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
             m_Root.Show(m_IsVisible);
     }
 
-    // Hide when menus are open
+    // 菜单打开时隐藏
     void SetMenuState(bool menuOpen)
     {
         if (!m_Root)
@@ -370,18 +374,18 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 ```
 
-### Important Details
+### 重要细节
 
-1. **`CreateWidgets` path**: The path is relative to the mod root. Since we pack the `GUI/` folder inside the PBO, 引擎 resolves `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` using the mod prefix.
-2. **`FindAnyWidget`**: Searches the widget tree recursively by name. Always check for NULL after casting.
-3. **`Widget.Unlink()`**: Properly removes the widget and all its children from the UI tree. Always call this in cleanup.
-4. **Timer accumulator pattern**: We add `timeslice` each frame and act only when the accumulated time exceeds `UPDATE_INTERVAL`. This prevents doing work every single frame.
+1. **`CreateWidgets` 路径**：路径相对于模组根目录。由于我们将 `GUI/` 文件夹打包在 PBO 中，引擎使用模组前缀来解析 `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`。
+2. **`FindAnyWidget`**：按名称递归搜索控件树。转换后始终检查 NULL。
+3. **`Widget.Unlink()`**：正确地从 UI 树中移除控件及其所有子控件。清理时始终调用此方法。
+4. **计时器累加器模式**：我们每帧添加 `timeslice`，只有当累积时间超过 `UPDATE_INTERVAL` 时才执行操作。这防止了每帧都做额外工作。
 
 ---
 
-## Step 3: Hook into MissionGameplay
+## 步骤 3：挂接到 MissionGameplay
 
-The `MissionGameplay` class is the mission controller on the client side. We use `modded class` to inject our HUD into its lifecycle without replacing the vanilla file.
+`MissionGameplay` 类是客户端的任务控制器。我们使用 `modded class` 将 HUD 注入其生命周期，而不需要替换原版文件。
 
 ### `Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
@@ -394,14 +398,14 @@ modded class MissionGameplay
     {
         super.OnInit();
 
-        // Create the HUD overlay
+        // 创建 HUD 覆盖层
         m_ServerInfoHUD = new ServerInfoHUD();
         m_ServerInfoHUD.Init();
     }
 
     override void OnMissionFinish()
     {
-        // Clean up BEFORE calling super
+        // 在调用 super 之前清理
         if (m_ServerInfoHUD)
         {
             m_ServerInfoHUD.Destroy();
@@ -418,7 +422,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Hide HUD when inventory or any menu is open
+        // 当背包或任何菜单打开时隐藏 HUD
         UIManager uiMgr = GetGame().GetUIManager();
         bool menuOpen = false;
 
@@ -431,10 +435,10 @@ modded class MissionGameplay
 
         m_ServerInfoHUD.SetMenuState(menuOpen);
 
-        // Update HUD data (throttled internally)
+        // 更新 HUD 数据（内部节流）
         m_ServerInfoHUD.Update(timeslice);
 
-        // Check toggle key
+        // 检查切换按键
         Input input = GetGame().GetInput();
         if (input)
         {
@@ -445,7 +449,7 @@ modded class MissionGameplay
         }
     }
 
-    // Accessor so the RPC handler can reach the HUD
+    // 访问器，以便 RPC 处理器可以访问 HUD
     ServerInfoHUD GetServerInfoHUD()
     {
         return m_ServerInfoHUD;
@@ -453,41 +457,41 @@ modded class MissionGameplay
 };
 ```
 
-### Why This Pattern Works
+### 为什么这种模式有效
 
-- **`OnInit`** runs once when the player enters gameplay. We create and initialize the HUD here.
-- **`OnUpdate`** runs 每帧. We pass `timeslice` to the HUD, which internally throttles to once per second. We also check for the toggle key press and menu visibility here.
-- **`OnMissionFinish`** runs when the player disconnects or the mission ends. We destroy our widgets here to prevent 内存泄漏s.
+- **`OnInit`** 在玩家进入游戏时运行一次。我们在这里创建和初始化 HUD。
+- **`OnUpdate`** 每帧运行。我们将 `timeslice` 传递给 HUD，HUD 内部节流为每秒一次。我们还在这里检查切换按键和菜单可见性。
+- **`OnMissionFinish`** 在玩家断开连接或任务结束时运行。我们在这里销毁控件以防止内存泄漏。
 
-### Critical Rule: Always Clean Up
+### 关键规则：始终清理
 
-If you forget to destroy your widgets in `OnMissionFinish`, the widget root will leak into the next session. After a few server hops, the player ends up with stacked ghost widgets consuming memory. Always pair `Init()` with `Destroy()`.
+如果你忘记在 `OnMissionFinish` 中销毁控件，控件根节点会泄漏到下一个会话。经过几次服务器跳转后，玩家最终会有堆叠的幽灵控件消耗内存。始终将 `Init()` 与 `Destroy()` 配对。
 
 ---
 
-## Step 4: Request Data from Server
+## 步骤 4：从服务器请求数据
 
-The player count is only known on the server. We need a simple RPC (Remote Procedure Call) round-trip: the client sends a request, the server reads the data and sends it back.
+玩家数量只有服务器知道。我们需要一个简单的 RPC（远程过程调用）往返：客户端发送请求，服务器读取数据并发回。
 
-### Step 4a: Define the RPC ID
+### 步骤 4a：定义 RPC ID
 
-RPC IDs 必须是唯一的 across all mods. We define ours in the `3_Game` layer so both client and server code can reference it.
+RPC ID 在所有模组中必须唯一。我们在 `3_Game` 层定义，以便客户端和服务器代码都能引用。
 
 ### `Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for the Server Info HUD.
-// Using high numbers to avoid conflicts with vanilla and other mods.
+// Server Info HUD 的 RPC ID。
+// 使用较大的数字以避免与原版和其他模组冲突。
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-**Why `3_Game`?** Constants and enums belong in the lowest layer that both client and server can access. The `3_Game` layer loads before `4_World` and `5_Mission`, so both sides can see these values.
+**为什么是 `3_Game`？** 常量和枚举属于客户端和服务器都能访问的最低层级。`3_Game` 层在 `4_World` 和 `5_Mission` 之前加载，因此双方都能看到这些值。
 
-### Step 4b: Server-Side Handler
+### 步骤 4b：服务器端处理器
 
-The server listens for `SIH_RPC_REQUEST_INFO`, gathers the data, and responds with `SIH_RPC_RESPONSE_INFO`.
+服务器监听 `SIH_RPC_REQUEST_INFO`，收集数据，并用 `SIH_RPC_RESPONSE_INFO` 响应。
 
 ### `Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
@@ -516,22 +520,22 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Gather server info
+        // 收集服务器信息
         string serverName = "";
         GetGame().GetHostName(serverName);
 
         int playerCount = 0;
         int maxPlayers = 0;
 
-        // Get the player list
+        // 获取玩家列表
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         playerCount = players.Count();
 
-        // Max players from server config
+        // 从服务器配置获取最大玩家数
         maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send response back to the requesting client
+        // 将响应发送回请求客户端
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -541,13 +545,13 @@ modded class PlayerBase
 };
 ```
 
-### Step 4c: Client-Side RPC Receiver
+### 步骤 4c：客户端 RPC 接收器
 
-The client receives the response and updates the HUD.
+客户端接收响应并更新 HUD。
 
-Add this to the same `ServerInfoHUD.c` file (at the bottom, outside the class), or create a separate file in `5_Mission/ServerInfoHUD/`:
+将以下内容添加到 `ServerInfoHUD.c` 文件底部（在类外部），或在 `5_Mission/ServerInfoHUD/` 中创建单独的文件：
 
-Add the following **below** the `ServerInfoHUD` class in `ServerInfoHUD.c`:
+在 `ServerInfoHUD.c` 中的 `ServerInfoHUD` 类**下方**添加以下内容：
 
 ```c
 modded class PlayerBase
@@ -582,7 +586,7 @@ modded class PlayerBase
         if (!ctx.Read(maxPlayers))
             return;
 
-        // Access the HUD through MissionGameplay
+        // 通过 MissionGameplay 访问 HUD
         MissionGameplay mission = MissionGameplay.Cast(
             GetGame().GetMission()
         );
@@ -600,29 +604,29 @@ modded class PlayerBase
 };
 ```
 
-### How the RPC Flow Works
+### RPC 流程如何工作
 
 ```
-CLIENT                           SERVER
+客户端                           服务器
   |                                |
   |--- SIH_RPC_REQUEST_INFO ----->|
-  |                                | reads serverName, playerCount, maxPlayers
+  |                                | 读取 serverName、playerCount、maxPlayers
   |<-- SIH_RPC_RESPONSE_INFO ----|
   |                                |
-  | updates HUD text              |
+  | 更新 HUD 文本                |
 ```
 
-The client sends the request once per second (throttled by the update timer). The server responds with three values packed into the RPC context. The client reads them in the same order they were written.
+客户端每秒发送一次请求（由更新计时器节流）。服务器用三个值打包在 RPC 上下文中进行响应。客户端按写入的相同顺序读取它们。
 
-**Important:** `rpc.Write()` and `ctx.Read()` must use the same types in the same order. If the server writes a `string` then two `int` values, the client must read a `string` then two `int` values.
+**重要：** `rpc.Write()` 和 `ctx.Read()` 必须使用相同类型和相同顺序。如果服务器写入一个 `string` 然后两个 `int` 值，客户端必须读取一个 `string` 然后两个 `int` 值。
 
 ---
 
-## Step 5: Add Toggle with Keybind
+## 步骤 5：添加快捷键切换
 
-### Step 5a: Define the Input in `inputs.xml`
+### 步骤 5a：在 `inputs.xml` 中定义输入
 
-DayZ uses `inputs.xml` to register custom key actions. The file must be placed in `Scripts/data/inputs.xml` and referenced from `config.cpp`.
+DayZ 使用 `inputs.xml` 来注册自定义按键操作。该文件必须放在 `Scripts/data/inputs.xml` 中，并在 `config.cpp` 中引用。
 
 ### `Scripts/data/inputs.xml`
 
@@ -642,14 +646,14 @@ DayZ uses `inputs.xml` to register custom key actions. The file must be placed i
 </modded_inputs>
 ```
 
-| Element | 用途 |
+| 元素 | 用途 |
 |---------|---------|
-| `<actions>` | Declares the input action by name. `loc` is the display string shown in the keybinding options menu. |
-| `<preset>` | Assigns the default key. `kF7` maps to the F7 key. |
+| `<actions>` | 按名称声明输入操作。`loc` 是在按键绑定选项菜单中显示的字符串。 |
+| `<preset>` | 分配默认按键。`kF7` 映射到 F7 键。 |
 
-### Step 5b: Reference `inputs.xml` in `config.cpp`
+### 步骤 5b：在 `config.cpp` 中引用 `inputs.xml`
 
-Your `config.cpp` must tell 引擎 where to find the inputs file. Add an `inputs` entry inside the `defs` block:
+你的 `config.cpp` 必须告诉引擎在哪里找到输入文件。在 `defs` 块中添加 `inputs` 条目：
 
 ```cpp
 class defs
@@ -680,9 +684,9 @@ class defs
 };
 ```
 
-### Step 5c: Read the Key Press
+### 步骤 5c：读取按键
 
-We already handle this in the `MissionGameplay` hook from Step 3:
+我们已经在步骤 3 的 `MissionGameplay` 钩子中处理了这个：
 
 ```c
 if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
@@ -691,22 +695,22 @@ if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
 }
 ```
 
-`GetUApi()` returns the input API singleton. `GetInputByName` looks up our registered action. `LocalPress()` returns `true` for exactly one frame when the key is pressed down.
+`GetUApi()` 返回输入 API 单例。`GetInputByName` 查找我们注册的操作。`LocalPress()` 在按键被按下时恰好返回一帧 `true`。
 
-### Key Name Reference
+### 按键名称参考
 
-Common key names for `<btn>`:
+`<btn>` 的常用按键名称：
 
-| Key Name | Key |
+| 按键名称 | 按键 |
 |----------|-----|
-| `kF1` through `kF12` | Function keys |
-| `kH`, `kI`, etc. | Letter keys |
-| `kNumpad0` through `kNumpad9` | Numpad |
-| `kLControl` | Left Control |
-| `kLShift` | Left Shift |
-| `kLAlt` | Left Alt |
+| `kF1` 到 `kF12` | 功能键 |
+| `kH`、`kI` 等 | 字母键 |
+| `kNumpad0` 到 `kNumpad9` | 数字键盘 |
+| `kLControl` | 左 Control |
+| `kLShift` | 左 Shift |
+| `kLAlt` | 左 Alt |
 
-Modifier combos use nesting:
+修饰键组合使用嵌套：
 
 ```xml
 <input name="UAServerInfoToggle">
@@ -716,20 +720,20 @@ Modifier combos use nesting:
 </input>
 ```
 
-This means "hold Left Control and press H."
+这意味着"按住左 Control 并按 H"。
 
 ---
 
-## Step 6: Polish
+## 步骤 6：完善
 
-### 6a: Fade In/Out Animation
+### 6a：淡入/淡出动画
 
-DayZ provides `WidgetFadeTimer` for smooth alpha transitions. Update the `ServerInfoHUD` class to use it:
+DayZ 提供 `WidgetFadeTimer` 用于平滑的透明度过渡。更新 `ServerInfoHUD` 类来使用它：
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
 {
-    // ... existing fields ...
+    // ... 现有字段 ...
 
     protected ref WidgetFadeTimer m_FadeTimer;
 
@@ -740,7 +744,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_FadeTimer = new WidgetFadeTimer();
     }
 
-    // Replace the ToggleVisibility method:
+    // 替换 ToggleVisibility 方法：
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -759,15 +763,15 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // ... rest of class ...
+    // ... 类的其余部分 ...
 };
 ```
 
-`FadeIn(widget, duration)` animates the widget's alpha from 0 to 1 over the given duration in seconds. `FadeOut` goes from 1 to 0 and hides the widget when done.
+`FadeIn(widget, duration)` 在给定的秒数内将控件的透明度从 0 动画到 1。`FadeOut` 从 1 到 0，完成后隐藏控件。
 
-### 6b: Background Panel with Alpha
+### 6b：带透明度的背景面板
 
-We already set this in the layout (`color="0 0 0 0.55"`), giving a dark overlay at 55% opacity. If you want to adjust the alpha at runtime:
+我们已经在布局中设置了这个（`color="0 0 0 0.55"`），给出 55% 不透明度的深色覆盖。如果你想在运行时调整透明度：
 
 ```c
 void SetBackgroundAlpha(float alpha)
@@ -783,20 +787,20 @@ void SetBackgroundAlpha(float alpha)
 }
 ```
 
-The `ARGB()` function takes integer values 0-255 for alpha, red, green, and blue.
+`ARGB()` 函数接受 0-255 的整数值，分别对应透明度、红、绿和蓝。
 
-### 6c: Font and Color Choices
+### 6c：字体和颜色选择
 
-DayZ ships several fonts you can reference in layouts:
+DayZ 附带了几种你可以在布局中引用的字体：
 
-| Font Path | Style |
+| 字体路径 | 风格 |
 |-----------|-------|
-| `gui/fonts/MetronBook` | Clean sans-serif (used in vanilla HUD) |
-| `gui/fonts/MetronMedium` | Bolder version of MetronBook |
-| `gui/fonts/Metron` | Thinnest variant |
-| `gui/fonts/luxuriousscript` | Decorative script (avoid for HUD) |
+| `gui/fonts/MetronBook` | 简洁的无衬线字体（用于原版 HUD） |
+| `gui/fonts/MetronMedium` | MetronBook 的加粗版本 |
+| `gui/fonts/Metron` | 最细的变体 |
+| `gui/fonts/luxuriousscript` | 装饰性手写体（避免用于 HUD） |
 
-To change text color at runtime:
+在运行时更改文本颜色：
 
 ```c
 void SetTextColor(TextWidget widget, int r, int g, int b, int a)
@@ -806,12 +810,12 @@ void SetTextColor(TextWidget widget, int r, int g, int b, int a)
 }
 ```
 
-### 6d: Respecting Other UI
+### 6d：尊重其他 UI
 
-Our `MissionHook.c` already detects when a menu is open and calls `SetMenuState(true)`. Here is a more thorough approach that checks the inventory specifically:
+我们的 `MissionHook.c` 已经检测菜单何时打开并调用 `SetMenuState(true)`。以下是一种更全面的方法，专门检查背包：
 
 ```c
-// In the OnUpdate override of modded MissionGameplay:
+// 在 modded MissionGameplay 的 OnUpdate 覆盖中：
 bool menuOpen = false;
 
 UIManager uiMgr = GetGame().GetUIManager();
@@ -822,22 +826,22 @@ if (uiMgr)
         menuOpen = true;
 }
 
-// Also check if inventory is open
+// 也检查背包是否打开
 if (uiMgr && uiMgr.FindMenu(MENU_INVENTORY))
     menuOpen = true;
 
 m_ServerInfoHUD.SetMenuState(menuOpen);
 ```
 
-This ensures your HUD hides behind the inventory screen, the pause menu, the options screen, and any other scripted menu.
+这确保你的 HUD 隐藏在背包界面、暂停菜单、选项界面和任何其他脚本菜单后面。
 
 ---
 
-## Complete Code Reference
+## 完整代码参考
 
-Below is every file in the mod, in its final form with all polish applied.
+以下是模组中每个文件的最终形式，包含所有完善的内容。
 
-### File 1: `ServerInfoHUD/mod.cpp`
+### 文件 1：`ServerInfoHUD/mod.cpp`
 
 ```cpp
 name = "Server Info HUD";
@@ -846,7 +850,7 @@ version = "1.0";
 overview = "Displays server name, player count, and in-game time.";
 ```
 
-### File 2: `ServerInfoHUD/Scripts/config.cpp`
+### 文件 2：`ServerInfoHUD/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -905,7 +909,7 @@ class CfgMods
 };
 ```
 
-### File 3: `ServerInfoHUD/Scripts/data/inputs.xml`
+### 文件 3：`ServerInfoHUD/Scripts/data/inputs.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -923,17 +927,17 @@ class CfgMods
 </modded_inputs>
 ```
 
-### File 4: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
+### 文件 4：`ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for Server Info HUD.
-// Use high numbers to avoid collisions with vanilla ERPCs and other mods.
+// Server Info HUD 的 RPC ID。
+// 使用较大的数字以避免与原版 ERPC 和其他模组冲突。
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-### File 5: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
+### 文件 5：`ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
 ```c
 modded class PlayerBase
@@ -946,7 +950,7 @@ modded class PlayerBase
     {
         super.OnRPC(sender, rpc_type, ctx);
 
-        // Only the server handles this RPC
+        // 只有服务器处理此 RPC
         if (!GetGame().IsServer())
             return;
 
@@ -961,19 +965,19 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Get server name
+        // 获取服务器名称
         string serverName = "";
         GetGame().GetHostName(serverName);
 
-        // Count players
+        // 计数玩家
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         int playerCount = players.Count();
 
-        // Get max player slots
+        // 获取最大玩家槽位
         int maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send the data back to the requesting client
+        // 将数据发送回请求客户端
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -983,7 +987,7 @@ modded class PlayerBase
 };
 ```
 
-### File 6: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
+### 文件 6：`ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
@@ -1166,7 +1170,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 
 // -----------------------------------------------
-// Client-side RPC receiver
+// 客户端 RPC 接收器
 // -----------------------------------------------
 modded class PlayerBase
 {
@@ -1216,7 +1220,7 @@ modded class PlayerBase
 };
 ```
 
-### File 7: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
+### 文件 7：`ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
 ```c
 modded class MissionGameplay
@@ -1249,7 +1253,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Detect open menus
+        // 检测打开的菜单
         bool menuOpen = false;
         UIManager uiMgr = GetGame().GetUIManager();
         if (uiMgr)
@@ -1262,7 +1266,7 @@ modded class MissionGameplay
         m_ServerInfoHUD.SetMenuState(menuOpen);
         m_ServerInfoHUD.Update(timeslice);
 
-        // Toggle key
+        // 切换按键
         if (GetUApi().GetInputByName(
             "UAServerInfoToggle"
         ).LocalPress())
@@ -1278,7 +1282,7 @@ modded class MissionGameplay
 };
 ```
 
-### File 8: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
+### 文件 8：`ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1351,16 +1355,16 @@ modded class MissionGameplay
 
 ---
 
-## Extending the HUD
+## 扩展 HUD
 
-Once you have the basic HUD working, here are natural extensions.
+一旦基本 HUD 正常工作，以下是一些自然的扩展。
 
-### Adding FPS Display
+### 添加 FPS 显示
 
-FPS can be read client-side without any RPC:
+FPS 可以在客户端直接读取，不需要任何 RPC：
 
 ```c
-// Add a TextWidget m_FPSText field and find it in Init()
+// 添加一个 TextWidget m_FPSText 字段并在 Init() 中查找它
 
 protected void RefreshFPS()
 {
@@ -1372,7 +1376,7 @@ protected void RefreshFPS()
 }
 ```
 
-Call `RefreshFPS()` alongside `RefreshTime()` in the update method. 请注意 `GetDeltaT()` returns the time of the current frame, so the FPS value will fluctuate. For a smoother display, average over several frames:
+在更新方法中与 `RefreshTime()` 一起调用 `RefreshFPS()`。注意 `GetDeltaT()` 返回当前帧的时间，因此 FPS 值会波动。为了更平滑的显示，可以在几帧内取平均值：
 
 ```c
 protected float m_FPSAccum;
@@ -1389,13 +1393,13 @@ protected void RefreshFPS()
     float avgFPS = m_FPSFrames / m_FPSAccum;
     m_FPSText.SetText("FPS: " + Math.Round(avgFPS).ToString());
 
-    // Reset every second (when main timer fires)
+    // 每秒重置（当主计时器触发时）
     m_FPSAccum = 0;
     m_FPSFrames = 0;
 }
 ```
 
-### Adding Player Position
+### 添加玩家位置
 
 ```c
 protected void RefreshPosition()
@@ -1414,9 +1418,9 @@ protected void RefreshPosition()
 }
 ```
 
-### Multiple HUD Panels
+### 多个 HUD 面板
 
-For multiple panels (compass, status, minimap), create a parent manager class that holds an array of HUD elements:
+对于多个面板（指南针、状态、小地图），创建一个持有 HUD 元素数组的父管理器类：
 
 ```c
 class HUDManager
@@ -1446,9 +1450,9 @@ class HUDManager
 };
 ```
 
-### Draggable HUD Elements
+### 可拖拽的 HUD 元素
 
-Making a widget draggable requires handling mouse events via `ScriptedWidgetEventHandler`:
+使控件可拖拽需要通过 `ScriptedWidgetEventHandler` 处理鼠标事件：
 
 ```c
 class DraggableHUD : ScriptedWidgetEventHandler
@@ -1491,30 +1495,30 @@ class DraggableHUD : ScriptedWidgetEventHandler
 };
 ```
 
-注意： for dragging to work, the widget must have `SetHandler(this)` called on it so the event handler receives events. Also, the cursor must be visible, which limits draggable HUDs to situations where a menu or edit mode is active.
+注意：要使拖拽工作，控件必须调用 `SetHandler(this)` 以便事件处理器接收事件。此外，光标必须可见，这将可拖拽的 HUD 限制在菜单或编辑模式活动的情况下。
 
 ---
 
 ## 常见错误
 
-### 1. Updating Every Frame Instead of Throttled
+### 1. 每帧更新而不是节流
 
-**Wrong:**
+**错误：**
 
 ```c
 override void OnUpdate(float timeslice)
 {
     super.OnUpdate(timeslice);
-    m_ServerInfoHUD.RefreshTime();      // Runs 60+ times per second!
-    m_ServerInfoHUD.RequestServerInfo(); // Sends 60+ RPCs per second!
+    m_ServerInfoHUD.RefreshTime();      // 每秒运行 60+ 次！
+    m_ServerInfoHUD.RequestServerInfo(); // 每秒发送 60+ 个 RPC！
 }
 ```
 
-**Right:** Use a timer accumulator (as shown in the tutorial) so expensive operations run at most once per second. HUD text that changes 每帧 (like an FPS counter) is fine to update per-frame, but RPC requests must be throttled.
+**正确：** 使用计时器累加器（如教程所示），使昂贵的操作最多每秒运行一次。每帧变化的 HUD 文本（如 FPS 计数器）可以每帧更新，但 RPC 请求必须节流。
 
-### 2. Not Cleaning Up in OnMissionFinish
+### 2. 没有在 OnMissionFinish 中清理
 
-**Wrong:**
+**错误：**
 
 ```c
 modded class MissionGameplay
@@ -1526,67 +1530,67 @@ modded class MissionGameplay
         super.OnInit();
         m_HUD = new ServerInfoHUD();
         m_HUD.Init();
-        // No cleanup anywhere -- widget leaks on disconnect!
+        // 没有任何清理——断开连接时控件泄漏！
     }
 };
 ```
 
-**Right:** Always destroy widgets and null references in `OnMissionFinish()`. The destructor (`~ServerInfoHUD`) is a safety net, but do not rely on it -- `OnMissionFinish` is the correct place for explicit cleanup.
+**正确：** 始终在 `OnMissionFinish()` 中销毁控件并将引用置为 null。析构函数（`~ServerInfoHUD`）是安全网，但不要依赖它——`OnMissionFinish` 才是显式清理的正确位置。
 
-### 3. HUD Behind Other UI Elements
+### 3. HUD 在其他 UI 元素后面
 
-Widgets created later render on top of widgets created earlier. If your HUD appears behind vanilla UI, it was created too early. Solutions:
+后创建的控件渲染在先创建的控件上面。如果你的 HUD 出现在原版 UI 后面，说明它创建得太早了。解决方案：
 
-- Create the HUD later in the initialization sequence (e.g., on the first `OnUpdate` call rather than in `OnInit`).
-- Use `m_Root.SetSort(100)` to force a higher sort order, pushing your widget above others.
+- 在初始化序列的后期创建 HUD（例如，在第一次 `OnUpdate` 调用而不是在 `OnInit` 中）。
+- 使用 `m_Root.SetSort(100)` 强制更高的排序顺序，将你的控件推到其他控件上面。
 
-### 4. Requesting Data Too Frequently (RPC Spam)
+### 4. 过于频繁地请求数据（RPC 刷屏）
 
-Sending an RPC 每帧 creates 60+ network packets per second per connected player. On a 60-player server, that is 3,600 packets per second of unnecessary traffic. Always throttle RPC requests. Once per second is reasonable for non-critical info. For data that rarely changes (like server name), you could request it only once at init and cache it.
+每帧发送一个 RPC 会为每个连接的玩家创建每秒 60+ 个网络数据包。在一个 60 人的服务器上，这是每秒 3,600 个不必要的数据包。始终节流 RPC 请求。对于非关键信息，每秒一次是合理的。对于很少变化的数据（如服务器名称），你可以只在初始化时请求一次并缓存。
 
-### 5. Forgetting the `super` Call
+### 5. 忘记调用 `super`
 
 ```c
-// WRONG: breaks vanilla HUD functionality
+// 错误：破坏原版 HUD 功能
 override void OnInit()
 {
     m_HUD = new ServerInfoHUD();
     m_HUD.Init();
-    // Missing super.OnInit()! Vanilla HUD will not initialize.
+    // 缺少 super.OnInit()！原版 HUD 将不会初始化。
 }
 ```
 
-Always call `super.OnInit()` (and `super.OnUpdate()`, `super.OnMissionFinish()`) first. Omitting the super call breaks the vanilla implementation and every other mod that hooks the same method.
+始终首先调用 `super.OnInit()`（以及 `super.OnUpdate()`、`super.OnMissionFinish()`）。省略 super 调用会破坏原版实现以及挂接同一方法的所有其他模组。
 
-### 6. Using Wrong Script Layer
+### 6. 使用错误的脚本层级
 
-If you try to reference `MissionGameplay` from `4_World`, you will get an "Undefined type" error because `5_Mission` types are not visible to `4_World`. The RPC constants go in `3_Game`, the server handler goes in `4_World` (modding `PlayerBase` which lives there), and the HUD class and mission hook go in `5_Mission`.
+如果你尝试从 `4_World` 引用 `MissionGameplay`，你会得到 "Undefined type" 错误，因为 `5_Mission` 类型对 `4_World` 不可见。RPC 常量放在 `3_Game`，服务器处理器放在 `4_World`（修改位于该层的 `PlayerBase`），HUD 类和任务钩子放在 `5_Mission`。
 
-### 7. Hardcoded Layout Path
+### 7. 硬编码的布局路径
 
-The layout path in `CreateWidgets()` is relative to the game's search paths. If your PBO prefix does not match the path string, the layout will not load and `CreateWidgets` returns NULL. Always check for NULL after `CreateWidgets` and log an error if it fails.
+`CreateWidgets()` 中的布局路径相对于游戏的搜索路径。如果你的 PBO 前缀与路径字符串不匹配，布局将无法加载，`CreateWidgets` 返回 NULL。始终在 `CreateWidgets` 后检查 NULL 并在失败时记录错误。
 
 ---
 
 ## 下一步
 
-Now that you have a working HUD overlay, consider these progressions:
+现在你有了一个可用的 HUD 覆盖层，考虑以下进阶：
 
-1. **Save user preferences** -- Store whether the HUD is visible in a local JSON file so the toggle state persists across sessions. 参见[第 4.5: Player Data](../04-scripting-guide/05-persistence.md).
-2. **Add server-side configuration** -- Let server admins enable/disable the HUD or choose which fields to show via a JSON config file.
-3. **Build an admin overlay** -- Expand the HUD to show admin-only information (server performance, entity count, restart timer) using permission checks.
-4. **Create a compass HUD** -- Use `GetGame().GetCurrentCameraDirection()` to calculate heading and display a compass bar at the top of the screen.
-5. **Study existing mods** -- Look at DayZ Expansion's quest HUD and Colorful UI's overlay system for production-quality HUD implementations.
+1. **保存用户偏好** -- 将 HUD 是否可见存储在本地 JSON 文件中，以便切换状态在会话间保持。
+2. **添加服务器端配置** -- 让服务器管理员通过 JSON 配置文件启用/禁用 HUD 或选择显示哪些字段。
+3. **构建管理员覆盖层** -- 扩展 HUD 以显示仅管理员可见的信息（服务器性能、实体数量、重启计时器），使用权限检查。
+4. **创建指南针 HUD** -- 使用 `GetGame().GetCurrentCameraDirection()` 计算朝向，并在屏幕顶部显示指南针条。
+5. **研究现有模组** -- 查看 DayZ Expansion 的任务 HUD 和 Colorful UI 的覆盖层系统，了解生产级的 HUD 实现。
 
 ---
 
 ## 最佳实践
 
-- **Throttle `OnUpdate` to 1-second intervals minimum.** Use a timer accumulator to avoid running expensive operations (RPC requests, text formatting) 60+ times per second. Only per-frame visuals like FPS counters should update 每帧.
-- **Hide the HUD when inventory or any menu is open.** Check `GetGame().GetUIManager().GetMenu()` on each update and suppress your overlay. Overlapping UI elements confuse players and block interaction.
-- **Always clean up widgets in `OnMissionFinish`.** Leaked widget roots persist across server hops, stacking ghost panels that consume memory and eventually cause visual glitches.
-- **Use `SetSort()` to control render order.** If your HUD appears behind vanilla elements, call `m_Root.SetSort(100)` to push it above. Without explicit sort order, creation timing determines layering.
-- **Cache server data that rarely changes.** The server name does not change during a session. Request it once at init and cache it locally instead of re-requesting it every second.
+- **将 `OnUpdate` 节流到至少 1 秒间隔。** 使用计时器累加器避免每秒运行 60+ 次昂贵的操作（RPC 请求、文本格式化）。只有像 FPS 计数器这样的逐帧视觉效果应该每帧更新。
+- **当背包或任何菜单打开时隐藏 HUD。** 在每次更新时检查 `GetGame().GetUIManager().GetMenu()` 并抑制你的覆盖层。重叠的 UI 元素会让玩家困惑并阻碍交互。
+- **始终在 `OnMissionFinish` 中清理控件。** 泄漏的控件根节点在服务器跳转间持续存在，堆叠幽灵面板消耗内存并最终导致视觉故障。
+- **使用 `SetSort()` 控制渲染顺序。** 如果你的 HUD 出现在原版元素后面，调用 `m_Root.SetSort(100)` 将其推到上面。没有显式的排序顺序，创建时间决定分层。
+- **缓存很少变化的服务器数据。** 服务器名称在会话期间不会改变。在初始化时请求一次并本地缓存，而不是每秒重新请求。
 
 ---
 
@@ -1594,20 +1598,20 @@ Now that you have a working HUD overlay, consider these progressions:
 
 | 概念 | 理论 | 现实 |
 |---------|--------|---------|
-| `OnUpdate(float timeslice)` | Called once per frame with the frame delta time | On a 144 FPS client, this fires 144 times per second. Sending an RPC each call creates 144 network packets/second per player. Always accumulate `timeslice` and act only when the sum exceeds your interval. |
-| `CreateWidgets()` layout path | Loads the layout from the path you provide | The path is relative to the PBO prefix, not the file system. If your PBO prefix does not match the path string, `CreateWidgets` silently returns NULL with no error in the log. |
-| `WidgetFadeTimer` | Smoothly animates widget opacity | `FadeOut` hides the widget after the animation completes, but `FadeIn` does NOT call `Show(true)` first. You must manually show the widget before calling `FadeIn`, or nothing appears. |
-| `GetUApi().GetInputByName()` | Returns the input action for your custom keybind | If `inputs.xml` is not referenced in `config.cpp` under `class inputs`, the action name is unknown and `GetInputByName` returns null, causing a crash on `.LocalPress()`. |
+| `OnUpdate(float timeslice)` | 每帧调用一次，参数为帧时间差 | 在 144 FPS 的客户端上，这每秒触发 144 次。每次调用发送一个 RPC 会为每个玩家每秒创建 144 个网络数据包。始终累积 `timeslice` 并仅在总和超过你的间隔时执行操作。 |
+| `CreateWidgets()` 布局路径 | 从你提供的路径加载布局 | 路径相对于 PBO 前缀，而不是文件系统。如果你的 PBO 前缀与路径字符串不匹配，`CreateWidgets` 静默返回 NULL，日志中没有错误。 |
+| `WidgetFadeTimer` | 平滑地动画化控件透明度 | `FadeOut` 在动画完成后隐藏控件，但 `FadeIn` 不会先调用 `Show(true)`。你必须在调用 `FadeIn` 之前手动显示控件，否则什么都不会出现。 |
+| `GetUApi().GetInputByName()` | 返回你自定义按键绑定的输入操作 | 如果 `inputs.xml` 没有在 `config.cpp` 的 `class inputs` 中引用，操作名称未知，`GetInputByName` 返回 null，导致在 `.LocalPress()` 上崩溃。 |
 
 ---
 
-## What You Learned
+## 你学到了什么
 
-In this tutorial you learned:
-- How to create a HUD layout with anchored, semi-transparent panels
-- How to build a controller class that throttles updates to a fixed interval
-- How to hook into `MissionGameplay` for HUD lifecycle management (init, update, cleanup)
-- How to request server data via RPC and display it on the client
-- How to register a custom keybind via `inputs.xml` and toggle HUD visibility with fade animations
+在本教程中你学到了：
+- 如何创建带有锚定、半透明面板的 HUD 布局
+- 如何构建将更新节流到固定间隔的控制器类
+- 如何挂接到 `MissionGameplay` 进行 HUD 生命周期管理（初始化、更新、清理）
+- 如何通过 RPC 请求服务器数据并在客户端显示
+- 如何通过 `inputs.xml` 注册自定义按键绑定，并使用淡入淡出动画切换 HUD 可见性
 
-**Previous:** [Chapter 8.7: Publishing to Steam Workshop](07-publishing-workshop.md)
+**上一章：** [第 8.7 章：发布到 Steam 创意工坊](07-publishing-workshop.md)

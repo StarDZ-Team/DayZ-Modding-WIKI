@@ -1,63 +1,67 @@
-# Chapter 8.12: Building a Trading System
+# Kapitola 8.12: Vytváření obchodního systému
 
-[Home](../../README.md) | [<< Previous: Creating Custom Clothing](11-clothing-mod.md) | **Building a Trading System** | [Next: The Diagnostic Menu >>](13-diag-menu.md)
+[Domů](../../README.md) | [<< Předchozí: Vytváření vlastního oblečení](11-clothing-mod.md) | **Vytváření obchodního systému** | [Další: Diagnostické menu >>](13-diag-menu.md)
+
+---
+
+> **Shrnutí:** Vytvořte kompletní obchodní systém bez NPC: JSON konfigurace, serverem validované nákupy/prodeje, kategorizované UI, transakce založené na měně. Nejsložitější tutoriál v této wiki -- pokrývá datové modelování, RPC roundtripy, manipulaci s inventářem a principy proti podvádění.
 
 ---
 
 ## Obsah
 
-- [What We Are Building](#what-we-are-building)
-- [Step 1: Data Model (3_Game)](#step-1-data-model-3_game)
-- [Step 2: RPC Konstanty (3_Game)](#step-2-rpc-constants-3_game)
-- [Step 3: Server-Side Shop Manager (4_World)](#step-3-server-side-shop-manager-4_world)
-- [Step 4: Client-Side Shop UI (5_Mission)](#step-4-client-side-shop-ui-5_mission)
-- [Step 5: Layout File](#step-5-layout-file)
-- [Step 6: Mission Hook and Keybind](#step-6-mission-hook-and-keybind)
-- [Step 7: Currency Item](#step-7-currency-item)
-- [Step 8: Shop Config JSON](#step-8-shop-config-json)
-- [Step 9: Build and Test](#step-9-build-and-test)
-- [Security Considerations](#security-considerations)
-- [Complete Code Reference](#complete-code-reference)
-- [Doporucene postupy / Caste chyby / What You Learned](#best-practices)
+- [Co budeme vytvářet](#what-we-are-building)
+- [Krok 1: Datový model (3_Game)](#step-1-data-model-3_game)
+- [Krok 2: RPC konstanty (3_Game)](#step-2-rpc-constants-3_game)
+- [Krok 3: Serverový Shop Manager (4_World)](#step-3-server-side-shop-manager-4_world)
+- [Krok 4: Klientské Shop UI (5_Mission)](#step-4-client-side-shop-ui-5_mission)
+- [Krok 5: Soubor layoutu](#step-5-layout-file)
+- [Krok 6: Mission hook a klávesová zkratka](#step-6-mission-hook-and-keybind)
+- [Krok 7: Měnový předmět](#step-7-currency-item)
+- [Krok 8: JSON konfigurace obchodu](#step-8-shop-config-json)
+- [Krok 9: Build a testování](#step-9-build-and-test)
+- [Bezpečnostní úvahy](#security-considerations)
+- [Kompletní reference kódu](#complete-code-reference)
+- [Doporučené postupy / Časté chyby / Co jste se naučili](#best-practices)
 
 ---
 
-## What We Are Building
+## Co budeme vytvářet
 
-Players press F6 to open a shop menu, browse items by category (Weapons, Food, Medical), and buy/sell using a currency item. The server validates every transaction -- the client never decides prices or spawns items.
+Hráči stisknou F6 pro otevření menu obchodu, procházejí předměty podle kategorie (Zbraně, Jídlo, Lékařské) a nakupují/prodávají pomocí měnového předmětu. Server validuje každou transakci -- klient nikdy nerozhoduje o cenách ani nespawnuje předměty.
 
 ```mermaid
 sequenceDiagram
-    participant P as Player (Client)
+    participant P as Hráč (Klient)
     participant UI as ShopMenu
     participant S as ShopManager (Server)
 
-    P->>UI: Opens shop (keybind)
+    P->>UI: Otevře obchod (klávesa)
     UI->>S: RPC: RequestShopData
-    S-->>UI: RPC: ShopDataResponse(categories, items)
-    UI->>UI: Populate UI with items
-    P->>UI: Clicks "Buy AKM"
+    S-->>UI: RPC: ShopDataResponse(kategorie, předměty)
+    UI->>UI: Naplní UI předměty
+    P->>UI: Klikne "Buy AKM"
     UI->>S: RPC: BuyItem("AKM")
-    S->>S: Validate currency count
-    S->>S: Delete currency items
-    S->>S: Spawn purchased item
-    S-->>UI: RPC: TransactionResult(success)
-    UI->>UI: Update balance display
+    S->>S: Validace počtu měny
+    S->>S: Smazání měnových předmětů
+    S->>S: Spawn zakoupeného předmětu
+    S-->>UI: RPC: TransactionResult(úspěch)
+    UI->>UI: Aktualizace zobrazení zůstatku
 ```
 
 ```
-CLIENT                                SERVER
-1. Press F6 --> REQUEST_SHOP_DATA ->  2. Load config, count currency
+KLIENT                                SERVER
+1. Stisk F6 --> REQUEST_SHOP_DATA ->  2. Načtení configu, počítání měny
                                          SHOP_DATA_RESPONSE ->
-3. Show categories + items
-   Click Buy --> BUY_ITEM (cls,qty) -> 4. Validate, remove currency, spawn
+3. Zobrazení kategorií + předmětů
+   Klik Buy --> BUY_ITEM (cls,qty) -> 4. Validace, odebrání měny, spawn
                                          TRANSACTION_RESULT ->
-5. Show result, update balance
+5. Zobrazení výsledku, aktualizace zůstatku
 ```
 
-**Key rule:** Client sends `(className, quantity)` only. Server looks up the price.
+**Klíčové pravidlo:** Klient posílá pouze `(className, quantity)`. Server vyhledá cenu.
 
-### Mod Structure
+### Struktura modu
 
 ```
 ShopDemo/
@@ -71,7 +75,7 @@ ShopDemo/
 
 ---
 
-## Step 1: Data Model (3_Game)
+## Krok 1: Datový model (3_Game)
 
 ### `Scripts/3_Game/ShopDemo/ShopDemoData.c`
 
@@ -100,28 +104,28 @@ class ShopConfig
 };
 ```
 
-Keep `SellPrice < BuyPrice` always to prevent infinite money loops.
+Vždy udržujte `SellPrice < BuyPrice` pro zabránění nekonečným smyčkám peněz.
 
 ---
 
-## Step 2: RPC Konstanty (3_Game)
+## Krok 2: RPC konstanty (3_Game)
 
 ### `Scripts/3_Game/ShopDemo/ShopDemoRPC.c`
 
 ```c
 class ShopDemoRPC
 {
-    static const int REQUEST_SHOP_DATA   = 79101;  // Client -> Server
+    static const int REQUEST_SHOP_DATA   = 79101;  // Klient -> Server
     static const int BUY_ITEM            = 79102;
     static const int SELL_ITEM           = 79103;
-    static const int SHOP_DATA_RESPONSE  = 79201;  // Server -> Client
+    static const int SHOP_DATA_RESPONSE  = 79201;  // Server -> Klient
     static const int TRANSACTION_RESULT  = 79202;
 };
 ```
 
 ---
 
-## Step 3: Server-Side Shop Manager (4_World)
+## Krok 3: Serverový Shop Manager (4_World)
 
 ### `Scripts/4_World/ShopDemo/ShopDemoManager.c`
 
@@ -316,7 +320,7 @@ modded class PlayerBase
         if (!player) return;
         ShopDemoManager mgr = ShopDemoManager.Get();
         ShopConfig cfg = mgr.GetConfig();
-        // Serialize: "CatName|cls,name,buy,sell;cls2,...\nCat2|..."
+        // Serializace: "CatName|cls,name,buy,sell;cls2,...\nCat2|..."
         string payload = "";
         for (int c = 0; c < cfg.Categories.Count(); c++)
         {
@@ -357,11 +361,11 @@ modded class MissionServer
 };
 ```
 
-**Key decisions:** Currency removed *before* spawning items (prevents duplication). Always `DeleteSafe()` for networked items. Quantity clamped to 1-10 to prevent abuse.
+**Klíčová rozhodnutí:** Měna odebrána *před* spawnem předmětů (zabraňuje duplikaci). Vždy `DeleteSafe()` pro síťové předměty. Množství omezeno na 1-10 pro zabránění zneužití.
 
 ---
 
-## Step 4: Client-Side Shop UI (5_Mission)
+## Krok 4: Klientské Shop UI (5_Mission)
 
 ### `Scripts/5_Mission/ShopDemo/ShopDemoMenu.c`
 
@@ -454,7 +458,7 @@ class ShopDemoMenu extends ScriptedWidgetEventHandler
             }
             m_CatItems.Insert(ci);
         }
-        // Build category buttons
+        // Vytvoření tlačítek kategorií
         if (m_CategoryPanel)
         {
             for (int b = 0; b < m_CatNames.Count(); b++)
@@ -531,11 +535,11 @@ class ShopDemoMenu extends ScriptedWidgetEventHandler
 
 ---
 
-## Step 5: Layout File
+## Krok 5: Soubor layoutu
 
 ### `GUI/layouts/shop_menu.layout`
 
-Three columns: Categories (left 20%), Items (center 46%), Details (right 26%).
+Tři sloupce: Kategorie (levých 20 %), Předměty (střed 46 %), Detaily (pravých 26 %).
 
 ```
 FrameWidgetClass ShopMenuRoot {
@@ -568,7 +572,7 @@ FrameWidgetClass ShopMenuRoot {
 
 ---
 
-## Step 6: Mission Hook and Keybind
+## Krok 6: Mission hook a klávesová zkratka
 
 ### `Scripts/5_Mission/ShopDemo/ShopDemoMission.c`
 
@@ -608,7 +612,7 @@ modded class MissionGameplay
 };
 ```
 
-For released mods, use `inputs.xml` so players can remap the key:
+Pro vydané mody použijte `inputs.xml`, aby si hráči mohli přemapovat klávesu:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -621,95 +625,95 @@ For released mods, use `inputs.xml` so players can remap the key:
 
 ---
 
-## Step 7: Currency Item
+## Krok 7: Měnový předmět
 
-You can use any existing item -- set `CurrencyClassName` to `"Rag"` in the JSON and rags become money. For a custom coin, see [Chapter 8.2: Custom Item](02-custom-item.md).
-
----
-
-## Step 8: Shop Config JSON
-
-Auto-generated at `$profile:ShopDemo/ShopConfig.json` on first server start. Edit prices, add categories/items, restart server. Always keep `SellPrice < BuyPrice`.
+Můžete použít jakýkoli existující předmět -- nastavte `CurrencyClassName` na `"Rag"` v JSON a hadry se stanou penězi. Pro vlastní minci viz [Kapitola 8.2: Vlastní předmět](02-custom-item.md).
 
 ---
 
-## Step 9: Build and Test
+## Krok 8: JSON konfigurace obchodu
 
-1. Pack `ShopDemo/` into PBO, add to server+client `@ShopDemo/addons/`, add `-mod=@ShopDemo`
-2. Spawn currency, press F6, browse, buy/sell
-3. Check server log for `[ShopDemo]` lines
+Automaticky generována v `$profile:ShopDemo/ShopConfig.json` při prvním spuštění serveru. Upravte ceny, přidejte kategorie/předměty, restartujte server. Vždy udržujte `SellPrice < BuyPrice`.
 
-| Test Case | Expected |
+---
+
+## Krok 9: Build a testování
+
+1. Zabalte `ShopDemo/` do PBO, přidejte na server+klient `@ShopDemo/addons/`, přidejte `-mod=@ShopDemo`
+2. Spawněte měnu, stiskněte F6, procházejte, nakupujte/prodávejte
+3. Zkontrolujte log serveru na řádky `[ShopDemo]`
+
+| Testovací případ | Očekáváno |
 |-----------|----------|
-| Buy with no currency | "Need X, have 0" |
-| Buy unknown class (hacked) | "Item not in shop" |
-| Sell item not owned | "You don't have that item" |
-| Inventory full on buy | Item drops on ground |
+| Nákup bez měny | "Need X, have 0" |
+| Nákup neznámé třídy (hacknuté) | "Item not in shop" |
+| Prodej předmětu, který nevlastníte | "You don't have that item" |
+| Nákup s plným inventářem | Předmět spadne na zem |
 
 ---
 
-## Security Considerations
+## Bezpečnostní úvahy
 
-1. **NEVER trust client-sent prices.** Client sends `(className, qty)` only. Server looks up price.
-2. **Delete before spawn.** Remove currency first, then create items. Prevents duplication.
-3. **Validate existence.** Confirm item is in inventory before giving sell currency.
-4. **Log everything.** Print player name, item, amount for every transaction.
-5. **Quantity bounds.** Reject `qty <= 0` or `qty > 10`.
-6. **Rate limit** in production: 500ms cooldown per player per transaction.
+1. **NIKDY nevěřte cenám odeslaným klientem.** Klient posílá pouze `(className, qty)`. Server rozhoduje o ceně.
+2. **Smazání před spawnem.** Nejprve odeberte měnu, pak vytvořte předměty. Zabraňuje duplikaci.
+3. **Validace existence.** Potvrďte, že předmět je v inventáři, než dáte měnu za prodej.
+4. **Logujte vše.** Tiskněte jméno hráče, předmět, částku pro každou transakci.
+5. **Hranice množství.** Odmítněte `qty <= 0` nebo `qty > 10`.
+6. **Omezení frekvence** v produkci: 500ms cooldown na hráče na transakci.
 
 ---
 
-## Complete Code Reference
+## Kompletní reference kódu
 
-| File | Layer | Ucel |
+| Soubor | Vrstva | Účel |
 |------|-------|---------|
-| `ShopDemoRPC.c` | 3_Game | RPC ID constants |
-| `ShopDemoData.c` | 3_Game | Data classes: ShopItem, ShopKategorie, ShopConfig |
-| `ShopDemoManager.c` | 4_World | Server: config, buy/sell logic, inventory, RPC handlers |
-| `ShopDemoMenu.c` | 5_Mission | Client: UI, dynamic widgets, RPC send/receive |
-| `ShopDemoMission.c` | 5_Mission | Mission hook: init, keybind, RPC routing |
-| `shop_menu.layout` | GUI | 3-panel layout |
+| `ShopDemoRPC.c` | 3_Game | Konstanty RPC ID |
+| `ShopDemoData.c` | 3_Game | Datové třídy: ShopItem, ShopCategory, ShopConfig |
+| `ShopDemoManager.c` | 4_World | Server: konfigurace, logika nákupu/prodeje, inventář, RPC handlery |
+| `ShopDemoMenu.c` | 5_Mission | Klient: UI, dynamické widgety, odesílání/příjem RPC |
+| `ShopDemoMission.c` | 5_Mission | Mission hook: init, klávesová zkratka, routování RPC |
+| `shop_menu.layout` | GUI | Layout se 3 panely |
 
 ---
 
-## Doporucene postupy
+## Doporučené postupy
 
-- **Server is the single source of truth.** Client is a display terminal.
-- **Use `DeleteSafe()` not `Delete()`.** Handles network sync and locked slots.
-- **Data classes in 3_Game.** Visible to both 4_World and 5_Mission.
-- **Always call `super` in overrides.** Breaking the chain breaks other mods.
-- **Clean up dynamic widgets.** Every `CreateWidget` needs `Unlink` on close.
+- **Server je jediný zdroj pravdy.** Klient je zobrazovací terminál.
+- **Používejte `DeleteSafe()` místo `Delete()`.** Zpracovává síťovou synchronizaci a zamčené sloty.
+- **Datové třídy v 3_Game.** Viditelné pro 4_World i 5_Mission.
+- **Vždy volejte `super` v přepsáních.** Přerušení řetězce rozbije ostatní mody.
+- **Úklid dynamických widgetů.** Každý `CreateWidget` potřebuje `Unlink` při zavření.
 
 ## Teorie vs praxe
 
 | Koncept | Teorie | Realita |
 |---------|--------|---------|
-| `JsonFileLoader.LoadFile()` | Loads cleanly | Trailing commas cause silent failures. Validate JSON externally. |
-| String RPC serialization | Simple | 500+ items may hit size limits. Paginate for large shops. |
-| `CreateInInventory()` | Always works | Vraci null if inventory full. Always check. |
-| Listen server testing | Fast iteration | Hides network bugs. Test on dedicated server. |
+| `JsonFileLoader.LoadFile()` | Načte čistě | Koncové čárky způsobují tiché selhání. Validujte JSON externě. |
+| Řetězcová serializace RPC | Jednoduchá | 500+ předmětů může narazit na limity velikosti. Pro velké obchody stránkujte. |
+| `CreateInInventory()` | Vždy funguje | Vrací null pokud je inventář plný. Vždy kontrolujte. |
+| Testování na listen serveru | Rychlá iterace | Skrývá síťové chyby. Testujte na dedikovaném serveru. |
 
-## What You Learned
+## Co jste se naučili
 
-- JSON config loading with `JsonFileLoader<T>` and auto-generation of defaults
-- Singleton pattern for server-side game managers
-- Inventory enumeration, counting, deletion (`DeleteSafe`), and spawning
-- String serialization of complex data over RPC (categories, items, prices)
-- Dynamic widget creation for data-driven UI
-- Full buy/sell transaction flow with server-only authority
-- Security principles for multiplayer economy systems
+- Načítání JSON konfigurace s `JsonFileLoader<T>` a automatické generování výchozích hodnot
+- Vzor singletonu pro serverové herní manažery
+- Výčet inventáře, počítání, mazání (`DeleteSafe`) a spawning
+- Řetězcová serializace složitých dat přes RPC (kategorie, předměty, ceny)
+- Dynamická tvorba widgetů pro datově řízené UI
+- Kompletní tok transakce nákupu/prodeje s autoritou pouze na serveru
+- Bezpečnostní principy pro multiplayerové ekonomické systémy
 
-## Caste chyby
+## Časté chyby
 
 | Chyba | Oprava |
 |---------|-----|
-| Client sends price | Send `(className, qty)` only. Server decides price. |
-| Spawn before paying | Remove currency first, then create items. |
-| Skip `super.OnRPC()` | Always call super -- other mods need the chain. |
-| `Delete()` on networked items | Use `DeleteSafe()`. |
-| Ignore `CreateInInventory` return | Check for null, fall back to ground spawn. |
-| Redeclare vars in else-if | Declare once before the if-chain (Enforce Script rule). |
+| Klient posílá cenu | Posílejte pouze `(className, qty)`. Server rozhoduje o ceně. |
+| Spawn před zaplacením | Nejprve odeberte měnu, pak vytvořte předměty. |
+| Vynechání `super.OnRPC()` | Vždy volejte super -- ostatní mody potřebují řetězec. |
+| `Delete()` na síťových předmětech | Používejte `DeleteSafe()`. |
+| Ignorování návratu `CreateInInventory` | Kontrolujte null, záložní spawn na zem. |
+| Opětovná deklarace proměnných v else-if | Deklarujte jednou před if-řetězcem (pravidlo Enforce Script). |
 
 ---
 
-**Predchozi:** [Chapter 8.11: Clothing Mod](11-clothing-mod.md)
+**Předchozí:** [Kapitola 8.11: Mod oblečení](11-clothing-mod.md)

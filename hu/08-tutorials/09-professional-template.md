@@ -1,134 +1,134 @@
-# Chapter 8.9: Professional Mod Template
+# 8.9. fejezet: Professzionális mod sablon
 
-[Home](../../README.md) | [<< Previous: Building a HUD Overlay](08-hud-overlay.md) | **Professional Mod Template** | [Next: Creating a Custom Vehicle >>](10-vehicle-mod.md)
+[Főoldal](../../README.md) | [<< Előző: HUD overlay építése](08-hud-overlay.md) | **Professzionális mod sablon** | [Következő: Egyéni jármű készítése >>](10-vehicle-mod.md)
 
 ---
 
-## Tartalomjegyzek
+## Tartalomjegyzék
 
-- [Attekintes](#overview)
-- [Complete Directory Structure](#complete-directory-structure)
+- [Áttekintés](#áttekintés)
+- [Teljes könyvtárstruktúra](#teljes-könyvtárstruktúra)
 - [mod.cpp](#modcpp)
 - [config.cpp](#configcpp)
-- [Konstansok File (3_Game)](#constants-file-3_game)
-- [Config Data Class (3_Game)](#config-data-class-3_game)
-- [RPC Definitions (3_Game)](#rpc-definitions-3_game)
-- [Manager Singleton (4_World)](#manager-singleton-4_world)
-- [Player Event Handler (4_World)](#player-event-handler-4_world)
-- [Mission Hook: Server (5_Mission)](#mission-hook-server-5_mission)
-- [Mission Hook: Client (5_Mission)](#mission-hook-client-5_mission)
-- [UI Panel Script (5_Mission)](#ui-panel-script-5_mission)
-- [Layout File](#layout-file)
+- [Konstansok fájl (3_Game)](#konstansok-fájl-3_game)
+- [Config adat osztály (3_Game)](#config-adat-osztály-3_game)
+- [RPC definíciók (3_Game)](#rpc-definíciók-3_game)
+- [Manager szingleton (4_World)](#manager-szingleton-4_world)
+- [Játékos eseménykezelő (4_World)](#játékos-eseménykezelő-4_world)
+- [Mission hook: szerver (5_Mission)](#mission-hook-szerver-5_mission)
+- [Mission hook: kliens (5_Mission)](#mission-hook-kliens-5_mission)
+- [UI panel szkript (5_Mission)](#ui-panel-szkript-5_mission)
+- [Layout fájl](#layout-fájl)
 - [stringtable.csv](#stringtablecsv)
 - [Inputs.xml](#inputsxml)
-- [Build Script](#build-script)
-- [Customization Guide](#customization-guide)
-- [Funkcio Expansion Guide](#feature-expansion-guide)
-- [Kovetkezo lepesek](#next-steps)
+- [Build szkript](#build-szkript)
+- [Testreszabási útmutató](#testreszabási-útmutató)
+- [Funkció bővítési útmutató](#funkció-bővítési-útmutató)
+- [Következő lépések](#következő-lépések)
 
 ---
 
-## Attekintes
+## Áttekintés
 
-A "Hello World" mod proves the toolchain works. A professional mod needs much more:
+Egy "Hello World" mod bizonyítja, hogy az eszközlánc működik. Egy professzionális mod sokkal többet igényel:
 
-| Concern | Hello World | Professional Template |
+| Szempont | Hello World | Professzionális sablon |
 |---------|-------------|----------------------|
-| Configuration | Hardcoded values | JSON config with load/save/defaults |
-| Communication | Print statements | String-routed RPC (client to server and back) |
-| Architecture | One file, one function | Singleton manager, layered scripts, clean lifecycle |
-| User interface | None | Layout-driven UI panel with open/close |
-| Input binding | None | Custom keybind in Options > Controls |
-| Localization | None | stringtable.csv with 13 languages |
-| Build pipeline | Manual Addon Builder | One-click batch script |
-| Cleanup | None | Proper shutdown on mission end, no leaks |
+| Konfiguráció | Hardkódolt értékek | JSON config betöltéssel/mentéssel/alapértékekkel |
+| Kommunikáció | Print utasítások | Sztring-útválasztott RPC (kliens és szerver között) |
+| Architektúra | Egy fájl, egy függvény | Szingleton manager, réteges szkriptek, tiszta életciklus |
+| Felhasználói felület | Nincs | Layout-vezérelt UI panel nyitás/zárással |
+| Input kötés | Nincs | Egyéni billentyűkötés az Opciók > Vezérlők menüben |
+| Lokalizáció | Nincs | stringtable.csv 13 nyelven |
+| Build folyamat | Manuális Addon Builder | Egy kattintásos batch szkript |
+| Takarítás | Nincs | Megfelelő leállítás a mission végén, nincs szivárgás |
 
-This template gives you all of these out of the box. You rename the identifiers, delete the systems you do not need, and start building your actual feature on a solid foundation.
+Ez a sablon mindezt megadja azonnal. Átnevezed az azonosítókat, törlöd a nem szükséges rendszereket, és elkezded a tényleges funkciód építését szilárd alapokon.
 
 ---
 
-## Complete Directory Structure
+## Teljes könyvtárstruktúra
 
-This is the full source layout. Every file listed below is provided as a complete template in this chapter.
+Ez a teljes forrás elrendezés. Minden alább felsorolt fájl teljes sablonként van megadva ebben a fejezetben.
 
 ```
-MyProfessionalMod/                          <-- Source root (lives on P: drive)
-    mod.cpp                                 <-- Launcher metadata
+MyProfessionalMod/                          <-- Forrás gyökér (a P: meghajtón él)
+    mod.cpp                                 <-- Indító metaadatok
     Scripts/
-        config.cpp                          <-- Engine registration (CfgPatches + CfgMods)
-        Inputs.xml                          <-- Keybind definitions
-        stringtable.csv                     <-- Localized strings (13 languages)
+        config.cpp                          <-- Motor regisztráció (CfgPatches + CfgMods)
+        Inputs.xml                          <-- Billentyűkötés definíciók
+        stringtable.csv                     <-- Lokalizált sztringek (13 nyelv)
         3_Game/
             MyMod/
-                MyModConstants.c            <-- Enums, version string, shared constants
-                MyModConfig.c               <-- JSON-serializable config with defaults
-                MyModRPC.c                  <-- RPC route names and registration
+                MyModConstants.c            <-- Enumok, verzió sztring, megosztott konstansok
+                MyModConfig.c               <-- JSON-szerializálható config alapértékekkel
+                MyModRPC.c                  <-- RPC útvonal nevek és regisztráció
         4_World/
             MyMod/
-                MyModManager.c              <-- Singleton manager (lifecycle, config, state)
-                MyModPlayerHandler.c        <-- Player connect/disconnect hooks
+                MyModManager.c              <-- Szingleton manager (életciklus, config, állapot)
+                MyModPlayerHandler.c        <-- Játékos csatlakozás/lecsatlakozás hookok
         5_Mission/
             MyMod/
-                MyModMissionServer.c        <-- modded MissionServer (server init/shutdown)
-                MyModMissionClient.c        <-- modded MissionGameplay (client init/shutdown)
-                MyModUI.c                   <-- UI panel script (open/close/populate)
+                MyModMissionServer.c        <-- modolt MissionServer (szerver init/leállítás)
+                MyModMissionClient.c        <-- modolt MissionGameplay (kliens init/leállítás)
+                MyModUI.c                   <-- UI panel szkript (nyitás/zárás/feltöltés)
         GUI/
             layouts/
-                MyModPanel.layout           <-- UI layout definition
-    build.bat                               <-- PBO packing automation
+                MyModPanel.layout           <-- UI layout definíció
+    build.bat                               <-- PBO csomagolás automatizálás
 
-After building, the distributable mod folder looks like this:
+Összeállítás után a terjeszthető mod mappa így néz ki:
 
-@MyProfessionalMod/                         <-- What goes on the server / Workshop
+@MyProfessionalMod/                         <-- Ami a szerverre / Workshop-ra kerül
     mod.cpp
     addons/
-        MyProfessionalMod_Scripts.pbo       <-- Packed from Scripts/
+        MyProfessionalMod_Scripts.pbo       <-- Scripts/-ból csomagolva
     keys/
-        MyMod.bikey                         <-- Key for signed servers
-    meta.cpp                                <-- Workshop metadata (auto-generated)
+        MyMod.bikey                         <-- Kulcs aláírt szerverekhez
+    meta.cpp                                <-- Workshop metaadat (automatikusan generált)
 ```
 
 ---
 
 ## mod.cpp
 
-This file controls what players see in the DayZ launcher. It is placed at the mod root, **not** inside `Scripts/`.
+Ez a fájl szabályozza, mit látnak a játékosok a DayZ indítóban. A mod gyökerében van elhelyezve, **nem** a `Scripts/` mappában.
 
 ```cpp
 // ==========================================================================
-// mod.cpp - Mod identity for the DayZ launcher
-// This file is read by the launcher to display mod info in the mod list.
-// It is NOT compiled by the script engine -- it is pure metadata.
+// mod.cpp - Mod azonosság a DayZ indítóhoz
+// Ezt a fájlt az indító olvassa a mod információk megjelenítéséhez a mod listában.
+// NEM a szkript motor fordítja -- tisztán metaadat.
 // ==========================================================================
 
-// Display name shown in the launcher mod list and in-game mod screen.
+// Az indító mod listájában és a játékon belüli mod képernyőn megjelenő név.
 name         = "My Professional Mod";
 
-// Your name or team name. Shows in the "Author" column.
+// A neved vagy csapatod neve. A "Szerző" oszlopban jelenik meg.
 author       = "YourName";
 
-// Semantic version string. Update this with every release.
-// The launcher displays this so players know which version they have.
+// Szemantikus verzió sztring. Frissítsd minden kiadásnál.
+// Az indító megjeleníti, hogy a játékosok tudják, melyik verziójuk van.
 version      = "1.0.0";
 
-// Short description shown when hovering over the mod in the launcher.
-// Keep it under 200 characters for readability.
+// Rövid leírás, ami a mod fölé húzva jelenik meg az indítóban.
+// Tartsd 200 karakter alatt az olvashatóság érdekében.
 overview     = "A professional mod template with config, RPC, UI, and keybinds.";
 
-// Tooltip shown on hover. Usually matches the mod name.
+// Tooltip, ami hover-re jelenik meg. Általában megegyezik a mod nevével.
 tooltipOwned = "My Professional Mod";
 
-// Optional: path to a preview image (relative to mod root).
-// Recommended size: 256x256 or 512x512, PAA or EDDS format.
-// Leave empty if you have no image yet.
+// Opcionális: útvonal egy előnézeti képhez (mod gyökéréhez relatív).
+// Ajánlott méret: 256x256 vagy 512x512, PAA vagy EDDS formátum.
+// Hagyd üresen, ha még nincs képed.
 picture      = "";
 
-// Optional: logo displayed in the mod details panel.
+// Opcionális: logó megjelenítve a mod részletek panelen.
 logo         = "";
 logoSmall    = "";
 logoOver     = "";
 
-// Optional: URL opened when the player clicks "Website" in the launcher.
+// Opcionális: URL, ami megnyílik, amikor a játékos a "Weboldal" gombra kattint az indítóban.
 action       = "";
 actionURL    = "";
 ```
@@ -137,41 +137,41 @@ actionURL    = "";
 
 ## config.cpp
 
-This is the most critical file. It registers your mod with the engine, declares dependencies, wires up script layers, and optionally sets preprocessor defines and image sets.
+Ez a legkritikusabb fájl. Regisztrálja a mododat a motorral, deklarálja a függőségeket, összeköti a szkript rétegeket, és opcionálisan beállít előfeldolgozó definíciókat és képkészleteket.
 
-Place this at `Scripts/config.cpp`.
+Helyezd el itt: `Scripts/config.cpp`.
 
 ```cpp
 // ==========================================================================
-// config.cpp - Engine registration
-// The DayZ engine reads this to know what your mod provides.
-// Two sections matter: CfgPatches (dependency graph) and CfgMods (script loading).
+// config.cpp - Motor regisztráció
+// A DayZ motor ezt olvassa, hogy megtudja, mit biztosít a modod.
+// Két szekció fontos: CfgPatches (függőségi gráf) és CfgMods (szkript betöltés).
 // ==========================================================================
 
 // --------------------------------------------------------------------------
-// CfgPatches - Dependency Declaration
-// The engine uses this to determine load order. If your mod depends on
-// another mod, list that mod's CfgPatches class in requiredAddons[].
+// CfgPatches - Függőség deklaráció
+// A motor ezt használja a betöltési sorrend meghatározásához. Ha a modod függ
+// egy másik modtól, listázd annak CfgPatches osztályát a requiredAddons[]-ben.
 // --------------------------------------------------------------------------
 class CfgPatches
 {
-    // Class name MUST be globally unique across all mods.
-    // Convention: ModName_Scripts (matches the PBO name).
+    // Az osztálynévnek globálisan egyedinek KELL lennie az összes mod között.
+    // Konvenció: ModNév_Scripts (megegyezik a PBO névvel).
     class MyMod_Scripts
     {
-        // units[] and weapons[] declare config classes defined by this addon.
-        // For script-only mods, leave these empty. They are used by mods
-        // that define new items, weapons, or vehicles in config.cpp.
+        // units[] és weapons[] az addon által definiált config osztályokat deklarálják.
+        // Csak-szkript modoknál hagyd ezeket üresen. Azok a modok használják,
+        // amelyek új tárgyakat, fegyvereket vagy járműveket definiálnak a config.cpp-ben.
         units[] = {};
         weapons[] = {};
 
-        // Minimum engine version. 0.1 works for all current DayZ versions.
+        // Minimum motor verzió. 0.1 működik minden jelenlegi DayZ verzióhoz.
         requiredVersion = 0.1;
 
-        // Dependencies: list CfgPatches class names from other mods.
-        // "DZ_Data" is the base game -- every mod should depend on it.
-        // Add "CF_Scripts" if you use Community Framework.
-        // Add other mod patches if you extend them.
+        // Függőségek: listázd a CfgPatches osztályneveket más modokból.
+        // "DZ_Data" az alapjáték -- minden modnak függenie kell tőle.
+        // Add hozzá a "CF_Scripts"-et, ha Community Framework-öt használsz.
+        // Add hozzá más mod javításokat, ha kiterjeszted őket.
         requiredAddons[] =
         {
             "DZ_Data"
@@ -180,58 +180,58 @@ class CfgPatches
 };
 
 // --------------------------------------------------------------------------
-// CfgMods - Script Module Registration
-// Tells the engine where each script layer lives and what defines to set.
+// CfgMods - Szkript modul regisztráció
+// Megmondja a motornak, hol él az egyes szkript rétegek és milyen definíciókat kell beállítani.
 // --------------------------------------------------------------------------
 class CfgMods
 {
-    // Class name here is your mod's internal identifier.
-    // It does NOT need to match CfgPatches -- but keeping them related
-    // makes the codebase easier to navigate.
+    // Az osztálynév itt a modod belső azonosítója.
+    // NEM kell egyeznie a CfgPatches-szel -- de ha összefüggőnek tartod őket,
+    // könnyebben navigálható a kódbázis.
     class MyMod
     {
-        // dir: the folder name on the P: drive (or in the PBO).
-        // Must match your actual root folder name exactly.
+        // dir: a mappa neve a P: meghajtón (vagy a PBO-ban).
+        // Pontosan egyeznie kell a valódi gyökérmappa neveddel.
         dir = "MyProfessionalMod";
 
-        // Display name (shown in Workbench and some engine logs).
+        // Megjelenítési név (a Workbench-ben és néhány motor naplóban jelenik meg).
         name = "My Professional Mod";
 
-        // Author and description for engine metadata.
+        // Szerző és leírás motor metaadatokhoz.
         author = "YourName";
         overview = "Professional mod template";
 
-        // Mod type. Always "mod" for script mods.
+        // Mod típus. Mindig "mod" szkript modoknál.
         type = "mod";
 
-        // credits: optional path to a Credits.json file.
+        // credits: opcionális útvonal egy Credits.json fájlhoz.
         // creditsJson = "MyProfessionalMod/Scripts/Credits.json";
 
-        // inputs: path to your Inputs.xml for custom keybinds.
-        // This MUST be set here for the engine to load your keybinds.
+        // inputs: útvonal az Inputs.xml fájlodhoz egyéni billentyűkötésekhez.
+        // Ezt ITT KELL beállítani, hogy a motor betöltse a billentyűkötéseidet.
         inputs = "MyProfessionalMod/Scripts/Inputs.xml";
 
-        // defines: preprocessor symbols set when your mod is loaded.
-        // Other mods can use #ifdef MYMOD to detect your mod's presence
-        // and conditionally compile integration code.
+        // defines: előfeldolgozó szimbólumok, amelyek a modod betöltésekor vannak beállítva.
+        // Más modok használhatják az #ifdef MYMOD feltételt a modod jelenlétének
+        // észlelésére és feltételes integrációs kód fordítására.
         defines[] = { "MYMOD" };
 
-        // dependencies: which vanilla script modules your mod hooks into.
+        // dependencies: melyik vanilla szkript modulokba hookol be a modod.
         // "Game" = 3_Game, "World" = 4_World, "Mission" = 5_Mission.
-        // Most mods need all three. Add "Core" only if you use 1_Core.
+        // A legtöbb modnak mindháromra szüksége van. A "Core"-t csak akkor add hozzá, ha 1_Core-t használsz.
         dependencies[] =
         {
             "Game", "World", "Mission"
         };
 
-        // defs: maps each script module to its folder on disk.
-        // The engine compiles all .c files found recursively in these paths.
-        // There is no #include in Enforce Script -- this is how files are loaded.
+        // defs: leképezi az egyes szkript modulokat a lemezen lévő mappájukra.
+        // A motor rekurzívan fordítja az összes .c fájlt ezekben az útvonalakban.
+        // Nincs #include az Enforce Script-ben -- a fájlok így töltődnek be.
         class defs
         {
-            // imageSets: register .imageset files for use in layouts.
-            // Only needed if you have custom icons/textures for UI.
-            // Uncomment and update paths if you add an imageset.
+            // imageSets: regisztrálj .imageset fájlokat layoutokban való használathoz.
+            // Csak akkor szükséges, ha egyéni ikonokkal/textúrákkal rendelkezel az UI-hoz.
+            // Vedd ki a megjegyzést és frissítsd az útvonalakat, ha imageset-et adsz hozzá.
             //
             // class imageSets
             // {
@@ -241,27 +241,27 @@ class CfgMods
             //     };
             // };
 
-            // Game layer (3_Game): loads first.
-            // Place enums, constants, config classes, RPC definitions here.
-            // CANNOT reference types from 4_World or 5_Mission.
+            // Game réteg (3_Game): elsőként töltődik be.
+            // Enumok, konstansok, config osztályok, RPC definíciók ide kerülnek.
+            // NEM hivatkozhat 4_World vagy 5_Mission típusokra.
             class gameScriptModule
             {
                 value = "";
                 files[] = { "MyProfessionalMod/Scripts/3_Game" };
             };
 
-            // World layer (4_World): loads second.
-            // Place managers, entity modifications, world interactions here.
-            // CAN reference 3_Game types. CANNOT reference 5_Mission types.
+            // World réteg (4_World): másodikként töltődik be.
+            // Managerek, entitás módosítások, világ interakciók ide kerülnek.
+            // HIVATKOZHAT 3_Game típusokra. NEM hivatkozhat 5_Mission típusokra.
             class worldScriptModule
             {
                 value = "";
                 files[] = { "MyProfessionalMod/Scripts/4_World" };
             };
 
-            // Mission layer (5_Mission): loads last.
-            // Place mission hooks, UI panels, startup/shutdown logic here.
-            // CAN reference types from all lower layers.
+            // Mission réteg (5_Mission): utolsóként töltődik be.
+            // Mission hookok, UI panelek, indítás/leállítás logika ide kerül.
+            // HIVATKOZHAT az összes alacsonyabb réteg típusaira.
             class missionScriptModule
             {
                 value = "";
@@ -274,54 +274,54 @@ class CfgMods
 
 ---
 
-## Konstansok File (3_Game)
+## Konstansok fájl (3_Game)
 
-Place at `Scripts/3_Game/MyMod/MyModKonstansok.c`.
+Helyezd el itt: `Scripts/3_Game/MyMod/MyModConstants.c`.
 
-This file defines all shared constants, enums, and the version string. It lives in `3_Game` so every higher layer can access these values.
+Ez a fájl definiálja az összes megosztott konstanst, enumot és a verzió sztringet. A `3_Game`-ben van, hogy minden magasabb réteg hozzáférhessen ezekhez az értékekhez.
 
 ```c
 // ==========================================================================
-// MyModConstants.c - Shared constants and enums
-// 3_Game layer: available to all higher layers (4_World, 5_Mission).
+// MyModConstants.c - Megosztott konstansok és enumok
+// 3_Game réteg: minden magasabb réteg számára elérhető (4_World, 5_Mission).
 //
-// WHY this file exists:
-//   Centralizing constants prevents magic numbers scattered across files.
-//   Enums give compile-time safety instead of raw int comparisons.
-//   The version string is defined once and used in logs and UI.
+// MIÉRT létezik ez a fájl:
+//   A konstansok központosítása megakadályozza a fájlok közötti szétszórt mágikus számokat.
+//   Az enumok fordítási idejű biztonságot adnak nyers int összehasonlítások helyett.
+//   A verzió sztring egyszer van definiálva és naplókban meg UI-ban van használva.
 // ==========================================================================
 
 // ---------------------------------------------------------------------------
-// Version - update this with every release
+// Verzió - frissítsd minden kiadásnál
 // ---------------------------------------------------------------------------
 const string MYMOD_VERSION = "1.0.0";
 
 // ---------------------------------------------------------------------------
-// Log tag - prefix for all Print/log messages from this mod
-// Using a consistent tag makes it easy to filter the script log.
+// Napló címke - előtag az összes Print/napló üzenethez ebből a modból
+// Következetes címke használata megkönnyíti a szkript napló szűrését.
 // ---------------------------------------------------------------------------
 const string MYMOD_TAG = "[MyMod]";
 
 // ---------------------------------------------------------------------------
-// File paths - centralized so typos are caught in one place
-// $profile: resolves to the server's profile directory at runtime.
+// Fájlútvonalak - központosítva, hogy az elgépelések egy helyen derüljenek ki
+// $profile: futásidőben a szerver profil könyvtárára oldódik fel.
 // ---------------------------------------------------------------------------
 const string MYMOD_CONFIG_DIR  = "$profile:MyMod";
 const string MYMOD_CONFIG_PATH = "$profile:MyMod/config.json";
 
 // ---------------------------------------------------------------------------
-// Enum: Feature modes
-// Use enums instead of raw ints for readability and compile-time checks.
+// Enum: funkció módok
+// Használj enumokat nyers int-ek helyett olvashatóságért és fordítási idejű ellenőrzésekért.
 // ---------------------------------------------------------------------------
 enum MyModMode
 {
-    DISABLED = 0,    // Feature is off
-    PASSIVE  = 1,    // Feature runs but does not interfere
-    ACTIVE   = 2     // Feature is fully enabled
+    DISABLED = 0,    // A funkció ki van kapcsolva
+    PASSIVE  = 1,    // A funkció fut, de nem avatkozik be
+    ACTIVE   = 2     // A funkció teljesen engedélyezve van
 };
 
 // ---------------------------------------------------------------------------
-// Enum: Notification types (used by UI to pick icon/color)
+// Enum: értesítés típusok (az UI használja ikon/szín kiválasztáshoz)
 // ---------------------------------------------------------------------------
 enum MyModNotifyType
 {
@@ -334,82 +334,82 @@ enum MyModNotifyType
 
 ---
 
-## Config Data Class (3_Game)
+## Config adat osztály (3_Game)
 
-Place at `Scripts/3_Game/MyMod/MyModConfig.c`.
+Helyezd el itt: `Scripts/3_Game/MyMod/MyModConfig.c`.
 
-This is a JSON-serializable settings class. The server loads it on startup. If no file exists, defaults are used and a fresh config is saved to disk.
+Ez egy JSON-szerializálható beállítás osztály. A szerver indításkor tölti be. Ha nem létezik fájl, az alapértékek használatosak és egy friss config mentésre kerül a lemezre.
 
 ```c
 // ==========================================================================
-// MyModConfig.c - JSON configuration with defaults
-// 3_Game layer so both 4_World managers and 5_Mission hooks can read it.
+// MyModConfig.c - JSON konfiguráció alapértékekkel
+// 3_Game réteg, hogy mind a 4_World managerek, mind az 5_Mission hookok olvashassák.
 //
-// HOW IT WORKS:
-//   JsonFileLoader<MyModConfig> uses Enforce Script's built-in JSON
-//   serializer. Every field with a default value is written to / read from
-//   the JSON file. Adding a new field is safe -- old config files simply
-//   get the default value for any missing fields.
+// HOGYAN MŰKÖDIK:
+//   A JsonFileLoader<MyModConfig> az Enforce Script beépített JSON
+//   szerializálóját használja. Minden alapértékkel rendelkező mező a JSON
+//   fájlba írásra / fájlból olvasásra kerül. Új mező hozzáadása biztonságos --
+//   a régi config fájlok egyszerűen megkapják az alapértéket a hiányzó mezőkhöz.
 //
-// ENFORCE SCRIPT GOTCHA:
-//   JsonFileLoader<T>.JsonLoadFile(path, obj) returns VOID.
-//   You CANNOT do: if (JsonFileLoader<T>.JsonLoadFile(...)) -- it will not compile.
-//   Always pass a pre-created object by reference.
+// ENFORCE SCRIPT BUKTATÓ:
+//   A JsonFileLoader<T>.JsonLoadFile(path, obj) VOID-ot ad vissza.
+//   NEM teheted: if (JsonFileLoader<T>.JsonLoadFile(...)) -- nem fordul le.
+//   Mindig előre létrehozott objektumot adj át referencia szerint.
 // ==========================================================================
 
 class MyModConfig
 {
-    // --- General Settings ---
+    // --- Általános beállítások ---
 
-    // Master switch: if false, the entire mod is disabled.
+    // Főkapcsoló: ha false, az egész mod le van tiltva.
     bool Enabled = true;
 
-    // How often (in seconds) the manager runs its update tick.
-    // Lower values = more responsive but higher CPU cost.
+    // Milyen gyakran (másodpercben) futtatja a manager a frissítési ciklusát.
+    // Alacsonyabb értékek = reaktívabb, de magasabb CPU költség.
     float UpdateInterval = 5.0;
 
-    // Maximum number of items/entities this mod manages simultaneously.
+    // A mod által egyidejűleg kezelt tárgyak/entitások maximális száma.
     int MaxItems = 100;
 
-    // Mode: 0 = DISABLED, 1 = PASSIVE, 2 = ACTIVE (see MyModMode enum).
+    // Mód: 0 = DISABLED, 1 = PASSIVE, 2 = ACTIVE (lásd MyModMode enum).
     int Mode = 2;
 
-    // --- Messages ---
+    // --- Üzenetek ---
 
-    // Welcome message shown to players when they connect.
-    // Empty string = no message.
+    // Üdvözlő üzenet, ami a játékosoknak jelenik meg csatlakozáskor.
+    // Üres sztring = nincs üzenet.
     string WelcomeMessage = "Welcome to the server!";
 
-    // Whether to show the welcome message as a notification or chat message.
+    // Az üdvözlő üzenet értesítésként vagy chat üzenetként jelenjen-e meg.
     bool WelcomeAsNotification = true;
 
-    // --- Logging ---
+    // --- Naplózás ---
 
-    // Enable verbose debug logging. Turn off for production servers.
+    // Részletes debug naplózás engedélyezése. Éles szervereknél kapcsold ki.
     bool DebugLogging = false;
 
     // -----------------------------------------------------------------------
-    // Load - reads config from disk, returns instance with defaults if missing
+    // Load - configot olvas a lemezről, alapértékekkel tér vissza, ha hiányzik
     // -----------------------------------------------------------------------
     static MyModConfig Load()
     {
-        // Always create a fresh instance first. This ensures all defaults
-        // are set even if the JSON file is missing fields (e.g., after
-        // an update that added new settings).
+        // Mindig először hozz létre friss példányt. Ez biztosítja, hogy minden
+        // alapérték be legyen állítva, még ha a JSON fájlból hiányoznak mezők
+        // (pl. egy frissítés után, ami új beállításokat adott hozzá).
         MyModConfig cfg = new MyModConfig();
 
-        // Check if the config file exists before trying to load.
-        // On first run, it will not exist -- we use defaults and save.
+        // Ellenőrizd, hogy létezik-e a config fájl a betöltés megkísérlése előtt.
+        // Első futásnál nem fog létezni -- alapértékeket használunk és mentünk.
         if (FileExist(MYMOD_CONFIG_PATH))
         {
-            // JsonLoadFile populates the existing object. It does NOT return
-            // a new object. Fields present in the JSON overwrite defaults;
-            // fields missing from the JSON keep their default values.
+            // A JsonLoadFile feltölti a meglévő objektumot. NEM ad vissza
+            // új objektumot. A JSON-ban jelen lévő mezők felülírják az alapértékeket;
+            // a JSON-ból hiányzó mezők megtartják az alapértékeiket.
             JsonFileLoader<MyModConfig>.JsonLoadFile(MYMOD_CONFIG_PATH, cfg);
         }
         else
         {
-            // First run: save defaults so the admin has a file to edit.
+            // Első futás: alapértékek mentése, hogy az adminnak legyen szerkeszthető fájlja.
             cfg.Save();
             Print(MYMOD_TAG + " No config found, created default at: " + MYMOD_CONFIG_PATH);
         }
@@ -418,25 +418,25 @@ class MyModConfig
     }
 
     // -----------------------------------------------------------------------
-    // Save - writes current values to disk as formatted JSON
+    // Save - aktuális értékek írása lemezre formázott JSON-ként
     // -----------------------------------------------------------------------
     void Save()
     {
-        // Ensure the directory exists. MakeDirectory is safe to call
-        // even if the directory already exists.
+        // Biztosítsd, hogy a könyvtár létezik. A MakeDirectory biztonságosan
+        // hívható, még ha a könyvtár már létezik is.
         if (!FileExist(MYMOD_CONFIG_DIR))
         {
             MakeDirectory(MYMOD_CONFIG_DIR);
         }
 
-        // JsonSaveFile writes all fields as a JSON object.
-        // The file is overwritten entirely -- there is no merge.
+        // A JsonSaveFile az összes mezőt JSON objektumként írja.
+        // A fájl teljes egészében felülíródik -- nincs egyesítés.
         JsonFileLoader<MyModConfig>.JsonSaveFile(MYMOD_CONFIG_PATH, this);
     }
 };
 ```
 
-The resulting `config.json` on disk looks like this:
+Az eredményül kapott `config.json` a lemezen így néz ki:
 
 ```json
 {
@@ -450,48 +450,48 @@ The resulting `config.json` on disk looks like this:
 }
 ```
 
-Admins edit this file, restart the server, and the new values take effect.
+Az adminok szerkesztik ezt a fájlt, újraindítják a szervert, és az új értékek érvénybe lépnek.
 
 ---
 
-## RPC Definitions (3_Game)
+## RPC definíciók (3_Game)
 
-Place at `Scripts/3_Game/MyMod/MyModRPC.c`.
+Helyezd el itt: `Scripts/3_Game/MyMod/MyModRPC.c`.
 
-RPC (Remote Procedure Call) is how the client and server communicate in DayZ. This file defines route names and provides helper methods for registration.
+Az RPC (Remote Procedure Call) az, ahogyan a kliens és a szerver kommunikál a DayZ-ben. Ez a fájl definiálja az útvonal neveket és segéd metódusokat biztosít a regisztrációhoz.
 
 ```c
 // ==========================================================================
-// MyModRPC.c - RPC route definitions and helpers
-// 3_Game layer: route name constants must be available everywhere.
+// MyModRPC.c - RPC útvonal definíciók és segédek
+// 3_Game réteg: az útvonal név konstansoknak mindenhol elérhetőeknek kell lenniük.
 //
-// HOW RPC WORKS IN DAYZ:
-//   The engine provides ScriptRPC and OnRPC for sending/receiving data.
-//   You call GetGame().RPCSingleParam() or create a ScriptRPC, write
-//   data into it, and send it. The receiver reads data in the same order.
+// HOGYAN MŰKÖDIK AZ RPC A DAYZ-BEN:
+//   A motor ScriptRPC-t és OnRPC-t biztosít adatok küldéséhez/fogadásához.
+//   Meghívod a GetGame().RPCSingleParam() metódust vagy létrehozol egy ScriptRPC-t,
+//   adatokat írsz bele, és elküldöd. A fogadó ugyanabban a sorrendben olvassa az adatokat.
 //
-//   DayZ uses integer RPC IDs. To avoid collisions between mods, each
-//   mod should pick a unique ID range or use a string-routing system.
-//   This template uses a single unique int ID with a string prefix
-//   to identify which handler should process each message.
+//   A DayZ egész szám RPC ID-kat használ. A modok közötti ütközések elkerülése érdekében
+//   minden modnak egyedi ID tartományt kell választania vagy sztring-útválasztó rendszert kell használnia.
+//   Ez a sablon egyetlen egyedi int ID-t használ sztring előtaggal,
+//   hogy azonosítsa, melyik kezelőnek kell feldolgoznia az egyes üzeneteket.
 //
-// PATTERN:
-//   1. Client wants data -> sends request RPC to server
-//   2. Server processes  -> sends response RPC back to client
-//   3. Client receives   -> updates UI or state
+// MINTA:
+//   1. A kliens adatot akar -> kérés RPC-t küld a szervernek
+//   2. A szerver feldolgozza -> válasz RPC-t küld vissza a kliensnek
+//   3. A kliens fogadja -> frissíti az UI-t vagy állapotot
 // ==========================================================================
 
 // ---------------------------------------------------------------------------
-// RPC ID - pick a unique number unlikely to collide with other mods.
-// Check the DayZ community wiki for commonly used ranges.
-// Engine built-in RPCs use low numbers (0-1000).
-// Convention: use a 5-digit number based on your mod name's hash.
+// RPC ID - válassz egy egyedi számot, ami nem valószínű, hogy ütközik más modokkal.
+// Ellenőrizd a DayZ közösségi wikit a gyakran használt tartományokért.
+// A motor beépített RPC-i alacsony számokat használnak (0-1000).
+// Konvenció: használj 5 jegyű számot a mod nevedből származó hash alapján.
 // ---------------------------------------------------------------------------
 const int MYMOD_RPC_ID = 74291;
 
 // ---------------------------------------------------------------------------
-// RPC Route Names - string identifiers for each RPC endpoint.
-// Using constants prevents typos and enables IDE search.
+// RPC útvonal nevek - sztring azonosítók minden RPC végponthoz.
+// Konstansok használata megakadályozza az elgépeléseket és lehetővé teszi az IDE keresést.
 // ---------------------------------------------------------------------------
 const string MYMOD_RPC_CONFIG_SYNC     = "MyMod:ConfigSync";
 const string MYMOD_RPC_WELCOME         = "MyMod:Welcome";
@@ -500,43 +500,43 @@ const string MYMOD_RPC_UI_REQUEST      = "MyMod:UIRequest";
 const string MYMOD_RPC_UI_RESPONSE     = "MyMod:UIResponse";
 
 // ---------------------------------------------------------------------------
-// MyModRPCHelper - static utility class for sending RPCs
-// Wraps the boilerplate of creating a ScriptRPC, writing the route
-// string, writing payload, and calling Send().
+// MyModRPCHelper - statikus segédosztály RPC-k küldéséhez
+// Becsomagolja a ScriptRPC létrehozásának, útvonal sztring írásának,
+// payload írásának és Send() hívásának sablon kódját.
 // ---------------------------------------------------------------------------
 class MyModRPCHelper
 {
-    // Send a string message from server to a specific client.
-    // identity: the target player. null = broadcast to all.
-    // routeName: which handler should process this (e.g., MYMOD_RPC_WELCOME).
-    // message: the string payload.
+    // Sztring üzenet küldése szerverről egy adott kliensnek.
+    // identity: a célj átékos. null = broadcast mindenkinek.
+    // routeName: melyik kezelő dolgozza fel (pl. MYMOD_RPC_WELCOME).
+    // message: a sztring payload.
     static void SendStringToClient(PlayerIdentity identity, string routeName, string message)
     {
-        // Create the RPC object. This is the envelope.
+        // RPC objektum létrehozása. Ez a boríték.
         ScriptRPC rpc = new ScriptRPC();
 
-        // Write the route name first. The receiver reads this to decide
-        // which handler to call. Always write/read in the same order.
+        // Az útvonal név írása először. A fogadó ezt olvassa, hogy eldöntse,
+        // melyik kezelőt hívja. Mindig ugyanabban a sorrendben írj/olvass.
         rpc.Write(routeName);
 
-        // Write the payload data.
+        // A payload adatok írása.
         rpc.Write(message);
 
-        // Send to the client. Parameters:
-        //   null    = no target object (player entity not needed for custom RPCs)
-        //   MYMOD_RPC_ID = our unique RPC channel
-        //   true    = guaranteed delivery (TCP-like). Use false for frequent updates.
-        //   identity = target client. null would broadcast to ALL clients.
+        // Küldés a kliensnek. Paraméterek:
+        //   null    = nincs célobjektum (játékos entitás nem szükséges egyéni RPC-khez)
+        //   MYMOD_RPC_ID = az egyedi RPC csatornánk
+        //   true    = garantált kézbesítés (TCP-szerű). Használj false-t gyakori frissítésekhez.
+        //   identity = cél kliens. null minden kliensnek broadcastolna.
         rpc.Send(null, MYMOD_RPC_ID, true, identity);
     }
 
-    // Send a request from client to server (no payload, just the route).
+    // Kérés küldése kliensről a szerverre (nincs payload, csak az útvonal).
     static void SendRequestToServer(string routeName)
     {
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(routeName);
-        // When sending TO the server, identity is null (server has no PlayerIdentity).
-        // guaranteed = true ensures the message arrives.
+        // Szerverre küldéskor az identity null (a szervernek nincs PlayerIdentity-je).
+        // guaranteed = true biztosítja az üzenet megérkezését.
         rpc.Send(null, MYMOD_RPC_ID, true, null);
     }
 };
@@ -544,49 +544,49 @@ class MyModRPCHelper
 
 ---
 
-## Manager Singleton (4_World)
+## Manager szingleton (4_World)
 
-Place at `Scripts/4_World/MyMod/MyModManager.c`.
+Helyezd el itt: `Scripts/4_World/MyMod/MyModManager.c`.
 
-This is the central brain of your mod on the server side. It owns the config, processes RPC, and runs periodic updates.
+Ez a modod szerver oldali központi agya. Birtokolja a configot, feldolgozza az RPC-ket és periodikus frissítéseket futtat.
 
 ```c
 // ==========================================================================
-// MyModManager.c - Server-side singleton manager
-// 4_World layer: can reference 3_Game types (config, constants, RPC).
+// MyModManager.c - Szerver oldali szingleton manager
+// 4_World réteg: hivatkozhat 3_Game típusokra (config, konstansok, RPC).
 //
-// WHY a singleton:
-//   The manager needs exactly one instance that persists for the entire
-//   mission. Multiple instances would cause duplicate processing and
-//   conflicting state. The singleton pattern guarantees one instance
-//   and provides global access via GetInstance().
+// MIÉRT szingleton:
+//   A managernek pontosan egy példányra van szüksége, ami a teljes mission
+//   ideje alatt fennmarad. Több példány duplikált feldolgozást és
+//   ütköző állapotot okozna. A szingleton minta garantálja az egy példányt
+//   és globális hozzáférést biztosít a GetInstance() metóduson keresztül.
 //
-// LIFECYCLE:
-//   1. MissionServer.OnInit() calls MyModManager.GetInstance().Init()
-//   2. Manager loads config, registers RPCs, starts timers
-//   3. Manager processes events during gameplay
-//   4. MissionServer.OnMissionFinish() calls MyModManager.Cleanup()
-//   5. Singleton is destroyed, all references are released
+// ÉLETCIKLUS:
+//   1. MissionServer.OnInit() meghívja a MyModManager.GetInstance().Init()-et
+//   2. A manager betölti a configot, regisztrálja az RPC-ket, elindítja az időzítőket
+//   3. A manager feldolgozza az eseményeket a játékmenet során
+//   4. MissionServer.OnMissionFinish() meghívja a MyModManager.Cleanup()-ot
+//   5. A szingleton megsemmisül, minden hivatkozás felszabadul
 // ==========================================================================
 
 class MyModManager
 {
-    // The single instance. 'ref' means this class OWNS the object.
-    // When s_Instance is set to null, the object is destroyed.
+    // Az egyetlen példány. 'ref' azt jelenti, hogy ez az osztály BIRTOKOLJA az objektumot.
+    // Amikor az s_Instance null-ra van állítva, az objektum megsemmisül.
     private static ref MyModManager s_Instance;
 
-    // Configuration loaded from disk.
-    // 'ref' because the manager owns the config object's lifetime.
+    // Lemezről betöltött konfiguráció.
+    // 'ref', mert a manager birtokolja a config objektum élettartamát.
     protected ref MyModConfig m_Config;
 
-    // Accumulated time since last update tick (seconds).
+    // Az utolsó frissítési ciklus óta eltelt idő (másodperc).
     protected float m_TimeSinceUpdate;
 
-    // Tracks whether Init() has been called successfully.
+    // Nyomon követi, hogy az Init() sikeresen meghívásra került-e.
     protected bool m_Initialized;
 
     // -----------------------------------------------------------------------
-    // Singleton access
+    // Szingleton hozzáférés
     // -----------------------------------------------------------------------
 
     static MyModManager GetInstance()
@@ -598,23 +598,23 @@ class MyModManager
         return s_Instance;
     }
 
-    // Call this on mission end to destroy the singleton and free memory.
-    // Setting s_Instance to null triggers the destructor.
+    // Hívd meg a mission végén a szingleton megsemmisítéséhez és memória felszabadításhoz.
+    // Az s_Instance null-ra állítása aktiválja a destruktort.
     static void Cleanup()
     {
         s_Instance = null;
     }
 
     // -----------------------------------------------------------------------
-    // Lifecycle
+    // Életciklus
     // -----------------------------------------------------------------------
 
-    // Called once from MissionServer.OnInit().
+    // Egyszer hívódik a MissionServer.OnInit()-ből.
     void Init()
     {
         if (m_Initialized) return;
 
-        // Load config from disk (or create defaults on first run).
+        // Config betöltése lemezről (vagy alapértékek létrehozása első futáskor).
         m_Config = MyModConfig.Load();
 
         if (!m_Config.Enabled)
@@ -623,7 +623,7 @@ class MyModManager
             return;
         }
 
-        // Reset the update timer.
+        // Frissítési időzítő visszaállítása.
         m_TimeSinceUpdate = 0;
 
         m_Initialized = true;
@@ -638,46 +638,46 @@ class MyModManager
         }
     }
 
-    // Called every frame from MissionServer.OnUpdate().
-    // timeslice is the seconds elapsed since the last frame.
+    // Minden frame-ben hívódik a MissionServer.OnUpdate()-ből.
+    // A timeslice az utolsó frame óta eltelt másodpercek.
     void OnUpdate(float timeslice)
     {
         if (!m_Initialized || !m_Config.Enabled) return;
 
-        // Accumulate time and only process at the configured interval.
-        // This prevents running expensive logic every single frame.
+        // Idő halmozás és feldolgozás csak a konfigurált intervallumban.
+        // Ez megakadályozza a költséges logika futtatását minden egyes frame-ben.
         m_TimeSinceUpdate += timeslice;
         if (m_TimeSinceUpdate < m_Config.UpdateInterval) return;
         m_TimeSinceUpdate = 0;
 
-        // --- Periodic update logic goes here ---
-        // Example: iterate tracked entities, check conditions, etc.
+        // --- Periodikus frissítési logika ide kerül ---
+        // Példa: nyomon követett entitások iterálása, feltételek ellenőrzése, stb.
         if (m_Config.DebugLogging)
         {
             Print(MYMOD_TAG + " Periodic update tick");
         }
     }
 
-    // Called when the mission ends (server shutdown or restart).
+    // A mission végekor hívódik (szerver leállítás vagy újraindítás).
     void Shutdown()
     {
         if (!m_Initialized) return;
 
         Print(MYMOD_TAG + " Manager shutting down");
 
-        // Save any runtime state if needed.
+        // Futásidejű állapot mentése, ha szükséges.
         // m_Config.Save();
 
         m_Initialized = false;
     }
 
     // -----------------------------------------------------------------------
-    // RPC Handlers
+    // RPC kezelők
     // -----------------------------------------------------------------------
 
-    // Called when a client requests UI data.
-    // sender: the player who sent the request.
-    // ctx: the data stream (already past the route name).
+    // Meghívásra kerül, amikor egy kliens UI adatokat kér.
+    // sender: a kérést küldő játékos.
+    // ctx: az adatfolyam (már az útvonal néven túl).
     void OnUIRequest(PlayerIdentity sender, ParamsReadContext ctx)
     {
         if (!sender) return;
@@ -687,19 +687,19 @@ class MyModManager
             Print(MYMOD_TAG + " UI data requested by: " + sender.GetName());
         }
 
-        // Build response data and send it back.
-        // In a real mod, you would gather actual data here.
+        // Válasz adatok összeállítása és visszaküldése.
+        // Valódi modban itt tényleges adatokat gyűjtenél.
         string responseData = "Items: " + m_Config.MaxItems.ToString();
         MyModRPCHelper.SendStringToClient(sender, MYMOD_RPC_UI_RESPONSE, responseData);
     }
 
-    // Called when a player connects. Sends welcome message if configured.
+    // Meghívásra kerül, amikor egy játékos csatlakozik. Üdvözlő üzenetet küld, ha be van állítva.
     void OnPlayerConnected(PlayerIdentity identity)
     {
         if (!m_Initialized || !m_Config.Enabled) return;
         if (!identity) return;
 
-        // Send welcome message if configured.
+        // Üdvözlő üzenet küldése, ha be van állítva.
         if (m_Config.WelcomeMessage != "")
         {
             MyModRPCHelper.SendStringToClient(identity, MYMOD_RPC_WELCOME, m_Config.WelcomeMessage);
@@ -712,7 +712,7 @@ class MyModManager
     }
 
     // -----------------------------------------------------------------------
-    // Accessors
+    // Hozzáférők
     // -----------------------------------------------------------------------
 
     MyModConfig GetConfig()
@@ -729,58 +729,58 @@ class MyModManager
 
 ---
 
-## Player Event Handler (4_World)
+## Játékos eseménykezelő (4_World)
 
-Place at `Scripts/4_World/MyMod/MyModPlayerHandler.c`.
+Helyezd el itt: `Scripts/4_World/MyMod/MyModPlayerHandler.c`.
 
-This uses the `modded class` pattern to hook into the vanilla `PlayerBase` entity and detect connect/disconnect events.
+Ez a `modded class` mintát használja a vanilla `PlayerBase` entitásba való behookolásra a csatlakozás/lecsatlakozás események észleléséhez.
 
 ```c
 // ==========================================================================
-// MyModPlayerHandler.c - Player lifecycle hooks
-// 4_World layer: modded PlayerBase to intercept connect/disconnect.
+// MyModPlayerHandler.c - Játékos életciklus hookok
+// 4_World réteg: modolt PlayerBase a csatlakozás/lecsatlakozás elfogásához.
 //
-// WHY modded class:
-//   DayZ does not have a "player connected" event callback. The standard
-//   pattern is to override methods on MissionServer (for new connections)
-//   or hook into PlayerBase (for entity-level events like death).
-//   We use modded PlayerBase here to demonstrate entity-level hooks.
+// MIÉRT modolt class:
+//   A DayZ nem rendelkezik "játékos csatlakozott" esemény visszahívással. A szabványos
+//   minta a MissionServer metódusainak felülírása (új csatlakozásokhoz)
+//   vagy a PlayerBase-be hookolás (entitás-szintű eseményekhez, mint a halál).
+//   Itt modolt PlayerBase-t használunk az entitás-szintű hookok bemutatásához.
 //
-// IMPORTANT:
-//   Always call super.MethodName() first in overrides. Failing to do so
-//   breaks the vanilla behavior chain and other mods that also override
-//   the same method.
+// FONTOS:
+//   Mindig hívd meg először a super.MetódusNév() metódust a felülírásokban.
+//   Ennek elmulasztása megtöri a vanilla viselkedési láncot és más modokat,
+//   amelyek szintén felülírják ugyanazt a metódust.
 // ==========================================================================
 
 modded class PlayerBase
 {
-    // Track whether we have sent the init event for this player.
-    // This prevents duplicate processing if Init() is called multiple times.
+    // Nyomon követi, hogy elküldtük-e az init eseményt ehhez a játékoshoz.
+    // Ez megakadályozza a duplikált feldolgozást, ha az Init() többször hívódik.
     protected bool m_MyModPlayerReady;
 
     // -----------------------------------------------------------------------
-    // Called after the player entity is fully created and replicated.
-    // On the server, this is where the player is "ready" to receive RPCs.
+    // A játékos entitás teljes létrehozása és replikálása után hívódik.
+    // A szerveren itt "kész" a játékos RPC-k fogadására.
     // -----------------------------------------------------------------------
     override void Init()
     {
         super.Init();
 
-        // Only run on the server. GetGame().IsServer() returns true on
-        // dedicated servers and on the host of a listen server.
+        // Csak a szerveren fusson. A GetGame().IsServer() igaz a
+        // dedikált szervereken és a listen szerver hosztján.
         if (!GetGame().IsServer()) return;
 
-        // Guard against double-init.
+        // Dupla-init elleni védelem.
         if (m_MyModPlayerReady) return;
         m_MyModPlayerReady = true;
 
-        // Get the player's network identity.
-        // On the server, GetIdentity() returns the PlayerIdentity object
-        // containing the player's name, Steam ID (PlainId), and UID.
+        // A játékos hálózati identitásának lekérése.
+        // A szerveren a GetIdentity() a PlayerIdentity objektumot adja vissza,
+        // amely tartalmazza a játékos nevét, Steam ID-jét (PlainId) és UID-jét.
         PlayerIdentity identity = GetIdentity();
         if (!identity) return;
 
-        // Notify the manager that a player has connected.
+        // A manager értesítése, hogy egy játékos csatlakozott.
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
@@ -792,58 +792,58 @@ modded class PlayerBase
 
 ---
 
-## Mission Hook: Server (5_Mission)
+## Mission hook: szerver (5_Mission)
 
-Place at `Scripts/5_Mission/MyMod/MyModMissionServer.c`.
+Helyezd el itt: `Scripts/5_Mission/MyMod/MyModMissionServer.c`.
 
-This hooks into `MissionServer` to initialize and shut down the mod on the server side.
+Ez a `MissionServer`-be hookol a mod szerver oldali inicializálásához és leállításához.
 
 ```c
 // ==========================================================================
-// MyModMissionServer.c - Server-side mission hooks
-// 5_Mission layer: last to load, can reference all lower layers.
+// MyModMissionServer.c - Szerver oldali mission hookok
+// 5_Mission réteg: utolsóként töltődik be, hivatkozhat az összes alsóbb rétegre.
 //
-// WHY modded MissionServer:
-//   MissionServer is the entry point for server-side logic. Its OnInit()
-//   runs once when the mission starts (server boot). OnMissionFinish()
-//   runs when the server shuts down or restarts. These are the correct
-//   places to set up and tear down your mod's systems.
+// MIÉRT modolt MissionServer:
+//   A MissionServer a szerver oldali logika belépési pontja. Az OnInit()
+//   egyszer fut, amikor a mission indul (szerver indítás). Az OnMissionFinish()
+//   fut, amikor a szerver leáll vagy újraindul. Ezek a megfelelő
+//   helyek a modod rendszereinek beállításához és lebontásához.
 //
-// LIFECYCLE ORDER:
-//   1. Engine loads all script layers (3_Game -> 4_World -> 5_Mission)
-//   2. Engine creates MissionServer instance
-//   3. OnInit() is called -> initialize your systems here
-//   4. OnMissionStart() is called -> world is ready, players can join
-//   5. OnUpdate() is called every frame
-//   6. OnMissionFinish() is called -> server is shutting down
+// ÉLETCIKLUS SORREND:
+//   1. A motor betölti az összes szkript réteget (3_Game -> 4_World -> 5_Mission)
+//   2. A motor létrehozza a MissionServer példányt
+//   3. OnInit() hívódik -> inicializáld a rendszereidet itt
+//   4. OnMissionStart() hívódik -> a világ kész, a játékosok csatlakozhatnak
+//   5. OnUpdate() minden frame-ben hívódik
+//   6. OnMissionFinish() hívódik -> a szerver leáll
 // ==========================================================================
 
 modded class MissionServer
 {
     // -----------------------------------------------------------------------
-    // Initialization
+    // Inicializálás
     // -----------------------------------------------------------------------
     override void OnInit()
     {
-        // ALWAYS call super first. Other mods in the chain depend on this.
+        // MINDIG hívd meg először a super-t. A láncban lévő más modok erre számítanak.
         super.OnInit();
 
-        // Initialize the manager singleton. This loads config from disk,
-        // registers RPC handlers, and prepares the mod for operation.
+        // A manager szingleton inicializálása. Ez betölti a configot lemezről,
+        // regisztrálja az RPC kezelőket, és felkészíti a modot a működésre.
         MyModManager.GetInstance().Init();
 
         Print(MYMOD_TAG + " Server mission initialized");
     }
 
     // -----------------------------------------------------------------------
-    // Per-frame update
+    // Frame-enkénti frissítés
     // -----------------------------------------------------------------------
     override void OnUpdate(float timeslice)
     {
         super.OnUpdate(timeslice);
 
-        // Delegate to the manager. The manager handles its own rate
-        // limiting (UpdateInterval from config) so this is cheap.
+        // Delegálás a managernek. A manager kezeli a saját sebesség
+        // korlátozását (UpdateInterval a configból), tehát ez olcsó.
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
@@ -852,21 +852,21 @@ modded class MissionServer
     }
 
     // -----------------------------------------------------------------------
-    // Player connection - server RPC dispatch
-    // Called by the engine when a client sends an RPC to the server.
+    // Játékos csatlakozás - szerver RPC diszpécser
+    // A motor hívja, amikor egy kliens RPC-t küld a szervernek.
     // -----------------------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, target, rpc_type, ctx);
 
-        // Only handle our RPC ID. All other RPCs pass through.
+        // Csak a mi RPC ID-nkat kezeljük. Minden más RPC áthalad.
         if (rpc_type != MYMOD_RPC_ID) return;
 
-        // Read the route name (first string written by the sender).
+        // Az útvonal név olvasása (a küldő által írt első sztring).
         string routeName;
         if (!ctx.Read(routeName)) return;
 
-        // Dispatch to the correct handler based on route name.
+        // A megfelelő kezelőhöz irányítás az útvonal név alapján.
         MyModManager mgr = MyModManager.GetInstance();
         if (!mgr) return;
 
@@ -874,7 +874,7 @@ modded class MissionServer
         {
             mgr.OnUIRequest(sender, ctx);
         }
-        // Add more routes here as your mod grows:
+        // Adj hozzá több útvonalat, ahogy a modod növekszik:
         // else if (routeName == MYMOD_RPC_SOME_OTHER)
         // {
         //     mgr.OnSomeOther(sender, ctx);
@@ -882,21 +882,21 @@ modded class MissionServer
     }
 
     // -----------------------------------------------------------------------
-    // Shutdown
+    // Leállítás
     // -----------------------------------------------------------------------
     override void OnMissionFinish()
     {
-        // Shut down the manager before calling super.
-        // This ensures our cleanup runs before the engine tears down
-        // the mission infrastructure.
+        // A manager leállítása a super hívás előtt.
+        // Ez biztosítja, hogy a takarításunk a motor mission
+        // infrastruktúra lebontása előtt fut.
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
             mgr.Shutdown();
         }
 
-        // Destroy the singleton to free memory and prevent stale state
-        // if the mission restarts (e.g., server restart without process exit).
+        // A szingleton megsemmisítése a memória felszabadításához és az elavult állapot
+        // megakadályozásához, ha a mission újraindul (pl. szerver újraindítás folyamat kilépés nélkül).
         MyModManager.Cleanup();
 
         Print(MYMOD_TAG + " Server mission finished");
@@ -908,39 +908,39 @@ modded class MissionServer
 
 ---
 
-## Mission Hook: Client (5_Mission)
+## Mission hook: kliens (5_Mission)
 
-Place at `Scripts/5_Mission/MyMod/MyModMissionClient.c`.
+Helyezd el itt: `Scripts/5_Mission/MyMod/MyModMissionClient.c`.
 
-This hooks into `MissionGameplay` for client-side initialization, input handling, and RPC receiving.
+Ez a `MissionGameplay`-be hookol kliens oldali inicializáláshoz, input kezeléshez és RPC fogadáshoz.
 
 ```c
 // ==========================================================================
-// MyModMissionClient.c - Client-side mission hooks
-// 5_Mission layer.
+// MyModMissionClient.c - Kliens oldali mission hookok
+// 5_Mission réteg.
 //
-// WHY MissionGameplay:
-//   On the client, MissionGameplay is the active mission class during
-//   gameplay. It receives OnUpdate() every frame (for input polling)
-//   and OnRPC() for incoming server messages.
+// MIÉRT MissionGameplay:
+//   A kliensen a MissionGameplay az aktív mission osztály a
+//   játékmenet során. Az OnUpdate() minden frame-ben fogad (input lekérdezéshez)
+//   és az OnRPC() a bejövő szerver üzenetekhez.
 //
-// NOTE ON LISTEN SERVERS:
-//   On a listen server (host + play), BOTH MissionServer and
-//   MissionGameplay are active. Your client code will run alongside
-//   server code. Guard with GetGame().IsClient() or GetGame().IsServer()
-//   if you need side-specific logic.
+// MEGJEGYZÉS A LISTEN SZERVEREKRŐL:
+//   Listen szerveren (hoszt + játék) MIND a MissionServer, mind a
+//   MissionGameplay aktív. A kliens kódod a szerver kód mellett fut.
+//   Használj GetGame().IsClient() vagy GetGame().IsServer() védelmeket,
+//   ha oldal-specifikus logikára van szükséged.
 // ==========================================================================
 
 modded class MissionGameplay
 {
-    // Reference to the UI panel. null when closed.
+    // Hivatkozás az UI panelre. null, ha zárva van.
     protected ref MyModUI m_MyModPanel;
 
-    // Track initialization state.
+    // Inicializálási állapot nyomon követése.
     protected bool m_MyModInitialized;
 
     // -----------------------------------------------------------------------
-    // Initialization
+    // Inicializálás
     // -----------------------------------------------------------------------
     override void OnInit()
     {
@@ -952,7 +952,7 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // Per-frame update: input polling and UI management
+    // Frame-enkénti frissítés: input lekérdezés és UI kezelés
     // -----------------------------------------------------------------------
     override void OnUpdate(float timeslice)
     {
@@ -960,10 +960,10 @@ modded class MissionGameplay
 
         if (!m_MyModInitialized) return;
 
-        // Poll for the keybind defined in Inputs.xml.
-        // GetUApi() returns the UserActions API.
-        // GetInputByName() looks up the action by the name in Inputs.xml.
-        // LocalPress() returns true on the frame the key is pressed down.
+        // Az Inputs.xml-ben definiált billentyűkötés lekérdezése.
+        // A GetUApi() a UserActions API-t adja vissza.
+        // A GetInputByName() kikeresi az akciót az Inputs.xml-ben lévő név alapján.
+        // A LocalPress() true-t ad vissza azon a frame-en, amikor a billentyű lenyomásra kerül.
         UAInput panelInput = GetUApi().GetInputByName("UAMyModPanel");
         if (panelInput && panelInput.LocalPress())
         {
@@ -972,28 +972,28 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // RPC receiver: handles messages from the server
+    // RPC fogadó: a szerver üzeneteinek kezelése
     // -----------------------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, target, rpc_type, ctx);
 
-        // Only handle our RPC ID.
+        // Csak a mi RPC ID-nkat kezeljük.
         if (rpc_type != MYMOD_RPC_ID) return;
 
-        // Read the route name.
+        // Az útvonal név olvasása.
         string routeName;
         if (!ctx.Read(routeName)) return;
 
-        // Dispatch based on route.
+        // Útvonal alapú irányítás.
         if (routeName == MYMOD_RPC_WELCOME)
         {
             string welcomeMsg;
             if (ctx.Read(welcomeMsg))
             {
-                // Display the welcome message to the player.
-                // GetGame().GetMission().OnEvent() can show notifications,
-                // or you can use a custom UI. For simplicity, we use chat.
+                // Az üdvözlő üzenet megjelenítése a játékosnak.
+                // A GetGame().GetMission().OnEvent() értesítéseket jeleníthet meg,
+                // vagy egyéni UI-t használhatsz. Az egyszerűség kedvéért chat-et használunk.
                 GetGame().Chat(welcomeMsg, "");
                 Print(MYMOD_TAG + " Welcome message: " + welcomeMsg);
             }
@@ -1003,7 +1003,7 @@ modded class MissionGameplay
             string responseData;
             if (ctx.Read(responseData))
             {
-                // Update the UI panel with received data.
+                // Az UI panel frissítése a kapott adatokkal.
                 if (m_MyModPanel)
                 {
                     m_MyModPanel.SetData(responseData);
@@ -1013,7 +1013,7 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // UI Panel toggle
+    // UI panel váltás
     // -----------------------------------------------------------------------
     protected void TogglePanel()
     {
@@ -1024,7 +1024,7 @@ modded class MissionGameplay
         }
         else
         {
-            // Only open if the player is alive and no other menu is showing.
+            // Csak akkor nyisd meg, ha a játékos él és nincs más menü megnyitva.
             PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
             if (!player || !player.IsAlive()) return;
 
@@ -1034,17 +1034,17 @@ modded class MissionGameplay
             m_MyModPanel = new MyModUI();
             m_MyModPanel.Open();
 
-            // Request fresh data from the server.
+            // Friss adatok kérése a szervertől.
             MyModRPCHelper.SendRequestToServer(MYMOD_RPC_UI_REQUEST);
         }
     }
 
     // -----------------------------------------------------------------------
-    // Shutdown
+    // Leállítás
     // -----------------------------------------------------------------------
     override void OnMissionFinish()
     {
-        // Close and destroy the UI panel if open.
+        // Az UI panel bezárása és megsemmisítése, ha nyitva van.
         if (m_MyModPanel)
         {
             m_MyModPanel.Close();
@@ -1062,68 +1062,68 @@ modded class MissionGameplay
 
 ---
 
-## UI Panel Script (5_Mission)
+## UI panel szkript (5_Mission)
 
-Place at `Scripts/5_Mission/MyMod/MyModUI.c`.
+Helyezd el itt: `Scripts/5_Mission/MyMod/MyModUI.c`.
 
-This script drives the UI panel defined in the `.layout` file. It finds widget references, populates them with data, and handles open/close.
+Ez a szkript vezérli a `.layout` fájlban definiált UI panelt. Megkeresi a widget hivatkozásokat, feltölti adatokkal, és kezeli a nyitást/zárást.
 
 ```c
 // ==========================================================================
-// MyModUI.c - UI panel controller
-// 5_Mission layer: can reference all lower layers.
+// MyModUI.c - UI panel vezérlő
+// 5_Mission réteg: hivatkozhat az összes alsóbb rétegre.
 //
-// HOW DayZ UI WORKS:
-//   1. A .layout file defines the widget hierarchy (like HTML).
-//   2. A script class loads the layout, finds widgets by name, and
-//      manipulates them (set text, show/hide, respond to clicks).
-//   3. The script shows/hides the root widget and manages input focus.
+// HOGYAN MŰKÖDIK A DAYZ UI:
+//   1. Egy .layout fájl definiálja a widget hierarchiát (mint a HTML).
+//   2. Egy szkript osztály betölti a layoutot, megkeresi a widgeteket név szerint, és
+//      manipulálja őket (szöveg beállítás, megjelenítés/elrejtés, kattintásokra reagálás).
+//   3. A szkript megjeleníti/elrejti a gyökér widgetet és kezeli az input fókuszt.
 //
-// WIDGET LIFECYCLE:
-//   GetGame().GetWorkspace().CreateWidgets() loads the layout file and
-//   returns the root widget. You then use FindAnyWidget() to get
-//   references to named child widgets. When done, call widget.Unlink()
-//   to destroy the entire widget tree.
+// WIDGET ÉLETCIKLUS:
+//   A GetGame().GetWorkspace().CreateWidgets() betölti a layout fájlt és
+//   visszaadja a gyökér widgetet. Ezután FindAnyWidget() segítségével kapsz
+//   hivatkozásokat a nevesített gyermek widgetekre. Ha kész, hívd a widget.Unlink()
+//   metódust a teljes widget fa megsemmisítéséhez.
 // ==========================================================================
 
 class MyModUI
 {
-    // Root widget of the panel (loaded from .layout).
+    // A panel gyökér widgetje (a .layout-ból betöltve).
     protected ref Widget m_Root;
 
-    // Named child widgets.
+    // Nevesített gyermek widgetek.
     protected TextWidget m_TitleText;
     protected TextWidget m_DataText;
     protected TextWidget m_VersionText;
     protected ButtonWidget m_CloseButton;
 
-    // State tracking.
+    // Állapot nyomon követés.
     protected bool m_IsOpen;
 
     // -----------------------------------------------------------------------
-    // Constructor: load the layout and find widget references
+    // Konstruktor: a layout betöltése és widget hivatkozások keresése
     // -----------------------------------------------------------------------
     void MyModUI()
     {
-        // CreateWidgets loads the .layout file and instantiates all widgets.
-        // The path is relative to the mod root (same as config.cpp paths).
+        // A CreateWidgets betölti a .layout fájlt és példányosítja az összes widgetet.
+        // Az útvonal a mod gyökeréhez relatív (ugyanaz, mint a config.cpp útvonalak).
         m_Root = GetGame().GetWorkspace().CreateWidgets(
             "MyProfessionalMod/Scripts/GUI/layouts/MyModPanel.layout"
         );
 
-        // Initially hidden until Open() is called.
+        // Kezdetben rejtett, amíg az Open() meghívásra nem kerül.
         if (m_Root)
         {
             m_Root.Show(false);
 
-            // Find named widgets. These names MUST match the widget names
-            // in the .layout file exactly (case-sensitive).
+            // Nevesített widgetek keresése. Ezeknek a neveknek PONTOSAN egyezniük kell
+            // a .layout fájlban lévő widget nevekkel (kis- és nagybetű érzékeny).
             m_TitleText   = TextWidget.Cast(m_Root.FindAnyWidget("TitleText"));
             m_DataText    = TextWidget.Cast(m_Root.FindAnyWidget("DataText"));
             m_VersionText = TextWidget.Cast(m_Root.FindAnyWidget("VersionText"));
             m_CloseButton = ButtonWidget.Cast(m_Root.FindAnyWidget("CloseButton"));
 
-            // Set static content.
+            // Statikus tartalom beállítása.
             if (m_TitleText)
                 m_TitleText.SetText("My Professional Mod");
 
@@ -1133,7 +1133,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Open: show the panel and capture input
+    // Open: a panel megjelenítése és input elfogása
     // -----------------------------------------------------------------------
     void Open()
     {
@@ -1142,8 +1142,8 @@ class MyModUI
         m_Root.Show(true);
         m_IsOpen = true;
 
-        // Lock player controls so WASD does not move the character
-        // while the panel is open. This shows a cursor.
+        // Játékos vezérlők zárolása, hogy a WASD ne mozgassa a karaktert
+        // amíg a panel nyitva van. Ez kurzort jelenít meg.
         GetGame().GetMission().PlayerControlDisable(INPUT_EXCLUDE_ALL);
         GetGame().GetUIManager().ShowUICursor(true);
 
@@ -1151,7 +1151,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Close: hide the panel and release input
+    // Close: a panel elrejtése és input felszabadítása
     // -----------------------------------------------------------------------
     void Close()
     {
@@ -1160,7 +1160,7 @@ class MyModUI
         m_Root.Show(false);
         m_IsOpen = false;
 
-        // Re-enable player controls.
+        // Játékos vezérlők újraengedélyezése.
         GetGame().GetMission().PlayerControlEnable(true);
         GetGame().GetUIManager().ShowUICursor(false);
 
@@ -1168,7 +1168,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Data update: called when the server sends UI data
+    // Adat frissítés: meghívásra kerül, amikor a szerver UI adatot küld
     // -----------------------------------------------------------------------
     void SetData(string data)
     {
@@ -1179,7 +1179,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // State query
+    // Állapot lekérdezés
     // -----------------------------------------------------------------------
     bool IsOpen()
     {
@@ -1187,12 +1187,12 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Destructor: clean up the widget tree
+    // Destruktor: a widget fa takarítása
     // -----------------------------------------------------------------------
     void ~MyModUI()
     {
-        // Unlink destroys the root widget and all its children.
-        // This frees the memory used by the widget tree.
+        // Az Unlink megsemmisíti a gyökér widgetet és annak összes gyermekét.
+        // Ez felszabadítja a widget fa által használt memóriát.
         if (m_Root)
         {
             m_Root.Unlink();
@@ -1203,32 +1203,32 @@ class MyModUI
 
 ---
 
-## Layout File
+## Layout fájl
 
-Place at `Scripts/GUI/layouts/MyModPanel.layout`.
+Helyezd el itt: `Scripts/GUI/layouts/MyModPanel.layout`.
 
-This defines the visual structure of the UI panel. DayZ layouts use a custom text format (not XML).
+Ez definiálja az UI panel vizuális struktúráját. A DayZ layoutok egyéni szövegformátumot használnak (nem XML).
 
 ```
 // ==========================================================================
-// MyModPanel.layout - UI panel structure
+// MyModPanel.layout - UI panel struktúra
 //
-// SIZING RULES:
-//   hexactsize 1 + vexactsize 1 = size is in pixels (e.g., size 400 300)
-//   hexactsize 0 + vexactsize 0 = size is proportional (0.0 to 1.0)
-//   halign/valign control anchor point:
-//     left_ref/top_ref     = anchored to parent's left/top edge
-//     center_ref           = centered in parent
-//     right_ref/bottom_ref = anchored to parent's right/bottom edge
+// MÉRETEZÉSI SZABÁLYOK:
+//   hexactsize 1 + vexactsize 1 = a méret pixelben van (pl. size 400 300)
+//   hexactsize 0 + vexactsize 0 = a méret arányos (0.0-tól 1.0-ig)
+//   halign/valign a horgonypont vezérlése:
+//     left_ref/top_ref     = a szülő bal/felső széléhez horgonyozva
+//     center_ref           = a szülőben középre igazítva
+//     right_ref/bottom_ref = a szülő jobb/alsó széléhez horgonyozva
 //
-// IMPORTANT:
-//   - Never use negative sizes. Use alignment and position instead.
-//   - Widget names must match FindAnyWidget() calls in the script exactly.
-//   - 'ignorepointer 1' means the widget does not receive mouse clicks.
-//   - 'scriptclass' links a widget to a script class for event handling.
+// FONTOS:
+//   - Soha ne használj negatív méreteket. Használj igazítást és pozíciót helyette.
+//   - A widget neveknek pontosan egyezniük kell a FindAnyWidget() hívásokkal a szkriptben.
+//   - 'ignorepointer 1' azt jelenti, hogy a widget nem kap egérkattintásokat.
+//   - 'scriptclass' egy widgetet köt egy szkript osztályhoz eseménykezelésre.
 // ==========================================================================
 
-// Root panel: centered on screen, 400x300 pixels, semi-transparent background.
+// Gyökér panel: a képernyő közepén, 400x300 pixel, félig átlátszó háttér.
 PanelWidgetClass MyModPanelRoot {
  position 0 0
  size 400 300
@@ -1241,7 +1241,7 @@ PanelWidgetClass MyModPanelRoot {
  color 0.1 0.1 0.12 0.92
  priority 100
  {
-  // Title bar: full width, 36px tall, at the top.
+  // Címsor: teljes szélesség, 36px magasság, felül.
   PanelWidgetClass TitleBar {
    position 0 0
    size 1 36
@@ -1251,7 +1251,7 @@ PanelWidgetClass MyModPanelRoot {
    vexactsize 1
    color 0.15 0.15 0.18 1
    {
-    // Title text: left-aligned with padding.
+    // Cím szöveg: balra igazított, margóval.
     TextWidgetClass TitleText {
      position 12 0
      size 300 36
@@ -1266,7 +1266,7 @@ PanelWidgetClass MyModPanelRoot {
      "exact size" 16
      color 1 1 1 0.9
     }
-    // Version text: right side of title bar.
+    // Verzió szöveg: a címsor jobb oldalán.
     TextWidgetClass VersionText {
      position 0 0
      size 80 36
@@ -1284,7 +1284,7 @@ PanelWidgetClass MyModPanelRoot {
     }
    }
   }
-  // Content area: below title bar, fills remaining space.
+  // Tartalom terület: a címsor alatt, kitölti a maradék helyet.
   PanelWidgetClass ContentArea {
    position 0 40
    size 380 200
@@ -1295,7 +1295,7 @@ PanelWidgetClass MyModPanelRoot {
    vexactsize 1
    color 0 0 0 0
    {
-    // Data text: where server data is displayed.
+    // Adat szöveg: ahol a szerver adatok megjelennek.
     TextWidgetClass DataText {
      position 12 12
      size 356 160
@@ -1311,7 +1311,7 @@ PanelWidgetClass MyModPanelRoot {
     }
    }
   }
-  // Close button: bottom-right corner.
+  // Bezárás gomb: jobb alsó sarokban.
   ButtonWidgetClass CloseButton {
    position 0 0
    size 100 32
@@ -1333,76 +1333,76 @@ PanelWidgetClass MyModPanelRoot {
 
 ## stringtable.csv
 
-Place at `Scripts/stringtable.csv`.
+Helyezd el itt: `Scripts/stringtable.csv`.
 
-This provides localization for all player-facing text. The engine reads the column matching the player's game language. The `original` column is the fallback.
+Ez biztosítja a lokalizációt az összes játékos-oldali szöveghez. A motor a játékos játéknyelvéhez illeszkedő oszlopot olvassa. Az `original` oszlop a tartalék.
 
-DayZ supports 13 language columns. Every row must have all 13 columns (use the English text as placeholder for languages you do not translate).
+A DayZ 13 nyelvi oszlopot támogat. Minden sornak mind a 13 oszlopot tartalmaznia kell (használd az angol szöveget helyőrzőként a nem fordított nyelvekhez).
 
 ```csv
 "Language","original","english","czech","german","russian","polish","hungarian","italian","spanish","french","chinese","japanese","portuguese","chinesesimp",
 "STR_MYMOD_INPUT_GROUP","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod","My Mod",
-"STR_MYMOD_INPUT_PANEL","Open Panel","Open Panel","Otevrit Panel","Panel offnen","Otkryt Panel","Otworz Panel","Panel megnyitasa","Apri Pannello","Abrir Panel","Ouvrir Panneau","Open Panel","Open Panel","Abrir Painel","Open Panel",
+"STR_MYMOD_INPUT_PANEL","Open Panel","Open Panel","Otevrit Panel","Panel offnen","Otkryt Panel","Otworz Panel","Panel megnyitása","Apri Pannello","Abrir Panel","Ouvrir Panneau","Open Panel","Open Panel","Abrir Painel","Open Panel",
 "STR_MYMOD_TITLE","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod","My Professional Mod",
-"STR_MYMOD_CLOSE","Close","Close","Zavrit","Schliessen","Zakryt","Zamknij","Bezaras","Chiudi","Cerrar","Fermer","Close","Close","Fechar","Close",
-"STR_MYMOD_WELCOME","Welcome!","Welcome!","Vitejte!","Willkommen!","Dobro pozhalovat!","Witaj!","Udvozoljuk!","Benvenuto!","Bienvenido!","Bienvenue!","Welcome!","Welcome!","Bem-vindo!","Welcome!",
+"STR_MYMOD_CLOSE","Close","Close","Zavrit","Schliessen","Zakryt","Zamknij","Bezárás","Chiudi","Cerrar","Fermer","Close","Close","Fechar","Close",
+"STR_MYMOD_WELCOME","Welcome!","Welcome!","Vitejte!","Willkommen!","Dobro pozhalovat!","Witaj!","Üdvözöljük!","Benvenuto!","Bienvenido!","Bienvenue!","Welcome!","Welcome!","Bem-vindo!","Welcome!",
 ```
 
-**Fontos:** Each line must end with a trailing comma after the last language column. This is a requirement of DayZ's CSV parser.
+**Fontos:** Minden sor végén egy záró vesszővel kell végződnie az utolsó nyelvi oszlop után. Ez a DayZ CSV feldolgozójának követelménye.
 
 ---
 
 ## Inputs.xml
 
-Place at `Scripts/Inputs.xml`.
+Helyezd el itt: `Scripts/Inputs.xml`.
 
-This defines custom keybinds that appear in the game's Options > Controls menu. The `inputs` field in `config.cpp` CfgMods must point to this file.
+Ez definiálja az egyéni billentyűkötéseket, amelyek megjelennek a játék Opciók > Vezérlők menüjében. A `config.cpp` CfgMods `inputs` mezőjének erre a fájlra kell mutatnia.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <!--
-    Inputs.xml - Custom keybind definitions
+    Inputs.xml - Egyéni billentyűkötés definíciók
 
-    STRUCTURE:
-    - <actions>:  declares input action names and their display strings
-    - <sorting>:  groups actions under a category in the Controls menu
-    - <preset>:   sets the default key binding
+    STRUKTÚRA:
+    - <actions>:  deklarálja az input akció neveket és megjelenítési sztringjeiket
+    - <sorting>:  csoportosítja az akciókat egy kategória alá a Vezérlők menüben
+    - <preset>:   beállítja az alapértelmezett billentyűkötést
 
-    NAMING CONVENTION:
-    - Action names start with "UA" (User Action) followed by your mod prefix.
-    - The "loc" attribute references a string key from stringtable.csv.
+    ELNEVEZÉSI KONVENCIÓ:
+    - Az akció nevek "UA"-val (User Action) kezdődnek, amelyet a mod előtagod követ.
+    - A "loc" attribútum egy stringtable.csv sztring kulcsra hivatkozik.
 
-    KEY NAMES:
-    - Keyboard: kA through kZ, k0-k9, kInsert, kHome, kEnd, kDelete,
+    BILLENTYŰ NEVEK:
+    - Billentyűzet: kA-tól kZ-ig, k0-k9, kInsert, kHome, kEnd, kDelete,
       kNumpad0-kNumpad9, kF1-kF12, kLControl, kRControl, kLShift, kRShift,
       kLAlt, kRAlt, kSpace, kReturn, kBack, kTab, kEscape
-    - Mouse: mouse1 (left), mouse2 (right), mouse3 (middle)
-    - Combo keys: use <combo> element with multiple <btn> children
+    - Egér: mouse1 (bal), mouse2 (jobb), mouse3 (középső)
+    - Kombinált billentyűk: használj <combo> elemet több <btn> gyermekkel
 -->
 <modded_inputs>
     <inputs>
-        <!-- Declare the input action. -->
+        <!-- Az input akció deklarálása. -->
         <actions>
             <input name="UAMyModPanel" loc="STR_MYMOD_INPUT_PANEL" />
         </actions>
 
-        <!-- Group under a category in Options > Controls. -->
-        <!-- The "name" is an internal ID; "loc" is the display name from stringtable. -->
+        <!-- Csoportosítás egy kategória alá az Opciók > Vezérlők menüben. -->
+        <!-- A "name" egy belső ID; a "loc" a megjelenítési név a stringtable-ből. -->
         <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
             <input name="UAMyModPanel"/>
         </sorting>
     </inputs>
 
-    <!-- Default key preset. Players can rebind in Options > Controls. -->
+    <!-- Alapértelmezett billentyű beállítás. A játékosok átállíthatják az Opciók > Vezérlők menüben. -->
     <preset>
-        <!-- Bind to the Home key by default. -->
+        <!-- Alapértelmezetten a Home billentyűhöz kötve. -->
         <input name="UAMyModPanel">
             <btn name="kHome"/>
         </input>
 
         <!--
-        COMBO KEY EXAMPLE (uncomment to use):
-        This would bind to Ctrl+H instead of a single key.
+        KOMBINÁLT BILLENTYŰ PÉLDA (vedd ki a megjegyzésből a használathoz):
+        Ez Ctrl+H-ra kötné egyetlen billentyű helyett.
         <input name="UAMyModPanel">
             <combo>
                 <btn name="kLControl"/>
@@ -1416,61 +1416,61 @@ This defines custom keybinds that appear in the game's Options > Controls menu. 
 
 ---
 
-## Build Script
+## Build szkript
 
-Place at `build.bat` in the mod root.
+Helyezd el a `build.bat` fájlt a mod gyökerében.
 
-This batch file automates PBO packing using Addon Builder from DayZ Tools.
+Ez a batch fájl automatizálja a PBO csomagolást a DayZ Tools Addon Builder segítségével.
 
 ```batch
 @echo off
 REM ==========================================================================
-REM build.bat - Automated PBO packing for MyProfessionalMod
+REM build.bat - Automatizált PBO csomagolás a MyProfessionalMod-hoz
 REM
-REM WHAT THIS DOES:
-REM   1. Packs the Scripts/ folder into a PBO file
-REM   2. Places the PBO in the distributable @mod folder
-REM   3. Copies mod.cpp to the distributable folder
+REM MIT CSINÁL:
+REM   1. Becsomagolja a Scripts/ mappát egy PBO fájlba
+REM   2. A PBO-t a terjeszthető @mod mappába helyezi
+REM   3. A mod.cpp-t a terjeszthető mappába másolja
 REM
-REM PREREQUISITES:
-REM   - DayZ Tools installed via Steam
-REM   - Mod source at P:\MyProfessionalMod\
+REM ELŐFELTÉTELEK:
+REM   - DayZ Tools telepítve Steamen keresztül
+REM   - Mod forrás a P:\MyProfessionalMod\ helyen
 REM
-REM USAGE:
-REM   Double-click this file or run from command line: build.bat
+REM HASZNÁLAT:
+REM   Kattints duplán erre a fájlra vagy futtasd parancssorból: build.bat
 REM ==========================================================================
 
-REM --- Configuration: update these paths to match your setup ---
+REM --- Konfiguráció: frissítsd ezeket az útvonalakat a beállításodnak megfelelően ---
 
-REM Path to DayZ Tools (check your Steam library path).
+REM A DayZ Tools útvonala (ellenőrizd a Steam könyvtárad útvonalát).
 set DAYZ_TOOLS=C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools
 
-REM Source folder: the Scripts directory that gets packed into the PBO.
+REM Forrás mappa: a Scripts könyvtár, ami a PBO-ba kerül csomagolásra.
 set SOURCE=P:\MyProfessionalMod\Scripts
 
-REM Output folder: where the packed PBO goes.
+REM Kimeneti mappa: ahova a becsomagolt PBO kerül.
 set OUTPUT=P:\@MyProfessionalMod\addons
 
-REM Prefix: the virtual path inside the PBO. Must match the paths
-REM in config.cpp (e.g., "MyProfessionalMod/Scripts/3_Game" must resolve).
+REM Prefix: a virtuális útvonal a PBO-n belül. Egyeznie kell a config.cpp
+REM útvonalaival (pl. "MyProfessionalMod/Scripts/3_Game" fel kell hogy oldódjon).
 set PREFIX=MyProfessionalMod\Scripts
 
-REM --- Build Steps ---
+REM --- Build lépések ---
 
 echo ============================================
 echo  Building MyProfessionalMod
 echo ============================================
 
-REM Create output directory if it does not exist.
+REM Kimeneti könyvtár létrehozása, ha nem létezik.
 if not exist "%OUTPUT%" mkdir "%OUTPUT%"
 
-REM Run Addon Builder.
-REM   -clear  = remove old PBO before packing
-REM   -prefix = set the PBO prefix (required for script paths to resolve)
+REM Az Addon Builder futtatása.
+REM   -clear  = régi PBO eltávolítása csomagolás előtt
+REM   -prefix = a PBO prefix beállítása (szükséges a szkript útvonalak feloldásához)
 echo Packing PBO...
 "%DAYZ_TOOLS%\Bin\AddonBuilder\AddonBuilder.exe" "%SOURCE%" "%OUTPUT%" -prefix=%PREFIX% -clear
 
-REM Check if Addon Builder succeeded.
+REM Ellenőrzés, hogy az Addon Builder sikerült-e.
 if %ERRORLEVEL% NEQ 0 (
     echo.
     echo ERROR: PBO packing failed! Check the output above for details.
@@ -1482,7 +1482,7 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
-REM Copy mod.cpp to the distributable folder.
+REM A mod.cpp másolása a terjeszthető mappába.
 echo Copying mod.cpp...
 copy /Y "P:\MyProfessionalMod\mod.cpp" "P:\@MyProfessionalMod\mod.cpp" >nul
 
@@ -1503,29 +1503,29 @@ pause
 
 ---
 
-## Customization Guide
+## Testreszabási útmutató
 
-When you use this template for your own mod, you need to rename every occurrence of the placeholder names. Here is a complete checklist.
+Amikor ezt a sablont használod a saját mododhoz, minden előfordulási helyen át kell nevezned a helyőrző neveket. Íme a teljes ellenőrzőlista.
 
-### Step 1: Choose Your Names
+### 1. lépés: Válaszd ki a neveidet
 
-Decide on these identifiers before making any edits:
+Döntsd el ezeket az azonosítókat a szerkesztések megkezdése előtt:
 
-| Identifier | Pelda | Szabalyok |
+| Azonosító | Példa | Szabályok |
 |------------|---------|-------|
-| **Mod folder name** | `MyBountySystem` | No spaces, PascalCase or underscores |
-| **Display name** | `"My Bounty System"` | Human-readable, for mod.cpp and config.cpp |
-| **CfgPatches class** | `MyBountySystem_Scripts` | Must be globally unique across all mods |
-| **CfgMods class** | `MyBountySystem` | Internal engine identifier |
-| **Script prefix** | `MyBounty` | Short prefix for classes: `MyBountyManager`, `MyBountyConfig` |
-| **Tag constant** | `MYBOUNTY_TAG` | For log messages: `"[MyBounty]"` |
-| **Preprocessor define** | `MYBOUNTYSYSTEM` | For `#ifdef` cross-mod detection |
-| **RPC ID** | `58432` | Unique 5-digit number, not used by other mods |
-| **Input action name** | `UAMyBountyPanel` | Starts with `UA`, unique |
+| **Mod mappa név** | `MyBountySystem` | Szóközök nélkül, PascalCase vagy aláhúzás |
+| **Megjelenítési név** | `"My Bounty System"` | Emberbarát, a mod.cpp és config.cpp számára |
+| **CfgPatches osztály** | `MyBountySystem_Scripts` | Globálisan egyedinek kell lennie az összes mod között |
+| **CfgMods osztály** | `MyBountySystem` | Belső motor azonosító |
+| **Szkript előtag** | `MyBounty` | Rövid előtag osztályokhoz: `MyBountyManager`, `MyBountyConfig` |
+| **Címke konstans** | `MYBOUNTY_TAG` | Napló üzenetekhez: `"[MyBounty]"` |
+| **Előfeldolgozó definíció** | `MYBOUNTYSYSTEM` | Az `#ifdef` kereszt-mod érzékeléshez |
+| **RPC ID** | `58432` | Egyedi 5 jegyű szám, amit más modok nem használnak |
+| **Input akció név** | `UAMyBountyPanel` | `UA`-val kezdődik, egyedi |
 
-### Step 2: Rename Files and Folders
+### 2. lépés: Fájlok és mappák átnevezése
 
-Rename every file and folder that contains "MyMod" or "MyProfessionalMod":
+Nevezd át minden fájlt és mappát, ami "MyMod" vagy "MyProfessionalMod" nevet tartalmaz:
 
 ```
 MyProfessionalMod/           -> MyBountySystem/
@@ -1544,75 +1544,75 @@ MyProfessionalMod/           -> MyBountySystem/
     MyModPanel.layout          -> MyBountyPanel.layout
 ```
 
-### Step 3: Find-and-Replace in Every File
+### 3. lépés: Keresés-és-csere minden fájlban
 
-Perform these replacements **in order** (longest strings first to avoid partial matches):
+Végezd el ezeket a cseréket **sorrendben** (a leghosszabb sztringek először a részleges egyezések elkerülése érdekében):
 
-| Find | Replace | Files Affected |
+| Keresés | Csere | Érintett fájlok |
 |------|---------|----------------|
-| `MyProfessionalMod` | `MyBountySystem` | config.cpp, mod.cpp, build.bat, UI script |
-| `MyModManager` | `MyBountyManager` | Manager, mission hooks, player handler |
-| `MyModConfig` | `MyBountyConfig` | Config class, manager |
-| `MyModKonstansok` | `MyBountyKonstansok` | (filename only) |
-| `MyModRPCHelper` | `MyBountyRPCHelper` | RPC helper, mission hooks |
-| `MyModUI` | `MyBountyUI` | UI script, client mission hook |
-| `MyModPanel` | `MyBountyPanel` | Layout file, UI script |
+| `MyProfessionalMod` | `MyBountySystem` | config.cpp, mod.cpp, build.bat, UI szkript |
+| `MyModManager` | `MyBountyManager` | Manager, mission hookok, játékos kezelő |
+| `MyModConfig` | `MyBountyConfig` | Config osztály, manager |
+| `MyModConstants` | `MyBountyConstants` | (csak fájlnév) |
+| `MyModRPCHelper` | `MyBountyRPCHelper` | RPC segéd, mission hookok |
+| `MyModUI` | `MyBountyUI` | UI szkript, kliens mission hook |
+| `MyModPanel` | `MyBountyPanel` | Layout fájl, UI szkript |
 | `MyMod_Scripts` | `MyBountySystem_Scripts` | config.cpp CfgPatches |
-| `MYMOD_RPC_ID` | `MYBOUNTY_RPC_ID` | Konstansok, RPC, mission hooks |
-| `MYMOD_RPC_` | `MYBOUNTY_RPC_` | All RPC route constants |
-| `MYMOD_TAG` | `MYBOUNTY_TAG` | Konstansok, all files using the log tag |
-| `MYMOD_CONFIG` | `MYBOUNTY_CONFIG` | Konstansok, config class |
-| `MYMOD_VERSION` | `MYBOUNTY_VERSION` | Konstansok, UI script |
+| `MYMOD_RPC_ID` | `MYBOUNTY_RPC_ID` | Konstansok, RPC, mission hookok |
+| `MYMOD_RPC_` | `MYBOUNTY_RPC_` | Összes RPC útvonal konstans |
+| `MYMOD_TAG` | `MYBOUNTY_TAG` | Konstansok, összes fájl, ami a napló címkét használja |
+| `MYMOD_CONFIG` | `MYBOUNTY_CONFIG` | Konstansok, config osztály |
+| `MYMOD_VERSION` | `MYBOUNTY_VERSION` | Konstansok, UI szkript |
 | `MYMOD` | `MYBOUNTYSYSTEM` | config.cpp defines[] |
-| `MyMod` | `MyBounty` | config.cpp CfgMods class, RPC route strings |
-| `My Mod` | `My Bounty System` | Strings in layouts, stringtable |
-| `mymod` | `mybounty` | Inputs.xml sorting name |
+| `MyMod` | `MyBounty` | config.cpp CfgMods osztály, RPC útvonal sztringek |
+| `My Mod` | `My Bounty System` | Sztringek a layoutokban, stringtable |
+| `mymod` | `mybounty` | Inputs.xml sorting név |
 | `STR_MYMOD_` | `STR_MYBOUNTY_` | stringtable.csv, Inputs.xml |
-| `UAMyMod` | `UAMyBounty` | Inputs.xml, client mission hook |
-| `m_MyMod` | `m_MyBounty` | Client mission hook member variables |
-| `74291` | `58432` | RPC ID (your chosen unique number) |
+| `UAMyMod` | `UAMyBounty` | Inputs.xml, kliens mission hook |
+| `m_MyMod` | `m_MyBounty` | Kliens mission hook tagváltozók |
+| `74291` | `58432` | RPC ID (a választott egyedi szám) |
 
-### Step 4: Verify
+### 4. lépés: Ellenőrzés
 
-After renaming, do a project-wide search for "MyMod" and "MyProfessionalMod" to catch anything you missed. Then build and test:
+Az átnevezés után végezz projekt-szintű keresést a "MyMod" és "MyProfessionalMod" kifejezésekre, hogy elkapd, amit esetleg kihagytál. Ezután fordítsd le és teszteld:
 
 ```batch
 DayZDiag_x64.exe -mod=P:\MyBountySystem -filePatching
 ```
 
-Check the script log for your tag (e.g., `[MyBounty]`) to confirm everything loaded.
+Ellenőrizd a szkript naplót a címkéd után (pl. `[MyBounty]`), hogy megerősítsd, minden betöltődött.
 
 ---
 
-## Funkcio Expansion Guide
+## Funkció bővítési útmutató
 
-Once your mod is running, here is how to add common features.
+Amint a modod fut, íme hogyan adj hozzá gyakori funkciókat.
 
-### Adding a New RPC Endpoint
+### Új RPC végpont hozzáadása
 
-**1. Define the route constant** in `MyModRPC.c` (3_Game):
+**1. Definiáld az útvonal konstanst** a `MyModRPC.c`-ben (3_Game):
 
 ```c
 const string MYMOD_RPC_BOUNTY_SET = "MyMod:BountySet";
 ```
 
-**2. Add the server handler** in `MyModManager.c` (4_World):
+**2. Add hozzá a szerver kezelőt** a `MyModManager.c`-ben (4_World):
 
 ```c
 void OnBountySet(PlayerIdentity sender, ParamsReadContext ctx)
 {
-    // Read parameters written by the client.
+    // A kliens által írt paraméterek olvasása.
     string targetName;
     int bountyAmount;
     if (!ctx.Read(targetName)) return;
     if (!ctx.Read(bountyAmount)) return;
 
     Print(MYMOD_TAG + " Bounty set on " + targetName + ": " + bountyAmount.ToString());
-    // ... your logic here ...
+    // ... a logikád ide ...
 }
 ```
 
-**3. Add the dispatch case** in `MyModMissionServer.c` (5_Mission), inside `OnRPC()`:
+**3. Add hozzá a diszpécser esetet** a `MyModMissionServer.c`-ben (5_Mission), az `OnRPC()` belsejében:
 
 ```c
 else if (routeName == MYMOD_RPC_BOUNTY_SET)
@@ -1621,7 +1621,7 @@ else if (routeName == MYMOD_RPC_BOUNTY_SET)
 }
 ```
 
-**4. Send from the client** (wherever the action is triggered):
+**4. Küldd a kliensről** (bárhol, ahol a művelet aktiválódik):
 
 ```c
 ScriptRPC rpc = new ScriptRPC();
@@ -1631,30 +1631,30 @@ rpc.Write(5000);
 rpc.Send(null, MYMOD_RPC_ID, true, null);
 ```
 
-### Adding a New Config Mezo
+### Új config mező hozzáadása
 
-**1. Add the field** in `MyModConfig.c` with a default value:
+**1. Add hozzá a mezőt** a `MyModConfig.c`-ben alapértékkel:
 
 ```c
-// Minimum bounty amount players can set.
+// Minimális fejpénz összeg, amit a játékosok beállíthatnak.
 int MinBountyAmount = 100;
 ```
 
-That is all. The JSON serializer picks up public fields automatically. Existing config files on disk will use the default value for the new field until the admin edits and saves.
+Ennyi az egész. A JSON szerializáló automatikusan felveszi a nyilvános mezőket. A lemezen lévő meglévő config fájlok az új mező alapértékét fogják használni, amíg az admin nem szerkeszti és menti.
 
-**2. Reference it** from the manager:
+**2. Hivatkozd** a managerből:
 
 ```c
 if (bountyAmount < m_Config.MinBountyAmount)
 {
-    // Reject: too low.
+    // Elutasítás: túl alacsony.
     return;
 }
 ```
 
-### Adding a New UI Panel
+### Új UI panel hozzáadása
 
-**1. Create the layout** at `Scripts/GUI/layouts/MyModBountyList.layout`:
+**1. Hozd létre a layoutot** itt: `Scripts/GUI/layouts/MyModBountyList.layout`:
 
 ```
 PanelWidgetClass BountyListRoot {
@@ -1684,7 +1684,7 @@ PanelWidgetClass BountyListRoot {
 }
 ```
 
-**2. Create the script** at `Scripts/5_Mission/MyMod/MyModBountyListUI.c`:
+**2. Hozd létre a szkriptet** itt: `Scripts/5_Mission/MyMod/MyModBountyListUI.c`:
 
 ```c
 class MyModBountyListUI
@@ -1712,9 +1712,9 @@ class MyModBountyListUI
 };
 ```
 
-### Adding a New Keybind
+### Új billentyűkötés hozzáadása
 
-**1. Add the action** in `Inputs.xml`:
+**1. Add hozzá az akciót** az `Inputs.xml`-ben:
 
 ```xml
 <actions>
@@ -1728,7 +1728,7 @@ class MyModBountyListUI
 </sorting>
 ```
 
-**2. Add the default binding** in the `<preset>` section:
+**2. Add hozzá az alapértelmezett kötést** a `<preset>` szekcióba:
 
 ```xml
 <input name="UAMyModBountyList">
@@ -1736,13 +1736,13 @@ class MyModBountyListUI
 </input>
 ```
 
-**3. Add the localization** in `stringtable.csv`:
+**3. Add hozzá a lokalizációt** a `stringtable.csv`-ben:
 
 ```csv
 "STR_MYMOD_INPUT_BOUNTYLIST","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List",
 ```
 
-**4. Poll for the input** in `MyModMissionClient.c`:
+**4. Kérdezd le az inputot** a `MyModMissionClient.c`-ben:
 
 ```c
 UAInput bountyInput = GetUApi().GetInputByName("UAMyModBountyList");
@@ -1752,24 +1752,24 @@ if (bountyInput && bountyInput.LocalPress())
 }
 ```
 
-### Adding a New stringtable Entry
+### Új stringtable bejegyzés hozzáadása
 
-**1. Add the row** in `stringtable.csv`. Every row needs all 13 language columns plus a trailing comma:
+**1. Add hozzá a sort** a `stringtable.csv`-ben. Minden sornak mind a 13 nyelvi oszlopra szüksége van, plusz egy záró vessző:
 
 ```csv
 "STR_MYMOD_BOUNTY_PLACED","Bounty placed!","Bounty placed!","Odměna vypsána!","Kopfgeld gesetzt!","Награда назначена!","Nagroda wyznaczona!","Fejpénz kiírva!","Taglia piazzata!","Recompensa puesta!","Prime placée!","Bounty placed!","Bounty placed!","Recompensa colocada!","Bounty placed!",
 ```
 
-**2. Use it** in script code:
+**2. Használd** a szkript kódban:
 
 ```c
-// Widget.SetText() does NOT auto-resolve stringtable keys.
-// You must use Widget.SetText() with the resolved string:
+// A Widget.SetText() NEM oldja fel automatikusan a stringtable kulcsokat.
+// A Widget.SetText() metódust a feloldott sztringgel kell használnod:
 string localizedText = Widget.TranslateString("#STR_MYMOD_BOUNTY_PLACED");
 myTextWidget.SetText(localizedText);
 ```
 
-Or in a `.layout` file, the engine resolves `#STR_` keys automatically:
+Vagy egy `.layout` fájlban a motor automatikusan feloldja a `#STR_` kulcsokat:
 
 ```
 text "#STR_MYMOD_BOUNTY_PLACED"
@@ -1777,17 +1777,17 @@ text "#STR_MYMOD_BOUNTY_PLACED"
 
 ---
 
-## Kovetkezo lepesek
+## Következő lépések
 
-With this professional template running, you can:
+Ezzel a professzionális sablonnal futva a következőket teheted:
 
-1. **Study production mods** -- Read [DayZ Expansion](https://github.com/salutesh/DayZ-Expansion-Scripts) and the `StarDZ_Core` source for real-world patterns at scale.
-2. **Add custom items** -- Follow [Chapter 8.2: Creating a Custom Item](02-custom-item.md) and integrate them with your manager.
-3. **Build an admin panel** -- Follow [Chapter 8.3: Building an Admin Panel](03-admin-panel.md) using your config system.
-4. **Add a HUD overlay** -- Follow [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) for always-visible UI elements.
-5. **Publish to the Workshop** -- Follow [Chapter 8.7: Publishing to Workshop](07-publishing-workshop.md) when your mod is ready.
-6. **Learn debugging** -- Read [Chapter 8.6: Debugging & Testing](06-debugging-testing.md) for log analysis and troubleshooting.
+1. **Tanulmányozz éles modokat** -- Olvasd el a [DayZ Expansion](https://github.com/salutesh/DayZ-Expansion-Scripts) és a `StarDZ_Core` forrást valós mintákért nagy léptékben.
+2. **Adj hozzá egyéni tárgyakat** -- Kövesd a [8.2. fejezetet: Egyéni tárgy létrehozása](02-custom-item.md) és integráld a managereddel.
+3. **Építs admin panelt** -- Kövesd a [8.3. fejezetet: Admin panel építése](03-admin-panel.md) a config rendszered használatával.
+4. **Adj hozzá HUD overlay-t** -- Kövesd a [8.8. fejezetet: HUD overlay építése](08-hud-overlay.md) a mindig látható UI elemekhez.
+5. **Publikálj a Workshop-ra** -- Kövesd a [8.7. fejezetet: Publikálás a Workshop-ra](07-publishing-workshop.md), amikor a modod kész.
+6. **Tanulj hibakeresést** -- Olvasd el a [8.6. fejezetet: Hibakeresés és tesztelés](06-debugging-testing.md) a napló elemzéshez és hibaelhárításhoz.
 
 ---
 
-**Elozo:** [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) | [Fooldal](../../README.md)
+**Előző:** [8.8. fejezet: HUD overlay építése](08-hud-overlay.md) | [Főoldal](../../README.md)

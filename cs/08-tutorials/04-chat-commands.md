@@ -1,46 +1,50 @@
-# Chapter 8.4: Adding Chat Commands
+# Kapitola 8.4: Přidání chatových příkazů
 
-[Home](../../README.md) | [<< Previous: Building an Admin Panel](03-admin-panel.md) | **Adding Chat Commands** | [Next: Using the DayZ Mod Template >>](05-mod-template.md)
-
----
-
-## Table of Contents
-
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Step 1: Hook Into Chat Input](#step-1-hook-into-chat-input)
-- [Step 2: Parse Command Prefix and Arguments](#step-2-parse-command-prefix-and-arguments)
-- [Step 3: Check Admin Permissions](#step-3-check-admin-permissions)
-- [Step 4: Execute the Server-Side Action](#step-4-execute-the-server-side-action)
-- [Step 5: Send Feedback to the Admin](#step-5-send-feedback-to-the-admin)
-- [Step 6: Register Commands](#step-6-register-commands)
-- [Step 7: Add to an Admin Panel Command List](#step-7-add-to-an-admin-panel-command-list)
-- [Complete Working Code: /heal Command](#complete-working-code-heal-command)
-- [Adding More Commands](#adding-more-commands)
-- [Troubleshooting](#troubleshooting)
-- [Next Steps](#next-steps)
+[Domů](../../README.md) | [<< Předchozí: Tvorba administrátorského panelu](03-admin-panel.md) | **Přidání chatových příkazů** | [Další: Použití šablony DayZ modu >>](05-mod-template.md)
 
 ---
 
-## What We Are Building
-
-A chat command system with:
-
-- **`/heal`** -- Fully heals the admin's character (health, blood, shock, hunger, thirst)
-- **`/heal PlayerName`** -- Heals a specific player by name
-- A reusable framework for adding `/kill`, `/teleport`, `/time`, `/weather`, and any other command
-- Admin permission checking so regular players cannot use admin commands
-- Server-side execution with chat feedback messages
+> **Shrnutí:** Tento tutoriál vás provede vytvořením systému chatových příkazů pro DayZ. Napojíte se na chatový vstup, zpracujete prefixy příkazů a argumenty, ověříte oprávnění administrátora, provedete akci na straně serveru a odešlete zpětnou vazbu hráči. Na konci budete mít funkční příkaz `/heal`, který plně vyléčí postavu administrátora, spolu s frameworkem pro přidávání dalších příkazů.
 
 ---
 
-## Prerequisites
+## Obsah
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Understanding of the [client-server RPC pattern](03-admin-panel.md) from Chapter 8.3
+- [Co budeme vytvářet](#co-budeme-vytvářet)
+- [Předpoklady](#předpoklady)
+- [Přehled architektury](#přehled-architektury)
+- [Krok 1: Napojení na chatový vstup](#krok-1-napojení-na-chatový-vstup)
+- [Krok 2: Parsování prefixu příkazu a argumentů](#krok-2-parsování-prefixu-příkazu-a-argumentů)
+- [Krok 3: Ověření oprávnění administrátora](#krok-3-ověření-oprávnění-administrátora)
+- [Krok 4: Provedení akce na straně serveru](#krok-4-provedení-akce-na-straně-serveru)
+- [Krok 5: Odeslání zpětné vazby administrátorovi](#krok-5-odeslání-zpětné-vazby-administrátorovi)
+- [Krok 6: Registrace příkazů](#krok-6-registrace-příkazů)
+- [Krok 7: Přidání do seznamu příkazů administrátorského panelu](#krok-7-přidání-do-seznamu-příkazů-administrátorského-panelu)
+- [Kompletní funkční kód: příkaz /heal](#kompletní-funkční-kód-příkaz-heal)
+- [Přidávání dalších příkazů](#přidávání-dalších-příkazů)
+- [Řešení problémů](#řešení-problémů)
+- [Další kroky](#další-kroky)
 
-### Mod Structure for This Tutorial
+---
+
+## Co budeme vytvářet
+
+Systém chatových příkazů s:
+
+- **`/heal`** -- Plně vyléčí postavu administrátora (zdraví, krev, šok, hlad, žízeň)
+- **`/heal JménoHráče`** -- Vyléčí konkrétního hráče podle jména
+- Znovupoužitelným frameworkem pro přidání `/kill`, `/teleport`, `/time`, `/weather` a jakéhokoli dalšího příkazu
+- Ověřováním oprávnění administrátora, aby běžní hráči nemohli používat administrátorské příkazy
+- Provedením na straně serveru se zpětnou vazbou do chatu
+
+---
+
+## Předpoklady
+
+- Funkční struktura modu (nejprve dokončete [Kapitolu 8.1](01-first-mod.md))
+- Pochopení [vzoru klient-server RPC](03-admin-panel.md) z Kapitoly 8.3
+
+### Struktura modu pro tento tutoriál
 
 ```
 ChatCommands/
@@ -64,52 +68,52 @@ ChatCommands/
 
 ---
 
-## Architecture Overview
+## Přehled architektury
 
-Chat commands follow this flow:
+Chatové příkazy sledují tento tok:
 
 ```
-CLIENT                                  SERVER
+KLIENT                                  SERVER
 ------                                  ------
 
-1. Admin types "/heal" in chat
-2. Chat hook intercepts the message
-   (prevents it from being sent as chat)
-3. Client sends command via RPC  ---->  4. Server receives RPC
-                                            Checks admin permissions
-                                            Looks up command handler
-                                            Executes the command
-                                        5. Server sends feedback  ---->  CLIENT
-                                            (chat message RPC)
-                                                                     6. Admin sees
-                                                                        feedback in chat
+1. Admin napíše "/heal" do chatu
+2. Chat hook zachytí zprávu
+   (zabrání odeslání jako normální chat)
+3. Klient odešle příkaz přes RPC  ---->  4. Server přijme RPC
+                                            Ověří oprávnění administrátora
+                                            Vyhledá handler příkazu
+                                            Provede příkaz
+                                        5. Server odešle zpětnou vazbu  ---->  KLIENT
+                                            (chatová zpráva RPC)
+                                                                     6. Admin vidí
+                                                                        zpětnou vazbu v chatu
 ```
 
-**Why process commands on the server?** Because the server has authority over game state. Only the server can reliably heal players, change weather, teleport characters, and modify world state. The client's role is limited to detecting the command and forwarding it.
+**Proč zpracovávat příkazy na serveru?** Protože server má autoritu nad stavem hry. Pouze server může spolehlivě léčit hráče, měnit počasí, teleportovat postavy a upravovat stav světa. Role klienta je omezena na detekci příkazu a jeho přeposlání.
 
 ---
 
-## Step 1: Hook Into Chat Input
+## Krok 1: Napojení na chatový vstup
 
-We need to intercept chat messages before they are sent as regular chat. DayZ provides the `ChatInputMenu` class for this purpose.
+Potřebujeme zachytit chatové zprávy před tím, než jsou odeslány jako běžný chat. DayZ pro tento účel poskytuje třídu `ChatInputMenu`.
 
-### The Chat Hook Approach
+### Přístup chat hooku
 
-We will mod the `MissionGameplay` class to intercept chat input events. When the player submits a chat message starting with `/`, we intercept it, prevent it from being sent as normal chat, and instead send it as a command RPC to the server.
+Budeme moddovat třídu `MissionGameplay` pro zachycení událostí chatového vstupu. Když hráč odešle chatovou zprávu začínající `/`, zachytíme ji, zabráníme odeslání jako normální chat a místo toho ji odešleme jako příkazové RPC na server.
 
-### Create `Scripts/5_Mission/ChatCommands/CCmdChatHook.c`
+### Vytvořte `Scripts/5_Mission/ChatCommands/CCmdChatHook.c`
 
 ```c
 modded class MissionGameplay
 {
     // -------------------------------------------------------
-    // Intercept chat messages that start with /
+    // Zachycení chatových zpráv začínajících /
     // -------------------------------------------------------
     override void OnEvent(EventType eventTypeId, Param params)
     {
         super.OnEvent(eventTypeId, params);
 
-        // ChatMessageEventTypeID fires when the player sends a chat message
+        // ChatMessageEventTypeID se spustí, když hráč odešle chatovou zprávu
         if (eventTypeId == ChatMessageEventTypeID)
         {
             Param3<int, string, string> chatParams;
@@ -117,10 +121,10 @@ modded class MissionGameplay
             {
                 string message = chatParams.param3;
 
-                // Check if it starts with /
+                // Kontrola, zda začíná /
                 if (message.Length() > 0 && message.Substring(0, 1) == "/")
                 {
-                    // This is a command -- send it to the server
+                    // Toto je příkaz -- odeslat na server
                     SendChatCommand(message);
                 }
             }
@@ -128,7 +132,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Send the command string to the server via RPC
+    // Odeslání řetězce příkazu na server přes RPC
     // -------------------------------------------------------
     protected void SendChatCommand(string fullCommand)
     {
@@ -143,7 +147,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Receive command feedback from the server
+    // Příjem zpětné vazby příkazu ze serveru
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
@@ -157,7 +161,7 @@ modded class MissionGameplay
                 string prefix = data.param1;
                 string message = data.param2;
 
-                // Display feedback as a system chat message
+                // Zobrazení zpětné vazby jako systémové chatové zprávy
                 GetGame().Chat(prefix + " " + message, "colorStatusChannel");
 
                 Print("[ChatCommands] Feedback: " + prefix + " " + message);
@@ -167,23 +171,23 @@ modded class MissionGameplay
 };
 ```
 
-### How Chat Interception Works
+### Jak funguje zachycení chatu
 
-The `OnEvent` method on `MissionGameplay` is called for various game events. When `eventTypeId` is `ChatMessageEventTypeID`, it means the player just submitted a chat message. The `Param3` contains:
+Metoda `OnEvent` na `MissionGameplay` se volá pro různé herní události. Když je `eventTypeId` roven `ChatMessageEventTypeID`, znamená to, že hráč právě odeslal chatovou zprávu. `Param3` obsahuje:
 
-- `param1` -- Channel (int): the chat channel (global, direct, etc.)
-- `param2` -- Sender name (string)
-- `param3` -- Message text (string)
+- `param1` -- Kanál (int): chatový kanál (globální, přímý atd.)
+- `param2` -- Jméno odesílatele (string)
+- `param3` -- Text zprávy (string)
 
-We check if the message starts with `/`. If it does, we forward the entire string to the server via RPC. The message is still sent as normal chat as well -- in a production mod, you would suppress it (covered in the notes at the end).
+Kontrolujeme, zda zpráva začíná `/`. Pokud ano, přepošleme celý řetězec na server přes RPC. Zpráva je stále odeslána i jako normální chat -- v produkčním modu byste ji potlačili (popsáno v poznámkách na konci).
 
 ---
 
-## Step 2: Parse Command Prefix and Arguments
+## Krok 2: Parsování prefixu příkazu a argumentů
 
-On the server side, we need to break a command string like `/heal PlayerName` into its parts: the command name (`heal`) and the arguments (`["PlayerName"]`).
+Na straně serveru potřebujeme rozdělit řetězec příkazu jako `/heal JménoHráče` na jeho části: název příkazu (`heal`) a argumenty (`["JménoHráče"]`).
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRPC.c`
+### Vytvořte `Scripts/3_Game/ChatCommands/CCmdRPC.c`
 
 ```c
 class CCmdRPC
@@ -193,54 +197,54 @@ class CCmdRPC
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdBase.c`
+### Vytvořte `Scripts/3_Game/ChatCommands/CCmdBase.c`
 
 ```c
 // -------------------------------------------------------
-// Base class for all chat commands
+// Základní třída pro všechny chatové příkazy
 // -------------------------------------------------------
 class CCmdBase
 {
-    // The command name without the / prefix (e.g., "heal")
+    // Název příkazu bez prefixu / (např. "heal")
     string GetName()
     {
         return "";
     }
 
-    // Short description shown in help or command list
+    // Krátký popis zobrazený v nápovědě nebo seznamu příkazů
     string GetDescription()
     {
         return "";
     }
 
-    // Usage syntax shown when the command is used incorrectly
+    // Syntaxe použití zobrazená při nesprávném použití příkazu
     string GetUsage()
     {
         return "/" + GetName();
     }
 
-    // Whether this command requires admin privileges
+    // Zda tento příkaz vyžaduje oprávnění administrátora
     bool RequiresAdmin()
     {
         return true;
     }
 
-    // Execute the command on the server
-    // Returns true if successful, false if failed
+    // Provedení příkazu na serveru
+    // Vrací true při úspěchu, false při selhání
     bool Execute(PlayerIdentity caller, array<string> args)
     {
         return false;
     }
 
     // -------------------------------------------------------
-    // Helper: Send feedback message to the command caller
+    // Pomocník: Odeslání zpětné vazby volajícímu příkazu
     // -------------------------------------------------------
     protected void SendFeedback(PlayerIdentity caller, string prefix, string message)
     {
         if (!caller)
             return;
 
-        // Find the caller's player object
+        // Nalezení objektu hráče volajícího
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
 
@@ -266,7 +270,7 @@ class CCmdBase
     }
 
     // -------------------------------------------------------
-    // Helper: Find a player by partial name match
+    // Pomocník: Nalezení hráče podle částečné shody jména
     // -------------------------------------------------------
     protected Man FindPlayerByName(string partialName)
     {
@@ -295,18 +299,18 @@ class CCmdBase
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRegistry.c`
+### Vytvořte `Scripts/3_Game/ChatCommands/CCmdRegistry.c`
 
 ```c
 // -------------------------------------------------------
-// Registry that holds all available commands
+// Registr obsahující všechny dostupné příkazy
 // -------------------------------------------------------
 class CCmdRegistry
 {
     protected static ref map<string, ref CCmdBase> s_Commands;
 
     // -------------------------------------------------------
-    // Initialize the registry (call once at startup)
+    // Inicializace registru (zavolat jednou při spuštění)
     // -------------------------------------------------------
     static void Init()
     {
@@ -315,7 +319,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Register a command instance
+    // Registrace instance příkazu
     // -------------------------------------------------------
     static void Register(CCmdBase command)
     {
@@ -338,7 +342,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Look up a command by name
+    // Vyhledání příkazu podle názvu
     // -------------------------------------------------------
     static CCmdBase GetCommand(string name)
     {
@@ -356,7 +360,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Get all registered command names
+    // Získání všech registrovaných názvů příkazů
     // -------------------------------------------------------
     static array<string> GetCommandNames()
     {
@@ -374,8 +378,8 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Parse a raw command string into name + args
-    // Example: "/heal PlayerName" --> name="heal", args=["PlayerName"]
+    // Parsování surového řetězce příkazu na název + argumenty
+    // Příklad: "/heal JménoHráče" --> name="heal", args=["JménoHráče"]
     // -------------------------------------------------------
     static void ParseCommand(string fullCommand, out string commandName, out array<string> args)
     {
@@ -385,12 +389,12 @@ class CCmdRegistry
         if (fullCommand.Length() == 0)
             return;
 
-        // Remove the leading /
+        // Odebrání úvodního /
         string raw = fullCommand;
         if (raw.Substring(0, 1) == "/")
             raw = raw.Substring(1, raw.Length() - 1);
 
-        // Split by spaces
+        // Rozdělení podle mezer
         raw.Split(" ", args);
 
         if (args.Count() > 0)
@@ -403,68 +407,68 @@ class CCmdRegistry
 };
 ```
 
-### The Parse Logic Explained
+### Vysvětlení logiky parsování
 
-Given the input `/heal SomePlayer`, `ParseCommand` does:
+Pro vstup `/heal SomePlayer` metoda `ParseCommand` provede:
 
-1. Removes the leading `/` to get `"heal SomePlayer"`
-2. Splits by spaces to get `["heal", "SomePlayer"]`
-3. Takes the first element as the command name: `"heal"`
-4. Removes it from the array, leaving args: `["SomePlayer"]`
+1. Odebere úvodní `/` a získá `"heal SomePlayer"`
+2. Rozdělí podle mezer a získá `["heal", "SomePlayer"]`
+3. Vezme první prvek jako název příkazu: `"heal"`
+4. Odebere ho z pole, zbydou argumenty: `["SomePlayer"]`
 
-The command name is converted to lowercase so `/Heal`, `/HEAL`, and `/heal` all work.
+Název příkazu se převede na malá písmena, takže `/Heal`, `/HEAL` a `/heal` všechny fungují.
 
 ---
 
-## Step 3: Check Admin Permissions
+## Krok 3: Ověření oprávnění administrátora
 
-Admin permission checking prevents regular players from executing admin commands. DayZ does not have a built-in admin permission system in scripts, so we check against a simple admin list.
+Ověření oprávnění administrátora zabraňuje běžným hráčům provádět administrátorské příkazy. DayZ nemá vestavěný systém oprávnění administrátora ve skriptech, takže kontrolujeme proti jednoduchému seznamu administrátorů.
 
-### The Admin Check in the Server Handler
+### Kontrola administrátora v handleru serveru
 
-The simplest approach is to check the player's Steam64 ID against a list of known admin IDs. In a production mod, you would load this list from a config file.
+Nejjednodušší přístup je kontrola Steam64 ID hráče proti seznamu známých ID administrátorů. V produkčním modu byste tento seznam načítali z konfiguračního souboru.
 
 ```c
-// Simple admin check -- in production, load from a JSON config file
+// Jednoduchá kontrola administrátora -- v produkci načtěte z JSON konfiguračního souboru
 static bool IsAdmin(PlayerIdentity identity)
 {
     if (!identity)
         return false;
 
-    // Check the player's plain ID (Steam64 ID)
+    // Kontrola plain ID hráče (Steam64 ID)
     string playerId = identity.GetPlainId();
 
-    // Hardcoded admin list -- replace with config file loading in production
+    // Hardkódovaný seznam administrátorů -- v produkci nahraďte načítáním konfiguračního souboru
     ref array<string> adminIds = new array<string>;
-    adminIds.Insert("76561198000000001");    // Replace with real Steam64 IDs
+    adminIds.Insert("76561198000000001");    // Nahraďte skutečnými Steam64 ID
     adminIds.Insert("76561198000000002");
 
     return (adminIds.Find(playerId) != -1);
 }
 ```
 
-### Where to Find Steam64 IDs
+### Kde najít Steam64 ID
 
-- Open your Steam profile in a browser
-- The URL contains your Steam64 ID: `https://steamcommunity.com/profiles/76561198XXXXXXXXX`
-- Or use a tool like https://steamid.io to look up any player
+- Otevřete svůj Steam profil v prohlížeči
+- URL obsahuje vaše Steam64 ID: `https://steamcommunity.com/profiles/76561198XXXXXXXXX`
+- Nebo použijte nástroj jako https://steamid.io pro vyhledání jakéhokoli hráče
 
-### Production-Grade Permissions
+### Oprávnění produkční úrovně
 
-In a real mod, you would:
+Ve skutečném modu byste:
 
-1. Store admin IDs in a JSON file (`$profile:ChatCommands/admins.json`)
-2. Load the file on server startup
-3. Support permission levels (moderator, admin, superadmin)
-4. Use a framework like MyFramework's `MyPermissions` system for hierarchical permissions
+1. Uložili ID administrátorů do JSON souboru (`$profile:ChatCommands/admins.json`)
+2. Načetli soubor při startu serveru
+3. Podporovali úrovně oprávnění (moderátor, administrátor, superadministrátor)
+4. Použili framework jako systém `MyPermissions` z MyMod Core pro hierarchická oprávnění
 
 ---
 
-## Step 4: Execute the Server-Side Action
+## Krok 4: Provedení akce na straně serveru
 
-Now we create the actual `/heal` command and the server handler that processes incoming command RPCs.
+Nyní vytvoříme skutečný příkaz `/heal` a handler serveru, který zpracovává příchozí příkazová RPC.
 
-### Create `Scripts/4_World/ChatCommands/commands/CCmdHeal.c`
+### Vytvořte `Scripts/4_World/ChatCommands/commands/CCmdHeal.c`
 
 ```c
 class CCmdHeal extends CCmdBase
@@ -490,9 +494,9 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Execute the heal command
-    // /heal         --> heals the caller
-    // /heal Name    --> heals the named player
+    // Provedení příkazu heal
+    // /heal         --> vyléčí volajícího
+    // /heal Name    --> vyléčí pojmenovaného hráče
     // -------------------------------------------------------
     override bool Execute(PlayerIdentity caller, array<string> args)
     {
@@ -502,10 +506,10 @@ class CCmdHeal extends CCmdBase
         Man targetMan = null;
         string targetName = "";
 
-        // Determine the target player
+        // Určení cílového hráče
         if (args.Count() > 0)
         {
-            // Heal a specific player by name
+            // Vyléčení konkrétního hráče podle jména
             string searchName = args.Get(0);
             targetMan = FindPlayerByName(searchName);
 
@@ -519,7 +523,7 @@ class CCmdHeal extends CCmdBase
         }
         else
         {
-            // Heal the caller themselves
+            // Vyléčení sebe sama
             ref array<Man> allPlayers = new array<Man>;
             GetGame().GetPlayers(allPlayers);
 
@@ -545,7 +549,7 @@ class CCmdHeal extends CCmdBase
             targetName = "yourself";
         }
 
-        // Execute the heal
+        // Provedení léčení
         PlayerBase targetPlayer;
         if (!Class.CastTo(targetPlayer, targetMan))
         {
@@ -555,7 +559,7 @@ class CCmdHeal extends CCmdBase
 
         HealPlayer(targetPlayer);
 
-        // Log and send feedback
+        // Logování a odeslání zpětné vazby
         Print("[ChatCommands] " + caller.GetName() + " healed " + targetName);
         SendFeedback(caller, "[Heal]", "Successfully healed " + targetName + ".");
 
@@ -563,30 +567,30 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Apply full heal to a player
+    // Aplikace plného léčení na hráče
     // -------------------------------------------------------
     protected void HealPlayer(PlayerBase player)
     {
         if (!player)
             return;
 
-        // Restore health to maximum
+        // Obnovení zdraví na maximum
         player.SetHealth("GlobalHealth", "Health", player.GetMaxHealth("GlobalHealth", "Health"));
 
-        // Restore blood to maximum
+        // Obnovení krve na maximum
         player.SetHealth("GlobalHealth", "Blood", player.GetMaxHealth("GlobalHealth", "Blood"));
 
-        // Remove shock damage
+        // Odstranění poškození šokem
         player.SetHealth("GlobalHealth", "Shock", player.GetMaxHealth("GlobalHealth", "Shock"));
 
-        // Set hunger to full (energy value)
-        // PlayerBase has a stats system -- set the energy stat
+        // Nastavení hladu na plno (hodnota energie)
+        // PlayerBase má systém statistik -- nastavení statistiky energie
         player.GetStatEnergy().Set(player.GetStatEnergy().GetMax());
 
-        // Set thirst to full (water value)
+        // Nastavení žízně na plno (hodnota vody)
         player.GetStatWater().Set(player.GetStatWater().GetMax());
 
-        // Clear any bleeding sources
+        // Vyčištění všech zdrojů krvácení
         player.GetBleedingManagerServer().RemoveAllSources();
 
         Print("[ChatCommands] Healed player: " + player.GetIdentity().GetName());
@@ -594,70 +598,70 @@ class CCmdHeal extends CCmdBase
 };
 ```
 
-### Why 4_World?
+### Proč 4_World?
 
-The heal command references `PlayerBase`, which is defined in the `4_World` layer. It also uses player stat methods (`GetStatEnergy`, `GetStatWater`, `GetBleedingManagerServer`) that are only available on world entities. The command **must** live in `4_World` or higher.
+Příkaz heal odkazuje na `PlayerBase`, který je definován ve vrstvě `4_World`. Také používá metody statistik hráče (`GetStatEnergy`, `GetStatWater`, `GetBleedingManagerServer`), které jsou dostupné pouze na světových entitách. Příkaz **musí** žít ve `4_World` nebo výše.
 
-The base class `CCmdBase` lives in `3_Game` because it does not reference any world types. The concrete command classes that touch world entities live in `4_World`.
+Základní třída `CCmdBase` žije v `3_Game`, protože neodkazuje na žádné světové typy. Konkrétní třídy příkazů, které pracují se světovými entitami, žijí ve `4_World`.
 
 ---
 
-## Step 5: Send Feedback to the Admin
+## Krok 5: Odeslání zpětné vazby administrátorovi
 
-Feedback is handled by the `SendFeedback()` method in `CCmdBase`. Let us trace the complete feedback path:
+Zpětná vazba je zpracována metodou `SendFeedback()` v `CCmdBase`. Sledujme kompletní cestu zpětné vazby:
 
-### Server Sends Feedback
+### Server odesílá zpětnou vazbu
 
 ```c
-// Inside CCmdBase.SendFeedback()
+// Uvnitř CCmdBase.SendFeedback()
 Param2<string, string> data = new Param2<string, string>(prefix, message);
 GetGame().RPCSingleParam(callerPlayer, CCmdRPC.COMMAND_FEEDBACK, data, true, caller);
 ```
 
-The server sends a `COMMAND_FEEDBACK` RPC to the specific client who issued the command. The data contains a prefix (like `"[Heal]"`) and the message text.
+Server odesílá RPC `COMMAND_FEEDBACK` konkrétnímu klientovi, který vydal příkaz. Data obsahují prefix (jako `"[Heal]"`) a text zprávy.
 
-### Client Receives and Displays Feedback
+### Klient přijímá a zobrazuje zpětnou vazbu
 
-Back in `CCmdChatHook.c` (Step 1), the `OnRPC` handler catches this:
+Zpět v `CCmdChatHook.c` (Krok 1), handler `OnRPC` toto zachytí:
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_FEEDBACK)
 {
-    // Deserialize the message
+    // Deserializace zprávy
     Param2<string, string> data = new Param2<string, string>("", "");
     if (ctx.Read(data))
     {
         string prefix = data.param1;
         string message = data.param2;
 
-        // Display in the chat window
+        // Zobrazení v chatovém okně
         GetGame().Chat(prefix + " " + message, "colorStatusChannel");
     }
 }
 ```
 
-`GetGame().Chat()` displays a message in the player's chat window. The second parameter is the color channel:
+`GetGame().Chat()` zobrazí zprávu v chatovém okně hráče. Druhý parametr je barevný kanál:
 
-| Channel | Color | Typical Use |
-|---------|-------|-------------|
-| `"colorStatusChannel"` | Yellow/orange | System messages |
-| `"colorAction"` | White | Action feedback |
-| `"colorFriendly"` | Green | Positive feedback |
-| `"colorImportant"` | Red | Warnings/errors |
+| Kanál | Barva | Typické použití |
+|-------|-------|-----------------|
+| `"colorStatusChannel"` | Žlutá/oranžová | Systémové zprávy |
+| `"colorAction"` | Bílá | Zpětná vazba akce |
+| `"colorFriendly"` | Zelená | Pozitivní zpětná vazba |
+| `"colorImportant"` | Červená | Varování/chyby |
 
 ---
 
-## Step 6: Register Commands
+## Krok 6: Registrace příkazů
 
-The server handler receives command RPCs, looks up the command in the registry, and executes it.
+Handler serveru přijímá příkazová RPC, vyhledá příkaz v registru a provede ho.
 
-### Create `Scripts/4_World/ChatCommands/CCmdServerHandler.c`
+### Vytvořte `Scripts/4_World/ChatCommands/CCmdServerHandler.c`
 
 ```c
 modded class MissionServer
 {
     // -------------------------------------------------------
-    // Register all commands when the server starts
+    // Registrace všech příkazů při startu serveru
     // -------------------------------------------------------
     override void OnInit()
     {
@@ -665,10 +669,10 @@ modded class MissionServer
 
         CCmdRegistry.Init();
 
-        // Register all commands here
+        // Registrace všech příkazů zde
         CCmdRegistry.Register(new CCmdHeal());
 
-        // Add more commands:
+        // Přidání dalších příkazů:
         // CCmdRegistry.Register(new CCmdKill());
         // CCmdRegistry.Register(new CCmdTeleport());
         // CCmdRegistry.Register(new CCmdTime());
@@ -678,7 +682,7 @@ modded class MissionServer
 };
 
 // -------------------------------------------------------
-// Server-side RPC handler for incoming commands
+// RPC handler na straně serveru pro příchozí příkazy
 // -------------------------------------------------------
 modded class PlayerBase
 {
@@ -700,7 +704,7 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Read the command string
+        // Čtení řetězce příkazu
         Param1<string> data = new Param1<string>("");
         if (!ctx.Read(data))
         {
@@ -711,7 +715,7 @@ modded class PlayerBase
         string fullCommand = data.param1;
         Print("[ChatCommands] Received command from " + sender.GetName() + ": " + fullCommand);
 
-        // Parse the command
+        // Parsování příkazu
         string commandName;
         ref array<string> args;
         CCmdRegistry.ParseCommand(fullCommand, commandName, args);
@@ -719,7 +723,7 @@ modded class PlayerBase
         if (commandName == "")
             return;
 
-        // Look up the command
+        // Vyhledání příkazu
         CCmdBase command = CCmdRegistry.GetCommand(commandName);
         if (!command)
         {
@@ -727,7 +731,7 @@ modded class PlayerBase
             return;
         }
 
-        // Check admin permissions
+        // Ověření oprávnění administrátora
         if (command.RequiresAdmin() && !IsCommandAdmin(sender))
         {
             Print("[ChatCommands] Non-admin " + sender.GetName() + " tried to use /" + commandName);
@@ -735,7 +739,7 @@ modded class PlayerBase
             return;
         }
 
-        // Execute the command
+        // Provedení příkazu
         bool success = command.Execute(sender, args);
 
         if (success)
@@ -745,7 +749,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Check if a player is an admin
+    // Ověření, zda je hráč administrátor
     // -------------------------------------------------------
     protected bool IsCommandAdmin(PlayerIdentity identity)
     {
@@ -755,8 +759,8 @@ modded class PlayerBase
         string playerId = identity.GetPlainId();
 
         // ----------------------------------------------------------
-        // IMPORTANT: Replace these with your actual admin Steam64 IDs
-        // In production, load from a JSON config file instead
+        // DŮLEŽITÉ: Nahraďte tyto vašimi skutečnými Steam64 ID administrátorů
+        // V produkci místo toho načtěte z JSON konfiguračního souboru
         // ----------------------------------------------------------
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
@@ -766,7 +770,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Send feedback to a specific player
+    // Odeslání zpětné vazby konkrétnímu hráči
     // -------------------------------------------------------
     protected void SendCommandFeedback(PlayerIdentity target, string prefix, string message)
     {
@@ -793,28 +797,28 @@ modded class PlayerBase
 };
 ```
 
-### The Registration Pattern
+### Vzor registrace
 
-Commands are registered in `MissionServer.OnInit()`:
+Příkazy se registrují v `MissionServer.OnInit()`:
 
 ```c
 CCmdRegistry.Init();
 CCmdRegistry.Register(new CCmdHeal());
 ```
 
-Each `Register()` call creates an instance of the command class and stores it in a map keyed by the command name. When a command RPC arrives, the handler looks up the name in the registry and calls `Execute()` on the matching command object.
+Každé volání `Register()` vytvoří instanci třídy příkazu a uloží ji do mapy klíčované názvem příkazu. Když dorazí příkazové RPC, handler vyhledá název v registru a zavolá `Execute()` na odpovídajícím objektu příkazu.
 
-This pattern makes it trivial to add new commands -- create a new class extending `CCmdBase`, implement `Execute()`, and add one `Register()` line.
+Tento vzor usnadňuje přidávání nových příkazů -- vytvořte novou třídu rozšiřující `CCmdBase`, implementujte `Execute()` a přidejte jeden řádek `Register()`.
 
 ---
 
-## Step 7: Add to an Admin Panel Command List
+## Krok 7: Přidání do seznamu příkazů administrátorského panelu
 
-If you have an admin panel (from [Chapter 8.3](03-admin-panel.md)), you can display the list of available commands in the UI.
+Pokud máte administrátorský panel (z [Kapitoly 8.3](03-admin-panel.md)), můžete zobrazit seznam dostupných příkazů v UI.
 
-### Request the Command List from the Server
+### Vyžádání seznamu příkazů ze serveru
 
-Add a new RPC ID in `CCmdRPC.c`:
+Přidejte nové RPC ID v `CCmdRPC.c`:
 
 ```c
 class CCmdRPC
@@ -826,12 +830,12 @@ class CCmdRPC
 };
 ```
 
-### Server-Side: Send the Command List
+### Strana serveru: Odeslání seznamu příkazů
 
-Add this handler in your server-side code:
+Přidejte tento handler do vašeho kódu na straně serveru:
 
 ```c
-// In the server handler, add a case for COMMAND_LIST_REQ
+// V handleru serveru přidejte case pro COMMAND_LIST_REQ
 if (rpc_type == CCmdRPC.COMMAND_LIST_REQ)
 {
     HandleCommandListRequest(sender);
@@ -842,7 +846,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
     if (!requestor)
         return;
 
-    // Build a formatted string of all commands
+    // Sestavení formátovaného řetězce všech příkazů
     array<string> names = CCmdRegistry.GetCommandNames();
     string commandList = "Available Commands:\n";
 
@@ -855,7 +859,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
         }
     }
 
-    // Send back to client
+    // Odeslání zpět klientovi
     ref array<Man> players = new array<Man>;
     GetGame().GetPlayers(players);
 
@@ -872,9 +876,9 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
 }
 ```
 
-### Client-Side: Display in a Panel
+### Strana klienta: Zobrazení v panelu
 
-On the client, catch the response and display it in a text widget:
+Na klientu zachyťte odpověď a zobrazte ji v textovém widgetu:
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
@@ -883,7 +887,7 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
     if (ctx.Read(data))
     {
         string commandList = data.param1;
-        // Display in your admin panel text widget
+        // Zobrazení v textovém widgetu administrátorského panelu
         // m_CommandListText.SetText(commandList);
         Print("[ChatCommands] Command list received:\n" + commandList);
     }
@@ -892,11 +896,11 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
 
 ---
 
-## Complete Working Code: /heal Command
+## Kompletní funkční kód: příkaz /heal
 
-Here is every file needed for the complete working system. Create these files and your mod will have a functional `/heal` command.
+Zde je každý soubor potřebný pro kompletní funkční systém. Vytvořte tyto soubory a váš mod bude mít funkční příkaz `/heal`.
 
-### config.cpp Setup
+### Nastavení config.cpp
 
 ```cpp
 class CfgPatches
@@ -1307,7 +1311,7 @@ modded class PlayerBase
 
         string playerId = identity.GetPlainId();
 
-        // REPLACE THESE WITH YOUR ACTUAL ADMIN STEAM64 IDs
+        // NAHRAĎTE TYTO VAŠIMI SKUTEČNÝMI STEAM64 ID ADMINISTRÁTORŮ
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
         adminIds.Insert("76561198000000002");
@@ -1395,11 +1399,11 @@ modded class MissionGameplay
 
 ---
 
-## Adding More Commands
+## Přidávání dalších příkazů
 
-The registry pattern makes adding new commands straightforward. Here are examples:
+Vzor registru činí přidávání nových příkazů přímočarým. Zde jsou příklady:
 
-### /kill Command
+### Příkaz /kill
 
 ```c
 class CCmdKill extends CCmdBase
@@ -1447,7 +1451,7 @@ class CCmdKill extends CCmdBase
 };
 ```
 
-### /time Command
+### Příkaz /time
 
 ```c
 class CCmdTime extends CCmdBase
@@ -1478,9 +1482,9 @@ class CCmdTime extends CCmdBase
 };
 ```
 
-### Registering New Commands
+### Registrace nových příkazů
 
-Add one line per command in `MissionServer.OnInit()`:
+Přidejte jeden řádek na příkaz v `MissionServer.OnInit()`:
 
 ```c
 CCmdRegistry.Register(new CCmdHeal());
@@ -1490,34 +1494,34 @@ CCmdRegistry.Register(new CCmdTime());
 
 ---
 
-## Troubleshooting
+## Řešení problémů
 
-### Command Is Not Recognized ("Unknown command")
+### Příkaz není rozpoznán ("Unknown command")
 
-- **Registration missing:** Make sure `CCmdRegistry.Register(new CCmdYourCommand())` is called in `MissionServer.OnInit()`.
-- **GetName() typo:** The string returned by `GetName()` must match what the player types (without the `/`).
-- **Case mismatch:** The registry converts names to lowercase. `/Heal`, `/HEAL`, and `/heal` should all work.
+- **Chybí registrace:** Ujistěte se, že `CCmdRegistry.Register(new CCmdVášPříkaz())` je voláno v `MissionServer.OnInit()`.
+- **Překlep v GetName():** Řetězec vrácený `GetName()` musí odpovídat tomu, co hráč píše (bez `/`).
+- **Nesoulad velkých písmen:** Registr převádí názvy na malá písmena. `/Heal`, `/HEAL` a `/heal` by měly všechny fungovat.
 
-### Permission Denied for Admins
+### Oprávnění zamítnuto pro administrátory
 
-- **Wrong Steam64 ID:** Double-check the admin IDs in `IsCommandAdmin()`. They must be exact Steam64 IDs (17-digit numbers starting with `7656`).
-- **GetPlainId() vs GetId():** `GetPlainId()` returns the Steam64 ID. `GetId()` returns the DayZ session ID. Use `GetPlainId()` for admin checks.
+- **Špatné Steam64 ID:** Dvakrát zkontrolujte ID administrátorů v `IsCommandAdmin()`. Musí to být přesná Steam64 ID (17-místná čísla začínající `7656`).
+- **GetPlainId() vs GetId():** `GetPlainId()` vrací Steam64 ID. `GetId()` vrací ID relace DayZ. Pro kontroly administrátora používejte `GetPlainId()`.
 
-### Feedback Message Does Not Appear in Chat
+### Zpětná vazba se nezobrazuje v chatu
 
-- **RPC not reaching client:** Add `Print()` statements on the server to confirm the feedback RPC is being sent.
-- **Client OnRPC not catching it:** Verify the RPC ID matches (`CCmdRPC.COMMAND_FEEDBACK`).
-- **GetGame().Chat() not working:** This function requires the game to be in a state where chat is available. It may not work on the loading screen.
+- **RPC nedorazí ke klientovi:** Přidejte příkazy `Print()` na serveru pro potvrzení, že RPC zpětné vazby je odesíláno.
+- **Klient OnRPC to nezachytí:** Ověřte, že RPC ID odpovídá (`CCmdRPC.COMMAND_FEEDBACK`).
+- **GetGame().Chat() nefunguje:** Tato funkce vyžaduje, aby hra byla ve stavu, kdy je chat dostupný. Na obrazovce načítání nemusí fungovat.
 
-### /heal Does Not Actually Heal
+### /heal ve skutečnosti neléčí
 
-- **Server-only execution:** `SetHealth()` and stat changes must run on the server. Verify `GetGame().IsServer()` is true when `Execute()` runs.
-- **PlayerBase cast fails:** If `Class.CastTo(targetPlayer, targetMan)` returns false, the target is not a valid PlayerBase. This can happen with AI or non-player entities.
-- **Stat getters return null:** `GetStatEnergy()` and `GetStatWater()` may return null if the player is dead or not fully initialized. Add null checks in production code.
+- **Provádění pouze na serveru:** `SetHealth()` a změny statistik musí běžet na serveru. Ověřte, že `GetGame().IsServer()` je true, když se `Execute()` spouští.
+- **Cast na PlayerBase selže:** Pokud `Class.CastTo(targetPlayer, targetMan)` vrátí false, cíl není platný PlayerBase. To se může stát s AI nebo nehráčskými entitami.
+- **Gettery statistik vrací null:** `GetStatEnergy()` a `GetStatWater()` mohou vrátit null, pokud je hráč mrtvý nebo není plně inicializován. V produkčním kódu přidejte kontroly null.
 
-### Command Appears in Chat as Regular Message
+### Příkaz se objeví v chatu jako běžná zpráva
 
-- The `OnEvent` hook intercepts the message but does not suppress it from being sent as chat. To suppress it in a production mod, you would need to mod the `ChatInputMenu` class to filter `/` messages before they are sent:
+- Hook `OnEvent` zachytí zprávu, ale nepotlačí ji z odeslání jako chat. Pro potlačení v produkčním modu byste potřebovali moddovat třídu `ChatInputMenu` pro filtrování zpráv s `/` před jejich odesláním:
 
 ```c
 modded class ChatInputMenu
@@ -1525,29 +1529,63 @@ modded class ChatInputMenu
     override void OnChatInputSend()
     {
         string text = "";
-        // Get the current text from the edit widget
-        // If it starts with /, do NOT call super (which sends it as chat)
-        // Instead, handle it as a command
+        // Získání aktuálního textu z edit widgetu
+        // Pokud začíná /, NEVOLEJTE super (který to pošle jako chat)
+        // Místo toho zpracujte jako příkaz
 
-        // This approach varies by DayZ version -- check vanilla sources
+        // Tento přístup se liší podle verze DayZ -- zkontrolujte vanilkové zdrojáky
         super.OnChatInputSend();
     }
 };
 ```
 
-The exact implementation depends on the DayZ version and how `ChatInputMenu` exposes the text. The `OnEvent` approach in this tutorial is simpler and works for development, with the tradeoff that the command text also appears as a chat message.
+Přesná implementace závisí na verzi DayZ a na tom, jak `ChatInputMenu` zpřístupňuje text. Přístup `OnEvent` v tomto tutoriálu je jednodušší a funguje pro vývoj, s kompromisem, že text příkazu se také objeví jako chatová zpráva.
 
 ---
 
-## Next Steps
+## Další kroky
 
-1. **Load admins from a config file** -- Use `JsonFileLoader` to load admin IDs from a JSON file instead of hardcoding them.
-2. **Add a /help command** -- List all available commands with their descriptions and usage.
-3. **Add logging** -- Write command usage to a log file for audit purposes.
-4. **Integrate with a framework** -- MyFramework provides `MyPermissions` for hierarchical permissions and `MyRPC` for string-routed RPCs that avoid integer ID collisions.
-5. **Add cooldowns** -- Prevent command spam by tracking the last execution time per player.
-6. **Build a command palette UI** -- Create an admin panel that lists all commands with clickable buttons (combining this tutorial with [Chapter 8.3](03-admin-panel.md)).
+1. **Načtěte administrátory z konfiguračního souboru** -- Použijte `JsonFileLoader` pro načtení ID administrátorů z JSON souboru místo hardkódování.
+2. **Přidejte příkaz /help** -- Vypište všechny dostupné příkazy s jejich popisy a použitím.
+3. **Přidejte logování** -- Zapisujte použití příkazů do logovacího souboru pro auditní účely.
+4. **Integrujte s frameworkem** -- MyMod Core poskytuje `MyPermissions` pro hierarchická oprávnění a `MyRPC` pro string-směrovaná RPC, která zabraňují kolizím celočíselných ID.
+5. **Přidejte cooldowny** -- Zabraňte spamování příkazů sledováním času posledního provedení na hráče.
+6. **Sestavte UI paletu příkazů** -- Vytvořte administrátorský panel, který zobrazí všechny příkazy s klikatelnými tlačítky (kombinace tohoto tutoriálu s [Kapitolou 8.3](03-admin-panel.md)).
 
 ---
 
-**Předchozí:** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)
+## Doporučené postupy
+
+- **Vždy ověřte oprávnění před provedením administrátorských příkazů.** Chybějící kontrola oprávnění znamená, že jakýkoli hráč může `/heal` nebo `/kill` kohokoli. Ověřte Steam64 ID volajícího (přes `GetPlainId()`) na serveru před zpracováním.
+- **Odesílejte zpětnou vazbu administrátorovi i pro selhané příkazy.** Tichá selhání znemožňují ladění. Vždy odešlete chatovou zprávu vysvětlující, co se pokazilo ("Player not found", "Permission denied").
+- **Používejte `GetPlainId()` pro kontroly administrátora, nikoli `GetId()`.** `GetId()` vrací ID specifické pro relaci DayZ, které se mění při každém opětovném připojení. `GetPlainId()` vrací trvalé Steam64 ID.
+- **Ukládejte ID administrátorů v JSON konfiguračním souboru, nikoli v kódu.** Hardkódovaná ID vyžadují přestavbu PBO pro změnu. JSON soubor `$profile:` může být upraven administrátory serveru bez znalosti moddingu.
+- **Převádějte názvy příkazů na malá písmena před porovnáváním.** Hráči mohou psát `/Heal`, `/HEAL` nebo `/heal`. Normalizace na malá písmena zabraňuje frustrujícím chybám "unknown command".
+
+---
+
+## Teorie vs praxe
+
+| Koncept | Teorie | Realita |
+|---------|--------|---------|
+| Chat hook přes `OnEvent` | Zachytit zprávu a zpracovat ji jako příkaz | Zpráva se stále zobrazí v chatu všem hráčům. Její potlačení vyžaduje moddování `ChatInputMenu`, což se liší podle verze DayZ. |
+| `GetGame().Chat()` | Zobrazí zprávu v chatovém okně hráče | Funguje pouze tehdy, když je chatové UI aktivní. Na obrazovce načítání nebo v určitých stavech menu je zpráva tiše zahozena. |
+| Vzor registru příkazů | Čistá architektura s jednou třídou na příkaz | Každý soubor třídy příkazu musí být ve správné skriptové vrstvě. `CCmdBase` v `3_Game`, konkrétní příkazy odkazující na `PlayerBase` ve `4_World`. Špatné umístění vrstvy způsobí "Undefined type" při načítání. |
+| Vyhledávání hráče podle jména | `FindPlayerByName` porovnává částečná jména | Částečné porovnávání může cílit na špatného hráče na serveru s podobnými jmény. V produkci preferujte cílení pomocí Steam64 ID nebo přidejte krok potvrzení. |
+
+---
+
+## Co jste se naučili
+
+V tomto tutoriálu jste se naučili:
+- Jak se napojit na chatový vstup pomocí `MissionGameplay.OnEvent` s `ChatMessageEventTypeID`
+- Jak parsovat prefixy příkazů a argumenty z textu chatu
+- Jak ověřovat oprávnění administrátora na serveru pomocí Steam64 ID
+- Jak odesílat zpětnou vazbu příkazů zpět hráči přes RPC a `GetGame().Chat()`
+- Jak sestavit znovupoužitelný vzor registru příkazů pro přidávání nových příkazů
+
+**Další:** [Kapitola 8.6: Ladění a testování vašeho modu](06-debugging-testing.md)
+
+---
+
+**Předchozí:** [Kapitola 8.3: Tvorba modulu administrátorského panelu](03-admin-panel.md)

@@ -1,46 +1,46 @@
-# Chapter 8.4: Adding Chat Commands
+# 8.4. fejezet: Chat parancsok hozzáadása
 
-[Home](../../README.md) | [<< Previous: Building an Admin Panel](03-admin-panel.md) | **Adding Chat Commands** | [Next: Using the DayZ Mod Template >>](05-mod-template.md)
-
----
-
-## Tartalomjegyzek
-
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Step 1: Hook Into Chat Input](#step-1-hook-into-chat-input)
-- [Step 2: Parse Command Prefix and Arguments](#step-2-parse-command-prefix-and-arguments)
-- [Step 3: Check Admin Jogosultsagok](#step-3-check-admin-permissions)
-- [Step 4: Execute the Server-Side Action](#step-4-execute-the-server-side-action)
-- [Step 5: Send Feedback to the Admin](#step-5-send-feedback-to-the-admin)
-- [Step 6: Register Commands](#step-6-register-commands)
-- [Step 7: Add to an Admin panel Command List](#step-7-add-to-an-admin-panel-command-list)
-- [Complete Working Code: /heal Command](#complete-working-code-heal-command)
-- [Adding More Commands](#adding-more-commands)
-- [Troubleshooting](#troubleshooting)
-- [Next Steps](#next-steps)
+[Főoldal](../../README.md) | [<< Előző: Admin panel építése](03-admin-panel.md) | **Chat parancsok hozzáadása** | [Következő: A DayZ mod sablon használata >>](05-mod-template.md)
 
 ---
 
-## What We Are Building
+## Tartalomjegyzék
 
-A chat command system with:
-
-- **`/heal`** -- Fully heals the admin's character (health, blood, shock, hunger, thirst)
-- **`/heal PlayerName`** -- Heals a specific player by name
-- A reusable framework for adding `/kill`, `/teleport`, `/time`, `/weather`, and any other command
-- Admin permission checking so regular players cannot use admin commands
-- Server-side execution with chat feedback messages
+- [Mit építünk](#mit-építünk)
+- [Előfeltételek](#előfeltételek)
+- [Architektúra áttekintés](#architektúra-áttekintés)
+- [1. lépés: Chat input elfogása](#1-lépés-chat-input-elfogása)
+- [2. lépés: Parancs előtag és argumentumok elemzése](#2-lépés-parancs-előtag-és-argumentumok-elemzése)
+- [3. lépés: Admin jogosultságok ellenőrzése](#3-lépés-admin-jogosultságok-ellenőrzése)
+- [4. lépés: Szerver oldali művelet végrehajtása](#4-lépés-szerver-oldali-művelet-végrehajtása)
+- [5. lépés: Visszajelzés küldése az adminnak](#5-lépés-visszajelzés-küldése-az-adminnak)
+- [6. lépés: Parancsok regisztrálása](#6-lépés-parancsok-regisztrálása)
+- [7. lépés: Hozzáadás az admin panel parancslistához](#7-lépés-hozzáadás-az-admin-panel-parancslistához)
+- [Teljes működő kód: /heal parancs](#teljes-működő-kód-heal-parancs)
+- [További parancsok hozzáadása](#további-parancsok-hozzáadása)
+- [Hibaelhárítás](#hibaelhárítás)
+- [Következő lépések](#következő-lépések)
 
 ---
 
-## Prerequisites
+## Mit építünk
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Understanding of the [client-server RPC pattern](03-admin-panel.md) from Chapter 8.3
+Egy chat parancs rendszert a következőkkel:
 
-### Mod Structure for This Tutorial
+- **`/heal`** -- Teljesen meggyógyítja az admin karakterét (életerő, vér, sokk, éhség, szomjúság)
+- **`/heal PlayerName`** -- Meggyógyít egy adott játékost név alapján
+- Újrafelhasználható keretrendszer `/kill`, `/teleport`, `/time`, `/weather` és bármilyen más parancs hozzáadásához
+- Admin jogosultság ellenőrzés, hogy a hétköznapi játékosok ne használhassák az admin parancsokat
+- Szerver oldali végrehajtás chat visszajelzés üzenetekkel
+
+---
+
+## Előfeltételek
+
+- Működő mod struktúra (először végezd el a [8.1. fejezetet](01-first-mod.md))
+- A [kliens-szerver RPC minta](03-admin-panel.md) megértése a 8.3. fejezetből
+
+### Mod struktúra ehhez a bemutatóhoz
 
 ```
 ChatCommands/
@@ -64,52 +64,53 @@ ChatCommands/
 
 ---
 
-## Architecture Overview
+## Architektúra áttekintés
 
-Chat commands follow this flow:
+A chat parancsok a következő folyamatot követik:
 
 ```
-CLIENT                                  SERVER
+KLIENS                                  SZERVER
 ------                                  ------
 
-1. Admin types "/heal" in chat
-2. Chat hook intercepts the message
-   (prevents it from being sent as chat)
-3. Client sends command via RPC  ---->  4. Server receives RPC
-                                            Checks admin permissions
-                                            Looks up command handler
-                                            Executes the command
-                                        5. Server sends feedback  ---->  CLIENT
-                                            (chat message RPC)
-                                                                     6. Admin sees
-                                                                        feedback in chat
+1. Az admin beírja a "/heal" szöveget a chatbe
+2. A chat hook elfogja az üzenetet
+   (megakadályozza, hogy chatként küldődjön)
+3. A kliens elküldi a parancsot RPC-n  ---->  4. A szerver fogadja az RPC-t
+   keresztül                                      Ellenőrzi az admin jogosultságokat
+                                                  Kikeresi a parancs kezelőt
+                                                  Végrehajtja a parancsot
+                                              5. A szerver visszajelzést küld  ---->  KLIENS
+                                                  (chat üzenet RPC)
+                                                                                  6. Az admin látja
+                                                                                     a visszajelzést
+                                                                                     a chatben
 ```
 
-**Why process commands on the server?** Because the server has authority over game state. Only the server can reliably heal players, change weather, teleport characters, and modify world state. The client's role is limited to detecting the command and forwarding it.
+**Miért dolgozzuk fel a parancsokat a szerveren?** Mert a szerver rendelkezik az autoritással a játékállapot felett. Csak a szerver tudja megbízhatóan meggyógyítani a játékosokat, megváltoztatni az időjárást, teleportálni a karaktereket és módosítani a világ állapotát. A kliens szerepe a parancs észlelésére és továbbítására korlátozódik.
 
 ---
 
-## Step 1: Hook Into Chat Input
+## 1. lépés: Chat input elfogása
 
-We need to intercept chat messages before they are sent as regular chat. DayZ provides the `ChatInputMenu` class for this purpose.
+El kell fognunk a chat üzeneteket, mielőtt normál chatként elküldésre kerülnének. A DayZ biztosítja a `ChatInputMenu` osztályt erre a célra.
 
-### The Chat Hook Approach
+### A chat hook megközelítés
 
-We will mod the `MissionGameplay` class to intercept chat input events. When the player submits a chat message starting with `/`, we intercept it, prevent it from being sent as normal chat, and instead send it as a command RPC to the server.
+A `MissionGameplay` osztályt módosítjuk a chat input események elfogásához. Amikor a játékos `/` karakterrel kezdődő chat üzenetet küld, elfogajuk, megakadályozzuk a normál chatként való küldést, és helyette parancs RPC-ként küldjük a szervernek.
 
-### Create `Scripts/5_Mission/ChatCommands/CCmdChatHook.c`
+### Hozd létre a `Scripts/5_Mission/ChatCommands/CCmdChatHook.c` fájlt
 
 ```c
 modded class MissionGameplay
 {
     // -------------------------------------------------------
-    // Intercept chat messages that start with /
+    // / karakterrel kezdődő chat üzenetek elfogása
     // -------------------------------------------------------
     override void OnEvent(EventType eventTypeId, Param params)
     {
         super.OnEvent(eventTypeId, params);
 
-        // ChatMessageEventTypeID fires when the player sends a chat message
+        // A ChatMessageEventTypeID akkor aktiválódik, amikor a játékos chat üzenetet küld
         if (eventTypeId == ChatMessageEventTypeID)
         {
             Param3<int, string, string> chatParams;
@@ -117,10 +118,10 @@ modded class MissionGameplay
             {
                 string message = chatParams.param3;
 
-                // Check if it starts with /
+                // Ellenőrizd, hogy / karakterrel kezdődik-e
                 if (message.Length() > 0 && message.Substring(0, 1) == "/")
                 {
-                    // This is a command -- send it to the server
+                    // Ez egy parancs -- küldd el a szervernek
                     SendChatCommand(message);
                 }
             }
@@ -128,7 +129,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Send the command string to the server via RPC
+    // A parancs sztring küldése a szervernek RPC-n keresztül
     // -------------------------------------------------------
     protected void SendChatCommand(string fullCommand)
     {
@@ -143,7 +144,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Receive command feedback from the server
+    // Parancs visszajelzés fogadása a szervertől
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
@@ -157,7 +158,7 @@ modded class MissionGameplay
                 string prefix = data.param1;
                 string message = data.param2;
 
-                // Display feedback as a system chat message
+                // Visszajelzés megjelenítése rendszer chat üzenetként
                 GetGame().Chat(prefix + " " + message, "colorStatusChannel");
 
                 Print("[ChatCommands] Feedback: " + prefix + " " + message);
@@ -167,23 +168,23 @@ modded class MissionGameplay
 };
 ```
 
-### How Chat Interception Works
+### Hogyan működik a chat elfogás
 
-The `OnEvent` method on `MissionGameplay` is called for various game events. When `eventTypeId` is `ChatMessageEventTypeID`, it means the player just submitted a chat message. The `Param3` contains:
+Az `OnEvent` metódus a `MissionGameplay` osztályon különböző játék eseményeknél hívódik meg. Amikor az `eventTypeId` értéke `ChatMessageEventTypeID`, az azt jelenti, hogy a játékos éppen chat üzenetet küldött. A `Param3` tartalmazza:
 
-- `param1` -- Channel (int): the chat channel (global, direct, etc.)
-- `param2` -- Sender name (string)
-- `param3` -- Message text (string)
+- `param1` -- Csatorna (int): a chat csatorna (globális, közvetlen, stb.)
+- `param2` -- Küldő neve (string)
+- `param3` -- Üzenet szövege (string)
 
-We check if the message starts with `/`. If it does, we forward the entire string to the server via RPC. The message is still sent as normal chat as well -- in a production mod, you would suppress it (covered in the notes at the end).
+Ellenőrizzük, hogy az üzenet `/` karakterrel kezdődik-e. Ha igen, az egész sztringet továbbítjuk a szervernek RPC-n keresztül. Az üzenet normál chatként is elküldésre kerül -- egy éles modban ezt elnyomnád (a megjegyzésekben a végén tárgyalva).
 
 ---
 
-## Step 2: Parse Command Prefix and Arguments
+## 2. lépés: Parancs előtag és argumentumok elemzése
 
-On the server side, we need to break a command string like `/heal PlayerName` into its parts: the command name (`heal`) and the arguments (`["PlayerName"]`).
+A szerver oldalon szét kell bontanunk egy parancs sztringet, mint a `/heal PlayerName`, a részeire: a parancs neve (`heal`) és az argumentumok (`["PlayerName"]`).
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRPC.c`
+### Hozd létre a `Scripts/3_Game/ChatCommands/CCmdRPC.c` fájlt
 
 ```c
 class CCmdRPC
@@ -193,54 +194,54 @@ class CCmdRPC
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdBase.c`
+### Hozd létre a `Scripts/3_Game/ChatCommands/CCmdBase.c` fájlt
 
 ```c
 // -------------------------------------------------------
-// Base class for all chat commands
+// Alaposztály az összes chat parancshoz
 // -------------------------------------------------------
 class CCmdBase
 {
-    // The command name without the / prefix (e.g., "heal")
+    // A parancs neve a / előtag nélkül (pl. "heal")
     string GetName()
     {
         return "";
     }
 
-    // Short description shown in help or command list
+    // Rövid leírás, ami a súgóban vagy parancslistában jelenik meg
     string GetDescription()
     {
         return "";
     }
 
-    // Usage syntax shown when the command is used incorrectly
+    // Használati szintaxis, ami helytelen használatkor jelenik meg
     string GetUsage()
     {
         return "/" + GetName();
     }
 
-    // Whether this command requires admin privileges
+    // Szükséges-e admin jogosultság ehhez a parancshoz
     bool RequiresAdmin()
     {
         return true;
     }
 
-    // Execute the command on the server
-    // Returns true if successful, false if failed
+    // A parancs végrehajtása a szerveren
+    // True-t ad vissza sikeres, false-t sikertelen esetben
     bool Execute(PlayerIdentity caller, array<string> args)
     {
         return false;
     }
 
     // -------------------------------------------------------
-    // Helper: Send feedback message to the command caller
+    // Segéd: visszajelzés üzenet küldése a parancs hívójának
     // -------------------------------------------------------
     protected void SendFeedback(PlayerIdentity caller, string prefix, string message)
     {
         if (!caller)
             return;
 
-        // Find the caller's player object
+        // A hívó játékos objektumának megkeresése
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
 
@@ -266,7 +267,7 @@ class CCmdBase
     }
 
     // -------------------------------------------------------
-    // Helper: Find a player by partial name match
+    // Segéd: játékos keresése részleges név egyezés alapján
     // -------------------------------------------------------
     protected Man FindPlayerByName(string partialName)
     {
@@ -295,18 +296,18 @@ class CCmdBase
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRegistry.c`
+### Hozd létre a `Scripts/3_Game/ChatCommands/CCmdRegistry.c` fájlt
 
 ```c
 // -------------------------------------------------------
-// Registry that holds all available commands
+// Nyilvántartás, amely tartalmazza az összes elérhető parancsot
 // -------------------------------------------------------
 class CCmdRegistry
 {
     protected static ref map<string, ref CCmdBase> s_Commands;
 
     // -------------------------------------------------------
-    // Initialize the registry (call once at startup)
+    // A nyilvántartás inicializálása (egyszer hívd meg induláskor)
     // -------------------------------------------------------
     static void Init()
     {
@@ -315,7 +316,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Register a command instance
+    // Parancs példány regisztrálása
     // -------------------------------------------------------
     static void Register(CCmdBase command)
     {
@@ -338,7 +339,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Look up a command by name
+    // Parancs kikeresése név alapján
     // -------------------------------------------------------
     static CCmdBase GetCommand(string name)
     {
@@ -356,7 +357,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Get all registered command names
+    // Az összes regisztrált parancsnév lekérése
     // -------------------------------------------------------
     static array<string> GetCommandNames()
     {
@@ -374,8 +375,8 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Parse a raw command string into name + args
-    // Example: "/heal PlayerName" --> name="heal", args=["PlayerName"]
+    // Nyers parancs sztring elemzése névre + argumentumokra
+    // Példa: "/heal PlayerName" --> name="heal", args=["PlayerName"]
     // -------------------------------------------------------
     static void ParseCommand(string fullCommand, out string commandName, out array<string> args)
     {
@@ -385,12 +386,12 @@ class CCmdRegistry
         if (fullCommand.Length() == 0)
             return;
 
-        // Remove the leading /
+        // A bevezető / eltávolítása
         string raw = fullCommand;
         if (raw.Substring(0, 1) == "/")
             raw = raw.Substring(1, raw.Length() - 1);
 
-        // Split by spaces
+        // Szóközök mentén felosztás
         raw.Split(" ", args);
 
         if (args.Count() > 0)
@@ -403,68 +404,68 @@ class CCmdRegistry
 };
 ```
 
-### The Parse Logic Explained
+### Az elemzési logika magyarázata
 
-Given the input `/heal SomePlayer`, `ParseCommand` does:
+Adott a `/heal SomePlayer` bemenet, a `ParseCommand` a következőket teszi:
 
-1. Removes the leading `/` to get `"heal SomePlayer"`
-2. Splits by spaces to get `["heal", "SomePlayer"]`
-3. Takes the first element as the command name: `"heal"`
-4. Removes it from the array, leaving args: `["SomePlayer"]`
+1. Eltávolítja a bevezető `/` jelet, hogy `"heal SomePlayer"` legyen
+2. Szóközök mentén felosztja: `["heal", "SomePlayer"]`
+3. Az első elemet veszi parancs névként: `"heal"`
+4. Eltávolítja a tömbből, maradnak az argumentumok: `["SomePlayer"]`
 
-The command name is converted to lowercase so `/Heal`, `/HEAL`, and `/heal` all work.
+A parancs neve kisbetűsre konvertálódik, így a `/Heal`, `/HEAL` és `/heal` mind működik.
 
 ---
 
-## Step 3: Check Admin Jogosultsagok
+## 3. lépés: Admin jogosultságok ellenőrzése
 
-Admin permission checking prevents regular players from executing admin commands. DayZ does not have a built-in admin permission system in scripts, so we check against a simple admin list.
+Az admin jogosultság ellenőrzés megakadályozza, hogy a hétköznapi játékosok admin parancsokat hajtsanak végre. A DayZ nem rendelkezik beépített admin jogosultsági rendszerrel a szkriptekben, ezért egy egyszerű admin lista alapján ellenőrzünk.
 
-### The Admin Check in the Server Handler
+### Az admin ellenőrzés a szerver kezelőben
 
-The simplest approach is to check the player's Steam64 ID against a list of known admin IDs. In a production mod, you would load this list from a config file.
+A legegyszerűbb megközelítés a játékos Steam64 ID-jának ellenőrzése az ismert admin ID-k listájával szemben. Éles modban ezt a listát konfigurációs fájlból töltenéd be.
 
 ```c
-// Simple admin check -- in production, load from a JSON config file
+// Egyszerű admin ellenőrzés -- éles használatban JSON konfigurációs fájlból töltsd be
 static bool IsAdmin(PlayerIdentity identity)
 {
     if (!identity)
         return false;
 
-    // Check the player's plain ID (Steam64 ID)
+    // A játékos sima ID-jának ellenőrzése (Steam64 ID)
     string playerId = identity.GetPlainId();
 
-    // Hardcoded admin list -- replace with config file loading in production
+    // Hardkódolt admin lista -- éles használatban cseréld konfigurációs fájl betöltésre
     ref array<string> adminIds = new array<string>;
-    adminIds.Insert("76561198000000001");    // Replace with real Steam64 IDs
+    adminIds.Insert("76561198000000001");    // Cseréld valódi Steam64 ID-kra
     adminIds.Insert("76561198000000002");
 
     return (adminIds.Find(playerId) != -1);
 }
 ```
 
-### Where to Find Steam64 IDs
+### Hol találod a Steam64 ID-kat
 
-- Open your Steam profile in a browser
-- The URL contains your Steam64 ID: `https://steamcommunity.com/profiles/76561198XXXXXXXXX`
-- Or use a tool like https://steamid.io to look up any player
+- Nyisd meg a Steam profilodat böngészőben
+- Az URL tartalmazza a Steam64 ID-dat: `https://steamcommunity.com/profiles/76561198XXXXXXXXX`
+- Vagy használj egy eszközt, mint a https://steamid.io bármely játékos kikeresésére
 
-### Production-Grade Jogosultsagok
+### Éles szintű jogosultságok
 
-In a real mod, you would:
+Valódi modban a következőket tennéd:
 
-1. Store admin IDs in a JSON file (`$profile:ChatCommands/admins.json`)
-2. Load the file on server startup
-3. Support permission levels (moderator, admin, superadmin)
-4. Use a framework like MyFramework's `MyJogosultsagok` system for hierarchical permissions
+1. Admin ID-kat tárolnál JSON fájlban (`$profile:ChatCommands/admins.json`)
+2. Betöltenéd a fájlt a szerver indításakor
+3. Jogosultsági szinteket támogatnál (moderátor, admin, szuperadmin)
+4. Keretrendszert használnál, mint a MyFramework `MyPermissions` rendszere hierarchikus jogosultságokhoz
 
 ---
 
-## Step 4: Execute the Server-Side Action
+## 4. lépés: Szerver oldali művelet végrehajtása
 
-Now we create the actual `/heal` command and the server handler that processes incoming command RPCs.
+Most létrehozzuk a tényleges `/heal` parancsot és a szerver kezelőt, amely feldolgozza a bejövő parancs RPC-ket.
 
-### Create `Scripts/4_World/ChatCommands/commands/CCmdHeal.c`
+### Hozd létre a `Scripts/4_World/ChatCommands/commands/CCmdHeal.c` fájlt
 
 ```c
 class CCmdHeal extends CCmdBase
@@ -490,9 +491,9 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Execute the heal command
-    // /heal         --> heals the caller
-    // /heal Name    --> heals the named player
+    // A heal parancs végrehajtása
+    // /heal         --> meggyógyítja a hívót
+    // /heal Name    --> meggyógyítja a megnevezett játékost
     // -------------------------------------------------------
     override bool Execute(PlayerIdentity caller, array<string> args)
     {
@@ -502,10 +503,10 @@ class CCmdHeal extends CCmdBase
         Man targetMan = null;
         string targetName = "";
 
-        // Determine the target player
+        // A céljátékos meghatározása
         if (args.Count() > 0)
         {
-            // Heal a specific player by name
+            // Adott játékos gyógyítása név alapján
             string searchName = args.Get(0);
             targetMan = FindPlayerByName(searchName);
 
@@ -519,7 +520,7 @@ class CCmdHeal extends CCmdBase
         }
         else
         {
-            // Heal the caller themselves
+            // A hívó saját magát gyógyítja
             ref array<Man> allPlayers = new array<Man>;
             GetGame().GetPlayers(allPlayers);
 
@@ -545,7 +546,7 @@ class CCmdHeal extends CCmdBase
             targetName = "yourself";
         }
 
-        // Execute the heal
+        // A gyógyítás végrehajtása
         PlayerBase targetPlayer;
         if (!Class.CastTo(targetPlayer, targetMan))
         {
@@ -555,7 +556,7 @@ class CCmdHeal extends CCmdBase
 
         HealPlayer(targetPlayer);
 
-        // Log and send feedback
+        // Naplózás és visszajelzés küldése
         Print("[ChatCommands] " + caller.GetName() + " healed " + targetName);
         SendFeedback(caller, "[Heal]", "Successfully healed " + targetName + ".");
 
@@ -563,30 +564,30 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Apply full heal to a player
+    // Teljes gyógyítás alkalmazása egy játékosra
     // -------------------------------------------------------
     protected void HealPlayer(PlayerBase player)
     {
         if (!player)
             return;
 
-        // Restore health to maximum
+        // Életerő visszaállítása maximumra
         player.SetHealth("GlobalHealth", "Health", player.GetMaxHealth("GlobalHealth", "Health"));
 
-        // Restore blood to maximum
+        // Vérmennyiség visszaállítása maximumra
         player.SetHealth("GlobalHealth", "Blood", player.GetMaxHealth("GlobalHealth", "Blood"));
 
-        // Remove shock damage
+        // Sokk sérülés eltávolítása
         player.SetHealth("GlobalHealth", "Shock", player.GetMaxHealth("GlobalHealth", "Shock"));
 
-        // Set hunger to full (energy value)
-        // PlayerBase has a stats system -- set the energy stat
+        // Éhség feltöltése (energia érték)
+        // A PlayerBase stat rendszerrel rendelkezik -- az energia stat beállítása
         player.GetStatEnergy().Set(player.GetStatEnergy().GetMax());
 
-        // Set thirst to full (water value)
+        // Szomjúság feltöltése (víz érték)
         player.GetStatWater().Set(player.GetStatWater().GetMax());
 
-        // Clear any bleeding sources
+        // Minden vérzésforrás eltávolítása
         player.GetBleedingManagerServer().RemoveAllSources();
 
         Print("[ChatCommands] Healed player: " + player.GetIdentity().GetName());
@@ -594,70 +595,70 @@ class CCmdHeal extends CCmdBase
 };
 ```
 
-### Why 4_World?
+### Miért a 4_World?
 
-The heal command references `PlayerBase`, which is defined in the `4_World` layer. It also uses player stat methods (`GetStatEnergy`, `GetStatWater`, `GetBleedingManagerServer`) that are only available on world entities. The command **must** live in `4_World` or higher.
+A heal parancs hivatkozik a `PlayerBase`-re, amely a `4_World` rétegben van definiálva. Szintén használja a játékos stat metódusokat (`GetStatEnergy`, `GetStatWater`, `GetBleedingManagerServer`), amelyek csak világ entitásokon érhetők el. A parancsnak **a `4_World`-ben vagy magasabb rétegben kell lennie**.
 
-The base class `CCmdBase` lives in `3_Game` because it does not reference any world types. The concrete command classes that touch world entities live in `4_World`.
+Az alaposztály `CCmdBase` a `3_Game`-ben van, mert nem hivatkozik világ típusokra. A konkrét parancs osztályok, amelyek világ entitásokat érintenek, a `4_World`-ben vannak.
 
 ---
 
-## Step 5: Send Feedback to the Admin
+## 5. lépés: Visszajelzés küldése az adminnak
 
-Feedback is handled by the `SendFeedback()` method in `CCmdBase`. Let us trace the complete feedback path:
+A visszajelzést a `CCmdBase` `SendFeedback()` metódusa kezeli. Kövessük nyomon a teljes visszajelzési útvonalat:
 
-### Server Sends Feedback
+### A szerver visszajelzést küld
 
 ```c
-// Inside CCmdBase.SendFeedback()
+// A CCmdBase.SendFeedback() belsejében
 Param2<string, string> data = new Param2<string, string>(prefix, message);
 GetGame().RPCSingleParam(callerPlayer, CCmdRPC.COMMAND_FEEDBACK, data, true, caller);
 ```
 
-The server sends a `COMMAND_FEEDBACK` RPC to the specific client who issued the command. The data contains a prefix (like `"[Heal]"`) and the message text.
+A szerver `COMMAND_FEEDBACK` RPC-t küld annak az adott kliensnek, aki kiadta a parancsot. Az adat egy előtagot (mint `"[Heal]"`) és az üzenet szöveget tartalmazza.
 
-### Client Receives and Displays Feedback
+### A kliens fogadja és megjeleníti a visszajelzést
 
-Back in `CCmdChatHook.c` (Step 1), the `OnRPC` handler catches this:
+Visszatérve a `CCmdChatHook.c` fájlba (1. lépés), az `OnRPC` kezelő elkapja ezt:
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_FEEDBACK)
 {
-    // Deserialize the message
+    // Az üzenet deszerializálása
     Param2<string, string> data = new Param2<string, string>("", "");
     if (ctx.Read(data))
     {
         string prefix = data.param1;
         string message = data.param2;
 
-        // Display in the chat window
+        // Megjelenítés a chat ablakban
         GetGame().Chat(prefix + " " + message, "colorStatusChannel");
     }
 }
 ```
 
-`GetGame().Chat()` displays a message in the player's chat window. The second parameter is the color channel:
+A `GetGame().Chat()` egy üzenetet jelenít meg a játékos chat ablakában. A második paraméter a szín csatorna:
 
-| Channel | Color | Tipikus hasznalat |
+| Csatorna | Szín | Tipikus használat |
 |---------|-------|-------------|
-| `"colorStatusChannel"` | Yellow/orange | System messages |
-| `"colorAction"` | White | Action feedback |
-| `"colorFriendly"` | Green | Positive feedback |
-| `"colorImportant"` | Red | Warnings/errors |
+| `"colorStatusChannel"` | Sárga/narancs | Rendszer üzenetek |
+| `"colorAction"` | Fehér | Akció visszajelzés |
+| `"colorFriendly"` | Zöld | Pozitív visszajelzés |
+| `"colorImportant"` | Piros | Figyelmeztetések/hibák |
 
 ---
 
-## Step 6: Register Commands
+## 6. lépés: Parancsok regisztrálása
 
-The server handler receives command RPCs, looks up the command in the registry, and executes it.
+A szerver kezelő fogadja a parancs RPC-ket, kikeresi a parancsot a nyilvántartásban és végrehajtja.
 
-### Create `Scripts/4_World/ChatCommands/CCmdServerHandler.c`
+### Hozd létre a `Scripts/4_World/ChatCommands/CCmdServerHandler.c` fájlt
 
 ```c
 modded class MissionServer
 {
     // -------------------------------------------------------
-    // Register all commands when the server starts
+    // Összes parancs regisztrálása a szerver indításakor
     // -------------------------------------------------------
     override void OnInit()
     {
@@ -665,10 +666,10 @@ modded class MissionServer
 
         CCmdRegistry.Init();
 
-        // Register all commands here
+        // Minden parancs regisztrálása itt
         CCmdRegistry.Register(new CCmdHeal());
 
-        // Add more commands:
+        // További parancsok hozzáadása:
         // CCmdRegistry.Register(new CCmdKill());
         // CCmdRegistry.Register(new CCmdTeleport());
         // CCmdRegistry.Register(new CCmdTime());
@@ -678,7 +679,7 @@ modded class MissionServer
 };
 
 // -------------------------------------------------------
-// Server-side RPC handler for incoming commands
+// Szerver oldali RPC kezelő bejövő parancsokhoz
 // -------------------------------------------------------
 modded class PlayerBase
 {
@@ -700,7 +701,7 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Read the command string
+        // A parancs sztring olvasása
         Param1<string> data = new Param1<string>("");
         if (!ctx.Read(data))
         {
@@ -711,7 +712,7 @@ modded class PlayerBase
         string fullCommand = data.param1;
         Print("[ChatCommands] Received command from " + sender.GetName() + ": " + fullCommand);
 
-        // Parse the command
+        // A parancs elemzése
         string commandName;
         ref array<string> args;
         CCmdRegistry.ParseCommand(fullCommand, commandName, args);
@@ -719,7 +720,7 @@ modded class PlayerBase
         if (commandName == "")
             return;
 
-        // Look up the command
+        // A parancs kikeresése
         CCmdBase command = CCmdRegistry.GetCommand(commandName);
         if (!command)
         {
@@ -727,7 +728,7 @@ modded class PlayerBase
             return;
         }
 
-        // Check admin permissions
+        // Admin jogosultságok ellenőrzése
         if (command.RequiresAdmin() && !IsCommandAdmin(sender))
         {
             Print("[ChatCommands] Non-admin " + sender.GetName() + " tried to use /" + commandName);
@@ -735,7 +736,7 @@ modded class PlayerBase
             return;
         }
 
-        // Execute the command
+        // A parancs végrehajtása
         bool success = command.Execute(sender, args);
 
         if (success)
@@ -745,7 +746,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Check if a player is an admin
+    // Ellenőrzés, hogy egy játékos admin-e
     // -------------------------------------------------------
     protected bool IsCommandAdmin(PlayerIdentity identity)
     {
@@ -755,8 +756,8 @@ modded class PlayerBase
         string playerId = identity.GetPlainId();
 
         // ----------------------------------------------------------
-        // IMPORTANT: Replace these with your actual admin Steam64 IDs
-        // In production, load from a JSON config file instead
+        // FONTOS: Cseréld le ezeket a valódi admin Steam64 ID-idra
+        // Éles használatban JSON konfigurációs fájlból töltsd be helyette
         // ----------------------------------------------------------
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
@@ -766,7 +767,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Send feedback to a specific player
+    // Visszajelzés küldése egy adott játékosnak
     // -------------------------------------------------------
     protected void SendCommandFeedback(PlayerIdentity target, string prefix, string message)
     {
@@ -793,28 +794,28 @@ modded class PlayerBase
 };
 ```
 
-### The Registration Pattern
+### A regisztrációs minta
 
-Commands are registered in `MissionServer.OnInit()`:
+A parancsok a `MissionServer.OnInit()` metódusban vannak regisztrálva:
 
 ```c
 CCmdRegistry.Init();
 CCmdRegistry.Register(new CCmdHeal());
 ```
 
-Each `Register()` call creates an instance of the command class and stores it in a map keyed by the command name. When a command RPC arrives, the handler looks up the name in the registry and calls `Execute()` on the matching command object.
+Minden `Register()` hívás létrehoz egy példányt a parancs osztályból és eltárolja egy map-ben, a parancs neve alapján kulcsolva. Amikor parancs RPC érkezik, a kezelő kikeresi a nevet a nyilvántartásban és meghívja az `Execute()` metódust a megfelelő parancs objektumon.
 
-This pattern makes it trivial to add new commands -- create a new class extending `CCmdBase`, implement `Execute()`, and add one `Register()` line.
+Ez a minta triviálissá teszi új parancsok hozzáadását -- hozz létre egy új osztályt, amely kiterjeszti a `CCmdBase`-t, implementáld az `Execute()` metódust, és adj hozzá egy `Register()` sort.
 
 ---
 
-## Step 7: Add to an Admin panel Command List
+## 7. lépés: Hozzáadás az admin panel parancslistához
 
-If you have an admin panel (from [Chapter 8.3](03-admin-panel.md)), you can display the list of available commands in the UI.
+Ha van admin paneled (a [8.3. fejezetből](03-admin-panel.md)), megjelenítheted az elérhető parancsok listáját az UI-ban.
 
-### Request the Command List from the Server
+### A parancslista kérése a szervertől
 
-Add a new RPC ID in `CCmdRPC.c`:
+Adj hozzá egy új RPC ID-t a `CCmdRPC.c` fájlba:
 
 ```c
 class CCmdRPC
@@ -826,12 +827,12 @@ class CCmdRPC
 };
 ```
 
-### Server-Side: Send the Command List
+### Szerver oldal: a parancslista küldése
 
-Add this handler in your server-side code:
+Add hozzá ezt a kezelőt a szerver oldali kódodba:
 
 ```c
-// In the server handler, add a case for COMMAND_LIST_REQ
+// A szerver kezelőben adj hozzá egy esetet a COMMAND_LIST_REQ-hez
 if (rpc_type == CCmdRPC.COMMAND_LIST_REQ)
 {
     HandleCommandListRequest(sender);
@@ -842,7 +843,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
     if (!requestor)
         return;
 
-    // Build a formatted string of all commands
+    // Az összes parancs formázott sztringjének összeállítása
     array<string> names = CCmdRegistry.GetCommandNames();
     string commandList = "Available Commands:\n";
 
@@ -855,7 +856,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
         }
     }
 
-    // Send back to client
+    // Visszaküldés a kliensnek
     ref array<Man> players = new array<Man>;
     GetGame().GetPlayers(players);
 
@@ -872,9 +873,9 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
 }
 ```
 
-### Client-Side: Display in a Panel
+### Kliens oldal: megjelenítés egy panelen
 
-On the client, catch the response and display it in a text widget:
+A kliensen fogd el a választ és jelenítsd meg egy szöveg widgetben:
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
@@ -883,7 +884,7 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
     if (ctx.Read(data))
     {
         string commandList = data.param1;
-        // Display in your admin panel text widget
+        // Megjelenítés az admin panel szöveg widgetjében
         // m_CommandListText.SetText(commandList);
         Print("[ChatCommands] Command list received:\n" + commandList);
     }
@@ -892,11 +893,11 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
 
 ---
 
-## Complete Working Code: /heal Command
+## Teljes működő kód: /heal parancs
 
-Here is every file needed for the complete working system. Create these files and your mod will have a functional `/heal` command.
+Itt van minden szükséges fájl a teljes működő rendszerhez. Hozd létre ezeket a fájlokat és a modod rendelkezni fog egy működő `/heal` paranccsal.
 
-### config.cpp Setup
+### config.cpp beállítás
 
 ```cpp
 class CfgPatches
@@ -1307,7 +1308,7 @@ modded class PlayerBase
 
         string playerId = identity.GetPlainId();
 
-        // REPLACE THESE WITH YOUR ACTUAL ADMIN STEAM64 IDs
+        // CSERÉLD LE EZEKET A VALÓDI ADMIN STEAM64 ID-IDRA
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
         adminIds.Insert("76561198000000002");
@@ -1395,11 +1396,11 @@ modded class MissionGameplay
 
 ---
 
-## Adding More Commands
+## További parancsok hozzáadása
 
-The registry pattern makes adding new commands straightforward. Here are examples:
+A nyilvántartási minta egyszerűvé teszi új parancsok hozzáadását. Íme néhány példa:
 
-### /kill Command
+### /kill parancs
 
 ```c
 class CCmdKill extends CCmdBase
@@ -1447,7 +1448,7 @@ class CCmdKill extends CCmdBase
 };
 ```
 
-### /time Command
+### /time parancs
 
 ```c
 class CCmdTime extends CCmdBase
@@ -1478,9 +1479,9 @@ class CCmdTime extends CCmdBase
 };
 ```
 
-### Registering New Commands
+### Új parancsok regisztrálása
 
-Add one line per command in `MissionServer.OnInit()`:
+Adj hozzá egy sort parancsonként a `MissionServer.OnInit()` metódusba:
 
 ```c
 CCmdRegistry.Register(new CCmdHeal());
@@ -1490,34 +1491,34 @@ CCmdRegistry.Register(new CCmdTime());
 
 ---
 
-## Hibaelharitas
+## Hibaelhárítás
 
-### Command Is Not Recognized ("Unknown command")
+### A parancs nem ismert ("Unknown command")
 
-- **Registration missing:** Make sure `CCmdRegistry.Register(new CCmdYourCommand())` is called in `MissionServer.OnInit()`.
-- **GetName() typo:** The string returned by `GetName()` must match what the player types (without the `/`).
-- **Case mismatch:** The registry converts names to lowercase. `/Heal`, `/HEAL`, and `/heal` should all work.
+- **Regisztráció hiányzik:** Győződj meg róla, hogy a `CCmdRegistry.Register(new CCmdYourCommand())` meghívásra kerül a `MissionServer.OnInit()` metódusban.
+- **GetName() elgépelés:** A `GetName()` által visszaadott sztringnek egyeznie kell azzal, amit a játékos beír (a `/` nélkül).
+- **Kis/nagybetű eltérés:** A nyilvántartás kisbetűsre konvertálja a neveket. A `/Heal`, `/HEAL` és `/heal` mind működniük kell.
 
-### Permission Denied for Admins
+### Jogosultság megtagadva az adminoknak
 
-- **Wrong Steam64 ID:** Double-check the admin IDs in `IsCommandAdmin()`. They must be exact Steam64 IDs (17-digit numbers starting with `7656`).
-- **GetPlainId() vs GetId():** `GetPlainId()` returns the Steam64 ID. `GetId()` returns the DayZ session ID. Use `GetPlainId()` for admin checks.
+- **Rossz Steam64 ID:** Ellenőrizd kétszer az admin ID-kat az `IsCommandAdmin()` metódusban. Pontos Steam64 ID-knak kell lenniük (17 jegyű számok, amelyek `7656`-tal kezdődnek).
+- **GetPlainId() vs GetId():** A `GetPlainId()` a Steam64 ID-t adja vissza. A `GetId()` a DayZ session ID-t adja vissza. Használd a `GetPlainId()` metódust az admin ellenőrzésekhez.
 
-### Feedback Message Does Not Appear in Chat
+### A visszajelzés üzenet nem jelenik meg a chatben
 
-- **RPC not reaching client:** Add `Print()` statements on the server to confirm the feedback RPC is being sent.
-- **Client OnRPC not catching it:** Verify the RPC ID matches (`CCmdRPC.COMMAND_FEEDBACK`).
-- **GetGame().Chat() not working:** This function requires the game to be in a state where chat is available. It may not work on the loading screen.
+- **RPC nem éri el a klienst:** Adj hozzá `Print()` utasításokat a szerveren, hogy megerősítsd a visszajelzés RPC elküldését.
+- **A kliens OnRPC nem kapja el:** Ellenőrizd, hogy az RPC ID egyezik-e (`CCmdRPC.COMMAND_FEEDBACK`).
+- **A GetGame().Chat() nem működik:** Ez a funkció megköveteli, hogy a játék olyan állapotban legyen, ahol a chat elérhető. Lehet, hogy nem működik a betöltő képernyőn.
 
-### /heal Does Not Actually Heal
+### A /heal valójában nem gyógyít
 
-- **Server-only execution:** `SetHealth()` and stat changes must run on the server. Verify `GetGame().IsServer()` is true when `Execute()` runs.
-- **PlayerBase cast fails:** If `Class.CastTo(targetPlayer, targetMan)` returns false, the target is not a valid PlayerBase. This can happen with AI or non-player entities.
-- **Stat getters return null:** `GetStatEnergy()` and `GetStatWater()` may return null if the player is dead or not fully initialized. Add null checks in production code.
+- **Csak szerver oldali végrehajtás:** A `SetHealth()` és stat változásoknak a szerveren kell futniuk. Ellenőrizd, hogy `GetGame().IsServer()` igaz-e az `Execute()` futásakor.
+- **PlayerBase cast sikertelen:** Ha a `Class.CastTo(targetPlayer, targetMan)` false-t ad vissza, a cél nem érvényes PlayerBase. Ez előfordulhat AI-val vagy nem-játékos entitásokkal.
+- **A stat lekérők null-t adnak vissza:** A `GetStatEnergy()` és `GetStatWater()` null-t adhatnak vissza, ha a játékos halott vagy nincs teljesen inicializálva. Adj hozzá null ellenőrzéseket az éles kódban.
 
-### Command Appears in Chat as Regular Message
+### A parancs normál üzenetként jelenik meg a chatben
 
-- The `OnEvent` hook intercepts the message but does not suppress it from being sent as chat. To suppress it in a production mod, you would need to mod the `ChatInputMenu` class to filter `/` messages before they are sent:
+- Az `OnEvent` hook elfogja az üzenetet, de nem nyomja el a chatként való küldést. Éles modban módosítanod kellene a `ChatInputMenu` osztályt a `/` üzenetek szűréséhez, mielőtt elküldésre kerülnének:
 
 ```c
 modded class ChatInputMenu
@@ -1525,29 +1526,29 @@ modded class ChatInputMenu
     override void OnChatInputSend()
     {
         string text = "";
-        // Get the current text from the edit widget
-        // If it starts with /, do NOT call super (which sends it as chat)
-        // Instead, handle it as a command
+        // Az aktuális szöveg lekérése a szerkesztő widgetből
+        // Ha / karakterrel kezdődik, NE hívd meg a super-t (ami chatként küldi)
+        // Ehelyett kezeld parancsként
 
-        // This approach varies by DayZ version -- check vanilla sources
+        // Ez a megközelítés a DayZ verziótól függ -- ellenőrizd a vanilla forrásokat
         super.OnChatInputSend();
     }
 };
 ```
 
-The exact implementation depends on the DayZ version and how `ChatInputMenu` exposes the text. The `OnEvent` approach in this tutorial is simpler and works for development, with the tradeoff that the command text also appears as a chat message.
+A pontos implementáció a DayZ verziójától és attól függ, hogyan teszi elérhetővé a `ChatInputMenu` a szöveget. A bemutatóban használt `OnEvent` megközelítés egyszerűbb és működik fejlesztéshez, azzal a kompromisszummal, hogy a parancs szöveg chat üzenetként is megjelenik.
 
 ---
 
-## Kovetkezo lepesek
+## Következő lépések
 
-1. **Load admins from a config file** -- Use `JsonFileLoader` to load admin IDs from a JSON file instead of hardcoding them.
-2. **Add a /help command** -- List all available commands with their descriptions and usage.
-3. **Add logging** -- Write command usage to a log file for audit purposes.
-4. **Integrate with a framework** -- MyFramework provides `MyJogosultsagok` for hierarchical permissions and `MyRPC` for string-routed RPCs that avoid integer ID collisions.
-5. **Add cooldowns** -- Prevent command spam by tracking the last execution time per player.
-6. **Build a command palette UI** -- Create an admin panel that lists all commands with clickable buttons (combining this tutorial with [Chapter 8.3](03-admin-panel.md)).
+1. **Adminok betöltése konfigurációs fájlból** -- Használd a `JsonFileLoader`-t admin ID-k betöltésére JSON fájlból a hardkódolás helyett.
+2. **Adj hozzá /help parancsot** -- Listázd az összes elérhető parancsot leírásaikkal és használatukkal.
+3. **Adj hozzá naplózást** -- Írd ki a parancshasználatot naplófájlba audit célokra.
+4. **Integrálj keretrendszerrel** -- A MyFramework biztosít `MyPermissions`-t hierarchikus jogosultságokhoz és `MyRPC`-t sztring-útválasztott RPC-khez, amelyek elkerülik az egész szám ID ütközéseket.
+5. **Adj hozzá lehűlési időt** -- Akadályozd meg a parancs spammelést a játékosonkénti utolsó végrehajtási idő nyomon követésével.
+6. **Építs parancs paletta UI-t** -- Hozz létre admin panelt, amely felsorolja az összes parancsot kattintható gombokkal (ennek a bemutatónak a kombinálása a [8.3. fejezettel](03-admin-panel.md)).
 
 ---
 
-**Elozo:** [Chapter 8.3: Building an Admin panel Module](03-admin-panel.md)
+**Előző:** [8.3. fejezet: Admin panel modul építése](03-admin-panel.md)

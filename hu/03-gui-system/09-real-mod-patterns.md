@@ -1,40 +1,40 @@
-# Chapter 3.9: Real Mod UI Patterns
+# 3.9. fejezet: Valós mod UI minták
 
-[Home](../../README.md) | [<< Previous: Dialogs & Modals](08-dialogs-modals.md) | **Real Mod UI Patterns** | [Next: Advanced Widgets >>](10-advanced-widgets.md)
-
----
-
-All code shown is extracted from actual mod source. File paths reference the original repositories.
+[Főoldal](../../README.md) | [<< Előző: Dialógusok és modálisok](08-dialogs-modals.md) | **Valós mod UI minták** | [Következő: Haladó widgetek >>](10-advanced-widgets.md)
 
 ---
 
-## Why Study Real Mods?
-
-DayZ documentation explains individual widgets and event callbacks but says nothing about:
-
-- How to manage 12 admin panels without code duplication
-- How to build a dialog system with callback routing
-- How to theme an entire UI without touching vanilla layout files
-- How to synchronize a market grid with server data over RPC
-- How to structure an editor with undo/redo and a command system
-
-These are architecture problems. Every large mod invents solutions for them. Some are elegant, some are cautionary tales. This chapter maps the patterns so you can pick the right approach for your project.
+Minden bemutatott kód valódi mod forrásból lett kinyerve. A fájlútvonalak az eredeti adattárakra hivatkoznak.
 
 ---
 
-## COT (Community Online Tools) UI Mintas
+## Miért érdemes valódi modokat tanulmányozni?
 
-COT is the most widely-used DayZ admin tool. Its UI architecture is built around a module-form-window system where each tool (ESP, Player Manager, Teleport, Object Spawner, etc.) is a self-contained module with its own panel.
+A DayZ dokumentáció elmagyarázza az egyedi widgeteket és esemény visszahívásokat, de semmit sem mond arról:
 
-### Module-Form-Window Architecture
+- Hogyan kezelj 12 admin panelt kódduplikáció nélkül
+- Hogyan építs dialógus rendszert visszahívás-útválasztással
+- Hogyan témázz egy teljes UI-t a vanilla layout fájlok érintése nélkül
+- Hogyan szinkronizálj egy piaci rácsot szerver adattal RPC-n keresztül
+- Hogyan strukturálj egy szerkesztőt visszavonás/újra végrehajtás és parancsrendszerrel
 
-COT separates concerns into three layers:
+Ezek architektúrális problémák. Minden nagy mod kitalálja a saját megoldásait rájuk. Néhány elegáns, néhány elrettentő példa. Ez a fejezet feltérképezi a mintákat, hogy kiválaszthasd a projekted számára megfelelő megközelítést.
 
-1. **JMRenderableModuleBase** -- Declares the module's metadata (title, icon, layout path, permissions). Manages the CF_Window lifecycle. Does not contain UI logic.
-2. **JMFormBase** -- The actual UI panel. Extends `ScriptedWidgetEventHandler`. Receives widget events, builds UI elements, talks to the module for data operations.
-3. **CF_Window** -- The windowing container provided by the CF framework. Handles drag, resize, close chrome.
+---
 
-A module declares itself with overrides:
+## COT (Community Online Tools) UI minták
+
+A COT a legszélesebb körben használt DayZ admin eszköz. UI architektúrája egy modul-űrlap-ablak rendszerre épül, ahol minden eszköz (ESP, Player Manager, Teleport, Object Spawner, stb.) egy önálló modul a saját paneljével.
+
+### Modul-Űrlap-Ablak architektúra
+
+A COT három rétegre bontja a felelősségeket:
+
+1. **JMRenderableModuleBase** -- Deklarálja a modul metaadatait (cím, ikon, layout útvonal, jogosultságok). Kezeli a CF_Window életciklust. Nem tartalmaz UI logikát.
+2. **JMFormBase** -- A tényleges UI panel. A `ScriptedWidgetEventHandler`-t terjeszti ki. Widget eseményeket fogad, UI elemeket épít, a modulhoz fordul adatműveletekért.
+3. **CF_Window** -- A CF keretrendszer által biztosított ablakozó konténer. Kezeli a húzást, átméretezést, bezárás keretdíszítést.
+
+Egy modul felülírásokkal deklarálja magát:
 
 ```c
 class JMExampleModule: JMRenderableModuleBase
@@ -72,7 +72,7 @@ class JMExampleModule: JMRenderableModuleBase
 }
 ```
 
-The module is registered in a central constructor that builds the module list:
+A modul egy központi konstruktorban van regisztrálva, amely felépíti a modullistát:
 
 ```c
 modded class JMModuleConstructor
@@ -91,7 +91,7 @@ modded class JMModuleConstructor
 }
 ```
 
-When `Show()` is called on a module, it creates a window and loads the form:
+Amikor a `Show()` meghívásra kerül egy modulon, ablakot hoz létre és betölti az űrlapot:
 
 ```c
 void Show()
@@ -106,7 +106,7 @@ void Show()
 }
 ```
 
-The form's `Init` binds the module reference through a protected override:
+Az űrlap `Init` metódusa köti a modul hivatkozást egy védett felülíráson keresztül:
 
 ```c
 class JMExampleForm: JMFormBase
@@ -120,16 +120,16 @@ class JMExampleForm: JMFormBase
 
     override void OnInit()
     {
-        // Build UI elements programmatically using UIActionManager
+        // UI elemek felépítése programozottan az UIActionManager segítségével
     }
 }
 ```
 
-**Key takeaway:** Each tool is entirely self-contained. Adding a new admin tool means creating one Module class, one Form class, one layout file, and inserting one line in the constructor. No existing code changes.
+**Kulcs tanulság:** Minden eszköz teljesen önálló. Új admin eszköz hozzáadása egy Module osztály, egy Form osztály, egy layout fájl létrehozását és egy sor beillesztését jelenti a konstruktorba. Meglévő kód nem változik.
 
-### Programmatic UI with UIAkcioManager
+### Programozott UI az UIActionManager-rel
 
-COT does not build complex forms in layout files. Instead, it uses a factory class (`UIAkcioManager`) that creates standardized UI action widgets at runtime:
+A COT nem épít komplex űrlapokat layout fájlokban. Ehelyett egy gyár osztályt (`UIActionManager`) használ, amely szabványosított UI akció widgeteket hoz létre futásidőben:
 
 ```c
 override void OnInit()
@@ -137,10 +137,10 @@ override void OnInit()
     m_Scroller = UIActionManager.CreateScroller(layoutRoot.FindAnyWidget("panel"));
     Widget actions = m_Scroller.GetContentWidget();
 
-    // Grid layout: 8 rows, 1 column
+    // Rács elrendezés: 8 sor, 1 oszlop
     m_PanelAlpha = UIActionManager.CreateGridSpacer(actions, 8, 1);
 
-    // Standard widget types
+    // Szabványos widget típusok
     m_Text = UIActionManager.CreateText(m_PanelAlpha, "Label", "Value");
     m_EditableText = UIActionManager.CreateEditableText(
         m_PanelAlpha, "Name:", this, "OnChange_EditableText"
@@ -155,22 +155,22 @@ override void OnInit()
         m_PanelAlpha, "Execute", this, "OnClick_Button"
     );
 
-    // Sub-grid for side-by-side buttons
+    // Al-rács egymás melletti gombokhoz
     Widget gridButtons = UIActionManager.CreateGridSpacer(m_PanelAlpha, 1, 2);
     m_Button = UIActionManager.CreateButton(gridButtons, "Left", this, "OnClick_Left");
     m_NavButton = UIActionManager.CreateNavButton(gridButtons, "Right", ...);
 }
 ```
 
-Each `UIAkcio*` widget type has its own layout file (e.g., `UIAkcioSlider.layout`, `UIAkcioCheckbox.layout`) loaded as a prefab. The factory approach means:
+Minden `UIAction*` widget típusnak saját layout fájlja van (pl. `UIActionSlider.layout`, `UIActionCheckbox.layout`), amelyeket prefabként tölt be. A gyár megközelítés azt jelenti:
 
-- Consistent sizing and spacing across all panels
-- No layout file duplication
-- New action types can be added once and used everywhere
+- Következetes méretezés és térköz az összes panelen
+- Nincs layout fájl duplikáció
+- Új akció típusok egyszer adhatók hozzá és mindenhol használhatók
 
-### ESP Overlay (Drawing on CanvasWidget)
+### ESP overlay (rajzolás CanvasWidget-re)
 
-COT's ESP system draws labels, health bars, and lines directly over the 3D world using `CanvasWidget`. The key pattern is a screen-space `CanvasWidget` that covers the entire viewport, with individual ESP widget handlers positioned at projected world coordinates:
+A COT ESP rendszere címkéket, életerő sávokat és vonalakat rajzol közvetlenül a 3D világ fölé a `CanvasWidget` használatával. A kulcs minta egy képernyő-tér `CanvasWidget`, amely lefedi a teljes nézőablakot, egyedi ESP widget kezelőkkel, amelyek vetített világ koordinátáknál vannak elhelyezve:
 
 ```c
 class JMESPWidgetHandler: ScriptedWidgetEventHandler
@@ -202,11 +202,11 @@ class JMESPWidgetHandler: ScriptedWidgetEventHandler
 }
 ```
 
-ESP widgets are created from prefab layouts (`esp_widget.layout`) and positioned each frame by projecting 3D positions to screen coordinates. The canvas itself is a fullscreen overlay loaded at startup.
+Az ESP widgetek prefab layoutokból (`esp_widget.layout`) jönnek létre és minden frame-ben a 3D pozíciók képernyő koordinátákra vetítésével pozícionálódnak. Maga a vászon egy teljes képernyős overlay, amely indításkor töltődik be.
 
-### Confirmation Dialogs
+### Megerősítő dialógusok
 
-COT provides a callback-based confirmation system built into `JMFormBase`. Confirmations are created with named callbacks:
+A COT visszahívás-alapú megerősítő rendszert biztosít, amely a `JMFormBase`-be van beépítve. A megerősítések nevesített visszahívásokkal jönnek létre:
 
 ```c
 CreateConfirmation_Two(
@@ -218,7 +218,7 @@ CreateConfirmation_Two(
 );
 ```
 
-The `JMConfirmationForm` uses `CallByName` to invoke the callback method on the form:
+A `JMConfirmationForm` a `CallByName` metódust használja a visszahívás metódus meghívására az űrlapon:
 
 ```c
 class JMConfirmationForm: JMConfirmation
@@ -235,17 +235,17 @@ class JMConfirmationForm: JMConfirmation
 }
 ```
 
-This allows chaining confirmations (one confirmation opens another) without hardcoding the flow.
+Ez lehetővé teszi megerősítések láncolását (egy megerősítés másikat nyit) a folyamat hardkódolása nélkül.
 
 ---
 
-## VPP Admin Tools UI Mintas
+## VPP Admin Tools UI minták
 
-VPP takes a different approach from COT: it uses `UIScriptedMenu` with a toolbar HUD, draggable sub-windows, and a global dialog box system.
+A VPP más megközelítést alkalmaz, mint a COT: `UIScriptedMenu`-t használ eszköztár HUD-dal, húzható alablakokkal és globális dialógus rendszerrel.
 
-### Toolbar Button Registration
+### Eszköztár gomb regisztráció
 
-`VPPAdminHud` maintains a list of button definitions. Each button maps a permission string to a display name, icon, and tooltip:
+A `VPPAdminHud` egy gomb definíció listát tart fenn. Minden gomb egy jogosultsági sztringet társít megjelenítendő névhez, ikonhoz és tooltiphez:
 
 ```c
 class VPPAdminHud extends VPPScriptedMenu
@@ -260,10 +260,10 @@ class VPPAdminHud extends VPPScriptedMenu
         InsertButton("MenuItemManager", "Items Spawner",
             "set:dayz_gui_vpp image:vpp_icon_item_manager",
             "#VSTR_TOOLTIP_ITEMMANAGER");
-        // ... 10 more tools
+        // ... további 10 eszköz
         DefineButtons();
 
-        // Verify permissions with server via RPC
+        // Jogosultságok ellenőrzése a szerverrel RPC-n keresztül
         array<string> perms = new array<string>;
         for (int i = 0; i < m_DefinedButtons.Count(); i++)
             perms.Insert(m_DefinedButtons[i].param1);
@@ -273,11 +273,11 @@ class VPPAdminHud extends VPPScriptedMenu
 }
 ```
 
-External mods can override `DefineButtons()` to add their own toolbar buttons, making VPP extensible without modifying its source.
+Külső modok felülírhatják a `DefineButtons()` metódust saját eszköztár gombok hozzáadásához, így a VPP bővíthető a forrásának módosítása nélkül.
 
-### Sub-Menu Window System
+### Almenü ablak rendszer
 
-Each tool panel extends `AdminHudSubMenu`, which provides draggable window behavior, show/hide toggling, and window priority management:
+Minden eszközpanel az `AdminHudSubMenu`-t terjeszti ki, amely húzható ablak viselkedést, megjelenítés/elrejtés váltást és ablak prioritás kezelést biztosít:
 
 ```c
 class AdminHudSubMenu: ScriptedWidgetEventHandler
@@ -296,7 +296,7 @@ class AdminHudSubMenu: ScriptedWidgetEventHandler
         OnMenuShow();
     }
 
-    // Drag support via title bar
+    // Húzás támogatás a címsoron keresztül
     override bool OnDrag(Widget w, int x, int y)
     {
         if (w == m_TitlePanel)
@@ -319,7 +319,7 @@ class AdminHudSubMenu: ScriptedWidgetEventHandler
         return true;
     }
 
-    // Double-click title bar to maximize/restore
+    // Dupla kattintás a címsoron a maximalizálás/visszaállításhoz
     override bool OnDoubleClick(Widget w, int x, int y, int button)
     {
         if (button == MouseState.LEFT && w == m_TitlePanel)
@@ -332,11 +332,11 @@ class AdminHudSubMenu: ScriptedWidgetEventHandler
 }
 ```
 
-**Key takeaway:** VPP builds a mini window manager inside DayZ. Each sub-menu is a draggable, resizable window with focus management. The `SetWindowPriorty()` call adjusts z-order so the clicked window comes to front.
+**Kulcs tanulság:** A VPP egy mini ablakkezelőt épít a DayZ-ben. Minden almenü egy húzható, átméretezhető ablak fókuszkezeléssel. A `SetWindowPriorty()` hívás módosítja a z-sorrendet, hogy a kattintott ablak előtérbe kerüljön.
 
-### VPPDialogBox -- Callback-based Dialog
+### VPPDialogBox -- visszahívás-alapú dialógus
 
-VPP's dialog system uses an enum-driven approach. The dialog shows/hides buttons based on a type enum, and routes the result through `CallFunction`:
+A VPP dialógusrendszere enum-vezérelt megközelítést használ. A dialógus egy típus enum alapján mutatja/rejti a gombokat, és az eredményt a `CallFunction` metóduson keresztül irányítja:
 
 ```c
 enum DIAGTYPE
@@ -383,7 +383,7 @@ class VPPDialogBox extends ScriptedWidgetEventHandler
 }
 ```
 
-The `ConfirmationEventHandler` wraps a button widget so clicking it spawns a dialog. The dialog result is forwarded to any class via a named callback:
+A `ConfirmationEventHandler` egy gomb widgetet burkol, így a kattintás dialógust hoz létre. A dialógus eredménye bármely osztálynak továbbítódik nevesített visszahíváson keresztül:
 
 ```c
 class ConfirmationEventHandler extends ScriptedWidgetEventHandler
@@ -420,9 +420,9 @@ class ConfirmationEventHandler extends ScriptedWidgetEventHandler
 }
 ```
 
-### PopUp with OnWidgetScriptInit
+### PopUp az OnWidgetScriptInit-tel
 
-VPP popup forms bind to their layout via `OnWidgetScriptInit` and use `ScriptedWidgetEventHandler`:
+A VPP popup űrlapok az `OnWidgetScriptInit` metóduson keresztül kötődnek a layoutjukhoz és a `ScriptedWidgetEventHandler`-t használják:
 
 ```c
 class PopUpCreatePreset extends ScriptedWidgetEventHandler
@@ -468,22 +468,22 @@ class PopUpCreatePreset extends ScriptedWidgetEventHandler
 }
 ```
 
-**Key takeaway:** `delete this` on close is the common popup disposal pattern. The destructor calls `m_root.Unlink()` to remove the widget tree. This is clean but requires care -- if anything holds a reference to the popup after deletion, you get a null access.
+**Kulcs tanulság:** A `delete this` bezáráskor a gyakori popup megsemmisítési minta. A destruktor a `m_root.Unlink()` metódust hívja a widget fa eltávolításához. Ez tiszta, de óvatosságot igényel -- ha bármi hivatkozást tart a popup-ra a törlés után, null hozzáférést kapsz.
 
 ---
 
-## DabsFramework UI Mintas
+## DabsFramework UI minták
 
-DabsFramework introduces a full MVC (Model-View-Controller) architecture for DayZ UI. It is used by DayZ Editor and Expansion as their UI foundation.
+A DabsFramework teljes MVC (Model-View-Controller) architektúrát vezet be a DayZ UI-hoz. A DayZ Editor és az Expansion használja UI alapként.
 
-### ViewController and Data Binding
+### ViewController és adatkötés
 
-The core idea: instead of manually finding widgets and setting their text, you declare properties on a controller class and bind them to widgets by name in the layout editor.
+Az alapötlet: a widgetek manuális megkeresése és szövegük beállítása helyett deklarálsz tulajdonságokat egy controller osztályon, és név szerint kötöd őket widgetekhez a layout szerkesztőben.
 
 ```c
 class TestController: ViewController
 {
-    // Variable name matches Binding_Name in the layout
+    // A változónév megegyezik a Binding_Name-mel a layoutban
     string TextBox1 = "Initial Text";
     int TextBox2;
     bool WindowButton1;
@@ -506,7 +506,7 @@ class TestController: ViewController
 }
 ```
 
-In the layout, each widget has a `ViewBinding` script class with a `Binding_Name` reference property set to the variable name (e.g., "TextBox1"). When `NotifyPropertyValtozasd()` is called, the framework finds all ViewBindings with that name and updates the widget:
+A layoutban minden widgetnek van egy `ViewBinding` script osztálya, amelynek `Binding_Name` referencia tulajdonsága a változónévre van állítva (pl. "TextBox1"). Amikor a `NotifyPropertyChanged()` meghívásra kerül, a keretrendszer megkeresi az összes ezzel a névvel rendelkező ViewBinding-ot és frissíti a widgetet:
 
 ```c
 class ViewBinding : ScriptedViewBase
@@ -537,11 +537,11 @@ class ViewBinding : ScriptedViewBase
 }
 ```
 
-**Two-way binding** means changes in the widget (user typing) propagate back to the controller property automatically.
+A **kétirányú kötés** azt jelenti, hogy a widgetben történő változások (felhasználói gépelés) automatikusan visszavezetődnek a controller tulajdonságba.
 
-### ObservableCollection -- List Data Binding
+### ObservableCollection -- lista adatkötés
 
-For dynamic lists, DabsFramework provides `ObservableCollection<T>`. Insert/remove operations automatically update the bound widget (e.g., a WrapSpacer or ScrollWidget):
+Dinamikus listákhoz a DabsFramework `ObservableCollection<T>`-t biztosít. A beszúrás/eltávolítás műveletek automatikusan frissítik a kötött widgetet (pl. WrapSpacer vagy ScrollWidget):
 
 ```c
 class MyController: ViewController
@@ -558,16 +558,16 @@ class MyController: ViewController
     override void CollectionChanged(string property_name,
                                     CollectionChangedEventArgs args)
     {
-        // Called automatically on Insert/Remove
+        // Automatikusan meghívásra kerül Insert/Remove esetén
     }
 }
 ```
 
-Each `Insert()` fires a `CollectionValtozasd` event, which the ViewBinding intercepts to create/destroy child widgets. No manual widget management needed.
+Minden `Insert()` egy `CollectionChanged` eseményt aktivál, amelyet a ViewBinding elfog a gyermek widgetek létrehozásához/megsemmisítéséhez. Nincs szükség manuális widget kezelésre.
 
-### ScriptView -- Layout-from-Code
+### ScriptView -- layout kódból
 
-`ScriptView` is the all-script alternative to `OnWidgetScriptInit`. You subclass it, override `GetLayoutFile()`, and instantiate it. The constructor loads the layout, finds the controller, and wires everything:
+A `ScriptView` a tisztán szkript alapú alternatíva az `OnWidgetScriptInit`-hez. Alosztályt készítesz belőle, felülírod a `GetLayoutFile()` metódust és példányosítod. A konstruktor betölti a layoutot, megkeresi a controllert és mindent összeköt:
 
 ```c
 class CustomDialogWindow: ScriptView
@@ -583,34 +583,34 @@ class CustomDialogWindow: ScriptView
     }
 }
 
-// Usage:
+// Használat:
 CustomDialogWindow window = new CustomDialogWindow();
 ```
 
-Widget variables declared as fields on `ScriptView` subclasses are auto-populated by name matching against the layout hierarchy (`LoadWidgetsAsVariables`). This eliminates `FindAnyWidget()` calls.
+A `ScriptView` alosztályokon mezőkként deklarált widget változók automatikusan feltöltődnek a layout hierarchiával való névazonosítás alapján (`LoadWidgetsAsVariables`). Ez kiküszöböli a `FindAnyWidget()` hívásokat.
 
-### RelayCommand -- Button-to-Akcio Binding
+### RelayCommand -- gomb-akció kötés
 
-Buttons can be bound to `RelayCommand` objects via the `Relay_Command` reference property in ViewBinding. This decouples button clicks from handlers:
+A gombok `RelayCommand` objektumokhoz köthetők a ViewBinding `Relay_Command` referencia tulajdonságán keresztül. Ez leválasztja a gombkattintásokat a kezelőkről:
 
 ```c
 class EditorCommand: RelayCommand
 {
     override bool Execute(Class sender, CommandArgs args)
     {
-        // Perform action
+        // Művelet végrehajtása
         return true;
     }
 
     override bool CanExecute()
     {
-        // Enable/disable the button
+        // Gomb engedélyezése/letiltása
         return true;
     }
 
     override void CanExecuteChanged(bool state)
     {
-        // Grey out the widget when disabled
+        // Widget kiszürkítése letiltáskor
         if (m_ViewBinding)
         {
             Widget root = m_ViewBinding.GetLayoutRoot();
@@ -621,19 +621,19 @@ class EditorCommand: RelayCommand
 }
 ```
 
-**Key takeaway:** DabsFramework eliminates boilerplate. You declare data, bind it by name, and the framework handles synchronization. The cost is the learning curve and the framework dependency.
+**Kulcs tanulság:** A DabsFramework kiküszöböli a sablonkódot. Deklarálod az adatokat, név szerint kötöd, és a keretrendszer kezeli a szinkronizálást. Az ára a tanulási görbe és a keretrendszer függőség.
 
 ---
 
-## Colorful UI Mintas
+## Colorful UI minták
 
-Colorful UI replaces vanilla DayZ menus with themed versions without modifying vanilla script files. Its approach is entirely based on `modded class` overrides and a centralized color/branding system.
+A Colorful UI lecseréli a vanilla DayZ menüket témázott változatokra a vanilla szkript fájlok módosítása nélkül. Megközelítése teljes egészében `modded class` felülírásokra és egy központosított szín/márkajelzés rendszerre épül.
 
-### 3-Layer Theme System
+### 3 rétegű téma rendszer
 
-Colors are organized in three tiers:
+A színek három szinten vannak szervezve:
 
-**Layer 1 -- UIColor (base palette):** Raw color values with semantic names.
+**1. réteg -- UIColor (alappaletta):** Nyers színértékek szemantikus nevekkel.
 
 ```c
 class UIColor
@@ -647,7 +647,7 @@ class UIColor
 }
 ```
 
-**Layer 2 -- colorScheme (semantic mapping):** Maps UI concepts to palette colors. Server owners change this layer to theme their server.
+**2. réteg -- colorScheme (szemantikus leképezés):** UI koncepciókat társít paletta színekhez. A szerver tulajdonosok ezt a réteget változtatják a szerverük témázásához.
 
 ```c
 class colorScheme
@@ -663,7 +663,7 @@ class colorScheme
 }
 ```
 
-**Layer 3 -- Branding/Settings (server identity):** Logo paths, URLs, feature toggles.
+**3. réteg -- Branding/Settings (szerver identitás):** Logó útvonalak, URL-ek, funkció kapcsolók.
 
 ```c
 class Branding
@@ -689,9 +689,9 @@ class SocialURL
 }
 ```
 
-### Non-Destructive Vanilla UI Modification
+### Nem-destruktív vanilla UI módosítás
 
-Colorful UI replaces vanilla menus using `modded class`. Each vanilla `UIScriptedMenu` subclass is modded to load a custom layout file and apply theme colors:
+A Colorful UI a `modded class` segítségével cseréli le a vanilla menüket. Minden vanilla `UIScriptedMenu` alosztály módosításra kerül, hogy egyéni layout fájlt töltsön be és téma színeket alkalmazzon:
 
 ```c
 modded class MainMenu extends UIScriptedMenu
@@ -707,7 +707,7 @@ modded class MainMenu extends UIScriptedMenu
         m_TopShader = ImageWidget.Cast(layoutRoot.FindAnyWidget("TopShader"));
         m_BottomShader = ImageWidget.Cast(layoutRoot.FindAnyWidget("BottomShader"));
 
-        // Apply theme colors
+        // Téma színek alkalmazása
         if (m_TopShader) m_TopShader.SetColor(colorScheme.TopShader());
         if (m_BottomShader) m_BottomShader.SetColor(colorScheme.BottomShader());
         if (m_MenuDivider) m_MenuDivider.SetColor(colorScheme.Separator());
@@ -719,23 +719,23 @@ modded class MainMenu extends UIScriptedMenu
 }
 ```
 
-This pattern is important: Colorful UI ships entirely custom `.layout` files that mirror vanilla widget names. The `modded class` override swaps the layout path but keeps vanilla widget names so that if any vanilla code references those widget names, it still works.
+Ez a minta fontos: a Colorful UI teljesen egyéni `.layout` fájlokat szállít, amelyek tükrözik a vanilla widget neveket. A `modded class` felülírás lecseréli a layout útvonalat, de megtartja a vanilla widget neveket, így ha bármely vanilla kód hivatkozik ezekre a widget nevekre, továbbra is működik.
 
-### Resolution-Aware Layout Variants
+### Felbontás-tudatos layout variánsok
 
-Colorful UI provides separate inventory layout directories for different screen widths:
+A Colorful UI külön inventory layout könyvtárakat biztosít különböző képernyőszélességekhez:
 
 ```
-GUI/layouts/inventory/narrow/   -- small screens
-GUI/layouts/inventory/medium/   -- standard 1080p
-GUI/layouts/inventory/wide/     -- ultrawide
+GUI/layouts/inventory/narrow/   -- kis képernyők
+GUI/layouts/inventory/medium/   -- szabványos 1080p
+GUI/layouts/inventory/wide/     -- ultraszéles
 ```
 
-Each directory contains the same file names (`cargo_container.layout`, `left_area.layout`, etc.) with adjusted sizing. The correct variant is selected at runtime based on screen resolution.
+Minden könyvtár ugyanazokat a fájlneveket tartalmazza (`cargo_container.layout`, `left_area.layout`, stb.) módosított méretezéssel. A megfelelő variáns futásidőben kerül kiválasztásra a képernyő felbontás alapján.
 
-### Configuration via Static Variables
+### Konfiguráció statikus változókon keresztül
 
-Server owners configure Colorful UI by editing static variable values in `Settings.c`:
+A szerver tulajdonosok a Colorful UI-t a `Settings.c` fájlban lévő statikus változó értékek szerkesztésével konfigurálják:
 
 ```c
 static bool StartMainMenu    = true;
@@ -745,48 +745,48 @@ static bool ShowDeadScreen   = false;
 static bool CuiDebug         = true;
 ```
 
-This is the simplest possible config system: edit the script, rebuild PBO. No JSON loading, no config manager. For a client-only visual mod, this is appropriate.
+Ez a lehető legegyszerűbb konfigurációs rendszer: szerkesztsd a szkriptet, építsd újra a PBO-t. Nincs JSON betöltés, nincs config kezelő. Egy kliens-oldali vizuális modhoz ez megfelelő.
 
-**Key takeaway:** Colorful UI demonstrates that you can retheme the entire DayZ client without server-side code, using only `modded class` overrides, custom layout files, and a centralized color system.
+**Kulcs tanulság:** A Colorful UI bemutatja, hogy a teljes DayZ kliens újratémázható szerver-oldali kód nélkül, kizárólag `modded class` felülírások, egyéni layout fájlok és központosított színrendszer használatával.
 
 ---
 
-## Expansion UI Mintas
+## Expansion UI minták
 
-DayZ Expansion is the largest community mod ecosystem. Its UI ranges from notification toasts to full market trading interfaces with server synchronization.
+A DayZ Expansion a legnagyobb közösségi mod ökoszisztéma. UI-ja az értesítő felugró ablakoktól a teljes piaci kereskedési felületekig terjed szerver szinkronizálással.
 
-### Notification System (Multiple Tipuss)
+### Értesítési rendszer (több típus)
 
-Expansion defines six notification visual types, each with its own layout:
+Az Expansion hat értesítési vizuális típust definiál, mindegyiknek saját layoutja van:
 
 ```c
 enum ExpansionNotificationType
 {
-    TOAST    = 1,    // Small corner popup
-    BAGUETTE = 2,   // Wide banner across screen
-    ACTIVITY = 4,   // Activity feed entry
-    KILLFEED = 8,   // Kill announcement
-    MARKET   = 16,  // Market transaction result
-    GARAGE   = 32   // Vehicle storage result
+    TOAST    = 1,    // Kis sarokfelugró
+    BAGUETTE = 2,   // Széles szalag a képernyőn
+    ACTIVITY = 4,   // Tevékenység hírfolyam bejegyzés
+    KILLFEED = 8,   // Ölési bejelentés
+    MARKET   = 16,  // Piaci tranzakció eredmény
+    GARAGE   = 32   // Jármű tárolás eredmény
 }
 ```
 
-Notifications are created from anywhere (client or server) using a static API:
+Az értesítések bárhonnan (kliens vagy szerver) létrehozhatók statikus API-n keresztül:
 
 ```c
-// From server, sent to specific player via RPC:
+// Szerverről, adott játékosnak küldve RPC-n keresztül:
 NotificationSystem.Create_Expansion(
-    "Trade Complete",          // title
-    "You purchased M4A1",     // text
-    "market_icon",             // icon name
-    ARGB(255, 50, 200, 50),   // color
-    7,                         // display time (seconds)
-    sendTo,                    // PlayerIdentity (null = all)
-    ExpansionNotificationType.MARKET  // type
+    "Trade Complete",          // cím
+    "You purchased M4A1",     // szöveg
+    "market_icon",             // ikon neve
+    ARGB(255, 50, 200, 50),   // szín
+    7,                         // megjelenítési idő (másodperc)
+    sendTo,                    // PlayerIdentity (null = mindenki)
+    ExpansionNotificationType.MARKET  // típus
 );
 ```
 
-The notification module maintains a list of active notifications and manages their lifecycle. Each `ExpansionNotificationView` (a `ScriptView` subclass) handles its own show/hide animation:
+Az értesítési modul aktív értesítések listáját tartja fenn és kezeli azok életciklusát. Minden `ExpansionNotificationView` (egy `ScriptView` alosztály) kezeli a saját megjelenítés/elrejtés animációját:
 
 ```c
 class ExpansionNotificationView: ScriptView
@@ -816,21 +816,21 @@ class ExpansionNotificationView: ScriptView
 }
 ```
 
-Each notification type has a separate layout file (`expansion_notification_toast.layout`, `expansion_notification_killfeed.layout`, etc.) allowing completely different visual treatments.
+Minden értesítési típusnak külön layout fájlja van (`expansion_notification_toast.layout`, `expansion_notification_killfeed.layout`, stb.), ami teljesen eltérő vizuális kezelést tesz lehetővé.
 
-### Market Menu (Complex Interactive Panel)
+### Piaci menü (összetett interaktív panel)
 
-The `ExpansionMarketMenu` is one of the most complex UIs in any DayZ mod. It extends `ExpansionScriptViewMenu` (which extends DabsFramework's ScriptView) and manages:
+Az `ExpansionMarketMenu` az egyik legösszetettebb UI bármely DayZ modban. Az `ExpansionScriptViewMenu`-t terjeszti ki (amely a DabsFramework ScriptView-ját bővíti) és kezeli:
 
-- Kategoria tree with collapsible sections
-- Item grid with search filtering
-- Buy/sell price display with currency icons
-- Quantity controls
-- Item preview widget
-- Player inventory preview
-- Dropdown selectors for skins
-- Attachment configuration checkboxes
-- Confirmation dialogs for purchases/sales
+- Kategória fa összecsukható szekciókkal
+- Tárgy rács kereséses szűréssel
+- Vétel/eladás ár megjelenítés pénznem ikonokkal
+- Mennyiség vezérlők
+- Tárgy előnézet widget
+- Játékos inventory előnézet
+- Legördülő kiválasztók kinézetekhez
+- Csatolmány konfiguráció jelölőnégyzetek
+- Megerősítő dialógusok vásárlásokhoz/eladásokhoz
 
 ```c
 class ExpansionMarketMenu: ExpansionScriptViewMenu
@@ -839,7 +839,7 @@ class ExpansionMarketMenu: ExpansionScriptViewMenu
     protected ref ExpansionMarketModule m_MarketModule;
     protected ref ExpansionMarketItem m_SelectedMarketItem;
 
-    // Direct widget references (auto-populated by ScriptView)
+    // Közvetlen widget hivatkozások (ScriptView által automatikusan feltöltve)
     protected EditBoxWidget market_filter_box;
     protected ButtonWidget market_item_buy;
     protected ButtonWidget market_item_sell;
@@ -847,7 +847,7 @@ class ExpansionMarketMenu: ExpansionScriptViewMenu
     protected ItemPreviewWidget market_item_preview;
     protected PlayerPreviewWidget market_player_preview;
 
-    // State tracking
+    // Állapot követés
     protected int m_Quantity = 1;
     protected int m_BuyPrice;
     protected int m_SellPrice;
@@ -855,11 +855,11 @@ class ExpansionMarketMenu: ExpansionScriptViewMenu
 }
 ```
 
-**Key takeaway:** For complex interactive UIs, Expansion combines DabsFramework's MVC with traditional widget references. The controller handles data binding for lists and text, while direct widget references handle specialized widgets like `ItemPreviewWidget` and `PlayerPreviewWidget` that need imperative control.
+**Kulcs tanulság:** Összetett interaktív UI-khoz az Expansion a DabsFramework MVC-jét kombinálja hagyományos widget hivatkozásokkal. A controller kezeli az adatkötést listákhoz és szövegekhez, míg a közvetlen widget hivatkozások kezelik a speciális widgeteket, mint az `ItemPreviewWidget` és `PlayerPreviewWidget`, amelyek imperatív vezérlést igényelnek.
 
-### ExpansionScriptViewMenu -- Menu Lifecycle
+### ExpansionScriptViewMenu -- menü életciklus
 
-Expansion wraps ScriptView in a menu base class that handles input locking, blur effects, and update timers:
+Az Expansion a ScriptView-t egy menü alaposztályba csomagolja, amely kezeli az input zárolást, homályosítási effekteket és frissítési időzítőket:
 
 ```c
 class ExpansionScriptViewMenu: ExpansionScriptViewMenuBase
@@ -890,17 +890,17 @@ class ExpansionScriptViewMenu: ExpansionScriptViewMenuBase
 }
 ```
 
-This ensures every Expansion menu consistently locks player movement, shows cursor, applies background blur, and cleans up on close.
+Ez biztosítja, hogy minden Expansion menü következetesen zárolja a játékos mozgását, mutatja a kurzort, alkalmazza a háttér homályosítást és takarít bezáráskor.
 
 ---
 
-## DayZ Editor UI Mintas
+## DayZ Editor UI minták
 
-DayZ Editor is a full object placement tool built as a DayZ mod. It uses DabsFramework extensively and implements patterns typically found in desktop applications: toolbars, menus, property inspectors, command system with undo/redo.
+A DayZ Editor egy teljes objektum elhelyezési eszköz, amely DayZ modként van megépítve. Kiterjedten használja a DabsFramework-öt és olyan mintákat implementál, amelyek jellemzően asztali alkalmazásokban találhatók: eszköztárak, menük, tulajdonság vizsgálók, parancsrendszer visszavonás/újra végrehajtással.
 
-### Command Minta with Keyboard Gyorsbillentyus
+### Parancs minta billentyűkombinációkkal
 
-The Editor's command system decouples actions from UI elements. Each action (New, Open, Save, Undo, Redo, Delete, etc.) is an `EditorCommand` subclass:
+Az Editor parancsrendszere leválasztja a műveleteket az UI elemekről. Minden művelet (Új, Megnyitás, Mentés, Visszavonás, Újra, Törlés, stb.) egy `EditorCommand` alosztály:
 
 ```c
 class EditorUndoCommand: EditorCommand
@@ -934,7 +934,7 @@ class EditorUndoCommand: EditorCommand
 }
 ```
 
-The `EditorCommandManager` registers all commands and maps shortcuts:
+Az `EditorCommandManager` regisztrálja az összes parancsot és leképezi a gyorsbillentyűket:
 
 ```c
 class EditorCommandManager
@@ -956,11 +956,11 @@ class EditorCommandManager
 }
 ```
 
-Commands integrate with DabsFramework's `RelayCommand` so toolbar buttons automatically grey out when `CanExecute()` returns false.
+A parancsok integrálódnak a DabsFramework `RelayCommand`-jával, így az eszköztár gombok automatikusan kiszürkülnek, amikor a `CanExecute()` false-t ad vissza.
 
-### Menu Bar System
+### Menüsor rendszer
 
-The Editor builds its menu bar (File, Edit, View, Editor) using an observable collection of menu items. Each menu is a `ScriptView` subclass:
+Az Editor a menüsorát (File, Edit, View, Editor) egy megfigyelhető menüelem kollekcióval építi. Minden menü egy `ScriptView` alosztály:
 
 ```c
 class EditorMenu: ScriptView
@@ -989,34 +989,34 @@ class EditorMenu: ScriptView
 }
 ```
 
-The `ObservableCollection` automatically creates the visual menu items when commands are inserted.
+Az `ObservableCollection` automatikusan létrehozza a vizuális menüelemeket a parancsok beillesztésekor.
 
-### HUD with Data-Bound Panels
+### HUD adatkötött panelekkel
 
-The editor HUD controller uses `ObservableCollection` for all list panels:
+Az editor HUD controller `ObservableCollection`-t használ az összes lista panelhez:
 
 ```c
 class EditorHudController: EditorControllerBase
 {
-    // Object lists bound to sidebar panels
+    // Objektum listák az oldalsó panel widgetekhez kötve
     ref ObservableCollection<ref EditorPlaceableListItem> LeftbarSpacerConfig;
     ref ObservableCollection<EditorListItem> RightbarPlacedData;
     ref ObservableCollection<EditorPlayerListItem> RightbarPlayerData;
 
-    // Log entries with max count
+    // Napló bejegyzések maximális számmal
     static const int MAX_LOG_ENTRIES = 20;
     ref ObservableCollection<ref EditorLogEntry> EditorLogEntries;
 
-    // Camera track keyframes
+    // Kamera pálya kulcsképkockák
     ref ObservableCollection<ref EditorCameraTrackListItem> CameraTrackData;
 }
 ```
 
-Adding an object to the scene automatically adds it to the sidebar list. Deleting removes it. No manual widget creation/destruction.
+Objektum hozzáadása a jelenethez automatikusan hozzáadja az oldalsó panel listájához. Törlés eltávolítja. Nincs manuális widget létrehozás/megsemmisítés.
 
-### Theming via Widget Name Lists
+### Témázás widget névlistákon keresztül
 
-The Editor centralizes themed widgets using a static array of widget names:
+Az Editor központosítja a témázott widgeteket egy statikus widget név tömbben:
 
 ```c
 static const ref array<string> ThemedWidgetStrings = {
@@ -1027,20 +1027,20 @@ static const ref array<string> ThemedWidgetStrings = {
 };
 ```
 
-A theming pass iterates this array and applies colors from `EditorSettings`, avoiding scattered `SetColor()` calls throughout the codebase.
+Egy témázási menet végigiterál ezen a tömbön és alkalmazza az `EditorSettings` színeit, elkerülve a szétszórt `SetColor()` hívásokat az egész kódbázisban.
 
 ---
 
-## Common UI Architecture Mintas
+## Általános UI architektúra minták
 
-These patterns appear across multiple mods. They represent the community's consensus on how to solve recurring DayZ UI problems.
+Ezek a minták több modban is megjelennek. A közösség konszenzusát képviselik arról, hogyan kell megoldani az ismétlődő DayZ UI problémákat.
 
-### Panel Manager (Show/Hide by Name or Tipus)
+### Panel kezelő (megjelenítés/elrejtés név vagy típus szerint)
 
-Both VPP and COT maintain a registry of UI panels accessible by typename:
+Mind a VPP, mind a COT fenntart egy UI panel nyilvántartást, amely typename szerint elérhető:
 
 ```c
-// VPP pattern
+// VPP minta
 VPPScriptedMenu GetMenuByType(typename menuType)
 {
     foreach (VPPScriptedMenu menu : M_SCRIPTED_UI_INSTANCES)
@@ -1051,7 +1051,7 @@ VPPScriptedMenu GetMenuByType(typename menuType)
     return NULL;
 }
 
-// COT pattern
+// COT minta
 void ToggleShow()
 {
     if (IsVisible())
@@ -1061,28 +1061,28 @@ void ToggleShow()
 }
 ```
 
-This prevents duplicate panels and provides a single point of control for visibility.
+Ez megakadályozza a duplikált paneleket és egyetlen vezérlési pontot biztosít a láthatósághoz.
 
-### Widget Recycling for Lists
+### Widget újrahasznosítás listákhoz
 
-When displaying large lists (player lists, item catalogs, object browsers), mods avoid creating/destroying widgets on every update. Instead they maintain a pool:
+Hosszú listák (játékoslisták, tárgy katalógusok, objektum böngészők) megjelenítésekor a modok elkerülik a widgetek létrehozását/megsemmisítését minden frissítéskor. Ehelyett készletet tartanak fenn:
 
 ```c
-// Simplified pattern used across mods
+// Egyszerűsített minta, amit több mod használ
 void UpdatePlayerList(array<PlayerInfo> players)
 {
-    // Hide excess widgets
+    // Felesleges widgetek elrejtése
     for (int i = players.Count(); i < m_PlayerWidgets.Count(); i++)
         m_PlayerWidgets[i].Show(false);
 
-    // Create new widgets only if needed
+    // Új widgetek létrehozása csak szükség esetén
     while (m_PlayerWidgets.Count() < players.Count())
     {
         Widget w = GetGame().GetWorkspace().CreateWidgets(PLAYER_ENTRY_LAYOUT, m_ListParent);
         m_PlayerWidgets.Insert(w);
     }
 
-    // Update visible widgets with data
+    // Látható widgetek frissítése adatokkal
     for (int j = 0; j < players.Count(); j++)
     {
         m_PlayerWidgets[j].Show(true);
@@ -1091,14 +1091,14 @@ void UpdatePlayerList(array<PlayerInfo> players)
 }
 ```
 
-DabsFramework's `ObservableCollection` handles this automatically, but manual implementations use this pattern.
+A DabsFramework `ObservableCollection`-ja ezt automatikusan kezeli, de a manuális implementációk ezt a mintát használják.
 
-### Lazy Widget Creation
+### Lusta widget létrehozás
 
-Several mods defer widget creation until first show:
+Több mod elhalasztja a widget létrehozást az első megjelenítésig:
 
 ```c
-// VPP pattern
+// VPP minta
 override Widget Init()
 {
     if (!m_Init)
@@ -1107,19 +1107,19 @@ override Widget Init()
         m_Init = true;
         return layoutRoot;
     }
-    // Subsequent calls skip creation
+    // Későbbi hívások kihagyják a létrehozást
     return layoutRoot;
 }
 ```
 
-This avoids loading all admin panels at startup when most will never be opened.
+Ez elkerüli az összes admin panel betöltését indításkor, amikor a legtöbbet soha nem nyitják meg.
 
-### Event Delegation Through Handler Chains
+### Esemény delegálás kezelő láncokon keresztül
 
-A common pattern is a parent handler that delegates to child handlers:
+Gyakori minta egy szülő kezelő, amely gyermek kezelőknek delegál:
 
 ```c
-// Parent handles click, routes to appropriate child
+// A szülő kezeli a kattintást, a megfelelő gyermekhez irányít
 override bool OnClick(Widget w, int x, int y, int button)
 {
     if (w == m_closeButton)
@@ -1128,7 +1128,7 @@ override bool OnClick(Widget w, int x, int y, int button)
         return true;
     }
 
-    // Delegate to active tool panel
+    // Delegálás az aktív eszközpanelnek
     if (m_ActivePanel)
         return m_ActivePanel.OnClick(w, x, y, button);
 
@@ -1136,9 +1136,9 @@ override bool OnClick(Widget w, int x, int y, int button)
 }
 ```
 
-### OnWidgetScriptInit as Universal Entry Point
+### OnWidgetScriptInit mint univerzális belépési pont
 
-Every mod studied uses `OnWidgetScriptInit` as the layout-to-script binding mechanism:
+Minden tanulmányozott mod az `OnWidgetScriptInit`-et használja layout-szkript kötési mechanizmusként:
 
 ```c
 void OnWidgetScriptInit(Widget w)
@@ -1146,24 +1146,24 @@ void OnWidgetScriptInit(Widget w)
     m_root = w;
     m_root.SetHandler(this);
 
-    // Find child widgets
+    // Gyermek widgetek keresése
     m_Button = ButtonWidget.Cast(m_root.FindAnyWidget("button_name"));
     m_Text = TextWidget.Cast(m_root.FindAnyWidget("text_name"));
 }
 ```
 
-This is set via the `scriptclass` property in the layout file. The engine calls `OnWidgetScriptInit` automatically when `CreateWidgets()` processes a widget with a script class.
+Ez a layout fájl `scriptclass` tulajdonságán keresztül van beállítva. A motor automatikusan meghívja az `OnWidgetScriptInit`-et, amikor a `CreateWidgets()` feldolgoz egy widgetet script osztállyal.
 
 ---
 
-## Anti-Mintas to Avoid
+## Elkerülendő anti-minták
 
-These mistakes appear in real mod code and cause performance issues or crashes.
+Ezek a hibák valódi mod kódban jelennek meg és teljesítményproblémákat vagy összeomlásokat okoznak.
 
-### Creating Widgets Every Frame
+### Widgetek létrehozása minden frame-ben
 
 ```c
-// BAD: Creates new widgets on every Update call
+// ROSSZ: Új widgeteket hoz létre minden Update híváskor
 override void Update(float dt)
 {
     Widget label = GetGame().GetWorkspace().CreateWidgets("label.layout", m_Parent);
@@ -1171,55 +1171,55 @@ override void Update(float dt)
 }
 ```
 
-Widget creation allocates memory and triggers layout recalculation. At 60 FPS this creates 60 widgets per second. Always create once and update in place.
+A widget létrehozás memóriát foglal és layout újraszámolást indít. 60 FPS-nél ez 60 widgetet hoz létre másodpercenként. Mindig egyszer hozd létre és helyben frissítsd.
 
-### Not Cleaning Up Event Handlers
+### Eseménykezelők takarításának elmulasztása
 
 ```c
-// BAD: Insert without corresponding Remove
+// ROSSZ: Insert megfelelő Remove nélkül
 void OnInit()
 {
     GetGame().GetUpdateQueue(CALL_CATEGORY_GUI).Insert(Update);
     JMScriptInvokers.ESP_VIEWTYPE_CHANGED.Insert(OnESPViewTypeChanged);
 }
 
-// Missing from destructor:
+// Hiányzik a destruktorból:
 // GetGame().GetUpdateQueue(CALL_CATEGORY_GUI).Remove(Update);
 // JMScriptInvokers.ESP_VIEWTYPE_CHANGED.Remove(OnESPViewTypeChanged);
 ```
 
-Every `Insert` on a `ScriptInvoker` or update queue needs a matching `Remove` in the destructor. Orphaned handlers cause calls to deleted objects and null access crashes.
+Minden `ScriptInvoker`-re vagy frissítési sorra történő `Insert` hívásnak megfelelő `Remove` szükséges a destruktorban. Az árva kezelők törölt objektumokra hívnak és null hozzáférési összeomlásokat okoznak.
 
-### Hardcoding Pixel Positions
+### Pixel pozíciók hardkódolása
 
 ```c
-// BAD: Breaks on different resolutions
+// ROSSZ: Eltörik más felbontásokon
 m_Panel.SetPos(540, 320);
 m_Panel.SetSize(400, 300);
 ```
 
-Always use proportional (0.0-1.0) positioning or let container widgets handle layout. Pixel positions only work at the resolution they were designed for.
+Mindig használj arányos (0.0-1.0) pozícionálást, vagy hagyd a konténer widgetekre a layout kezelést. A pixel pozíciók csak azon a felbontáson működnek, amelyhez tervezték őket.
 
-### Deep Widget Nesting Without Cel
+### Mély widget beágyazás cél nélkül
 
 ```
 Frame -> Panel -> Frame -> Panel -> Frame -> TextWidget
 ```
 
-Every nesting level adds layout calculation overhead. If an intermediate widget serves no purpose (no background, no sizing constraint, no event handling), remove it. Flatten hierarchies where possible.
+Minden beágyazási szint layout számítási többletet ad. Ha egy köztes widget nem szolgál célt (nincs háttér, nincs méretezési megkötés, nincs eseménykezelés), távolítsd el. Laposítsd a hierarchiákat ahol lehetséges.
 
-### Ignoring Fokusz kezeles
+### Fókuszkezelés mellőzése
 
 ```c
-// BAD: Opens dialog but does not set focus
+// ROSSZ: Dialógust nyit, de nem állít fókuszt
 void ShowDialog()
 {
     m_Dialog.Show(true);
-    // Missing: SetFocus(m_Dialog.GetLayoutRoot());
+    // Hiányzik: SetFocus(m_Dialog.GetLayoutRoot());
 }
 ```
 
-Without `SetFocus()`, keyboard events may still go to widgets behind the dialog. Expansion's approach is correct:
+`SetFocus()` nélkül a billentyűzet események továbbra is a dialógus mögötti widgetekhez mehetnek. Az Expansion megközelítése helyes:
 
 ```c
 override void OnShow()
@@ -1228,55 +1228,55 @@ override void OnShow()
 }
 ```
 
-### Forgetting Widget Cleanup on Destruction
+### Widget takarítás elfelejtése megsemmisítéskor
 
 ```c
-// BAD: Widget tree leaks when script object is destroyed
+// ROSSZ: Widget fa szivárog, amikor a szkript objektum megsemmisül
 void ~MyPanel()
 {
-    // m_root.Unlink() is missing!
+    // m_root.Unlink() hiányzik!
 }
 ```
 
-If you create widgets with `CreateWidgets()`, you own them. Call `Unlink()` on the root in your destructor. `ScriptView` and `UIScriptedMenu` handle this automatically, but raw `ScriptedWidgetEventHandler` subclasses must do it manually.
+Ha widgeteket hoztál létre a `CreateWidgets()` metódussal, te birtoklod őket. Hívd meg az `Unlink()` metódust a gyökéren a destruktorban. A `ScriptView` és az `UIScriptedMenu` ezt automatikusan kezelik, de a nyers `ScriptedWidgetEventHandler` alosztályoknak manuálisan kell megtenni.
 
 ---
 
-## Osszefoglalas: Which Minta to Use When
+## Összefoglalás: melyik mintát használd mikor
 
-| Need | Recommended Minta | Source Mod |
+| Igény | Ajánlott minta | Forrás mod |
 |------|-------------------|------------|
-| Simple tool panel | `ScriptedWidgetEventHandler` + `OnWidgetScriptInit` | VPP |
-| Complex data-bound UI | `ScriptView` + `ViewController` + `ObservableCollection` | DabsFramework |
-| Admin panel system | Module + Form + Window (module registration pattern) | COT |
-| Draggable sub-windows | `AdminHudSubMenu` (title bar drag handling) | VPP |
-| Confirmation dialog | `VPPDialogBox` or `JMConfirmation` (callback-based) | VPP / COT |
-| Popup with input | `PopUpCreatePreset` pattern (`delete this` on close) | VPP |
-| Fullscreen menu | `ExpansionScriptViewMenu` (lock controls, blur, timer) | Expansion |
-| Theme/color system | 3-layer (palette, scheme, branding) with `modded class` | Colorful UI |
-| Vanilla UI override | `modded class` + replacement `.layout` files | Colorful UI |
-| Notification system | Tipus enum + per-type layout + static creation API | Expansion |
-| Toolbar command system | `EditorCommand` + `EditorCommandManager` + shortcuts | DayZ Editor |
-| Menu bar with items | `EditorMenu` + `ObservableCollection<EditorMenuItem>` | DayZ Editor |
-| ESP/HUD overlay | Fullscreen `CanvasWidget` + projected widget positioning | COT |
-| Resolution variants | Separate layout directories (narrow/medium/wide) | Colorful UI |
-| Large list performance | Widget recycling pool (hide/show, create on demand) | Common |
-| Configuration | Static variables (client mod) or JSON via config manager | Colorful UI |
+| Egyszerű eszközpanel | `ScriptedWidgetEventHandler` + `OnWidgetScriptInit` | VPP |
+| Összetett adatkötött UI | `ScriptView` + `ViewController` + `ObservableCollection` | DabsFramework |
+| Admin panel rendszer | Module + Form + Window (modul regisztrációs minta) | COT |
+| Húzható alablak | `AdminHudSubMenu` (címsor húzás kezelés) | VPP |
+| Megerősítő dialógus | `VPPDialogBox` vagy `JMConfirmation` (visszahívás-alapú) | VPP / COT |
+| Popup beviteli mezővel | `PopUpCreatePreset` minta (`delete this` bezáráskor) | VPP |
+| Teljes képernyős menü | `ExpansionScriptViewMenu` (vezérlés zárolás, homályosítás, időzítő) | Expansion |
+| Téma/szín rendszer | 3 rétegű (paletta, séma, márkajelzés) `modded class`-szal | Colorful UI |
+| Vanilla UI felülírás | `modded class` + csere `.layout` fájlok | Colorful UI |
+| Értesítési rendszer | Típus enum + típusonkénti layout + statikus létrehozási API | Expansion |
+| Eszköztár parancsrendszer | `EditorCommand` + `EditorCommandManager` + gyorsbillentyűk | DayZ Editor |
+| Menüsor elemekkel | `EditorMenu` + `ObservableCollection<EditorMenuItem>` | DayZ Editor |
+| ESP/HUD overlay | Teljes képernyős `CanvasWidget` + vetített widget pozícionálás | COT |
+| Felbontás variánsok | Külön layout könyvtárak (narrow/medium/wide) | Colorful UI |
+| Nagy lista teljesítmény | Widget újrahasznosítási készlet (elrejtés/megjelenítés, igény szerinti létrehozás) | Általános |
+| Konfiguráció | Statikus változók (kliens mod) vagy JSON config kezelőn keresztül | Colorful UI |
 
-### Decision Flowchart
+### Döntési folyamatábra
 
-1. **Is it a one-off simple panel?** Use `ScriptedWidgetEventHandler` with `OnWidgetScriptInit`. Build the layout in the editor, find widgets by name.
+1. **Egyszerű egyszeri panel?** Használj `ScriptedWidgetEventHandler`-t az `OnWidgetScriptInit`-tel. Építsd a layoutot a szerkesztőben, keresd meg a widgeteket név szerint.
 
-2. **Does it have dynamic lists or frequently-changing data?** Use DabsFramework's `ViewController` with `ObservableCollection`. The data binding eliminates manual widget updates.
+2. **Dinamikus listái vagy gyakran változó adatai vannak?** Használd a DabsFramework `ViewController`-jét `ObservableCollection`-nel. Az adatkötés kiküszöböli a manuális widget frissítéseket.
 
-3. **Is it part of a multi-panel admin tool?** Use the COT module-form pattern. Each tool is self-contained with its own module, form, and layout. Registration is a single line.
+3. **Része egy több paneles admin eszköznek?** Használd a COT modul-űrlap mintát. Minden eszköz önálló saját modullal, űrlappal és layouttal. A regisztráció egy sor.
 
-4. **Does it need to replace vanilla UI?** Use the Colorful UI pattern: `modded class`, custom layout file, centralized color scheme.
+4. **Le kell cserélnie a vanilla UI-t?** Használd a Colorful UI mintát: `modded class`, egyéni layout fájl, központosított színséma.
 
-5. **Does it need server-to-client data sync?** Combine any pattern above with RPC. Expansion's market menu shows how to manage loading states, request/response cycles, and update timers within a ScriptView.
+5. **Szerver-kliens adat szinkronizálás szükséges?** Kombináld bármely fenti mintát RPC-vel. Az Expansion piaci menüje bemutatja, hogyan kezeld a betöltési állapotokat, kérés/válasz ciklusokat és frissítési időzítőket egy ScriptView-n belül.
 
-6. **Does it need undo/redo or complex interaction?** Use the command pattern from DayZ Editor. Commands decouple actions from buttons, support shortcuts, and integrate with DabsFramework's `RelayCommand` for automatic enable/disable.
+6. **Visszavonás/újra végrehajtás vagy összetett interakció szükséges?** Használd a DayZ Editor parancs mintáját. A parancsok leválasztják a műveleteket a gomboktól, támogatják a gyorsbillentyűket és integrálódnak a DabsFramework `RelayCommand`-jával az automatikus engedélyezés/letiltáshoz.
 
 ---
 
-*Kovetkezo chapter: [Advanced Widgets](10-advanced-widgets.md) -- RichTextWidget formatting, CanvasWidget drawing, MapWidget markers, ItemPreviewWidget, PlayerPreviewWidget, VideoWidget, and RenderTargetWidget.*
+*Következő fejezet: [Haladó widgetek](10-advanced-widgets.md) -- RichTextWidget formázás, CanvasWidget rajzolás, MapWidget jelölők, ItemPreviewWidget, PlayerPreviewWidget, VideoWidget és RenderTargetWidget.*

@@ -1,49 +1,53 @@
-# Chapter 8.10: Creating a Custom Vehicle Mod
+# Глава 8.10: Создание мода на пользовательское транспортное средство
 
-[Home](../../README.md) | [<< Previous: Professional Mod Template](09-professional-template.md) | **Creating a Custom Vehicle** | [Next: Creating Custom Clothing >>](11-clothing-mod.md)
+[Главная](../../README.md) | [<< Назад: Профессиональный шаблон мода](09-professional-template.md) | **Создание пользовательского транспорта** | [Далее: Создание пользовательской одежды >>](11-clothing-mod.md)
+
+---
+
+> **Краткое описание:** В этом руководстве вы пошагово создадите пользовательский вариант транспортного средства в DayZ, расширив существующее ванильное транспортное средство. Вы определите транспорт в config.cpp, настроите его характеристики и текстуры, напишете скриптовое поведение для дверей и двигателя, добавите его в таблицу спавна сервера с предустановленными деталями и протестируете в игре. В итоге у вас будет полностью управляемый пользовательский вариант Offroad Hatchback с изменёнными характеристиками и внешним видом.
 
 ---
 
 ## Содержание
 
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Шаг 1: Create the Config (config.cpp)](#step-1-create-the-config-configcpp)
-- [Шаг 2: Custom Текстуры](#step-2-custom-textures)
-- [Шаг 3: Script Behavior (CarScript)](#step-3-script-behavior-carscript)
-- [Шаг 4: types.xml Entry](#step-4-typesxml-entry)
-- [Шаг 5: Build and Test](#step-5-build-and-test)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Best Practices](#best-practices)
-- [Theory vs Practice](#theory-vs-practice)
-- [What You Learned](#what-you-learned)
-- [Common Mistakes](#common-mistakes)
+- [Что мы создаём](#что-мы-создаём)
+- [Предварительные требования](#предварительные-требования)
+- [Шаг 1: Создание конфигурации (config.cpp)](#шаг-1-создание-конфигурации-configcpp)
+- [Шаг 2: Пользовательские текстуры](#шаг-2-пользовательские-текстуры)
+- [Шаг 3: Скриптовое поведение (CarScript)](#шаг-3-скриптовое-поведение-carscript)
+- [Шаг 4: Запись в types.xml](#шаг-4-запись-в-typesxml)
+- [Шаг 5: Сборка и тестирование](#шаг-5-сборка-и-тестирование)
+- [Шаг 6: Доработка](#шаг-6-доработка)
+- [Полный справочник по коду](#полный-справочник-по-коду)
+- [Лучшие практики](#лучшие-практики)
+- [Теория и практика](#теория-и-практика)
+- [Что вы изучили](#что-вы-изучили)
+- [Типичные ошибки](#типичные-ошибки)
 
 ---
 
-## What We Are Building
+## Что мы создаём
 
-We will create a vehicle called **MFM Rally Hatchback** ---  modified version of the vanilla Offroad Hatchback (the Niva) with:
+Мы создадим транспортное средство под названием **MFM Rally Hatchback** -- модифицированную версию ванильного Offroad Hatchback (Нива) со следующими особенностями:
 
-- Custom retextured body panels using hidden selections
-- Modified engine performance (faster top speed, higher fuel consumption)
-- Adjusted damage zone health values (tougher engine, weaker doors)
-- All standard vehicle behavior: opening doors, engine start/stop, fuel, lights, crew entry/exit
-- Spawn table entry with pre-attached wheels and parts
+- Пользовательные перетекстурированные кузовные панели с использованием скрытых выделений (hidden selections)
+- Изменённые характеристики двигателя (более высокая максимальная скорость, повышенный расход топлива)
+- Скорректированные значения здоровья зон повреждений (более прочный двигатель, более слабые двери)
+- Всё стандартное поведение транспорта: открытие дверей, запуск/остановка двигателя, топливо, фары, посадка/высадка экипажа
+- Запись в таблице спавна с предустановленными колёсами и деталями
 
-We extend `OffroadHatchback` rather than building a vehicle from scratch. Это standard workflow for vehicle mods because it inherits the model, animations, physics geometry, and all existing behavior. You only override what you want to change.
+Мы расширяем `OffroadHatchback`, а не создаём транспорт с нуля. Это стандартный рабочий процесс для модов на транспорт, поскольку он наследует модель, анимации, физическую геометрию и всё существующее поведение. Вы переопределяете только то, что хотите изменить.
 
 ---
 
 ## Предварительные требования
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) and [Chapter 8.2](02-custom-item.md) first)
-- A text editor
-- DayZ Tools installed (for texture conversion, optional)
-- Basic familiarity with how config.cpp class inheritance works
+- Работающая структура мода (сначала пройдите [Главу 8.1](01-first-mod.md) и [Главу 8.2](02-custom-item.md))
+- Текстовый редактор
+- Установленные DayZ Tools (для конвертации текстур, необязательно)
+- Базовое понимание работы наследования классов в config.cpp
 
-Your mod should have this starting structure:
+Ваш мод должен иметь следующую начальную структуру:
 
 ```
 MyFirstMod/
@@ -56,13 +60,13 @@ MyFirstMod/
 
 ---
 
-## Шаг 1: Create the Config (config.cpp)
+## Шаг 1: Создание конфигурации (config.cpp)
 
-Vehicle definitions live in `CfgVehicles`, just like items. Despite the class name, `CfgVehicles` holds everything --- онems, buildings, and actual vehicles alike. Ключевое отличие for vehicles is the parent class and the additional configuration for damage zones, attachments, and simulation parameters.
+Определения транспортных средств располагаются в `CfgVehicles`, так же как и предметы. Несмотря на название класса, `CfgVehicles` содержит всё -- предметы, здания и собственно транспортные средства. Ключевое отличие для транспорта -- это родительский класс и дополнительная конфигурация зон повреждений, вложений и параметров симуляции.
 
-### Update Your Data config.cpp
+### Обновление Data config.cpp
 
-Open `MyFirstMod/Data/config.cpp` and add the vehicle class. If you already have item definitions here from Chapter 8.2, add the vehicle class inside the existing `CfgVehicles` block.
+Откройте `MyFirstMod/Data/config.cpp` и добавьте класс транспортного средства. Если у вас уже есть определения предметов из Главы 8.2, добавьте класс транспорта внутрь существующего блока `CfgVehicles`.
 
 ```cpp
 class CfgPatches
@@ -90,7 +94,7 @@ class CfgVehicles
         displayName = "Rally Hatchback";
         descriptionShort = "A modified offroad hatchback built for speed.";
 
-        // --- Hidden Selections for retexturing ---
+        // --- Скрытые выделения для перетекстурирования ---
         hiddenSelections[] =
         {
             "camoGround",
@@ -110,10 +114,10 @@ class CfgVehicles
             ""
         };
 
-        // --- Simulation (physics and engine) ---
+        // --- Симуляция (физика и двигатель) ---
         class SimulationModule : SimulationModule
         {
-            // Drive type: 0 = RWD, 1 = FWD, 2 = AWD
+            // Тип привода: 0 = задний, 1 = передний, 2 = полный
             drive = 2;
 
             class Throttle
@@ -149,7 +153,7 @@ class CfgVehicles
             braking[] = { 0.0, 0.1, 0.8, 0.9, 0.95, 1.0 };
         };
 
-        // --- Damage Zones ---
+        // --- Зоны повреждений ---
         class DamageSystem
         {
             class GlobalHealth
@@ -307,76 +311,76 @@ class CfgVehicles
 };
 ```
 
-### Key Fields Explained
+### Описание ключевых полей
 
-| Field | Purpose |
-|-------|---------|
-| `scope = 2` | Makes the vehicle spawnable. Use `0` for base classes that should never spawn directly. |
-| `displayName` | Name shown in admin tools and in-game. You can use `$STR_` references for localization. |
-| `requiredAddons[]` | Must include `"DZ_Vehicles_Wheeled"` so the parent class `OffroadHatchback` is loaded before your class. |
-| `hiddenSelections[]` | Texture slots on the model you want to override. Must match the model's named selections. |
-| `SimulationModule` | Physics and engine configuration. Controls speed, torque, gearing, and braking. |
-| `DamageSystem` | Defines health pools for each part of the vehicle (engine, doors, windows, body). |
+| Поле | Назначение |
+|------|-----------|
+| `scope = 2` | Делает транспорт доступным для спавна. Используйте `0` для базовых классов, которые не должны спавниться напрямую. |
+| `displayName` | Название, отображаемое в инструментах администратора и в игре. Можно использовать ссылки `$STR_` для локализации. |
+| `requiredAddons[]` | Должен включать `"DZ_Vehicles_Wheeled"`, чтобы родительский класс `OffroadHatchback` загружался перед вашим классом. |
+| `hiddenSelections[]` | Слоты текстур на модели, которые вы хотите переопределить. Должны совпадать с именованными выделениями модели. |
+| `SimulationModule` | Конфигурация физики и двигателя. Управляет скоростью, крутящим моментом, передаточными числами и торможением. |
+| `DamageSystem` | Определяет пулы здоровья для каждой части транспорта (двигатель, двери, окна, кузов). |
 
-### About the Parent Class
+### О родительском классе
 
 ```cpp
 class OffroadHatchback;
 ```
 
-This forward declaration tells the config parser that `OffroadHatchback` exists in vanilla DayZ. Your vehicle then inherits from it, getting the complete Niva model, animations, physics geometry, attachment points, and proxy definitions. You only need to override what you want to change.
+Это предварительное объявление сообщает парсеру конфигурации, что `OffroadHatchback` существует в ванильном DayZ. Ваш транспорт затем наследуется от него, получая полную модель Нивы, анимации, физическую геометрию, точки крепления и определения прокси. Вам нужно переопределить только то, что вы хотите изменить.
 
-Other vanilla vehicle parent classes you could extend:
+Другие ванильные родительские классы транспорта, которые можно расширить:
 
-| Parent Class | Vehicle |
-|-------------|---------|
-| `OffroadHatchback` | Niva (4-seat hatchback) |
-| `CivilianSedan` | Olga (4-seat sedan) |
-| `Hatchback_02` | Golf/Gunter (4-seat hatchback) |
-| `Sedan_02` | Sarka 120 (4-seat sedan) |
-| `Offroad_02` | Humvee (4-seat offroad) |
-| `Truck_01_Base` | V3S (truck) |
+| Родительский класс | Транспорт |
+|-------------------|-----------|
+| `OffroadHatchback` | Нива (4-местный хетчбэк) |
+| `CivilianSedan` | Ольга (4-местный седан) |
+| `Hatchback_02` | Golf/Gunter (4-местный хетчбэк) |
+| `Sedan_02` | Sarka 120 (4-местный седан) |
+| `Offroad_02` | Humvee (4-местный внедорожник) |
+| `Truck_01_Base` | V3S (грузовик) |
 
-### About SimulationModule
+### О SimulationModule
 
-The `SimulationModule` controls how the vehicle drives. Key parameters:
+`SimulationModule` управляет поведением транспорта при вождении. Ключевые параметры:
 
-| Parameter | Effect |
-|-----------|--------|
-| `drive` | `0` = rear-wheel drive, `1` = front-wheel drive, `2` = all-wheel drive |
-| `torqueMax` | Peak engine torque in Nm. Higher = more acceleration. Vanilla Niva is ~114. |
-| `powerMax` | Peak horsepower. Higher = faster top speed. Vanilla Niva is ~68. |
-| `rpmRedline` | Engine redline RPM. Beyond this, the engine bounces off the rev limiter. |
-| `ratios[]` | Gear ratios. Lower numbers = taller gears = higher top speed but slower acceleration. |
-| `transmissionRatio` | Final drive ratio. Acts as a multiplier on all gears. |
+| Параметр | Эффект |
+|----------|--------|
+| `drive` | `0` = задний привод, `1` = передний привод, `2` = полный привод |
+| `torqueMax` | Пиковый крутящий момент двигателя в Нм. Больше = больше ускорение. У ванильной Нивы ~114. |
+| `powerMax` | Пиковая мощность в лошадиных силах. Больше = выше максимальная скорость. У ванильной Нивы ~68. |
+| `rpmRedline` | Красная зона оборотов двигателя. Выше этого значения двигатель упирается в ограничитель. |
+| `ratios[]` | Передаточные числа. Меньшие значения = более длинные передачи = выше максимальная скорость, но медленнее ускорение. |
+| `transmissionRatio` | Передаточное число главной передачи. Действует как множитель на все передачи. |
 
-### About DamageZones
+### О зонах повреждений
 
-Each damage zone has its own health pool. When a zone's health reaches zero, that component is ruined:
+Каждая зона повреждений имеет собственный пул здоровья. Когда здоровье зоны достигает нуля, этот компонент разрушается:
 
-| Zone | Effect When Ruined |
-|------|-------------------|
-| `Engine` | Vehicle cannot start |
-| `FuelTank` | Fuel leaks out |
-| `Front` / `Rear` | Visual damage, reduced protection |
-| `Door_1_1` / `Door_2_1` | Door falls off |
-| `WindowFront` | Window shatters (affects sound insulation) |
+| Зона | Эффект при разрушении |
+|------|----------------------|
+| `Engine` | Транспорт не может завестись |
+| `FuelTank` | Топливо вытекает |
+| `Front` / `Rear` | Визуальные повреждения, сниженная защита |
+| `Door_1_1` / `Door_2_1` | Дверь отпадает |
+| `WindowFront` | Стекло разбивается (влияет на звукоизоляцию) |
 
-The `transferToGlobalCoef` value determines how much damage transfers from this zone to the vehicle's global health. `1` means 100% transfer (engine damage hurts overall health), `0` means no transfer.
+Значение `transferToGlobalCoef` определяет, какая доля урона передаётся от этой зоны к общему здоровью транспорта. `1` означает 100% передачу (повреждение двигателя снижает общее здоровье), `0` означает отсутствие передачи.
 
-The `componentNames[]` must match named components in the vehicle's geometry LOD. Since we inherit the Niva model, we use placeholder names here ---  parent class's geometry components are what actually matter for collision detection. If you are using the vanilla model without modification, the parent's component mapping applies automatically.
+`componentNames[]` должны совпадать с именованными компонентами в геометрическом LOD транспорта. Поскольку мы наследуем модель Нивы, здесь мы используем имена-заполнители -- геометрические компоненты родительского класса определяют фактическое обнаружение столкновений. Если вы используете ванильную модель без модификаций, маппинг компонентов родителя применяется автоматически.
 
 ---
 
-## Шаг 2: Custom Текстуры
+## Шаг 2: Пользовательские текстуры
 
-### How Vehicle Hidden Selections Work
+### Как работают скрытые выделения транспорта
 
-Vehicle hidden selections work the same way as item textures, but vehicles typically have more selection slots. The Offroad Hatchback model uses selections for different body panels, allowing color variants (White, Blue) in vanilla.
+Скрытые выделения транспорта работают так же, как текстуры предметов, но у транспорта обычно больше слотов выделений. Модель Offroad Hatchback использует выделения для различных кузовных панелей, что позволяет создавать цветовые варианты (белый, синий) в ванильной версии.
 
-### Using Vanilla Текстуры (Fastest Start)
+### Использование ванильных текстур (самый быстрый старт)
 
-For initial testing, point your hidden selections at existing vanilla textures. This confirms your config works before you create custom art:
+Для начального тестирования укажите в скрытых выделениях существующие ванильные текстуры. Это подтвердит, что ваша конфигурация работает, прежде чем создавать пользовательную графику:
 
 ```cpp
 hiddenSelectionsTextures[] =
@@ -390,46 +394,46 @@ hiddenSelectionsTextures[] =
 };
 ```
 
-Empty strings `""` mean "use the model's default texture for this selection."
+Пустые строки `""` означают "использовать текстуру модели по умолчанию для этого выделения."
 
-### Creating a Custom Texture Set
+### Создание набора пользовательских текстур
 
-To create a unique appearance:
+Для создания уникального внешнего вида:
 
-1. **Extract the vanilla texture** using DayZ Tools' Addon Builder or P: drive to find:
+1. **Извлеките ванильную текстуру**, используя Addon Builder из DayZ Tools или P: диск, чтобы найти:
    ```
    P:\DZ\vehicles\wheeled\offroadhatchback\data\niva_body_co.paa
    ```
 
-2. **Convert to editable format** using TexView2:
-   - Open the `.paa` file in TexView2
-   - Export as `.tga` or `.png`
+2. **Конвертируйте в редактируемый формат** с помощью TexView2:
+   - Откройте файл `.paa` в TexView2
+   - Экспортируйте как `.tga` или `.png`
 
-3. **Edit in your image editor** (GIMP, Photoshop, Paint.NET):
-   - Vehicle textures are typically **2048x2048** or **4096x4096**
-   - Modify colors, add decals, racing stripes, or rust effects
-   - Keep the UV layout intact -- only change colors and details
+3. **Отредактируйте в графическом редакторе** (GIMP, Photoshop, Paint.NET):
+   - Текстуры транспорта обычно имеют размер **2048x2048** или **4096x4096**
+   - Измените цвета, добавьте декали, гоночные полосы или эффекты ржавчины
+   - Сохраните UV-развёртку без изменений -- меняйте только цвета и детали
 
-4. **Convert back to `.paa`**:
-   - Open your edited image in TexView2
-   - Сохранить as `.paa` format
-   - Сохранить to `MyFirstMod/Data/Текстуры/rally_body_co.paa`
+4. **Конвертируйте обратно в `.paa`**:
+   - Откройте отредактированное изображение в TexView2
+   - Сохраните в формате `.paa`
+   - Сохраните в `MyFirstMod/Data/Textures/rally_body_co.paa`
 
-### Texture Naming Conventions for Vehicles
+### Соглашения об именовании текстур для транспорта
 
-| Suffix | Type | Purpose |
-|--------|------|---------|
-| `_co` | Color (Diffuse) | Main color and appearance |
-| `_nohq` | Normal Map | Surface bumps, panel lines, rivet detail |
-| `_smdi` | Specular | Metallic shine, paint reflections |
-| `_as` | Alpha/Surface | Transparency for windows |
-| `_de` | Destruct | Damage overlay textures |
+| Суффикс | Тип | Назначение |
+|---------|-----|-----------|
+| `_co` | Color (Diffuse) | Основной цвет и внешний вид |
+| `_nohq` | Normal Map | Неровности поверхности, линии панелей, детали заклёпок |
+| `_smdi` | Specular | Металлический блеск, отражения краски |
+| `_as` | Alpha/Surface | Прозрачность для окон |
+| `_de` | Destruct | Текстуры наложения повреждений |
 
-For a first vehicle mod, only the `_co` texture is required. The model uses its default normal and specular maps.
+Для первого мода на транспорт требуется только текстура `_co`. Модель использует свои карты нормалей и спекулярности по умолчанию.
 
-### Matching Materials (Optional)
+### Соответствие материалов (необязательно)
 
-For full material control, create an `.rvmat` file:
+Для полного контроля над материалами создайте файл `.rvmat`:
 
 ```cpp
 hiddenSelectionsMaterials[] =
@@ -445,13 +449,13 @@ hiddenSelectionsMaterials[] =
 
 ---
 
-## Шаг 3: Script Behavior (CarScript)
+## Шаг 3: Скриптовое поведение (CarScript)
 
-Vehicle script classes control engine sounds, door logic, crew entry/exit behavior, and seat animations. Since we extend `OffroadHatchback`, we inherit all vanilla behavior and only override what we want to customize.
+Скриптовые классы транспорта управляют звуками двигателя, логикой дверей, поведением посадки/высадки экипажа и анимациями сидений. Поскольку мы расширяем `OffroadHatchback`, мы наследуем всё ванильное поведение и переопределяем только то, что хотим настроить.
 
-### Create the Script File
+### Создание файла скрипта
 
-Create the folder structure and script file:
+Создайте структуру папок и файл скрипта:
 
 ```
 MyFirstMod/
@@ -462,9 +466,9 @@ MyFirstMod/
                 MFM_RallyHatchback.c
 ```
 
-### Update Scripts config.cpp
+### Обновление Scripts config.cpp
 
-Your `Scripts/config.cpp` must register the `4_World` layer so the engine loads your script:
+Ваш `Scripts/config.cpp` должен зарегистрировать слой `4_World`, чтобы движок загрузил ваш скрипт:
 
 ```cpp
 class CfgPatches
@@ -505,16 +509,16 @@ class CfgMods
 };
 ```
 
-### Write the Vehicle Script
+### Написание скрипта транспорта
 
-Create `4_World/MyFirstMod/MFM_RallyHatchback.c`:
+Создайте `4_World/MyFirstMod/MFM_RallyHatchback.c`:
 
 ```c
 class MFM_RallyHatchback extends OffroadHatchback
 {
     void MFM_RallyHatchback()
     {
-        // Override engine sounds (reuse vanilla Niva sounds)
+        // Переопределение звуков двигателя (используем ванильные звуки Нивы)
         m_EngineStartOK         = "offroad_engine_start_SoundSet";
         m_EngineStartBattery    = "offroad_engine_failed_start_battery_SoundSet";
         m_EngineStartPlug       = "offroad_engine_failed_start_sparkplugs_SoundSet";
@@ -530,30 +534,30 @@ class MFM_RallyHatchback extends OffroadHatchback
         m_CarHornShortSoundName = "Offroad_Horn_Short_SoundSet";
         m_CarHornLongSoundName  = "Offroad_Horn_SoundSet";
 
-        // Engine position in model space (x, y, z) -- used for
-        // temperature source, drowning detection, and particle effects
+        // Позиция двигателя в пространстве модели (x, y, z) -- используется для
+        // источника температуры, обнаружения затопления и эффектов частиц
         SetEnginePos("0 0.7 1.2");
     }
 
-    // --- Animation Instance ---
-    // Determines which player animation set is used when entering/exiting.
-    // Must match the vehicle skeleton. Since we use the Niva model, keep HATCHBACK.
+    // --- Экземпляр анимации ---
+    // Определяет, какой набор анимаций игрока используется при посадке/высадке.
+    // Должен соответствовать скелету транспорта. Поскольку мы используем модель Нивы, оставляем HATCHBACK.
     override int GetAnimInstance()
     {
         return VehicleAnimInstances.HATCHBACK;
     }
 
-    // --- Camera Distance ---
-    // How far the third-person camera sits behind the vehicle.
-    // Vanilla Niva is 3.5. Increase for a wider view.
+    // --- Дистанция камеры ---
+    // На каком расстоянии камера от третьего лица располагается за транспортом.
+    // У ванильной Нивы 3.5. Увеличьте для более широкого обзора.
     override float GetTransportCameraDistance()
     {
         return 4.0;
     }
 
-    // --- Seat Animation Types ---
-    // Maps each seat index to a player animation type.
-    // 0 = driver, 1 = co-driver, 2 = rear left, 3 = rear right.
+    // --- Типы анимаций сидений ---
+    // Сопоставляет каждый индекс сиденья с типом анимации игрока.
+    // 0 = водитель, 1 = пассажир спереди, 2 = задний левый, 3 = задний правый.
     override int GetSeatAnimationType(int posIdx)
     {
         switch (posIdx)
@@ -571,10 +575,10 @@ class MFM_RallyHatchback extends OffroadHatchback
         return 0;
     }
 
-    // --- Door State ---
-    // Returns whether a door is missing, open, or closed.
-    // Slot names (NivaDriverDoors, NivaCoDriverDoors, NivaHood, NivaTrunk)
-    // are defined by the model's inventory slot proxies.
+    // --- Состояние дверей ---
+    // Возвращает, отсутствует ли дверь, открыта или закрыта.
+    // Имена слотов (NivaDriverDoors, NivaCoDriverDoors, NivaHood, NivaTrunk)
+    // определяются прокси слотов инвентаря модели.
     override int GetCarDoorsState(string slotType)
     {
         CarDoor carDoor;
@@ -603,11 +607,11 @@ class MFM_RallyHatchback extends OffroadHatchback
         return CarDoorState.DOORS_MISSING;
     }
 
-    // --- Crew Entry/Exit ---
-    // Determines whether a player can get in or out of a specific seat.
-    // Checks door state and seat-fold animation phase.
-    // Front seats (0, 1) require the door to be open.
-    // Rear seats (2, 3) require the door open AND the front seat folded forward.
+    // --- Посадка/высадка экипажа ---
+    // Определяет, может ли игрок сесть или выйти из определённого сиденья.
+    // Проверяет состояние двери и фазу анимации складывания сиденья.
+    // Передние сиденья (0, 1) требуют открытой двери.
+    // Задние сиденья (2, 3) требуют открытой двери И откинутого вперёд переднего сиденья.
     override bool CrewCanGetThrough(int posIdx)
     {
         switch (posIdx)
@@ -644,8 +648,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return false;
     }
 
-    // --- Hood Check for Attachments ---
-    // Prevents players from removing engine parts when the hood is closed.
+    // --- Проверка капота для вложений ---
+    // Предотвращает снятие деталей двигателя, когда капот закрыт.
     override bool CanReleaseAttachment(EntityAI attachment)
     {
         if (!super.CanReleaseAttachment(attachment))
@@ -665,8 +669,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Cargo Access ---
-    // Trunk must be open to access vehicle cargo.
+    // --- Доступ к грузу ---
+    // Багажник должен быть открыт для доступа к грузовому пространству транспорта.
     override bool CanDisplayCargo()
     {
         if (!super.CanDisplayCargo())
@@ -682,8 +686,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Engine Compartment Access ---
-    // Hood must be open to see engine attachment slots.
+    // --- Доступ к моторному отсеку ---
+    // Капот должен быть открыт для отображения слотов вложений двигателя.
     override bool CanDisplayAttachmentCategory(string category_name)
     {
         if (!super.CanDisplayAttachmentCategory(category_name))
@@ -703,9 +707,9 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Debug Spawn ---
-    // Called when spawning from debug menu. Spawns with all parts attached
-    // and fluids filled for immediate testing.
+    // --- Отладочный спавн ---
+    // Вызывается при спавне из меню отладки. Спавнит со всеми прикреплёнными деталями
+    // и заполненными жидкостями для немедленного тестирования.
     override void OnDebugSpawn()
     {
         SpawnUniversalParts();
@@ -723,40 +727,40 @@ class MFM_RallyHatchback extends OffroadHatchback
         inventory.CreateInInventory("HatchbackHood");
         inventory.CreateInInventory("HatchbackTrunk");
 
-        // Spare wheels in cargo
+        // Запасные колёса в грузовом отсеке
         inventory.CreateInInventory("HatchbackWheel");
         inventory.CreateInInventory("HatchbackWheel");
     }
 };
 ```
 
-### Understanding Key Overrides
+### Описание ключевых переопределений
 
-**GetAnimInstance** -- Returns which animation set the player uses when sitting in the vehicle. The enum values are:
+**GetAnimInstance** -- Возвращает, какой набор анимаций использует игрок, сидя в транспорте. Значения перечисления:
 
-| Value | Constant | Vehicle Type |
-|-------|----------|-------------|
-| 0 | `CIVVAN` | Van |
-| 1 | `V3S` | V3S Truck |
-| 2 | `SEDAN` | Olga Sedan |
-| 3 | `HATCHBACK` | Niva Hatchback |
+| Значение | Константа | Тип транспорта |
+|----------|-----------|---------------|
+| 0 | `CIVVAN` | Фургон |
+| 1 | `V3S` | Грузовик V3S |
+| 2 | `SEDAN` | Седан Olga |
+| 3 | `HATCHBACK` | Хетчбэк Нива |
 | 5 | `S120` | Sarka 120 |
 | 7 | `GOLF` | Gunter 2 |
 | 8 | `HMMWV` | Humvee |
 
-If you change this to the wrong value, the player's animation will clip through the vehicle or look incorrect. Always match the model you are using.
+Если вы измените это на неправильное значение, анимация игрока будет проходить сквозь транспорт или выглядеть некорректно. Всегда выбирайте значение, соответствующее используемой модели.
 
-**CrewCanGetThrough** -- This is called every frame to determine if a player can enter or exit a seat. The Niva's rear seats (indices 2 and 3) work differently from the front seats: the front seatback must be folded forward (animation phase > 0.5) before rear passengers can get through. This matches the real-world behavior of a 2-door hatchback where rear passengers must tilt the front seat.
+**CrewCanGetThrough** -- Вызывается каждый кадр для определения, может ли игрок войти или выйти из сиденья. Задние сиденья Нивы (индексы 2 и 3) работают иначе, чем передние: спинка переднего сиденья должна быть откинута вперёд (фаза анимации > 0.5), прежде чем задние пассажиры смогут пройти. Это соответствует реальному поведению 2-дверного хетчбэка, где задним пассажирам необходимо откинуть переднее сиденье.
 
-**OnDebugSpawn** -- Called when you use the debug spawn menu. `SpawnUniversalParts()` adds headlight bulbs and a car battery. `FillUpCarFluids()` fills fuel, coolant, oil, and brake fluid to maximum. We then create wheels, doors, hood, and trunk. This gives you an immediately drivable vehicle for testing.
+**OnDebugSpawn** -- Вызывается при использовании меню отладочного спавна. `SpawnUniversalParts()` добавляет лампочки фар и автомобильный аккумулятор. `FillUpCarFluids()` заполняет топливо, охлаждающую жидкость, масло и тормозную жидкость до максимума. Затем мы создаём колёса, двери, капот и багажник. Это даёт вам сразу управляемый транспорт для тестирования.
 
 ---
 
-## Шаг 4: types.xml Entry
+## Шаг 4: Запись в types.xml
 
-### Vehicle Spawn Configuration
+### Конфигурация спавна транспорта
 
-Vehicles in `types.xml` use the same format as items, but with some important differences. Add this to your server's `types.xml`:
+Транспорт в `types.xml` использует тот же формат, что и предметы, но с некоторыми важными отличиями. Добавьте это в `types.xml` вашего сервера:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -778,18 +782,18 @@ Vehicles in `types.xml` use the same format as items, but with some important di
 </type>
 ```
 
-### Vehicle vs Item Differences in types.xml
+### Отличия транспорта от предметов в types.xml
 
-| Setting | Items | Vehicles |
-|---------|-------|----------|
-| `nominal` | 10-50+ | 1-5 (vehicles are rare) |
-| `lifetime` | 3600-14400 | 3888000 (45 days -- vehicles persist a long time) |
-| `restock` | 1800 | 0 (vehicles do not restock automatically; they respawn only after the previous one is destroyed and despawned) |
-| `category` | `tools`, `weapons`, etc. | `vehicles` |
+| Настройка | Предметы | Транспорт |
+|-----------|----------|-----------|
+| `nominal` | 10-50+ | 1-5 (транспорт встречается редко) |
+| `lifetime` | 3600-14400 | 3888000 (45 дней -- транспорт сохраняется долго) |
+| `restock` | 1800 | 0 (транспорт не пополняется автоматически; он респавнится только после уничтожения и деспавна предыдущего) |
+| `category` | `tools`, `weapons` и т.д. | `vehicles` |
 
-### Pre-Attached Parts with cfgspawnabletypes.xml
+### Предустановленные детали с cfgspawnabletypes.xml
 
-Vehicles spawn as empty shells by default --- нет wheels, doors, or engine parts. To make them spawn with parts pre-attached, add entries to `cfgspawnabletypes.xml` in the server mission folder:
+По умолчанию транспорт спавнится как пустая оболочка -- без колёс, дверей или деталей двигателя. Чтобы они спавнились с предустановленными деталями, добавьте записи в `cfgspawnabletypes.xml` в папке миссии сервера:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -821,47 +825,47 @@ Vehicles spawn as empty shells by default --- нет wheels, doors, or engine pa
 </type>
 ```
 
-### How cfgspawnabletypes Works
+### Как работает cfgspawnabletypes
 
-Each `<attachments>` block is evaluated independently:
-- The outer `chance` determines if this group of attachments is considered at all
-- Each `<item>` within has its own `chance` of being placed
-- Items are placed into the first available matching slot on the vehicle
+Каждый блок `<attachments>` обрабатывается независимо:
+- Внешний `chance` определяет, будет ли эта группа вложений рассмотрена вообще
+- Каждый `<item>` внутри имеет свой собственный `chance` размещения
+- Предметы размещаются в первый доступный подходящий слот на транспорте
 
-Это означает a vehicle might spawn with 3 wheels and no doors, or with all wheels and a battery but no spark plug. This creates the scavenging gameplay loop -- players must find the missing parts.
+Это означает, что транспорт может заспавниться с 3 колёсами и без дверей, или со всеми колёсами и аккумулятором, но без свечи зажигания. Это создаёт игровой цикл поиска ресурсов -- игроки должны найти недостающие детали.
 
 ---
 
-## Шаг 5: Build and Test
+## Шаг 5: Сборка и тестирование
 
-### Pack the PBOs
+### Упаковка PBO
 
-You need two PBOs for this mod:
+Для этого мода вам нужны два PBO:
 
 ```
 @MyFirstMod/
     mod.cpp
     Addons/
-        Scripts.pbo          <-- Contains Scripts/config.cpp and 4_World/
-        Data.pbo             <-- Contains Data/config.cpp and Textures/
+        Scripts.pbo          <-- Содержит Scripts/config.cpp и 4_World/
+        Data.pbo             <-- Содержит Data/config.cpp и Textures/
 ```
 
-Use Addon Builder from DayZ Tools:
+Используйте Addon Builder из DayZ Tools:
 1. **Scripts PBO:** Source = `MyFirstMod/Scripts/`, Prefix = `MyFirstMod/Scripts`
 2. **Data PBO:** Source = `MyFirstMod/Data/`, Prefix = `MyFirstMod/Data`
 
-Or use file patching during development:
+Или используйте file patching во время разработки:
 
 ```
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 ```
 
-### Spawn the Vehicle Using the Script Console
+### Спавн транспорта через консоль скриптов
 
-1. Launch DayZ with your mod loaded
-2. Join your server or start offline mode
-3. Open the script console
-4. To spawn a fully equipped vehicle near your character:
+1. Запустите DayZ с загруженным модом
+2. Подключитесь к серверу или запустите офлайн-режим
+3. Откройте консоль скриптов
+4. Чтобы заспавнить полностью укомплектованный транспорт рядом с вашим персонажем:
 
 ```c
 EntityAI vehicle;
@@ -870,13 +874,13 @@ pos[2] = pos[2] + 5;
 vehicle = EntityAI.Cast(GetGame().CreateObject("MFM_RallyHatchback", pos, false, false, true));
 ```
 
-5. Press **Execute**
+5. Нажмите **Execute**
 
-The vehicle should appear 5 meters in front of you.
+Транспорт должен появиться в 5 метрах перед вами.
 
-### Spawn a Ready-to-Drive Vehicle
+### Спавн готового к поездке транспорта
 
-For faster testing, spawn the vehicle and use the debug spawn method that attaches all parts:
+Для более быстрого тестирования заспавните транспорт и используйте метод отладочного спавна, который прикрепляет все детали:
 
 ```c
 vector pos = GetGame().GetPlayer().GetPosition();
@@ -889,46 +893,46 @@ if (car)
 }
 ```
 
-This calls your `OnDebugSpawn()` override, which fills fluids and attaches wheels, doors, hood, and trunk.
+Это вызывает ваше переопределение `OnDebugSpawn()`, которое заполняет жидкости и прикрепляет колёса, двери, капот и багажник.
 
-### What to Test
+### Что тестировать
 
-| Check | What to Look For |
-|-------|-----------------|
-| **Vehicle spawns** | Appears in the world without errors in the script log |
-| **Текстуры applied** | Custom body color is visible (if using custom textures) |
-| **Engine starts** | Get in, hold the engine start key. Listen for start sound. |
-| **Driving** | Acceleration, top speed, handling feel different from vanilla |
-| **Doors** | Can open/close driver and co-driver doors |
-| **Hood/Trunk** | Can open hood to access engine parts. Can open trunk for cargo. |
-| **Rear seats** | Fold front seat, then enter rear seat |
-| **Fuel consumption** | Drive and watch the fuel gauge |
-| **Damage** | Shoot the vehicle. Parts should take damage and eventually break. |
-| **Lights** | Headlights and rear lights work at night |
+| Проверка | На что обращать внимание |
+|----------|------------------------|
+| **Транспорт спавнится** | Появляется в мире без ошибок в логе скриптов |
+| **Текстуры применены** | Виден пользовательский цвет кузова (при использовании пользовательских текстур) |
+| **Двигатель заводится** | Сядьте и удерживайте клавишу запуска двигателя. Слушайте звук запуска. |
+| **Вождение** | Ускорение, максимальная скорость, управляемость отличаются от ванильных |
+| **Двери** | Можно открывать/закрывать двери водителя и пассажира |
+| **Капот/Багажник** | Можно открыть капот для доступа к деталям двигателя. Можно открыть багажник для грузов. |
+| **Задние сиденья** | Откиньте переднее сиденье, затем сядьте на заднее |
+| **Расход топлива** | Ведите и наблюдайте за указателем топлива |
+| **Повреждения** | Стреляйте по транспорту. Детали должны получать урон и в итоге ломаться. |
+| **Фары** | Передние и задние фары работают ночью |
 
-### Reading the Script Log
+### Чтение лога скриптов
 
-If the vehicle does not spawn or behaves incorrectly, check the script log at:
+Если транспорт не спавнится или ведёт себя некорректно, проверьте лог скриптов по пути:
 
 ```
 %localappdata%\DayZ\<YourProfile>\script.log
 ```
 
-Common errors:
+Типичные ошибки:
 
-| Log Message | Cause |
-|-------------|-------|
-| `Cannot create object type MFM_RallyHatchback` | config.cpp class name mismatch or Data PBO not loaded |
-| `Undefined variable 'OffroadHatchback'` | `requiredAddons` missing `"DZ_Vehicles_Wheeled"` |
-| `Member not found` on method call | Typo in override method name |
+| Сообщение в логе | Причина |
+|-----------------|---------|
+| `Cannot create object type MFM_RallyHatchback` | Несоответствие имени класса в config.cpp или Data PBO не загружен |
+| `Undefined variable 'OffroadHatchback'` | В `requiredAddons` отсутствует `"DZ_Vehicles_Wheeled"` |
+| `Member not found` при вызове метода | Опечатка в имени переопределяемого метода |
 
 ---
 
-## Step 6: Polish
+## Шаг 6: Доработка
 
-### Custom Horn Sound
+### Пользовательский звук сигнала
 
-To give your vehicle a unique horn, define custom sound sets in your Data config.cpp:
+Чтобы дать вашему транспорту уникальный сигнал, определите пользовательские наборы звуков в Data config.cpp:
 
 ```cpp
 class CfgSoundShaders
@@ -968,31 +972,31 @@ class CfgSoundSets
 };
 ```
 
-Then reference them in your script constructor:
+Затем укажите их в конструкторе вашего скрипта:
 
 ```c
 m_CarHornShortSoundName = "MFM_RallyHornShort_SoundSet";
 m_CarHornLongSoundName  = "MFM_RallyHorn_SoundSet";
 ```
 
-Sound files must be `.ogg` format. The path in `samples[]` does NOT include the file extension.
+Звуковые файлы должны быть в формате `.ogg`. Путь в `samples[]` НЕ включает расширение файла.
 
-### Custom Headlights
+### Пользовательные фары
 
-You can create a custom light class to change headlight brightness, color, or range:
+Вы можете создать пользовательский класс освещения для изменения яркости, цвета или дальности фар:
 
 ```c
 class MFM_RallyFrontLight extends CarLightBase
 {
     void MFM_RallyFrontLight()
     {
-        // Low beam (segregated)
+        // Ближний свет (раздельный)
         m_SegregatedBrightness = 7;
         m_SegregatedRadius = 65;
         m_SegregatedAngle = 110;
         m_SegregatedColorRGB = Vector(0.9, 0.9, 1.0);
 
-        // High beam (aggregated)
+        // Дальний свет (объединённый)
         m_AggregatedBrightness = 14;
         m_AggregatedRadius = 90;
         m_AggregatedAngle = 120;
@@ -1006,7 +1010,7 @@ class MFM_RallyFrontLight extends CarLightBase
 };
 ```
 
-Override in your vehicle class:
+Переопределение в классе вашего транспорта:
 
 ```c
 override CarLightBase CreateFrontLight()
@@ -1015,9 +1019,9 @@ override CarLightBase CreateFrontLight()
 }
 ```
 
-### Sound Insulation (OnSound)
+### Звукоизоляция (OnSound)
 
-The `OnSound` override controls how much the cabin muffles engine noise based on door and window state:
+Переопределение `OnSound` управляет тем, насколько кабина глушит шум двигателя в зависимости от состояния дверей и окон:
 
 ```c
 override float OnSound(CarSoundCtrl ctrl, float oldValue)
@@ -1057,13 +1061,13 @@ override float OnSound(CarSoundCtrl ctrl, float oldValue)
 }
 ```
 
-A value of `1.0` means full insulation (quiet cabin), `0.0` means no insulation (open-air feeling).
+Значение `1.0` означает полную изоляцию (тихая кабина), `0.0` означает отсутствие изоляции (ощущение открытого воздуха).
 
 ---
 
-## Complete Code Reference
+## Полный справочник по коду
 
-### Final Directory Structure
+### Итоговая структура каталогов
 
 ```
 MyFirstMod/
@@ -1078,8 +1082,8 @@ MyFirstMod/
         Textures/
             rally_body_co.paa
         Sounds/
-            rally_horn.ogg           (optional)
-            rally_horn_short.ogg     (optional)
+            rally_horn.ogg           (необязательно)
+            rally_horn_short.ogg     (необязательно)
 ```
 
 ### MyFirstMod/mod.cpp
@@ -1132,7 +1136,7 @@ class CfgMods
 };
 ```
 
-### Server Mission types.xml Entry
+### Запись в types.xml серверной миссии
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1154,7 +1158,7 @@ class CfgMods
 </type>
 ```
 
-### Server Mission cfgspawnabletypes.xml Entry
+### Запись в cfgspawnabletypes.xml серверной миссии
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1190,78 +1194,78 @@ class CfgMods
 
 ## Лучшие практики
 
-- **Always extend an existing vehicle class.** Creating a vehicle from scratch requires a custom 3D model with correct geometry LODs, proxies, memory points, and a physics simulation config. Extending a vanilla vehicle gives you all of this for free.
-- **Test with `OnDebugSpawn()` first.** Before setting up types.xml and cfgspawnabletypes.xml, verify the vehicle works by spawning it fully equipped via the debug menu or script console.
-- **Keep the same `GetAnimInstance()` as the parent.** If you change this without a matching animation set, players will T-pose or clip through the vehicle.
-- **Do not change door slot names.** The Niva uses `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. These are tied to the model's proxy names and inventory slot definitions. Changing them without changing the model will break door functionality.
-- **Use `scope = 0` for internal base classes.** If you create an abstract base vehicle that other variants extend, set `scope = 0` so it never spawns directly.
-- **Set `requiredAddons` correctly.** Your Data config.cpp must list `"DZ_Vehicles_Wheeled"` so the parent `OffroadHatchback` class loads before yours.
-- **Test door logic thoroughly.** Enter/exit every seat, open/close every door, try accessing the engine bay with the hood closed. CrewCanGetThrough bugs are the most common vehicle mod issue.
+- **Всегда расширяйте существующий класс транспорта.** Создание транспорта с нуля требует пользовательской 3D-модели с правильными геометрическими LOD, прокси, точками памяти и конфигурацией физической симуляции. Расширение ванильного транспорта даёт вам всё это бесплатно.
+- **Сначала тестируйте с `OnDebugSpawn()`.** Прежде чем настраивать types.xml и cfgspawnabletypes.xml, убедитесь, что транспорт работает, заспавнив его полностью укомплектованным через меню отладки или консоль скриптов.
+- **Сохраняйте тот же `GetAnimInstance()`, что и у родителя.** Если вы измените его без соответствующего набора анимаций, игроки будут стоять в Т-позе или проходить сквозь транспорт.
+- **Не изменяйте имена слотов дверей.** Нива использует `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. Они привязаны к именам прокси модели и определениям слотов инвентаря. Их изменение без изменения модели сломает функциональность дверей.
+- **Используйте `scope = 0` для внутренних базовых классов.** Если вы создаёте абстрактный базовый транспорт, от которого наследуются другие варианты, установите `scope = 0`, чтобы он никогда не спавнился напрямую.
+- **Правильно устанавливайте `requiredAddons`.** Ваш Data config.cpp должен содержать `"DZ_Vehicles_Wheeled"`, чтобы родительский класс `OffroadHatchback` загружался перед вашим.
+- **Тщательно тестируйте логику дверей.** Входите/выходите из каждого сиденья, открывайте/закрывайте каждую дверь, попробуйте получить доступ к моторному отсеку с закрытым капотом. Ошибки в CrewCanGetThrough -- самая распространённая проблема модов на транспорт.
 
 ---
 
 ## Теория и практика
 
 | Концепция | Теория | Реальность |
-|---------|--------|---------|
-| `SimulationModule` in config.cpp | Full control over vehicle physics | Not all parameters override cleanly when extending a parent class. If your speed/torque changes seem to have no effect, try adjusting `transmissionRatio` and gear `ratios[]` instead of just `torqueMax`. |
-| Damage zones with `componentNames[]` | Each zone maps to a geometry component | When extending a vanilla vehicle, the parent model's component names are already set. Your `componentNames[]` values in config only matter if you provide a custom model. The parent's geometry LOD determines actual hit detection. |
-| Custom textures via hidden selections | Swap any texture freely | Only selections the model author marked as "hidden" can be overridden. If you need to retexture a part not in `hiddenSelections[]`, you must create a new model or modify the existing one in Object Builder. |
-| Pre-attached parts in `cfgspawnabletypes.xml` | Items attach to matching slots | If a wheel class is incompatible with the vehicle (wrong attachment slot), it silently fails. Always use parts that the parent vehicle accepts -- for the Niva, that means `HatchbackWheel`, not `CivSedanWheel`. |
-| Engine sounds | Set any SoundSet name | Sound sets must be defined in `CfgSoundSets` somewhere in the loaded configs. If you reference a sound set that does not exist, the engine silently falls back to no sound --- нет error in the log. |
+|-----------|--------|------------|
+| `SimulationModule` в config.cpp | Полный контроль над физикой транспорта | Не все параметры корректно переопределяются при расширении родительского класса. Если ваши изменения скорости/крутящего момента не дают эффекта, попробуйте настроить `transmissionRatio` и `ratios[]` передач вместо простого изменения `torqueMax`. |
+| Зоны повреждений с `componentNames[]` | Каждая зона привязана к геометрическому компоненту | При расширении ванильного транспорта имена компонентов родительской модели уже заданы. Ваши значения `componentNames[]` в конфигурации имеют значение, только если вы предоставляете пользовательскую модель. Геометрический LOD родителя определяет фактическое обнаружение попаданий. |
+| Пользовательские текстуры через скрытые выделения | Свободная замена любой текстуры | Переопределить можно только выделения, которые автор модели отметил как "скрытые". Если вам нужно перетекстурировать часть, не входящую в `hiddenSelections[]`, необходимо создать новую модель или изменить существующую в Object Builder. |
+| Предустановленные детали в `cfgspawnabletypes.xml` | Предметы прикрепляются к подходящим слотам | Если класс колеса несовместим с транспортом (неподходящий слот крепления), он молча не применяется. Всегда используйте детали, которые принимает родительский транспорт -- для Нивы это `HatchbackWheel`, а не `CivSedanWheel`. |
+| Звуки двигателя | Установка любого имени SoundSet | Наборы звуков должны быть определены в `CfgSoundSets` где-то в загруженных конфигурациях. Если вы ссылаетесь на несуществующий набор звуков, движок молча использует отсутствие звука -- ошибки в логе не будет. |
 
 ---
 
-## What You Learned
+## Что вы изучили
 
-In this tutorial you learned:
+В этом руководстве вы научились:
 
-- How to define a custom vehicle class by extending an existing vanilla vehicle in config.cpp
-- How damage zones work and how to configure health values for each vehicle component
-- How vehicle hidden selections allow retexturing the body without a custom 3D model
-- How to write a vehicle script with door state logic, crew entry checks, and engine behavior
-- How `types.xml` and `cfgspawnabletypes.xml` work together for vehicle spawning with randomized pre-attached parts
-- How to test vehicles in-game using the script console and the `OnDebugSpawn()` method
-- How to add custom sounds for horns and custom light classes for headlights
+- Как определить пользовательский класс транспорта, расширив существующее ванильное транспортное средство в config.cpp
+- Как работают зоны повреждений и как настроить значения здоровья для каждого компонента транспорта
+- Как скрытые выделения транспорта позволяют перетекстурировать кузов без пользовательской 3D-модели
+- Как написать скрипт транспорта с логикой состояния дверей, проверками входа экипажа и поведением двигателя
+- Как `types.xml` и `cfgspawnabletypes.xml` работают вместе для спавна транспорта с рандомизированными предустановленными деталями
+- Как тестировать транспорт в игре, используя консоль скриптов и метод `OnDebugSpawn()`
+- Как добавить пользовательские звуки сигнала и пользовательские классы освещения для фар
 
-**Next:** Expand your vehicle mod with custom door models, interior textures, or even a completely new vehicle body using Blender and Object Builder.
+**Далее:** Расширьте ваш мод на транспорт пользовательскими моделями дверей, текстурами интерьера или даже полностью новым кузовом с помощью Blender и Object Builder.
 
 ---
 
 ## Типичные ошибки
 
-### Vehicle Spawns But Immediately Falls Through the Ground
+### Транспорт спавнится, но сразу проваливается сквозь землю
 
-The physics geometry is not loading. This usually means `requiredAddons[]` is missing `"DZ_Vehicles_Wheeled"`, so the parent class physics config is not inherited.
+Физическая геометрия не загружается. Обычно это означает, что в `requiredAddons[]` отсутствует `"DZ_Vehicles_Wheeled"`, поэтому конфигурация физики родительского класса не наследуется.
 
-### Vehicle Spawns But Cannot Be Entered
+### Транспорт спавнится, но в него нельзя сесть
 
-Check that `GetAnimInstance()` returns the correct enum value for your model. If you extend `OffroadHatchback` but return `VehicleAnimInstances.SEDAN`, the entry animation targets the wrong door positions and the player cannot get in.
+Проверьте, что `GetAnimInstance()` возвращает правильное значение перечисления для вашей модели. Если вы расширяете `OffroadHatchback`, но возвращаете `VehicleAnimInstances.SEDAN`, анимация входа нацелена на неправильные позиции дверей, и игрок не может сесть.
 
-### Двери Do Not Open or Close
+### Двери не открываются и не закрываются
 
-Verify that `GetCarDoorsState()` uses the correct slot names. The Niva uses `"NivaDriverDoors"`, `"NivaCoDriverDoors"`, `"NivaHood"`, and `"NivaTrunk"`. These must match exactly, including capitalization.
+Убедитесь, что `GetCarDoorsState()` использует правильные имена слотов. Нива использует `"NivaDriverDoors"`, `"NivaCoDriverDoors"`, `"NivaHood"` и `"NivaTrunk"`. Они должны совпадать точно, включая регистр букв.
 
-### Engine Starts But Vehicle Does Not Move
+### Двигатель заводится, но транспорт не двигается
 
-Check your `SimulationModule` gear ratios. If `ratios[]` is empty or has zero values, the vehicle has no forward gears. Also verify the wheels are attached ---  vehicle with no wheels will rev but not move.
+Проверьте передаточные числа в `SimulationModule`. Если `ratios[]` пуст или содержит нулевые значения, у транспорта нет передач переднего хода. Также убедитесь, что колёса прикреплены -- транспорт без колёс будет газовать, но не двигаться.
 
-### Vehicle Has No Sound
+### У транспорта нет звука
 
-Engine sounds are assigned in the constructor. If you misspell a SoundSet name (for example `"offroad_engine_Start_SoundSet"` instead of `"offroad_engine_start_SoundSet"`), the engine silently uses no sound. Sound set names are case-sensitive.
+Звуки двигателя назначаются в конструкторе. Если вы допустите опечатку в имени SoundSet (например, `"offroad_engine_Start_SoundSet"` вместо `"offroad_engine_start_SoundSet"`), движок молча использует отсутствие звука. Имена наборов звуков чувствительны к регистру.
 
-### Custom Texture Not Showing
+### Пользовательская текстура не отображается
 
-Verify three things in order: (1) the hidden selection name matches the model exactly, (2) the texture path uses backslashes in config.cpp, and (3) the `.paa` file is inside the packed PBO. If using file patching during development, ensure the path starts from the mod root, not an absolute path.
+Проверьте три вещи по порядку: (1) имя скрытого выделения точно совпадает с моделью, (2) путь к текстуре использует обратные косые черты в config.cpp, и (3) файл `.paa` находится внутри упакованного PBO. При использовании file patching во время разработки убедитесь, что путь начинается от корня мода, а не является абсолютным путём.
 
-### Rear Seat Passengers Cannot Enter
+### Задние пассажиры не могут сесть
 
-The Niva rear seats require the front seat to be folded forward. If your `CrewCanGetThrough()` override for seat indices 2 and 3 does not check `GetAnimationPhase("SeatDriver")` and `GetAnimationPhase("SeatCoDriver")`, rear passengers will be permanently locked out.
+Задние сиденья Нивы требуют, чтобы переднее сиденье было откинуто вперёд. Если ваше переопределение `CrewCanGetThrough()` для индексов сидений 2 и 3 не проверяет `GetAnimationPhase("SeatDriver")` и `GetAnimationPhase("SeatCoDriver")`, задние пассажиры будут навсегда заблокированы.
 
-### Vehicle Spawns Without Parts in Multiplayer
+### Транспорт спавнится без деталей в мультиплеере
 
-`OnDebugSpawn()` is only for debug/testing. In a real server, parts come from `cfgspawnabletypes.xml`. If your vehicle spawns as a bare shell, add the `cfgspawnabletypes.xml` entry described in Step 4.
+`OnDebugSpawn()` предназначен только для отладки/тестирования. На реальном сервере детали берутся из `cfgspawnabletypes.xml`. Если ваш транспорт спавнится как пустая оболочка, добавьте запись `cfgspawnabletypes.xml`, описанную в Шаге 4.
 
 ---
 
-**Previous:** [Chapter 8.9: Professional Mod Template](09-professional-template.md)
+**Предыдущая:** [Глава 8.9: Профессиональный шаблон мода](09-professional-template.md)

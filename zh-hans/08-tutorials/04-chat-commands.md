@@ -1,46 +1,50 @@
-# Chapter 8.4: Adding Chat Commands
+# 第 8.4 章：添加聊天命令
 
-[Home](../../README.md) | [<< Previous: Building an Admin Panel](03-admin-panel.md) | **Adding Chat Commands** | [Next: Using the DayZ Mod Template >>](05-mod-template.md)
+[首页](../../README.md) | [<< 上一章：构建管理员面板](03-admin-panel.md) | **添加聊天命令** | [下一章：使用 DayZ 模组模板 >>](05-mod-template.md)
+
+---
+
+> **摘要：** 本教程将引导你创建一个 DayZ 聊天命令系统。你将挂接到聊天输入、解析命令前缀和参数、检查管理员权限、执行服务器端操作并向玩家发送反馈。完成后，你将拥有一个可用的 `/heal` 命令来完全治愈管理员的角色，以及一个用于添加更多命令的框架。
 
 ---
 
 ## 目录
 
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Step 1: Hook Into Chat Input](#step-1-hook-into-chat-input)
-- [Step 2: Parse Command Prefix and Arguments](#step-2-parse-command-prefix-and-arguments)
-- [Step 3: Check Admin Permissions](#step-3-check-admin-permissions)
-- [Step 4: Execute the Server-Side Action](#step-4-execute-the-server-side-action)
-- [Step 5: Send Feedback to the Admin](#step-5-send-feedback-to-the-admin)
-- [Step 6: Register Commands](#step-6-register-commands)
-- [Step 7: Add to an Admin Panel Command List](#step-7-add-to-an-admin-panel-command-list)
-- [Complete Working Code: /heal Command](#complete-working-code-heal-command)
-- [Adding More Commands](#adding-more-commands)
-- [Troubleshooting](#troubleshooting)
-- [下一章 Steps](#next-steps)
+- [我们要构建什么](#what-we-are-building)
+- [前提条件](#prerequisites)
+- [架构概述](#architecture-overview)
+- [步骤 1：挂接聊天输入](#step-1-hook-into-chat-input)
+- [步骤 2：解析命令前缀和参数](#step-2-parse-command-prefix-and-arguments)
+- [步骤 3：检查管理员权限](#step-3-check-admin-permissions)
+- [步骤 4：执行服务器端操作](#step-4-execute-the-server-side-action)
+- [步骤 5：向管理员发送反馈](#step-5-send-feedback-to-the-admin)
+- [步骤 6：注册命令](#step-6-register-commands)
+- [步骤 7：添加到管理面板命令列表](#step-7-add-to-an-admin-panel-command-list)
+- [完整可用代码：/heal 命令](#complete-working-code-heal-command)
+- [添加更多命令](#adding-more-commands)
+- [故障排除](#troubleshooting)
+- [下一步](#next-steps)
 
 ---
 
-## What We Are Building
+## 我们要构建什么
 
-A chat command system with:
+一个聊天命令系统，包含：
 
-- **`/heal`** -- Fully heals the admin's character (health, blood, shock, hunger, thirst)
-- **`/heal PlayerName`** -- Heals a specific player by name
-- A reusable framework for adding `/kill`, `/teleport`, `/time`, `/weather`, and any other command
-- Admin permission checking so regular players cannot use admin commands
-- Server-side execution with chat feedback messages
+- **`/heal`** -- 完全治愈管理员的角色（生命值、血量、震荡、饥饿、口渴）
+- **`/heal PlayerName`** -- 按名称治愈特定玩家
+- 一个可复用的框架，用于添加 `/kill`、`/teleport`、`/time`、`/weather` 以及任何其他命令
+- 管理员权限检查，使普通玩家无法使用管理员命令
+- 服务器端执行与聊天反馈消息
 
 ---
 
-## Prerequisites
+## 前提条件
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Understanding of the [client-server RPC pattern](03-admin-panel.md) from Chapter 8.3
+- 一个可用的模组结构（先完成[第 8.1 章](01-first-mod.md)）
+- 理解来自第 8.3 章的[客户端-服务器 RPC 模式](03-admin-panel.md)
 
-### Mod Structure for This Tutorial
+### 本教程的模组结构
 
 ```
 ChatCommands/
@@ -64,52 +68,52 @@ ChatCommands/
 
 ---
 
-## Architecture Overview
+## 架构概述
 
-Chat commands follow this flow:
+聊天命令遵循以下流程：
 
 ```
-CLIENT                                  SERVER
+客户端                                  服务器
 ------                                  ------
 
-1. Admin types "/heal" in chat
-2. Chat hook intercepts the message
-   (prevents it from being sent as chat)
-3. Client sends command via RPC  ---->  4. Server receives RPC
-                                            Checks admin permissions
-                                            Looks up command handler
-                                            Executes the command
-                                        5. Server sends feedback  ---->  CLIENT
-                                            (chat message RPC)
-                                                                     6. Admin sees
-                                                                        feedback in chat
+1. 管理员在聊天中输入 "/heal"
+2. 聊天钩子拦截消息
+   （阻止它作为聊天发送）
+3. 客户端通过 RPC 发送命令  ---->  4. 服务器接收 RPC
+                                            检查管理员权限
+                                            查找命令处理器
+                                            执行命令
+                                        5. 服务器发送反馈  ---->  客户端
+                                            （聊天消息 RPC）
+                                                                     6. 管理员在聊天中
+                                                                        看到反馈
 ```
 
-**Why process commands on the server?** Because the server has authority over game state. Only the server can reliably heal players, change weather, teleport characters, and modify world state. The client's role is limited to detecting the command and forwarding it.
+**为什么要在服务器上处理命令？** 因为服务器对游戏状态拥有权威。只有服务器才能可靠地治愈玩家、改变天气、传送角色和修改世界状态。客户端的角色仅限于检测命令并转发它。
 
 ---
 
-## Step 1: Hook Into Chat Input
+## 步骤 1：挂接聊天输入
 
-We need to intercept chat messages before they are sent as regular chat. DayZ provides the `ChatInputMenu` class for this purpose.
+我们需要在聊天消息作为常规聊天发送之前拦截它们。DayZ 为此提供了 `ChatInputMenu` 类。
 
-### The Chat Hook Approach
+### 聊天钩子方法
 
-We will mod the `MissionGameplay` class to intercept chat input events. When the player submits a chat message starting with `/`, we intercept it, prevent it from being sent as normal chat, and instead send it as a command RPC to the server.
+我们将修改 `MissionGameplay` 类来拦截聊天输入事件。当玩家提交以 `/` 开头的聊天消息时，我们拦截它，阻止它作为普通聊天发送，而是将其作为命令 RPC 发送到服务器。
 
-### Create `Scripts/5_Mission/ChatCommands/CCmdChatHook.c`
+### 创建 `Scripts/5_Mission/ChatCommands/CCmdChatHook.c`
 
 ```c
 modded class MissionGameplay
 {
     // -------------------------------------------------------
-    // Intercept chat messages that start with /
+    // 拦截以 / 开头的聊天消息
     // -------------------------------------------------------
     override void OnEvent(EventType eventTypeId, Param params)
     {
         super.OnEvent(eventTypeId, params);
 
-        // ChatMessageEventTypeID fires when the player sends a chat message
+        // 当玩家发送聊天消息时触发 ChatMessageEventTypeID
         if (eventTypeId == ChatMessageEventTypeID)
         {
             Param3<int, string, string> chatParams;
@@ -117,10 +121,10 @@ modded class MissionGameplay
             {
                 string message = chatParams.param3;
 
-                // Check if it starts with /
+                // 检查是否以 / 开头
                 if (message.Length() > 0 && message.Substring(0, 1) == "/")
                 {
-                    // This is a command -- send it to the server
+                    // 这是一个命令——发送到服务器
                     SendChatCommand(message);
                 }
             }
@@ -128,7 +132,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Send the command string to the server via RPC
+    // 通过 RPC 将命令字符串发送到服务器
     // -------------------------------------------------------
     protected void SendChatCommand(string fullCommand)
     {
@@ -143,7 +147,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Receive command feedback from the server
+    // 从服务器接收命令反馈
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
@@ -157,7 +161,7 @@ modded class MissionGameplay
                 string prefix = data.param1;
                 string message = data.param2;
 
-                // Display feedback as a system chat message
+                // 将反馈显示为系统聊天消息
                 GetGame().Chat(prefix + " " + message, "colorStatusChannel");
 
                 Print("[ChatCommands] Feedback: " + prefix + " " + message);
@@ -167,23 +171,23 @@ modded class MissionGameplay
 };
 ```
 
-### How Chat Interception Works
+### 聊天拦截的工作原理
 
-The `OnEvent` method on `MissionGameplay` is called for various game events. When `eventTypeId` is `ChatMessageEventTypeID`, it means the player just submitted a chat message. The `Param3` contains:
+`MissionGameplay` 上的 `OnEvent` 方法会被各种游戏事件调用。当 `eventTypeId` 为 `ChatMessageEventTypeID` 时，表示玩家刚刚提交了一条聊天消息。`Param3` 包含：
 
-- `param1` -- Channel (int): the chat channel (global, direct, etc.)
-- `param2` -- Sender name (string)
-- `param3` -- Message text (string)
+- `param1` -- 频道（int）：聊天频道（全局、直接等）
+- `param2` -- 发送者名称（string）
+- `param3` -- 消息文本（string）
 
-We check if the message starts with `/`. If it does, we forward the entire string to the server via RPC. The message is still sent as normal chat as well -- in a production mod, you would suppress it (covered in the notes at the end).
+我们检查消息是否以 `/` 开头。如果是，我们通过 RPC 将整个字符串转发到服务器。消息仍然会作为普通聊天发送——在生产模组中，你会抑制它（在末尾的注释中介绍）。
 
 ---
 
-## Step 2: Parse Command Prefix and Arguments
+## 步骤 2：解析命令前缀和参数
 
-On the server side, we need to break a command string like `/heal PlayerName` into its parts: the command name (`heal`) and the arguments (`["PlayerName"]`).
+在服务器端，我们需要将像 `/heal PlayerName` 这样的命令字符串分解为各部分：命令名称（`heal`）和参数（`["PlayerName"]`）。
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRPC.c`
+### 创建 `Scripts/3_Game/ChatCommands/CCmdRPC.c`
 
 ```c
 class CCmdRPC
@@ -193,54 +197,54 @@ class CCmdRPC
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdBase.c`
+### 创建 `Scripts/3_Game/ChatCommands/CCmdBase.c`
 
 ```c
 // -------------------------------------------------------
-// Base class for all chat commands
+// 所有聊天命令的基类
 // -------------------------------------------------------
 class CCmdBase
 {
-    // The command name without the / prefix (e.g., "heal")
+    // 不带 / 前缀的命令名称（例如 "heal"）
     string GetName()
     {
         return "";
     }
 
-    // Short description shown in help or command list
+    // 在帮助或命令列表中显示的简短描述
     string GetDescription()
     {
         return "";
     }
 
-    // Usage syntax shown when the command is used incorrectly
+    // 命令使用不正确时显示的用法语法
     string GetUsage()
     {
         return "/" + GetName();
     }
 
-    // Whether this command requires admin privileges
+    // 此命令是否需要管理员权限
     bool RequiresAdmin()
     {
         return true;
     }
 
-    // Execute the command on the server
-    // Returns true if successful, false if failed
+    // 在服务器上执行命令
+    // 成功返回 true，失败返回 false
     bool Execute(PlayerIdentity caller, array<string> args)
     {
         return false;
     }
 
     // -------------------------------------------------------
-    // Helper: Send feedback message to the command caller
+    // 辅助方法：向命令调用者发送反馈消息
     // -------------------------------------------------------
     protected void SendFeedback(PlayerIdentity caller, string prefix, string message)
     {
         if (!caller)
             return;
 
-        // Find the caller's player object
+        // 查找调用者的玩家对象
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
 
@@ -266,7 +270,7 @@ class CCmdBase
     }
 
     // -------------------------------------------------------
-    // Helper: Find a player by partial name match
+    // 辅助方法：通过部分名称匹配查找玩家
     // -------------------------------------------------------
     protected Man FindPlayerByName(string partialName)
     {
@@ -295,18 +299,18 @@ class CCmdBase
 };
 ```
 
-### Create `Scripts/3_Game/ChatCommands/CCmdRegistry.c`
+### 创建 `Scripts/3_Game/ChatCommands/CCmdRegistry.c`
 
 ```c
 // -------------------------------------------------------
-// Registry that holds all available commands
+// 保存所有可用命令的注册表
 // -------------------------------------------------------
 class CCmdRegistry
 {
     protected static ref map<string, ref CCmdBase> s_Commands;
 
     // -------------------------------------------------------
-    // Initialize the registry (call once at startup)
+    // 初始化注册表（启动时调用一次）
     // -------------------------------------------------------
     static void Init()
     {
@@ -315,7 +319,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Register a command instance
+    // 注册一个命令实例
     // -------------------------------------------------------
     static void Register(CCmdBase command)
     {
@@ -338,7 +342,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Look up a command by name
+    // 按名称查找命令
     // -------------------------------------------------------
     static CCmdBase GetCommand(string name)
     {
@@ -356,7 +360,7 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Get all registered command names
+    // 获取所有已注册的命令名称
     // -------------------------------------------------------
     static array<string> GetCommandNames()
     {
@@ -374,8 +378,8 @@ class CCmdRegistry
     }
 
     // -------------------------------------------------------
-    // Parse a raw command string into name + args
-    // Example: "/heal PlayerName" --> name="heal", args=["PlayerName"]
+    // 将原始命令字符串解析为名称 + 参数
+    // 示例："/heal PlayerName" --> name="heal", args=["PlayerName"]
     // -------------------------------------------------------
     static void ParseCommand(string fullCommand, out string commandName, out array<string> args)
     {
@@ -385,12 +389,12 @@ class CCmdRegistry
         if (fullCommand.Length() == 0)
             return;
 
-        // Remove the leading /
+        // 移除前导 /
         string raw = fullCommand;
         if (raw.Substring(0, 1) == "/")
             raw = raw.Substring(1, raw.Length() - 1);
 
-        // Split by spaces
+        // 按空格分割
         raw.Split(" ", args);
 
         if (args.Count() > 0)
@@ -403,68 +407,68 @@ class CCmdRegistry
 };
 ```
 
-### The Parse Logic Explained
+### 解析逻辑说明
 
-Given the input `/heal SomePlayer`, `ParseCommand` does:
+给定输入 `/heal SomePlayer`，`ParseCommand` 执行以下操作：
 
-1. Removes the leading `/` to get `"heal SomePlayer"`
-2. Splits by spaces to get `["heal", "SomePlayer"]`
-3. Takes the first element as the command name: `"heal"`
-4. Removes it from the array, leaving args: `["SomePlayer"]`
+1. 移除前导 `/` 得到 `"heal SomePlayer"`
+2. 按空格分割得到 `["heal", "SomePlayer"]`
+3. 取第一个元素作为命令名称：`"heal"`
+4. 从数组中移除它，留下参数：`["SomePlayer"]`
 
-The command name is converted to lowercase so `/Heal`, `/HEAL`, and `/heal` all work.
+命令名称转换为小写，因此 `/Heal`、`/HEAL` 和 `/heal` 都能工作。
 
 ---
 
-## Step 3: Check Admin Permissions
+## 步骤 3：检查管理员权限
 
-Admin permission checking prevents regular players from executing admin commands. DayZ does not have a built-in admin permission system in scripts, so we check against a simple admin list.
+管理员权限检查可以阻止普通玩家执行管理员命令。DayZ 在脚本中没有内置的管理员权限系统，因此我们根据简单的管理员列表进行检查。
 
-### The Admin Check in the Server Handler
+### 服务器处理器中的管理员检查
 
-The simplest approach is to check the player's Steam64 ID against a list of known admin IDs. In a production mod, you would load this list from a config file.
+最简单的方法是将玩家的 Steam64 ID 与已知管理员 ID 列表进行比较。在生产模组中，你会从配置文件加载此列表。
 
 ```c
-// Simple admin check -- in production, load from a JSON config file
+// 简单的管理员检查——在生产环境中，从 JSON 配置文件加载
 static bool IsAdmin(PlayerIdentity identity)
 {
     if (!identity)
         return false;
 
-    // Check the player's plain ID (Steam64 ID)
+    // 检查玩家的纯 ID（Steam64 ID）
     string playerId = identity.GetPlainId();
 
-    // Hardcoded admin list -- replace with config file loading in production
+    // 硬编码的管理员列表——在生产环境中替换为配置文件加载
     ref array<string> adminIds = new array<string>;
-    adminIds.Insert("76561198000000001");    // Replace with real Steam64 IDs
+    adminIds.Insert("76561198000000001");    // 替换为真实的 Steam64 ID
     adminIds.Insert("76561198000000002");
 
     return (adminIds.Find(playerId) != -1);
 }
 ```
 
-### Where to Find Steam64 IDs
+### 在哪里找到 Steam64 ID
 
-- Open your Steam profile in a browser
-- The URL contains your Steam64 ID: `https://steamcommunity.com/profiles/76561198XXXXXXXXX`
-- Or use a tool like https://steamid.io to look up any player
+- 在浏览器中打开你的 Steam 个人资料
+- URL 包含你的 Steam64 ID：`https://steamcommunity.com/profiles/76561198XXXXXXXXX`
+- 或使用 https://steamid.io 等工具来查找任何玩家
 
-### Production-Grade Permissions
+### 生产级权限
 
-In a real mod, you would:
+在真正的模组中，你应该：
 
-1. Store admin IDs in a JSON file (`$profile:ChatCommands/admins.json`)
-2. Load the file on server startup
-3. Support permission levels (moderator, admin, superadmin)
-4. Use a framework like MyFramework's `MyPermissions` system for hierarchical permissions
+1. 将管理员 ID 存储在 JSON 文件中（`$profile:ChatCommands/admins.json`）
+2. 在服务器启动时加载该文件
+3. 支持权限等级（版主、管理员、超级管理员）
+4. 使用像 MyMod Core 的 `MyPermissions` 系统这样的框架来实现分级权限
 
 ---
 
-## Step 4: Execute the Server-Side Action
+## 步骤 4：执行服务器端操作
 
-Now we create the actual `/heal` command and the server handler that processes incoming command RPCs.
+现在我们创建实际的 `/heal` 命令和处理传入命令 RPC 的服务器处理器。
 
-### Create `Scripts/4_World/ChatCommands/commands/CCmdHeal.c`
+### 创建 `Scripts/4_World/ChatCommands/commands/CCmdHeal.c`
 
 ```c
 class CCmdHeal extends CCmdBase
@@ -490,9 +494,9 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Execute the heal command
-    // /heal         --> heals the caller
-    // /heal Name    --> heals the named player
+    // 执行治愈命令
+    // /heal         --> 治愈调用者
+    // /heal Name    --> 治愈指定名称的玩家
     // -------------------------------------------------------
     override bool Execute(PlayerIdentity caller, array<string> args)
     {
@@ -502,10 +506,10 @@ class CCmdHeal extends CCmdBase
         Man targetMan = null;
         string targetName = "";
 
-        // Determine the target player
+        // 确定目标玩家
         if (args.Count() > 0)
         {
-            // Heal a specific player by name
+            // 按名称治愈特定玩家
             string searchName = args.Get(0);
             targetMan = FindPlayerByName(searchName);
 
@@ -519,7 +523,7 @@ class CCmdHeal extends CCmdBase
         }
         else
         {
-            // Heal the caller themselves
+            // 治愈调用者自己
             ref array<Man> allPlayers = new array<Man>;
             GetGame().GetPlayers(allPlayers);
 
@@ -545,7 +549,7 @@ class CCmdHeal extends CCmdBase
             targetName = "yourself";
         }
 
-        // Execute the heal
+        // 执行治愈
         PlayerBase targetPlayer;
         if (!Class.CastTo(targetPlayer, targetMan))
         {
@@ -555,7 +559,7 @@ class CCmdHeal extends CCmdBase
 
         HealPlayer(targetPlayer);
 
-        // Log and send feedback
+        // 记录日志并发送反馈
         Print("[ChatCommands] " + caller.GetName() + " healed " + targetName);
         SendFeedback(caller, "[Heal]", "Successfully healed " + targetName + ".");
 
@@ -563,30 +567,30 @@ class CCmdHeal extends CCmdBase
     }
 
     // -------------------------------------------------------
-    // Apply full heal to a player
+    // 对玩家执行完全治愈
     // -------------------------------------------------------
     protected void HealPlayer(PlayerBase player)
     {
         if (!player)
             return;
 
-        // Restore health to maximum
+        // 将生命值恢复到最大值
         player.SetHealth("GlobalHealth", "Health", player.GetMaxHealth("GlobalHealth", "Health"));
 
-        // Restore blood to maximum
+        // 将血量恢复到最大值
         player.SetHealth("GlobalHealth", "Blood", player.GetMaxHealth("GlobalHealth", "Blood"));
 
-        // Remove shock damage
+        // 移除震荡伤害
         player.SetHealth("GlobalHealth", "Shock", player.GetMaxHealth("GlobalHealth", "Shock"));
 
-        // Set hunger to full (energy value)
-        // PlayerBase has a stats system -- set the energy stat
+        // 将饥饿设为饱（能量值）
+        // PlayerBase 有一个属性系统——设置能量属性
         player.GetStatEnergy().Set(player.GetStatEnergy().GetMax());
 
-        // Set thirst to full (water value)
+        // 将口渴设为满（水分值）
         player.GetStatWater().Set(player.GetStatWater().GetMax());
 
-        // Clear any bleeding sources
+        // 清除所有出血源
         player.GetBleedingManagerServer().RemoveAllSources();
 
         Print("[ChatCommands] Healed player: " + player.GetIdentity().GetName());
@@ -594,70 +598,70 @@ class CCmdHeal extends CCmdBase
 };
 ```
 
-### Why 4_World?
+### 为什么是 4_World？
 
-The heal command references `PlayerBase`, which is defined in the `4_World` layer. It also uses player stat methods (`GetStatEnergy`, `GetStatWater`, `GetBleedingManagerServer`) that are only available on world entities. The command **must** live in `4_World` or higher.
+治愈命令引用了 `PlayerBase`，它在 `4_World` 层级中定义。它还使用了仅在世界实体上可用的玩家属性方法（`GetStatEnergy`、`GetStatWater`、`GetBleedingManagerServer`）。该命令**必须**放在 `4_World` 或更高层级。
 
-The base class `CCmdBase` lives in `3_Game` because it does not reference any world types. The concrete command classes that touch world entities live in `4_World`.
+基类 `CCmdBase` 放在 `3_Game` 中，因为它不引用任何世界类型。涉及世界实体的具体命令类放在 `4_World` 中。
 
 ---
 
-## Step 5: Send Feedback to the Admin
+## 步骤 5：向管理员发送反馈
 
-Feedback is handled by the `SendFeedback()` method in `CCmdBase`. Let us trace the complete feedback path:
+反馈由 `CCmdBase` 中的 `SendFeedback()` 方法处理。让我们追踪完整的反馈路径：
 
-### Server Sends Feedback
+### 服务器发送反馈
 
 ```c
-// Inside CCmdBase.SendFeedback()
+// 在 CCmdBase.SendFeedback() 内部
 Param2<string, string> data = new Param2<string, string>(prefix, message);
 GetGame().RPCSingleParam(callerPlayer, CCmdRPC.COMMAND_FEEDBACK, data, true, caller);
 ```
 
-The server sends a `COMMAND_FEEDBACK` RPC to the specific client who issued the command. The data contains a prefix (like `"[Heal]"`) and the message text.
+服务器向发出命令的特定客户端发送 `COMMAND_FEEDBACK` RPC。数据包含前缀（如 `"[Heal]"`）和消息文本。
 
-### Client Receives and Displays Feedback
+### 客户端接收并显示反馈
 
-Back in `CCmdChatHook.c` (Step 1), the `OnRPC` handler catches this:
+回到 `CCmdChatHook.c`（步骤 1），`OnRPC` 处理器捕获到这个：
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_FEEDBACK)
 {
-    // Deserialize the message
+    // 反序列化消息
     Param2<string, string> data = new Param2<string, string>("", "");
     if (ctx.Read(data))
     {
         string prefix = data.param1;
         string message = data.param2;
 
-        // Display in the chat window
+        // 在聊天窗口中显示
         GetGame().Chat(prefix + " " + message, "colorStatusChannel");
     }
 }
 ```
 
-`GetGame().Chat()` displays a message in the player's chat window. The second parameter is the color channel:
+`GetGame().Chat()` 在玩家的聊天窗口中显示消息。第二个参数是颜色通道：
 
-| Channel | Color | Typical Use |
+| 通道 | 颜色 | 典型用途 |
 |---------|-------|-------------|
-| `"colorStatusChannel"` | Yellow/orange | System messages |
-| `"colorAction"` | White | Action feedback |
-| `"colorFriendly"` | Green | Positive feedback |
-| `"colorImportant"` | Red | Warnings/errors |
+| `"colorStatusChannel"` | 黄色/橙色 | 系统消息 |
+| `"colorAction"` | 白色 | 操作反馈 |
+| `"colorFriendly"` | 绿色 | 正面反馈 |
+| `"colorImportant"` | 红色 | 警告/错误 |
 
 ---
 
-## Step 6: Register Commands
+## 步骤 6：注册命令
 
-The server handler receives command RPCs, looks up the command in the registry, and executes it.
+服务器处理器接收命令 RPC，在注册表中查找命令并执行它。
 
-### Create `Scripts/4_World/ChatCommands/CCmdServerHandler.c`
+### 创建 `Scripts/4_World/ChatCommands/CCmdServerHandler.c`
 
 ```c
 modded class MissionServer
 {
     // -------------------------------------------------------
-    // Register all commands when the server starts
+    // 服务器启动时注册所有命令
     // -------------------------------------------------------
     override void OnInit()
     {
@@ -665,10 +669,10 @@ modded class MissionServer
 
         CCmdRegistry.Init();
 
-        // Register all commands here
+        // 在这里注册所有命令
         CCmdRegistry.Register(new CCmdHeal());
 
-        // Add more commands:
+        // 添加更多命令：
         // CCmdRegistry.Register(new CCmdKill());
         // CCmdRegistry.Register(new CCmdTeleport());
         // CCmdRegistry.Register(new CCmdTime());
@@ -678,7 +682,7 @@ modded class MissionServer
 };
 
 // -------------------------------------------------------
-// Server-side RPC handler for incoming commands
+// 处理传入命令的服务器端 RPC 处理器
 // -------------------------------------------------------
 modded class PlayerBase
 {
@@ -700,7 +704,7 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Read the command string
+        // 读取命令字符串
         Param1<string> data = new Param1<string>("");
         if (!ctx.Read(data))
         {
@@ -711,7 +715,7 @@ modded class PlayerBase
         string fullCommand = data.param1;
         Print("[ChatCommands] Received command from " + sender.GetName() + ": " + fullCommand);
 
-        // Parse the command
+        // 解析命令
         string commandName;
         ref array<string> args;
         CCmdRegistry.ParseCommand(fullCommand, commandName, args);
@@ -719,7 +723,7 @@ modded class PlayerBase
         if (commandName == "")
             return;
 
-        // Look up the command
+        // 查找命令
         CCmdBase command = CCmdRegistry.GetCommand(commandName);
         if (!command)
         {
@@ -727,7 +731,7 @@ modded class PlayerBase
             return;
         }
 
-        // Check admin permissions
+        // 检查管理员权限
         if (command.RequiresAdmin() && !IsCommandAdmin(sender))
         {
             Print("[ChatCommands] Non-admin " + sender.GetName() + " tried to use /" + commandName);
@@ -735,7 +739,7 @@ modded class PlayerBase
             return;
         }
 
-        // Execute the command
+        // 执行命令
         bool success = command.Execute(sender, args);
 
         if (success)
@@ -745,7 +749,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Check if a player is an admin
+    // 检查玩家是否是管理员
     // -------------------------------------------------------
     protected bool IsCommandAdmin(PlayerIdentity identity)
     {
@@ -755,8 +759,8 @@ modded class PlayerBase
         string playerId = identity.GetPlainId();
 
         // ----------------------------------------------------------
-        // IMPORTANT: Replace these with your actual admin Steam64 IDs
-        // In production, load from a JSON config file instead
+        // 重要：将这些替换为你的实际管理员 Steam64 ID
+        // 在生产环境中，改为从 JSON 配置文件加载
         // ----------------------------------------------------------
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
@@ -766,7 +770,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Send feedback to a specific player
+    // 向特定玩家发送反馈
     // -------------------------------------------------------
     protected void SendCommandFeedback(PlayerIdentity target, string prefix, string message)
     {
@@ -793,28 +797,28 @@ modded class PlayerBase
 };
 ```
 
-### The Registration Pattern
+### 注册模式
 
-Commands are registered in `MissionServer.OnInit()`:
+命令在 `MissionServer.OnInit()` 中注册：
 
 ```c
 CCmdRegistry.Init();
 CCmdRegistry.Register(new CCmdHeal());
 ```
 
-Each `Register()` call creates an instance of the command class and stores it in a map keyed by the command name. When a command RPC arrives, the handler looks up the name in the registry and calls `Execute()` on the matching command object.
+每次 `Register()` 调用创建一个命令类的实例，并将其存储在以命令名称为键的映射中。当命令 RPC 到达时，处理器在注册表中查找名称，并在匹配的命令对象上调用 `Execute()`。
 
-This pattern makes it trivial to add new commands -- create a new class extending `CCmdBase`, implement `Execute()`, and add one `Register()` line.
+这种模式使添加新命令变得轻而易举——创建一个扩展 `CCmdBase` 的新类，实现 `Execute()`，然后添加一行 `Register()`。
 
 ---
 
-## Step 7: Add to an Admin Panel Command List
+## 步骤 7：添加到管理面板命令列表
 
-If you have an admin panel (from [Chapter 8.3](03-admin-panel.md)), you can display the list of available commands in the UI.
+如果你有管理面板（来自[第 8.3 章](03-admin-panel.md)），你可以在 UI 中显示可用命令的列表。
 
-### Request the Command List from the Server
+### 从服务器请求命令列表
 
-Add a new RPC ID in `CCmdRPC.c`:
+在 `CCmdRPC.c` 中添加新的 RPC ID：
 
 ```c
 class CCmdRPC
@@ -826,12 +830,12 @@ class CCmdRPC
 };
 ```
 
-### Server-Side: Send the Command List
+### 服务器端：发送命令列表
 
-Add this handler in your server-side code:
+在你的服务器端代码中添加此处理器：
 
 ```c
-// In the server handler, add a case for COMMAND_LIST_REQ
+// 在服务器处理器中，添加 COMMAND_LIST_REQ 的处理分支
 if (rpc_type == CCmdRPC.COMMAND_LIST_REQ)
 {
     HandleCommandListRequest(sender);
@@ -842,7 +846,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
     if (!requestor)
         return;
 
-    // Build a formatted string of all commands
+    // 构建所有命令的格式化字符串
     array<string> names = CCmdRegistry.GetCommandNames();
     string commandList = "Available Commands:\n";
 
@@ -855,7 +859,7 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
         }
     }
 
-    // Send back to client
+    // 发送回客户端
     ref array<Man> players = new array<Man>;
     GetGame().GetPlayers(players);
 
@@ -872,9 +876,9 @@ protected void HandleCommandListRequest(PlayerIdentity requestor)
 }
 ```
 
-### Client-Side: Display in a Panel
+### 客户端：在面板中显示
 
-On the client, catch the response and display it in a text widget:
+在客户端，捕获响应并将其显示在文本控件中：
 
 ```c
 if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
@@ -883,7 +887,7 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
     if (ctx.Read(data))
     {
         string commandList = data.param1;
-        // Display in your admin panel text widget
+        // 在你的管理面板文本控件中显示
         // m_CommandListText.SetText(commandList);
         Print("[ChatCommands] Command list received:\n" + commandList);
     }
@@ -892,11 +896,11 @@ if (rpc_type == CCmdRPC.COMMAND_LIST_RESP)
 
 ---
 
-## Complete Working Code: /heal Command
+## 完整可用代码：/heal 命令
 
-Here is every file needed for the complete working system. Create these files and your mod will have a functional `/heal` command.
+以下是完整工作系统所需的每个文件。创建这些文件，你的模组就会拥有一个可用的 `/heal` 命令。
 
-### config.cpp Setup
+### config.cpp 设置
 
 ```cpp
 class CfgPatches
@@ -1307,7 +1311,7 @@ modded class PlayerBase
 
         string playerId = identity.GetPlainId();
 
-        // REPLACE THESE WITH YOUR ACTUAL ADMIN STEAM64 IDs
+        // 将这些替换为你的实际管理员 STEAM64 ID
         ref array<string> adminIds = new array<string>;
         adminIds.Insert("76561198000000001");
         adminIds.Insert("76561198000000002");
@@ -1395,11 +1399,11 @@ modded class MissionGameplay
 
 ---
 
-## Adding More Commands
+## 添加更多命令
 
-The registry pattern makes adding new commands straightforward. Here are examples:
+注册模式使添加新命令变得简单直接。以下是一些示例：
 
-### /kill Command
+### /kill 命令
 
 ```c
 class CCmdKill extends CCmdBase
@@ -1447,7 +1451,7 @@ class CCmdKill extends CCmdBase
 };
 ```
 
-### /time Command
+### /time 命令
 
 ```c
 class CCmdTime extends CCmdBase
@@ -1478,9 +1482,9 @@ class CCmdTime extends CCmdBase
 };
 ```
 
-### Registering New Commands
+### 注册新命令
 
-Add one line per command in `MissionServer.OnInit()`:
+在 `MissionServer.OnInit()` 中每个命令添加一行：
 
 ```c
 CCmdRegistry.Register(new CCmdHeal());
@@ -1490,34 +1494,34 @@ CCmdRegistry.Register(new CCmdTime());
 
 ---
 
-## 故障排查
+## 故障排除
 
-### Command Is Not Recognized ("Unknown command")
+### 命令未被识别（"Unknown command"）
 
-- **Registration missing:** Make sure `CCmdRegistry.Register(new CCmdYourCommand())` is called in `MissionServer.OnInit()`.
-- **GetName() typo:** The string returned by `GetName()` must match what the player types (without the `/`).
-- **Case mismatch:** The registry converts names to lowercase. `/Heal`, `/HEAL`, and `/heal` should all work.
+- **缺少注册：** 确保在 `MissionServer.OnInit()` 中调用了 `CCmdRegistry.Register(new CCmdYourCommand())`。
+- **GetName() 拼写错误：** `GetName()` 返回的字符串必须与玩家输入的内容匹配（不含 `/`）。
+- **大小写不匹配：** 注册表将名称转换为小写。`/Heal`、`/HEAL` 和 `/heal` 应该都能工作。
 
-### Permission Denied for Admins
+### 管理员被拒绝权限
 
-- **Wrong Steam64 ID:** Double-check the admin IDs in `IsCommandAdmin()`. They must be exact Steam64 IDs (17-digit numbers starting with `7656`).
-- **GetPlainId() vs GetId():** `GetPlainId()` returns the Steam64 ID. `GetId()` returns the DayZ session ID. Use `GetPlainId()` for admin checks.
+- **错误的 Steam64 ID：** 仔细检查 `IsCommandAdmin()` 中的管理员 ID。它们必须是精确的 Steam64 ID（以 `7656` 开头的 17 位数字）。
+- **GetPlainId() 与 GetId()：** `GetPlainId()` 返回 Steam64 ID。`GetId()` 返回 DayZ 会话 ID。使用 `GetPlainId()` 进行管理员检查。
 
-### Feedback Message Does Not Appear in Chat
+### 反馈消息未出现在聊天中
 
-- **RPC not reaching client:** Add `Print()` statements on the server to confirm the feedback RPC is being sent.
-- **Client OnRPC not catching it:** Verify the RPC ID matches (`CCmdRPC.COMMAND_FEEDBACK`).
-- **GetGame().Chat() not working:** This function requires the game to be in a state where chat is available. It may not work on the loading screen.
+- **RPC 未到达客户端：** 在服务器上添加 `Print()` 语句以确认反馈 RPC 正在发送。
+- **客户端 OnRPC 未捕获：** 验证 RPC ID 匹配（`CCmdRPC.COMMAND_FEEDBACK`）。
+- **GetGame().Chat() 不工作：** 此函数需要游戏处于聊天可用的状态。在加载画面上可能不工作。
 
-### /heal Does Not Actually Heal
+### /heal 实际上没有治愈
 
-- **Server-only execution:** `SetHealth()` and stat changes must run on the server. Verify `GetGame().IsServer()` is true when `Execute()` runs.
-- **PlayerBase cast fails:** If `Class.CastTo(targetPlayer, targetMan)` returns false, the target is not a valid PlayerBase. This can happen with AI or non-player entities.
-- **Stat getters return null:** `GetStatEnergy()` and `GetStatWater()` may return null if the player is dead or not fully initialized. Add null checks in production code.
+- **仅服务器端执行：** `SetHealth()` 和属性更改必须在服务器上运行。验证 `Execute()` 运行时 `GetGame().IsServer()` 为 true。
+- **PlayerBase 转换失败：** 如果 `Class.CastTo(targetPlayer, targetMan)` 返回 false，则目标不是有效的 PlayerBase。这可能发生在 AI 或非玩家实体上。
+- **属性获取器返回 null：** 如果玩家已死亡或未完全初始化，`GetStatEnergy()` 和 `GetStatWater()` 可能返回 null。在生产代码中添加 null 检查。
 
-### Command Appears in Chat as Regular Message
+### 命令作为普通消息出现在聊天中
 
-- The `OnEvent` hook intercepts the message but does not suppress it from being sent as chat. To suppress it in a production mod, you would need to mod the `ChatInputMenu` class to filter `/` messages before they are sent:
+- `OnEvent` 钩子拦截消息但不会抑制它作为聊天发送。要在生产模组中抑制它，你需要修改 `ChatInputMenu` 类以在发送之前过滤 `/` 消息：
 
 ```c
 modded class ChatInputMenu
@@ -1525,29 +1529,63 @@ modded class ChatInputMenu
     override void OnChatInputSend()
     {
         string text = "";
-        // Get the current text from the edit widget
-        // If it starts with /, do NOT call super (which sends it as chat)
-        // Instead, handle it as a command
+        // 从编辑控件获取当前文本
+        // 如果以 / 开头，不要调用 super（它会将其作为聊天发送）
+        // 而是将其作为命令处理
 
-        // This approach varies by DayZ version -- check vanilla sources
+        // 此方法因 DayZ 版本而异——检查原版源代码
         super.OnChatInputSend();
     }
 };
 ```
 
-The exact implementation depends on the DayZ version and how `ChatInputMenu` exposes the text. The `OnEvent` approach in this tutorial is simpler and works for development, with the tradeoff that the command text also appears as a chat message.
+具体实现取决于 DayZ 版本以及 `ChatInputMenu` 如何暴露文本。本教程中的 `OnEvent` 方法更简单且适用于开发，代价是命令文本也会作为聊天消息出现。
 
 ---
 
-## 后续步骤
+## 下一步
 
-1. **Load admins from a config file** -- Use `JsonFileLoader` to load admin IDs from a JSON file instead of hardcoding them.
-2. **Add a /help command** -- List all available commands with their descriptions and usage.
-3. **Add logging** -- Write command usage to a log file for audit purposes.
-4. **Integrate with a framework** -- MyFramework provides `MyPermissions` for hierarchical permissions and `MyRPC` for string-routed RPCs that avoid integer ID collisions.
-5. **Add cooldowns** -- Prevent command spam by tracking the last execution time per player.
-6. **Build a command palette UI** -- Create an admin panel that lists all commands with clickable buttons (combining this tutorial with [Chapter 8.3](03-admin-panel.md)).
+1. **从配置文件加载管理员** -- 使用 `JsonFileLoader` 从 JSON 文件加载管理员 ID，而不是硬编码。
+2. **添加 /help 命令** -- 列出所有可用命令及其描述和用法。
+3. **添加日志记录** -- 将命令使用情况写入日志文件以供审计。
+4. **与框架集成** -- MyMod Core 提供 `MyPermissions` 用于分级权限，`MyRPC` 用于字符串路由的 RPC 以避免整数 ID 冲突。
+5. **添加冷却时间** -- 通过跟踪每个玩家的上次执行时间来防止命令刷屏。
+6. **构建命令面板 UI** -- 创建一个管理面板，列出所有带有可点击按钮的命令（将本教程与[第 8.3 章](03-admin-panel.md)结合）。
 
 ---
 
-**上一章：** [Chapter 8.3: Building an Admin Panel Module](03-admin-panel.md)
+## 最佳实践
+
+- **执行管理员命令前始终检查权限。** 缺少权限检查意味着任何玩家都可以 `/heal` 或 `/kill` 任何人。在处理之前在服务器上验证调用者的 Steam64 ID（通过 `GetPlainId()`）。
+- **即使命令失败也要向管理员发送反馈。** 静默失败使调试不可能。始终发送聊天消息解释出了什么问题（"Player not found"、"Permission denied"）。
+- **使用 `GetPlainId()` 进行管理员检查，而不是 `GetId()`。** `GetId()` 返回每次重新连接都会改变的会话特定 DayZ ID。`GetPlainId()` 返回永久的 Steam64 ID。
+- **将管理员 ID 存储在 JSON 配置文件中，而不是代码中。** 硬编码的 ID 需要重建 PBO 才能更改。`$profile:` JSON 文件可以由服务器管理员在没有模组知识的情况下编辑。
+- **在匹配之前将命令名称转换为小写。** 玩家可能输入 `/Heal`、`/HEAL` 或 `/heal`。规范化为小写可以防止令人沮丧的"未知命令"错误。
+
+---
+
+## 理论与实践
+
+| 概念 | 理论 | 现实 |
+|---------|--------|---------|
+| 通过 `OnEvent` 的聊天钩子 | 拦截消息并将其作为命令处理 | 消息仍然作为聊天对所有玩家显示。抑制它需要修改 `ChatInputMenu`，这因 DayZ 版本而异。 |
+| `GetGame().Chat()` | 在玩家的聊天窗口中显示消息 | 仅在聊天 UI 活动时有效。在加载画面或某些菜单状态下，消息会被静默丢弃。 |
+| 命令注册模式 | 每个命令一个类的干净架构 | 每个命令类文件必须放在正确的脚本层级中。`CCmdBase` 在 `3_Game`，引用 `PlayerBase` 的具体命令在 `4_World`。放错层级会在加载时导致 "Undefined type" 错误。 |
+| 按名称查找玩家 | `FindPlayerByName` 匹配部分名称 | 在有类似名称的服务器上，部分匹配可能定位到错误的玩家。在生产环境中，首选 Steam64 ID 定位或添加确认步骤。 |
+
+---
+
+## 你学到了什么
+
+在本教程中你学到了：
+- 如何使用 `MissionGameplay.OnEvent` 和 `ChatMessageEventTypeID` 挂接聊天输入
+- 如何从聊天文本解析命令前缀和参数
+- 如何使用 Steam64 ID 在服务器上检查管理员权限
+- 如何通过 RPC 和 `GetGame().Chat()` 将命令反馈发送回玩家
+- 如何构建可复用的命令注册模式以添加新命令
+
+**下一章：** [第 8.6 章：调试和测试你的模组](06-debugging-testing.md)
+
+---
+
+**上一章：** [第 8.3 章：构建管理员面板模块](03-admin-panel.md)

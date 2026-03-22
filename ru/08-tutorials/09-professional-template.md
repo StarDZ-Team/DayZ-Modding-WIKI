@@ -1,134 +1,138 @@
-# Chapter 8.9: Professional Mod Template
+# Глава 8.9: Профессиональный шаблон мода
 
-[Home](../../README.md) | [<< Previous: Building a HUD Overlay](08-hud-overlay.md) | **Professional Mod Template** | [Next: Creating a Custom Vehicle >>](10-vehicle-mod.md)
+[Главная](../../README.md) | [<< Назад: Создание HUD-оверлея](08-hud-overlay.md) | **Профессиональный шаблон мода** | [Далее: Создание пользовательского транспорта >>](10-vehicle-mod.md)
+
+---
+
+> **Краткое описание:** Эта глава предоставляет полный, готовый к продакшну шаблон мода со всеми файлами, необходимыми для профессионального мода DayZ. В отличие от [Главы 8.5](05-mod-template.md), которая представляет стартовый скелет InclementDab, это полнофункциональный шаблон с системой конфигурации, синглтон-менеджером, клиент-серверным RPC, UI-панелью, привязками клавиш, локализацией и автоматизацией сборки. Каждый файл готов к копированию и обильно комментирован для объяснения **зачем** существует каждая строка.
 
 ---
 
 ## Содержание
 
-- [Overview](#overview)
-- [Complete Directory Structure](#complete-directory-structure)
+- [Обзор](#обзор)
+- [Полная структура каталогов](#полная-структура-каталогов)
 - [mod.cpp](#modcpp)
 - [config.cpp](#configcpp)
-- [Constants File (3_Game)](#constants-file-3_game)
-- [Config Data Class (3_Game)](#config-data-class-3_game)
-- [RPC Definitions (3_Game)](#rpc-definitions-3_game)
-- [Manager Singleton (4_World)](#manager-singleton-4_world)
-- [Player Event Handler (4_World)](#player-event-handler-4_world)
-- [Mission Hook: Server (5_Mission)](#mission-hook-server-5_mission)
-- [Mission Hook: Client (5_Mission)](#mission-hook-client-5_mission)
-- [UI Panel Script (5_Mission)](#ui-panel-script-5_mission)
-- [Layout File](#layout-file)
+- [Файл констант (3_Game)](#файл-констант-3_game)
+- [Класс данных конфигурации (3_Game)](#класс-данных-конфигурации-3_game)
+- [Определения RPC (3_Game)](#определения-rpc-3_game)
+- [Синглтон-менеджер (4_World)](#синглтон-менеджер-4_world)
+- [Обработчик событий игрока (4_World)](#обработчик-событий-игрока-4_world)
+- [Хук миссии: Сервер (5_Mission)](#хук-миссии-сервер-5_mission)
+- [Хук миссии: Клиент (5_Mission)](#хук-миссии-клиент-5_mission)
+- [Скрипт UI-панели (5_Mission)](#скрипт-ui-панели-5_mission)
+- [Файл макета](#файл-макета)
 - [stringtable.csv](#stringtablecsv)
 - [Inputs.xml](#inputsxml)
-- [Build Script](#build-script)
-- [Customization Guide](#customization-guide)
-- [Feature Expansion Guide](#feature-expansion-guide)
-- [Next Steps](#next-steps)
+- [Скрипт сборки](#скрипт-сборки)
+- [Руководство по настройке](#руководство-по-настройке)
+- [Руководство по расширению функций](#руководство-по-расширению-функций)
+- [Следующие шаги](#следующие-шаги)
 
 ---
 
 ## Обзор
 
-A "Hello World" mod proves the toolchain works. A professional mod needs much more:
+Мод "Hello World" доказывает, что инструменты работают. Профессиональный мод требует гораздо большего:
 
-| Concern | Hello World | Professional Template |
-|---------|-------------|----------------------|
-| Configuration | Hardcoded values | JSON config with load/save/defaults |
-| Communication | Print statements | String-routed RPC (client to server and back) |
-| Architecture | One file, one function | Singleton manager, layered scripts, clean lifecycle |
-| User interface | None | Layout-driven UI panel with open/close |
-| Input binding | None | Custom keybind in Options > Controls |
-| Localization | None | stringtable.csv with 13 languages |
-| Build pipeline | Ручное Addon Builder | One-click batch script |
-| Cleanup | None | Proper shutdown on mission end, no leaks |
+| Аспект | Hello World | Профессиональный шаблон |
+|--------|-------------|------------------------|
+| Конфигурация | Жёстко заданные значения | JSON-конфигурация с загрузкой/сохранением/значениями по умолчанию |
+| Коммуникация | Операторы Print | Строковый RPC (клиент на сервер и обратно) |
+| Архитектура | Один файл, одна функция | Синглтон-менеджер, слоистые скрипты, чистый жизненный цикл |
+| Пользовательский интерфейс | Нет | UI-панель на основе макета с открытием/закрытием |
+| Привязка ввода | Нет | Пользовательская привязка клавиш в Настройки > Управление |
+| Локализация | Нет | stringtable.csv с 13 языками |
+| Конвейер сборки | Ручной Addon Builder | Пакетный скрипт в один клик |
+| Очистка | Нет | Корректное завершение при окончании миссии, без утечек |
 
-This template gives you all of these out of the box. You rename the identifiers, delete the systems you do not need, and start building your actual feature on a solid foundation.
+Этот шаблон даёт вам всё это из коробки. Вы переименовываете идентификаторы, удаляете ненужные системы и начинаете строить вашу фактическую функциональность на прочном фундаменте.
 
 ---
 
-## Complete Directory Structure
+## Полная структура каталогов
 
-Это full source layout. Every file listed below is provided as a complete template in this chapter.
+Это полная структура исходников. Каждый файл, перечисленный ниже, предоставлен как полный шаблон в этой главе.
 
 ```
-MyProfessionalMod/                          <-- Source root (lives on P: drive)
-    mod.cpp                                 <-- Launcher metadata
+MyProfessionalMod/                          <-- Корень исходников (на P: диске)
+    mod.cpp                                 <-- Метаданные лаунчера
     Scripts/
-        config.cpp                          <-- Engine registration (CfgPatches + CfgMods)
-        Inputs.xml                          <-- Keybind definitions
-        stringtable.csv                     <-- Localized strings (13 languages)
+        config.cpp                          <-- Регистрация в движке (CfgPatches + CfgMods)
+        Inputs.xml                          <-- Определения привязок клавиш
+        stringtable.csv                     <-- Локализованные строки (13 языков)
         3_Game/
             MyMod/
-                MyModConstants.c            <-- Enums, version string, shared constants
-                MyModConfig.c               <-- JSON-serializable config with defaults
-                MyModRPC.c                  <-- RPC route names and registration
+                MyModConstants.c            <-- Перечисления, строка версии, общие константы
+                MyModConfig.c               <-- JSON-сериализуемая конфигурация с значениями по умолчанию
+                MyModRPC.c                  <-- Имена маршрутов RPC и регистрация
         4_World/
             MyMod/
-                MyModManager.c              <-- Singleton manager (lifecycle, config, state)
-                MyModPlayerHandler.c        <-- Player connect/disconnect hooks
+                MyModManager.c              <-- Синглтон-менеджер (жизненный цикл, конфигурация, состояние)
+                MyModPlayerHandler.c        <-- Хуки подключения/отключения игроков
         5_Mission/
             MyMod/
-                MyModMissionServer.c        <-- modded MissionServer (server init/shutdown)
-                MyModMissionClient.c        <-- modded MissionGameplay (client init/shutdown)
-                MyModUI.c                   <-- UI panel script (open/close/populate)
+                MyModMissionServer.c        <-- modded MissionServer (инициализация/завершение сервера)
+                MyModMissionClient.c        <-- modded MissionGameplay (инициализация/завершение клиента)
+                MyModUI.c                   <-- Скрипт UI-панели (открытие/закрытие/заполнение)
         GUI/
             layouts/
-                MyModPanel.layout           <-- UI layout definition
-    build.bat                               <-- PBO packing automation
+                MyModPanel.layout           <-- Определение макета UI
+    build.bat                               <-- Автоматизация упаковки PBO
 
-After building, the distributable mod folder looks like this:
+После сборки распространяемая папка мода выглядит так:
 
-@MyProfessionalMod/                         <-- What goes on the server / Workshop
+@MyProfessionalMod/                         <-- Что размещается на сервере / Workshop
     mod.cpp
     addons/
-        MyProfessionalMod_Scripts.pbo       <-- Packed from Scripts/
+        MyProfessionalMod_Scripts.pbo       <-- Упаковано из Scripts/
     keys/
-        MyMod.bikey                         <-- Key for signed servers
-    meta.cpp                                <-- Workshop metadata (auto-generated)
+        MyMod.bikey                         <-- Ключ для подписанных серверов
+    meta.cpp                                <-- Метаданные Workshop (генерируются автоматически)
 ```
 
 ---
 
 ## mod.cpp
 
-This file controls what players see in the DayZ launcher. It is placed at the mod root, **not** inside `Scripts/`.
+Этот файл управляет тем, что игроки видят в лаунчере DayZ. Он размещается в корне мода, **не** внутри `Scripts/`.
 
 ```cpp
 // ==========================================================================
-// mod.cpp - Mod identity for the DayZ launcher
-// This file is read by the launcher to display mod info in the mod list.
-// It is NOT compiled by the script engine -- it is pure metadata.
+// mod.cpp - Идентификация мода для лаунчера DayZ
+// Этот файл читается лаунчером для отображения информации о моде в списке модов.
+// Он НЕ компилируется скриптовым движком -- это чистые метаданные.
 // ==========================================================================
 
-// Display name shown in the launcher mod list and in-game mod screen.
+// Отображаемое имя в списке модов лаунчера и на экране модов в игре.
 name         = "My Professional Mod";
 
-// Your name or team name. Shows in the "Author" column.
+// Ваше имя или название команды. Показывается в столбце "Автор".
 author       = "YourName";
 
-// Semantic version string. Update this with every release.
-// The launcher displays this so players know which version they have.
+// Строка семантической версии. Обновляйте с каждым релизом.
+// Лаунчер отображает её, чтобы игроки знали, какая у них версия.
 version      = "1.0.0";
 
-// Short description shown when hovering over the mod in the launcher.
-// Keep it under 200 characters for readability.
+// Краткое описание при наведении на мод в лаунчере.
+// Держите до 200 символов для читаемости.
 overview     = "A professional mod template with config, RPC, UI, and keybinds.";
 
-// Tooltip shown on hover. Usually matches the mod name.
+// Подсказка при наведении. Обычно совпадает с названием мода.
 tooltipOwned = "My Professional Mod";
 
-// Optional: path to a preview image (relative to mod root).
-// Recommended size: 256x256 or 512x512, PAA or EDDS format.
-// Leave empty if you have no image yet.
+// Необязательно: путь к изображению предпросмотра (относительно корня мода).
+// Рекомендуемый размер: 256x256 или 512x512, формат PAA или EDDS.
+// Оставьте пустым, если изображения ещё нет.
 picture      = "";
 
-// Optional: logo displayed in the mod details panel.
+// Необязательно: логотип, отображаемый в панели деталей мода.
 logo         = "";
 logoSmall    = "";
 logoOver     = "";
 
-// Optional: URL opened when the player clicks "Website" in the launcher.
+// Необязательно: URL, открываемый при нажатии "Веб-сайт" в лаунчере.
 action       = "";
 actionURL    = "";
 ```
@@ -137,41 +141,41 @@ actionURL    = "";
 
 ## config.cpp
 
-Это most critical file. It registers your mod with the engine, declares dependencies, wires up script layers, and optionally sets preprocessor defines and image sets.
+Это самый критичный файл. Он регистрирует ваш мод в движке, объявляет зависимости, подключает слои скриптов и опционально устанавливает определения препроцессора и наборы изображений.
 
-Place this at `Scripts/config.cpp`.
+Разместите его по пути `Scripts/config.cpp`.
 
 ```cpp
 // ==========================================================================
-// config.cpp - Engine registration
-// The DayZ engine reads this to know what your mod provides.
-// Two sections matter: CfgPatches (dependency graph) and CfgMods (script loading).
+// config.cpp - Регистрация в движке
+// Движок DayZ читает этот файл, чтобы узнать, что предоставляет ваш мод.
+// Два раздела важны: CfgPatches (граф зависимостей) и CfgMods (загрузка скриптов).
 // ==========================================================================
 
 // --------------------------------------------------------------------------
-// CfgPatches - Dependency Declaration
-// The engine uses this to determine load order. If your mod depends on
-// another mod, list that mod's CfgPatches class in requiredAddons[].
+// CfgPatches - Объявление зависимостей
+// Движок использует это для определения порядка загрузки. Если ваш мод зависит от
+// другого мода, укажите класс CfgPatches этого мода в requiredAddons[].
 // --------------------------------------------------------------------------
 class CfgPatches
 {
-    // Class name MUST be globally unique across all mods.
-    // Convention: ModName_Scripts (matches the PBO name).
+    // Имя класса ДОЛЖНО быть глобально уникальным среди всех модов.
+    // Соглашение: ModName_Scripts (совпадает с именем PBO).
     class MyMod_Scripts
     {
-        // units[] and weapons[] declare config classes defined by this addon.
-        // For script-only mods, leave these empty. They are used by mods
-        // that define new items, weapons, or vehicles in config.cpp.
+        // units[] и weapons[] объявляют конфигурационные классы, определённые этим аддоном.
+        // Для модов только со скриптами оставьте пустыми. Они используются модами,
+        // которые определяют новые предметы, оружие или транспорт в config.cpp.
         units[] = {};
         weapons[] = {};
 
-        // Minimum engine version. 0.1 works for all current DayZ versions.
+        // Минимальная версия движка. 0.1 работает для всех текущих версий DayZ.
         requiredVersion = 0.1;
 
-        // Dependencies: list CfgPatches class names from other mods.
-        // "DZ_Data" is the base game -- every mod should depend on it.
-        // Add "CF_Scripts" if you use Community Framework.
-        // Add other mod patches if you extend them.
+        // Зависимости: перечислите имена классов CfgPatches из других модов.
+        // "DZ_Data" -- это базовая игра -- каждый мод должен зависеть от него.
+        // Добавьте "CF_Scripts", если используете Community Framework.
+        // Добавьте патчи других модов, если расширяете их.
         requiredAddons[] =
         {
             "DZ_Data"
@@ -180,58 +184,58 @@ class CfgPatches
 };
 
 // --------------------------------------------------------------------------
-// CfgMods - Script Module Registration
-// Tells the engine where each script layer lives and what defines to set.
+// CfgMods - Регистрация модулей скриптов
+// Сообщает движку, где находится каждый слой скриптов и какие определения устанавливать.
 // --------------------------------------------------------------------------
 class CfgMods
 {
-    // Class name here is your mod's internal identifier.
-    // It does NOT need to match CfgPatches -- but keeping them related
-    // makes the codebase easier to navigate.
+    // Имя класса здесь -- это внутренний идентификатор вашего мода.
+    // Он НЕ обязан совпадать с CfgPatches -- но их связь
+    // облегчает навигацию по кодовой базе.
     class MyMod
     {
-        // dir: the folder name on the P: drive (or in the PBO).
-        // Must match your actual root folder name exactly.
+        // dir: имя папки на P: диске (или в PBO).
+        // Должно точно совпадать с реальным именем корневой папки.
         dir = "MyProfessionalMod";
 
-        // Display name (shown in Workbench and some engine logs).
+        // Отображаемое имя (показывается в Workbench и некоторых логах движка).
         name = "My Professional Mod";
 
-        // Author and description for engine metadata.
+        // Автор и описание для метаданных движка.
         author = "YourName";
         overview = "Professional mod template";
 
-        // Mod type. Always "mod" for script mods.
+        // Тип мода. Всегда "mod" для скриптовых модов.
         type = "mod";
 
-        // credits: optional path to a Credits.json file.
+        // credits: необязательный путь к файлу Credits.json.
         // creditsJson = "MyProfessionalMod/Scripts/Credits.json";
 
-        // inputs: path to your Inputs.xml for custom keybinds.
-        // This MUST be set here for the engine to load your keybinds.
+        // inputs: путь к вашему Inputs.xml для пользовательских привязок клавиш.
+        // Это ОБЯЗАТЕЛЬНО указать здесь, чтобы движок загрузил ваши привязки.
         inputs = "MyProfessionalMod/Scripts/Inputs.xml";
 
-        // defines: preprocessor symbols set when your mod is loaded.
-        // Other mods can use #ifdef MYMOD to detect your mod's presence
-        // and conditionally compile integration code.
+        // defines: символы препроцессора, устанавливаемые при загрузке вашего мода.
+        // Другие моды могут использовать #ifdef MYMOD для обнаружения вашего мода
+        // и условной компиляции интеграционного кода.
         defines[] = { "MYMOD" };
 
-        // dependencies: which vanilla script modules your mod hooks into.
+        // dependencies: какие ванильные модули скриптов использует ваш мод.
         // "Game" = 3_Game, "World" = 4_World, "Mission" = 5_Mission.
-        // Most mods need all three. Add "Core" only if you use 1_Core.
+        // Большинству модов нужны все три. Добавьте "Core" только если используете 1_Core.
         dependencies[] =
         {
             "Game", "World", "Mission"
         };
 
-        // defs: maps each script module to its folder on disk.
-        // The engine compiles all .c files found recursively in these paths.
-        // There is no #include in Enforce Script -- this is how files are loaded.
+        // defs: сопоставляет каждый модуль скриптов с его папкой на диске.
+        // Движок компилирует все .c файлы, найденные рекурсивно по этим путям.
+        // В Enforce Script нет #include -- так загружаются файлы.
         class defs
         {
-            // imageSets: register .imageset files for use in layouts.
-            // Only needed if you have custom icons/textures for UI.
-            // Uncomment and update paths if you add an imageset.
+            // imageSets: регистрация файлов .imageset для использования в макетах.
+            // Нужно только если у вас есть пользовательские иконки/текстуры для UI.
+            // Раскомментируйте и обновите пути, если добавляете imageset.
             //
             // class imageSets
             // {
@@ -241,27 +245,27 @@ class CfgMods
             //     };
             // };
 
-            // Game layer (3_Game): loads first.
-            // Place enums, constants, config classes, RPC definitions here.
-            // CANNOT reference types from 4_World or 5_Mission.
+            // Слой Game (3_Game): загружается первым.
+            // Размещайте здесь перечисления, константы, классы конфигурации, определения RPC.
+            // НЕ МОЖЕТ ссылаться на типы из 4_World или 5_Mission.
             class gameScriptModule
             {
                 value = "";
                 files[] = { "MyProfessionalMod/Scripts/3_Game" };
             };
 
-            // World layer (4_World): loads second.
-            // Place managers, entity modifications, world interactions here.
-            // CAN reference 3_Game types. CANNOT reference 5_Mission types.
+            // Слой World (4_World): загружается вторым.
+            // Размещайте здесь менеджеры, модификации сущностей, мировые взаимодействия.
+            // МОЖЕТ ссылаться на типы 3_Game. НЕ МОЖЕТ ссылаться на типы 5_Mission.
             class worldScriptModule
             {
                 value = "";
                 files[] = { "MyProfessionalMod/Scripts/4_World" };
             };
 
-            // Mission layer (5_Mission): loads last.
-            // Place mission hooks, UI panels, startup/shutdown logic here.
-            // CAN reference types from all lower layers.
+            // Слой Mission (5_Mission): загружается последним.
+            // Размещайте здесь хуки миссий, UI-панели, логику запуска/завершения.
+            // МОЖЕТ ссылаться на типы из всех нижних слоёв.
             class missionScriptModule
             {
                 value = "";
@@ -274,54 +278,54 @@ class CfgMods
 
 ---
 
-## Constants File (3_Game)
+## Файл констант (3_Game)
 
-Place at `Scripts/3_Game/MyMod/MyModConstants.c`.
+Разместите по пути `Scripts/3_Game/MyMod/MyModConstants.c`.
 
-This file defines all shared constants, enums, and the version string. It lives in `3_Game` so every higher layer can access these values.
+Этот файл определяет все общие константы, перечисления и строку версии. Он находится в `3_Game`, чтобы каждый вышестоящий слой мог получить доступ к этим значениям.
 
 ```c
 // ==========================================================================
-// MyModConstants.c - Shared constants and enums
-// 3_Game layer: available to all higher layers (4_World, 5_Mission).
+// MyModConstants.c - Общие константы и перечисления
+// Слой 3_Game: доступен всем вышестоящим слоям (4_World, 5_Mission).
 //
-// WHY this file exists:
-//   Centralizing constants prevents magic numbers scattered across files.
-//   Enums give compile-time safety instead of raw int comparisons.
-//   The version string is defined once and used in logs and UI.
+// ЗАЧЕМ этот файл:
+//   Централизация констант предотвращает магические числа, разбросанные по файлам.
+//   Перечисления дают безопасность на этапе компиляции вместо сравнений сырых int.
+//   Строка версии определяется один раз и используется в логах и UI.
 // ==========================================================================
 
 // ---------------------------------------------------------------------------
-// Version - update this with every release
+// Версия - обновляйте с каждым релизом
 // ---------------------------------------------------------------------------
 const string MYMOD_VERSION = "1.0.0";
 
 // ---------------------------------------------------------------------------
-// Log tag - prefix for all Print/log messages from this mod
-// Using a consistent tag makes it easy to filter the script log.
+// Тег лога - префикс для всех сообщений Print/log этого мода
+// Использование единообразного тега облегчает фильтрацию лога скриптов.
 // ---------------------------------------------------------------------------
 const string MYMOD_TAG = "[MyMod]";
 
 // ---------------------------------------------------------------------------
-// File paths - centralized so typos are caught in one place
-// $profile: resolves to the server's profile directory at runtime.
+// Пути к файлам - централизованы, чтобы опечатки обнаруживались в одном месте
+// $profile: разрешается в каталог профиля сервера во время выполнения.
 // ---------------------------------------------------------------------------
 const string MYMOD_CONFIG_DIR  = "$profile:MyMod";
 const string MYMOD_CONFIG_PATH = "$profile:MyMod/config.json";
 
 // ---------------------------------------------------------------------------
-// Enum: Feature modes
-// Use enums instead of raw ints for readability and compile-time checks.
+// Перечисление: Режимы функций
+// Используйте перечисления вместо сырых int для читаемости и проверок компиляции.
 // ---------------------------------------------------------------------------
 enum MyModMode
 {
-    DISABLED = 0,    // Feature is off
-    PASSIVE  = 1,    // Feature runs but does not interfere
-    ACTIVE   = 2     // Feature is fully enabled
+    DISABLED = 0,    // Функция выключена
+    PASSIVE  = 1,    // Функция работает, но не вмешивается
+    ACTIVE   = 2     // Функция полностью включена
 };
 
 // ---------------------------------------------------------------------------
-// Enum: Notification types (used by UI to pick icon/color)
+// Перечисление: Типы уведомлений (используются UI для выбора иконки/цвета)
 // ---------------------------------------------------------------------------
 enum MyModNotifyType
 {
@@ -334,82 +338,82 @@ enum MyModNotifyType
 
 ---
 
-## Config Data Class (3_Game)
+## Класс данных конфигурации (3_Game)
 
-Place at `Scripts/3_Game/MyMod/MyModConfig.c`.
+Разместите по пути `Scripts/3_Game/MyMod/MyModConfig.c`.
 
-This is a JSON-serializable settings class. The server loads it on startup. If no file exists, defaults are used and a fresh config is saved to disk.
+Это JSON-сериализуемый класс настроек. Сервер загружает его при запуске. Если файл не существует, используются значения по умолчанию и свежая конфигурация сохраняется на диск.
 
 ```c
 // ==========================================================================
-// MyModConfig.c - JSON configuration with defaults
-// 3_Game layer so both 4_World managers and 5_Mission hooks can read it.
+// MyModConfig.c - JSON-конфигурация со значениями по умолчанию
+// Слой 3_Game, чтобы менеджеры 4_World и хуки 5_Mission могли читать её.
 //
-// HOW IT WORKS:
-//   JsonFileLoader<MyModConfig> uses Enforce Script's built-in JSON
-//   serializer. Every field with a default value is written to / read from
-//   the JSON file. Adding a new field is safe -- old config files simply
-//   get the default value for any missing fields.
+// КАК ЭТО РАБОТАЕТ:
+//   JsonFileLoader<MyModConfig> использует встроенный JSON-сериализатор
+//   Enforce Script. Каждое поле со значением по умолчанию записывается в / читается из
+//   JSON-файла. Добавление нового поля безопасно -- старые файлы конфигурации просто
+//   получают значение по умолчанию для отсутствующих полей.
 //
-// ENFORCE SCRIPT GOTCHA:
-//   JsonFileLoader<T>.JsonLoadFile(path, obj) returns VOID.
-//   You CANNOT do: if (JsonFileLoader<T>.JsonLoadFile(...)) -- it will not compile.
-//   Always pass a pre-created object by reference.
+// ОСОБЕННОСТЬ ENFORCE SCRIPT:
+//   JsonFileLoader<T>.JsonLoadFile(path, obj) возвращает VOID.
+//   Вы НЕ МОЖЕТЕ написать: if (JsonFileLoader<T>.JsonLoadFile(...)) -- это не скомпилируется.
+//   Всегда передавайте предварительно созданный объект по ссылке.
 // ==========================================================================
 
 class MyModConfig
 {
-    // --- General Settings ---
+    // --- Общие настройки ---
 
-    // Master switch: if false, the entire mod is disabled.
+    // Главный переключатель: если false, весь мод отключён.
     bool Enabled = true;
 
-    // How often (in seconds) the manager runs its update tick.
-    // Lower values = more responsive but higher CPU cost.
+    // Как часто (в секундах) менеджер выполняет тик обновления.
+    // Меньшие значения = более отзывчиво, но выше нагрузка на CPU.
     float UpdateInterval = 5.0;
 
-    // Maximum number of items/entities this mod manages simultaneously.
+    // Максимальное количество предметов/сущностей, которыми управляет этот мод одновременно.
     int MaxItems = 100;
 
-    // Mode: 0 = DISABLED, 1 = PASSIVE, 2 = ACTIVE (see MyModMode enum).
+    // Режим: 0 = DISABLED, 1 = PASSIVE, 2 = ACTIVE (см. перечисление MyModMode).
     int Mode = 2;
 
-    // --- Messages ---
+    // --- Сообщения ---
 
-    // Welcome message shown to players when they connect.
-    // Empty string = no message.
+    // Приветственное сообщение, показываемое игрокам при подключении.
+    // Пустая строка = без сообщения.
     string WelcomeMessage = "Welcome to the server!";
 
-    // Whether to show the welcome message as a notification or chat message.
+    // Показывать приветственное сообщение как уведомление или сообщение в чате.
     bool WelcomeAsNotification = true;
 
-    // --- Logging ---
+    // --- Логирование ---
 
-    // Enable verbose debug logging. Turn off for production servers.
+    // Включить подробное отладочное логирование. Отключите для продакшн-серверов.
     bool DebugLogging = false;
 
     // -----------------------------------------------------------------------
-    // Load - reads config from disk, returns instance with defaults if missing
+    // Load - читает конфигурацию с диска, возвращает экземпляр с значениями по умолчанию если отсутствует
     // -----------------------------------------------------------------------
     static MyModConfig Load()
     {
-        // Always create a fresh instance first. This ensures all defaults
-        // are set even if the JSON file is missing fields (e.g., after
-        // an update that added new settings).
+        // Всегда сначала создаём новый экземпляр. Это гарантирует, что все значения по умолчанию
+        // установлены, даже если в JSON-файле отсутствуют поля (например, после
+        // обновления, добавившего новые настройки).
         MyModConfig cfg = new MyModConfig();
 
-        // Check if the config file exists before trying to load.
-        // On first run, it will not exist -- we use defaults and save.
+        // Проверяем, существует ли файл конфигурации, прежде чем пытаться загрузить.
+        // При первом запуске он не будет существовать -- используем значения по умолчанию и сохраняем.
         if (FileExist(MYMOD_CONFIG_PATH))
         {
-            // JsonLoadFile populates the existing object. It does NOT return
-            // a new object. Fields present in the JSON overwrite defaults;
-            // fields missing from the JSON keep their default values.
+            // JsonLoadFile заполняет существующий объект. Он НЕ возвращает
+            // новый объект. Поля, присутствующие в JSON, перезаписывают значения по умолчанию;
+            // поля, отсутствующие в JSON, сохраняют значения по умолчанию.
             JsonFileLoader<MyModConfig>.JsonLoadFile(MYMOD_CONFIG_PATH, cfg);
         }
         else
         {
-            // First run: save defaults so the admin has a file to edit.
+            // Первый запуск: сохраняем значения по умолчанию, чтобы у администратора был файл для редактирования.
             cfg.Save();
             Print(MYMOD_TAG + " No config found, created default at: " + MYMOD_CONFIG_PATH);
         }
@@ -418,25 +422,25 @@ class MyModConfig
     }
 
     // -----------------------------------------------------------------------
-    // Save - writes current values to disk as formatted JSON
+    // Save - записывает текущие значения на диск как форматированный JSON
     // -----------------------------------------------------------------------
     void Save()
     {
-        // Ensure the directory exists. MakeDirectory is safe to call
-        // even if the directory already exists.
+        // Убеждаемся, что каталог существует. MakeDirectory безопасно вызывать,
+        // даже если каталог уже существует.
         if (!FileExist(MYMOD_CONFIG_DIR))
         {
             MakeDirectory(MYMOD_CONFIG_DIR);
         }
 
-        // JsonSaveFile writes all fields as a JSON object.
-        // The file is overwritten entirely -- there is no merge.
+        // JsonSaveFile записывает все поля как JSON-объект.
+        // Файл перезаписывается целиком -- слияния нет.
         JsonFileLoader<MyModConfig>.JsonSaveFile(MYMOD_CONFIG_PATH, this);
     }
 };
 ```
 
-The resulting `config.json` on disk looks like this:
+Результирующий `config.json` на диске выглядит так:
 
 ```json
 {
@@ -450,48 +454,48 @@ The resulting `config.json` on disk looks like this:
 }
 ```
 
-Admins edit this file, restart the server, and the new values take effect.
+Администраторы редактируют этот файл, перезапускают сервер, и новые значения вступают в силу.
 
 ---
 
-## RPC Definitions (3_Game)
+## Определения RPC (3_Game)
 
-Place at `Scripts/3_Game/MyMod/MyModRPC.c`.
+Разместите по пути `Scripts/3_Game/MyMod/MyModRPC.c`.
 
-RPC (Remote Procedure Call) is how the client and server communicate in DayZ. This file defines route names and provides helper methods for registration.
+RPC (Remote Procedure Call) -- это способ коммуникации клиента и сервера в DayZ. Этот файл определяет имена маршрутов и предоставляет вспомогательные методы для регистрации.
 
 ```c
 // ==========================================================================
-// MyModRPC.c - RPC route definitions and helpers
-// 3_Game layer: route name constants must be available everywhere.
+// MyModRPC.c - Определения маршрутов RPC и помощники
+// Слой 3_Game: константы имён маршрутов должны быть доступны везде.
 //
-// HOW RPC WORKS IN DAYZ:
-//   The engine provides ScriptRPC and OnRPC for sending/receiving data.
-//   You call GetGame().RPCSingleParam() or create a ScriptRPC, write
-//   data into it, and send it. The receiver reads data in the same order.
+// КАК РАБОТАЕТ RPC В DAYZ:
+//   Движок предоставляет ScriptRPC и OnRPC для отправки/получения данных.
+//   Вы вызываете GetGame().RPCSingleParam() или создаёте ScriptRPC, записываете
+//   данные в него и отправляете. Получатель читает данные в том же порядке.
 //
-//   DayZ uses integer RPC IDs. To avoid collisions between mods, each
-//   mod should pick a unique ID range or use a string-routing system.
-//   This template uses a single unique int ID with a string prefix
-//   to identify which handler should process each message.
+//   DayZ использует целочисленные ID RPC. Для избежания коллизий между модами
+//   каждый мод должен выбрать уникальный диапазон ID или использовать систему
+//   строковой маршрутизации. Этот шаблон использует единый уникальный int ID
+//   со строковым префиксом для идентификации обработчика каждого сообщения.
 //
-// PATTERN:
-//   1. Client wants data -> sends request RPC to server
-//   2. Server processes  -> sends response RPC back to client
-//   3. Client receives   -> updates UI or state
+// ПАТТЕРН:
+//   1. Клиент хочет данные -> отправляет запросной RPC серверу
+//   2. Сервер обрабатывает -> отправляет ответный RPC обратно клиенту
+//   3. Клиент получает -> обновляет UI или состояние
 // ==========================================================================
 
 // ---------------------------------------------------------------------------
-// RPC ID - pick a unique number unlikely to collide with other mods.
-// Check the DayZ community wiki for commonly used ranges.
-// Engine built-in RPCs use low numbers (0-1000).
-// Convention: use a 5-digit number based on your mod name's hash.
+// ID RPC - выберите уникальное число, маловероятно совпадающее с другими модами.
+// Проверьте вики сообщества DayZ для часто используемых диапазонов.
+// Встроенные RPC движка используют малые числа (0-1000).
+// Соглашение: используйте 5-значное число на основе хэша имени вашего мода.
 // ---------------------------------------------------------------------------
 const int MYMOD_RPC_ID = 74291;
 
 // ---------------------------------------------------------------------------
-// RPC Route Names - string identifiers for each RPC endpoint.
-// Using constants prevents typos and enables IDE search.
+// Имена маршрутов RPC - строковые идентификаторы для каждой конечной точки RPC.
+// Использование констант предотвращает опечатки и позволяет поиск в IDE.
 // ---------------------------------------------------------------------------
 const string MYMOD_RPC_CONFIG_SYNC     = "MyMod:ConfigSync";
 const string MYMOD_RPC_WELCOME         = "MyMod:Welcome";
@@ -500,43 +504,43 @@ const string MYMOD_RPC_UI_REQUEST      = "MyMod:UIRequest";
 const string MYMOD_RPC_UI_RESPONSE     = "MyMod:UIResponse";
 
 // ---------------------------------------------------------------------------
-// MyModRPCHelper - static utility class for sending RPCs
-// Wraps the boilerplate of creating a ScriptRPC, writing the route
-// string, writing payload, and calling Send().
+// MyModRPCHelper - статический утилитарный класс для отправки RPC
+// Оборачивает шаблонный код создания ScriptRPC, записи строки маршрута,
+// записи полезной нагрузки и вызова Send().
 // ---------------------------------------------------------------------------
 class MyModRPCHelper
 {
-    // Send a string message from server to a specific client.
-    // identity: the target player. null = broadcast to all.
-    // routeName: which handler should process this (e.g., MYMOD_RPC_WELCOME).
-    // message: the string payload.
+    // Отправка строкового сообщения с сервера конкретному клиенту.
+    // identity: целевой игрок. null = рассылка всем.
+    // routeName: какой обработчик должен обработать это (например, MYMOD_RPC_WELCOME).
+    // message: строковая полезная нагрузка.
     static void SendStringToClient(PlayerIdentity identity, string routeName, string message)
     {
-        // Create the RPC object. This is the envelope.
+        // Создаём объект RPC. Это конверт.
         ScriptRPC rpc = new ScriptRPC();
 
-        // Write the route name first. The receiver reads this to decide
-        // which handler to call. Always write/read in the same order.
+        // Записываем имя маршрута первым. Получатель читает его, чтобы решить,
+        // какой обработчик вызвать. Всегда записывайте/читайте в одном порядке.
         rpc.Write(routeName);
 
-        // Write the payload data.
+        // Записываем данные полезной нагрузки.
         rpc.Write(message);
 
-        // Send to the client. Parameters:
-        //   null    = no target object (player entity not needed for custom RPCs)
-        //   MYMOD_RPC_ID = our unique RPC channel
-        //   true    = guaranteed delivery (TCP-like). Use false for frequent updates.
-        //   identity = target client. null would broadcast to ALL clients.
+        // Отправляем клиенту. Параметры:
+        //   null    = нет целевого объекта (сущность игрока не нужна для пользовательских RPC)
+        //   MYMOD_RPC_ID = наш уникальный канал RPC
+        //   true    = гарантированная доставка (подобно TCP). Используйте false для частых обновлений.
+        //   identity = целевой клиент. null рассылает ВСЕМ клиентам.
         rpc.Send(null, MYMOD_RPC_ID, true, identity);
     }
 
-    // Send a request from client to server (no payload, just the route).
+    // Отправка запроса от клиента серверу (без полезной нагрузки, только маршрут).
     static void SendRequestToServer(string routeName)
     {
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(routeName);
-        // When sending TO the server, identity is null (server has no PlayerIdentity).
-        // guaranteed = true ensures the message arrives.
+        // При отправке НА сервер identity равен null (у сервера нет PlayerIdentity).
+        // guaranteed = true гарантирует доставку сообщения.
         rpc.Send(null, MYMOD_RPC_ID, true, null);
     }
 };
@@ -544,49 +548,49 @@ class MyModRPCHelper
 
 ---
 
-## Manager Singleton (4_World)
+## Синглтон-менеджер (4_World)
 
-Place at `Scripts/4_World/MyMod/MyModManager.c`.
+Разместите по пути `Scripts/4_World/MyMod/MyModManager.c`.
 
-Это central brain of your mod on the server side. It owns the config, processes RPC, and runs periodic updates.
+Это центральный мозг вашего мода на стороне сервера. Он владеет конфигурацией, обрабатывает RPC и выполняет периодические обновления.
 
 ```c
 // ==========================================================================
-// MyModManager.c - Server-side singleton manager
-// 4_World layer: can reference 3_Game types (config, constants, RPC).
+// MyModManager.c - Серверный синглтон-менеджер
+// Слой 4_World: может ссылаться на типы 3_Game (конфигурация, константы, RPC).
 //
-// WHY a singleton:
-//   The manager needs exactly one instance that persists for the entire
-//   mission. Multiple instances would cause duplicate processing and
-//   conflicting state. The singleton pattern guarantees one instance
-//   and provides global access via GetInstance().
+// ЗАЧЕМ синглтон:
+//   Менеджеру нужен ровно один экземпляр, который существует на протяжении всей
+//   миссии. Несколько экземпляров вызвали бы дублирование обработки и
+//   конфликтующее состояние. Паттерн синглтон гарантирует один экземпляр
+//   и предоставляет глобальный доступ через GetInstance().
 //
-// LIFECYCLE:
-//   1. MissionServer.OnInit() calls MyModManager.GetInstance().Init()
-//   2. Manager loads config, registers RPCs, starts timers
-//   3. Manager processes events during gameplay
-//   4. MissionServer.OnMissionFinish() calls MyModManager.Cleanup()
-//   5. Singleton is destroyed, all references are released
+// ЖИЗНЕННЫЙ ЦИКЛ:
+//   1. MissionServer.OnInit() вызывает MyModManager.GetInstance().Init()
+//   2. Менеджер загружает конфигурацию, регистрирует RPC, запускает таймеры
+//   3. Менеджер обрабатывает события во время геймплея
+//   4. MissionServer.OnMissionFinish() вызывает MyModManager.Cleanup()
+//   5. Синглтон уничтожается, все ссылки освобождаются
 // ==========================================================================
 
 class MyModManager
 {
-    // The single instance. 'ref' means this class OWNS the object.
-    // When s_Instance is set to null, the object is destroyed.
+    // Единственный экземпляр. 'ref' означает, что этот класс ВЛАДЕЕТ объектом.
+    // Когда s_Instance устанавливается в null, объект уничтожается.
     private static ref MyModManager s_Instance;
 
-    // Configuration loaded from disk.
-    // 'ref' because the manager owns the config object's lifetime.
+    // Конфигурация, загруженная с диска.
+    // 'ref' потому что менеджер владеет временем жизни объекта конфигурации.
     protected ref MyModConfig m_Config;
 
-    // Accumulated time since last update tick (seconds).
+    // Накопленное время с последнего тика обновления (секунды).
     protected float m_TimeSinceUpdate;
 
-    // Tracks whether Init() has been called successfully.
+    // Отслеживает, был ли Init() успешно вызван.
     protected bool m_Initialized;
 
     // -----------------------------------------------------------------------
-    // Singleton access
+    // Доступ к синглтону
     // -----------------------------------------------------------------------
 
     static MyModManager GetInstance()
@@ -598,23 +602,23 @@ class MyModManager
         return s_Instance;
     }
 
-    // Call this on mission end to destroy the singleton and free memory.
-    // Setting s_Instance to null triggers the destructor.
+    // Вызовите при завершении миссии для уничтожения синглтона и освобождения памяти.
+    // Установка s_Instance в null вызывает деструктор.
     static void Cleanup()
     {
         s_Instance = null;
     }
 
     // -----------------------------------------------------------------------
-    // Lifecycle
+    // Жизненный цикл
     // -----------------------------------------------------------------------
 
-    // Called once from MissionServer.OnInit().
+    // Вызывается один раз из MissionServer.OnInit().
     void Init()
     {
         if (m_Initialized) return;
 
-        // Load config from disk (or create defaults on first run).
+        // Загрузка конфигурации с диска (или создание значений по умолчанию при первом запуске).
         m_Config = MyModConfig.Load();
 
         if (!m_Config.Enabled)
@@ -623,7 +627,7 @@ class MyModManager
             return;
         }
 
-        // Reset the update timer.
+        // Сброс таймера обновления.
         m_TimeSinceUpdate = 0;
 
         m_Initialized = true;
@@ -638,46 +642,46 @@ class MyModManager
         }
     }
 
-    // Called every frame from MissionServer.OnUpdate().
-    // timeslice is the seconds elapsed since the last frame.
+    // Вызывается каждый кадр из MissionServer.OnUpdate().
+    // timeslice -- секунды, прошедшие с последнего кадра.
     void OnUpdate(float timeslice)
     {
         if (!m_Initialized || !m_Config.Enabled) return;
 
-        // Accumulate time and only process at the configured interval.
-        // This prevents running expensive logic every single frame.
+        // Накапливаем время и обрабатываем только с настроенным интервалом.
+        // Это предотвращает выполнение дорогостоящей логики каждый кадр.
         m_TimeSinceUpdate += timeslice;
         if (m_TimeSinceUpdate < m_Config.UpdateInterval) return;
         m_TimeSinceUpdate = 0;
 
-        // --- Periodic update logic goes here ---
-        // Example: iterate tracked entities, check conditions, etc.
+        // --- Логика периодического обновления здесь ---
+        // Пример: итерация отслеживаемых сущностей, проверка условий и т.д.
         if (m_Config.DebugLogging)
         {
             Print(MYMOD_TAG + " Periodic update tick");
         }
     }
 
-    // Called when the mission ends (server shutdown or restart).
+    // Вызывается при завершении миссии (выключение или перезапуск сервера).
     void Shutdown()
     {
         if (!m_Initialized) return;
 
         Print(MYMOD_TAG + " Manager shutting down");
 
-        // Save any runtime state if needed.
+        // Сохранение состояния времени выполнения при необходимости.
         // m_Config.Save();
 
         m_Initialized = false;
     }
 
     // -----------------------------------------------------------------------
-    // RPC Handlers
+    // Обработчики RPC
     // -----------------------------------------------------------------------
 
-    // Called when a client requests UI data.
-    // sender: the player who sent the request.
-    // ctx: the data stream (already past the route name).
+    // Вызывается, когда клиент запрашивает данные UI.
+    // sender: игрок, отправивший запрос.
+    // ctx: поток данных (уже после имени маршрута).
     void OnUIRequest(PlayerIdentity sender, ParamsReadContext ctx)
     {
         if (!sender) return;
@@ -687,19 +691,19 @@ class MyModManager
             Print(MYMOD_TAG + " UI data requested by: " + sender.GetName());
         }
 
-        // Build response data and send it back.
-        // In a real mod, you would gather actual data here.
+        // Формируем данные ответа и отправляем обратно.
+        // В реальном моде вы бы собирали здесь фактические данные.
         string responseData = "Items: " + m_Config.MaxItems.ToString();
         MyModRPCHelper.SendStringToClient(sender, MYMOD_RPC_UI_RESPONSE, responseData);
     }
 
-    // Called when a player connects. Sends welcome message if configured.
+    // Вызывается при подключении игрока. Отправляет приветственное сообщение если настроено.
     void OnPlayerConnected(PlayerIdentity identity)
     {
         if (!m_Initialized || !m_Config.Enabled) return;
         if (!identity) return;
 
-        // Send welcome message if configured.
+        // Отправляем приветственное сообщение если настроено.
         if (m_Config.WelcomeMessage != "")
         {
             MyModRPCHelper.SendStringToClient(identity, MYMOD_RPC_WELCOME, m_Config.WelcomeMessage);
@@ -712,7 +716,7 @@ class MyModManager
     }
 
     // -----------------------------------------------------------------------
-    // Accessors
+    // Аксессоры
     // -----------------------------------------------------------------------
 
     MyModConfig GetConfig()
@@ -729,58 +733,58 @@ class MyModManager
 
 ---
 
-## Player Event Handler (4_World)
+## Обработчик событий игрока (4_World)
 
-Place at `Scripts/4_World/MyMod/MyModPlayerHandler.c`.
+Разместите по пути `Scripts/4_World/MyMod/MyModPlayerHandler.c`.
 
-This uses the `modded class` pattern to hook into the vanilla `PlayerBase` entity and detect connect/disconnect events.
+Используется паттерн `modded class` для подключения к ванильной сущности `PlayerBase` и обнаружения событий подключения/отключения.
 
 ```c
 // ==========================================================================
-// MyModPlayerHandler.c - Player lifecycle hooks
-// 4_World layer: modded PlayerBase to intercept connect/disconnect.
+// MyModPlayerHandler.c - Хуки жизненного цикла игрока
+// Слой 4_World: модифицированный PlayerBase для перехвата подключения/отключения.
 //
-// WHY modded class:
-//   DayZ does not have a "player connected" event callback. The standard
-//   pattern is to override methods on MissionServer (for new connections)
-//   or hook into PlayerBase (for entity-level events like death).
-//   We use modded PlayerBase here to demonstrate entity-level hooks.
+// ЗАЧЕМ modded class:
+//   DayZ не имеет колбэка "игрок подключён". Стандартный паттерн --
+//   переопределение методов MissionServer (для новых подключений)
+//   или подключение к PlayerBase (для событий уровня сущности, таких как смерть).
+//   Мы используем modded PlayerBase для демонстрации хуков уровня сущности.
 //
-// IMPORTANT:
-//   Always call super.MethodName() first in overrides. Failing to do so
-//   breaks the vanilla behavior chain and other mods that also override
-//   the same method.
+// ВАЖНО:
+//   Всегда вызывайте super.MethodName() первым в переопределениях. Невыполнение
+//   ломает цепочку ванильного поведения и другие моды, которые также переопределяют
+//   тот же метод.
 // ==========================================================================
 
 modded class PlayerBase
 {
-    // Track whether we have sent the init event for this player.
-    // This prevents duplicate processing if Init() is called multiple times.
+    // Отслеживаем, отправили ли мы событие инициализации для этого игрока.
+    // Это предотвращает дублирование обработки, если Init() вызывается несколько раз.
     protected bool m_MyModPlayerReady;
 
     // -----------------------------------------------------------------------
-    // Called after the player entity is fully created and replicated.
-    // On the server, this is where the player is "ready" to receive RPCs.
+    // Вызывается после полного создания и репликации сущности игрока.
+    // На сервере это место, где игрок "готов" принимать RPC.
     // -----------------------------------------------------------------------
     override void Init()
     {
         super.Init();
 
-        // Only run on the server. GetGame().IsServer() returns true on
-        // dedicated servers and on the host of a listen server.
+        // Выполняем только на сервере. GetGame().IsServer() возвращает true на
+        // выделенных серверах и на хосте listen-сервера.
         if (!GetGame().IsServer()) return;
 
-        // Guard against double-init.
+        // Защита от повторной инициализации.
         if (m_MyModPlayerReady) return;
         m_MyModPlayerReady = true;
 
-        // Get the player's network identity.
-        // On the server, GetIdentity() returns the PlayerIdentity object
-        // containing the player's name, Steam ID (PlainId), and UID.
+        // Получаем сетевую идентификацию игрока.
+        // На сервере GetIdentity() возвращает объект PlayerIdentity,
+        // содержащий имя игрока, Steam ID (PlainId) и UID.
         PlayerIdentity identity = GetIdentity();
         if (!identity) return;
 
-        // Notify the manager that a player has connected.
+        // Уведомляем менеджер о подключении игрока.
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
@@ -792,58 +796,58 @@ modded class PlayerBase
 
 ---
 
-## Mission Hook: Server (5_Mission)
+## Хук миссии: Сервер (5_Mission)
 
-Place at `Scripts/5_Mission/MyMod/MyModMissionServer.c`.
+Разместите по пути `Scripts/5_Mission/MyMod/MyModMissionServer.c`.
 
-This hooks into `MissionServer` to initialize and shut down the mod on the server side.
+Подключается к `MissionServer` для инициализации и завершения мода на стороне сервера.
 
 ```c
 // ==========================================================================
-// MyModMissionServer.c - Server-side mission hooks
-// 5_Mission layer: last to load, can reference all lower layers.
+// MyModMissionServer.c - Серверные хуки миссии
+// Слой 5_Mission: загружается последним, может ссылаться на все нижние слои.
 //
-// WHY modded MissionServer:
-//   MissionServer is the entry point for server-side logic. Its OnInit()
-//   runs once when the mission starts (server boot). OnMissionFinish()
-//   runs when the server shuts down or restarts. These are the correct
-//   places to set up and tear down your mod's systems.
+// ЗАЧЕМ modded MissionServer:
+//   MissionServer -- точка входа для серверной логики. Его OnInit()
+//   выполняется один раз при старте миссии (загрузка сервера). OnMissionFinish()
+//   выполняется при выключении или перезапуске сервера. Это правильные
+//   места для настройки и очистки систем вашего мода.
 //
-// LIFECYCLE ORDER:
-//   1. Engine loads all script layers (3_Game -> 4_World -> 5_Mission)
-//   2. Engine creates MissionServer instance
-//   3. OnInit() is called -> initialize your systems here
-//   4. OnMissionStart() is called -> world is ready, players can join
-//   5. OnUpdate() is called every frame
-//   6. OnMissionFinish() is called -> server is shutting down
+// ПОРЯДОК ЖИЗНЕННОГО ЦИКЛА:
+//   1. Движок загружает все слои скриптов (3_Game -> 4_World -> 5_Mission)
+//   2. Движок создаёт экземпляр MissionServer
+//   3. Вызывается OnInit() -> инициализируйте ваши системы здесь
+//   4. Вызывается OnMissionStart() -> мир готов, игроки могут подключаться
+//   5. OnUpdate() вызывается каждый кадр
+//   6. Вызывается OnMissionFinish() -> сервер завершает работу
 // ==========================================================================
 
 modded class MissionServer
 {
     // -----------------------------------------------------------------------
-    // Initialization
+    // Инициализация
     // -----------------------------------------------------------------------
     override void OnInit()
     {
-        // ALWAYS call super first. Other mods in the chain depend on this.
+        // ВСЕГДА вызывайте super первым. Другие моды в цепочке зависят от этого.
         super.OnInit();
 
-        // Initialize the manager singleton. This loads config from disk,
-        // registers RPC handlers, and prepares the mod for operation.
+        // Инициализируем синглтон-менеджер. Это загружает конфигурацию с диска,
+        // регистрирует обработчики RPC и подготавливает мод к работе.
         MyModManager.GetInstance().Init();
 
         Print(MYMOD_TAG + " Server mission initialized");
     }
 
     // -----------------------------------------------------------------------
-    // Per-frame update
+    // Покадровое обновление
     // -----------------------------------------------------------------------
     override void OnUpdate(float timeslice)
     {
         super.OnUpdate(timeslice);
 
-        // Delegate to the manager. The manager handles its own rate
-        // limiting (UpdateInterval from config) so this is cheap.
+        // Делегируем менеджеру. Менеджер самостоятельно управляет
+        // ограничением частоты (UpdateInterval из конфигурации), так что это дёшево.
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
@@ -852,21 +856,21 @@ modded class MissionServer
     }
 
     // -----------------------------------------------------------------------
-    // Player connection - server RPC dispatch
-    // Called by the engine when a client sends an RPC to the server.
+    // Подключение игрока - серверная диспетчеризация RPC
+    // Вызывается движком, когда клиент отправляет RPC серверу.
     // -----------------------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, target, rpc_type, ctx);
 
-        // Only handle our RPC ID. All other RPCs pass through.
+        // Обрабатываем только наш ID RPC. Все остальные RPC проходят насквозь.
         if (rpc_type != MYMOD_RPC_ID) return;
 
-        // Read the route name (first string written by the sender).
+        // Читаем имя маршрута (первая строка, записанная отправителем).
         string routeName;
         if (!ctx.Read(routeName)) return;
 
-        // Dispatch to the correct handler based on route name.
+        // Диспетчеризация к правильному обработчику на основе имени маршрута.
         MyModManager mgr = MyModManager.GetInstance();
         if (!mgr) return;
 
@@ -874,7 +878,7 @@ modded class MissionServer
         {
             mgr.OnUIRequest(sender, ctx);
         }
-        // Add more routes here as your mod grows:
+        // Добавляйте больше маршрутов здесь по мере роста вашего мода:
         // else if (routeName == MYMOD_RPC_SOME_OTHER)
         // {
         //     mgr.OnSomeOther(sender, ctx);
@@ -882,21 +886,21 @@ modded class MissionServer
     }
 
     // -----------------------------------------------------------------------
-    // Shutdown
+    // Завершение
     // -----------------------------------------------------------------------
     override void OnMissionFinish()
     {
-        // Shut down the manager before calling super.
-        // This ensures our cleanup runs before the engine tears down
-        // the mission infrastructure.
+        // Завершаем менеджер перед вызовом super.
+        // Это гарантирует выполнение нашей очистки до того, как движок разрушит
+        // инфраструктуру миссии.
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
             mgr.Shutdown();
         }
 
-        // Destroy the singleton to free memory and prevent stale state
-        // if the mission restarts (e.g., server restart without process exit).
+        // Уничтожаем синглтон для освобождения памяти и предотвращения устаревшего состояния,
+        // если миссия перезапустится (например, перезапуск сервера без завершения процесса).
         MyModManager.Cleanup();
 
         Print(MYMOD_TAG + " Server mission finished");
@@ -908,39 +912,39 @@ modded class MissionServer
 
 ---
 
-## Mission Hook: Client (5_Mission)
+## Хук миссии: Клиент (5_Mission)
 
-Place at `Scripts/5_Mission/MyMod/MyModMissionClient.c`.
+Разместите по пути `Scripts/5_Mission/MyMod/MyModMissionClient.c`.
 
-This hooks into `MissionGameplay` for client-side initialization, input handling, and RPC receiving.
+Подключается к `MissionGameplay` для клиентской инициализации, обработки ввода и получения RPC.
 
 ```c
 // ==========================================================================
-// MyModMissionClient.c - Client-side mission hooks
-// 5_Mission layer.
+// MyModMissionClient.c - Клиентские хуки миссии
+// Слой 5_Mission.
 //
-// WHY MissionGameplay:
-//   On the client, MissionGameplay is the active mission class during
-//   gameplay. It receives OnUpdate() every frame (for input polling)
-//   and OnRPC() for incoming server messages.
+// ЗАЧЕМ MissionGameplay:
+//   На клиенте MissionGameplay -- это активный класс миссии во время
+//   геймплея. Он получает OnUpdate() каждый кадр (для опроса ввода)
+//   и OnRPC() для входящих серверных сообщений.
 //
-// NOTE ON LISTEN SERVERS:
-//   On a listen server (host + play), BOTH MissionServer and
-//   MissionGameplay are active. Your client code will run alongside
-//   server code. Guard with GetGame().IsClient() or GetGame().IsServer()
-//   if you need side-specific logic.
+// ПРИМЕЧАНИЕ О LISTEN-СЕРВЕРАХ:
+//   На listen-сервере (хост + игра) активны ОБА MissionServer и
+//   MissionGameplay. Ваш клиентский код будет работать параллельно с
+//   серверным. Защищайтесь GetGame().IsClient() или GetGame().IsServer(),
+//   если нужна логика для конкретной стороны.
 // ==========================================================================
 
 modded class MissionGameplay
 {
-    // Reference to the UI panel. null when closed.
+    // Ссылка на UI-панель. null когда закрыта.
     protected ref MyModUI m_MyModPanel;
 
-    // Track initialization state.
+    // Отслеживание состояния инициализации.
     protected bool m_MyModInitialized;
 
     // -----------------------------------------------------------------------
-    // Initialization
+    // Инициализация
     // -----------------------------------------------------------------------
     override void OnInit()
     {
@@ -952,7 +956,7 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // Per-frame update: input polling and UI management
+    // Покадровое обновление: опрос ввода и управление UI
     // -----------------------------------------------------------------------
     override void OnUpdate(float timeslice)
     {
@@ -960,10 +964,10 @@ modded class MissionGameplay
 
         if (!m_MyModInitialized) return;
 
-        // Poll for the keybind defined in Inputs.xml.
-        // GetUApi() returns the UserActions API.
-        // GetInputByName() looks up the action by the name in Inputs.xml.
-        // LocalPress() returns true on the frame the key is pressed down.
+        // Опрос привязки клавиши, определённой в Inputs.xml.
+        // GetUApi() возвращает API пользовательских действий.
+        // GetInputByName() ищет действие по имени из Inputs.xml.
+        // LocalPress() возвращает true на кадре нажатия клавиши.
         UAInput panelInput = GetUApi().GetInputByName("UAMyModPanel");
         if (panelInput && panelInput.LocalPress())
         {
@@ -972,28 +976,28 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // RPC receiver: handles messages from the server
+    // Приёмник RPC: обрабатывает сообщения от сервера
     // -----------------------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, target, rpc_type, ctx);
 
-        // Only handle our RPC ID.
+        // Обрабатываем только наш ID RPC.
         if (rpc_type != MYMOD_RPC_ID) return;
 
-        // Read the route name.
+        // Читаем имя маршрута.
         string routeName;
         if (!ctx.Read(routeName)) return;
 
-        // Dispatch based on route.
+        // Диспетчеризация по маршруту.
         if (routeName == MYMOD_RPC_WELCOME)
         {
             string welcomeMsg;
             if (ctx.Read(welcomeMsg))
             {
-                // Display the welcome message to the player.
-                // GetGame().GetMission().OnEvent() can show notifications,
-                // or you can use a custom UI. For simplicity, we use chat.
+                // Отображаем приветственное сообщение игроку.
+                // GetGame().GetMission().OnEvent() может показывать уведомления,
+                // или вы можете использовать пользовательский UI. Для простоты используем чат.
                 GetGame().Chat(welcomeMsg, "");
                 Print(MYMOD_TAG + " Welcome message: " + welcomeMsg);
             }
@@ -1003,7 +1007,7 @@ modded class MissionGameplay
             string responseData;
             if (ctx.Read(responseData))
             {
-                // Update the UI panel with received data.
+                // Обновляем UI-панель полученными данными.
                 if (m_MyModPanel)
                 {
                     m_MyModPanel.SetData(responseData);
@@ -1013,7 +1017,7 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // UI Panel toggle
+    // Переключение UI-панели
     // -----------------------------------------------------------------------
     protected void TogglePanel()
     {
@@ -1024,7 +1028,7 @@ modded class MissionGameplay
         }
         else
         {
-            // Only open if the player is alive and no other menu is showing.
+            // Открываем только если игрок жив и никакое другое меню не показано.
             PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
             if (!player || !player.IsAlive()) return;
 
@@ -1034,17 +1038,17 @@ modded class MissionGameplay
             m_MyModPanel = new MyModUI();
             m_MyModPanel.Open();
 
-            // Request fresh data from the server.
+            // Запрашиваем свежие данные с сервера.
             MyModRPCHelper.SendRequestToServer(MYMOD_RPC_UI_REQUEST);
         }
     }
 
     // -----------------------------------------------------------------------
-    // Shutdown
+    // Завершение
     // -----------------------------------------------------------------------
     override void OnMissionFinish()
     {
-        // Close and destroy the UI panel if open.
+        // Закрываем и уничтожаем UI-панель если открыта.
         if (m_MyModPanel)
         {
             m_MyModPanel.Close();
@@ -1062,68 +1066,68 @@ modded class MissionGameplay
 
 ---
 
-## UI Panel Script (5_Mission)
+## Скрипт UI-панели (5_Mission)
 
-Place at `Scripts/5_Mission/MyMod/MyModUI.c`.
+Разместите по пути `Scripts/5_Mission/MyMod/MyModUI.c`.
 
-This script drives the UI panel defined in the `.layout` file. It finds widget references, populates them with data, and handles open/close.
+Этот скрипт управляет UI-панелью, определённой в файле `.layout`. Он находит ссылки на виджеты, заполняет их данными и обрабатывает открытие/закрытие.
 
 ```c
 // ==========================================================================
-// MyModUI.c - UI panel controller
-// 5_Mission layer: can reference all lower layers.
+// MyModUI.c - Контроллер UI-панели
+// Слой 5_Mission: может ссылаться на все нижние слои.
 //
-// HOW DayZ UI WORKS:
-//   1. A .layout file defines the widget hierarchy (like HTML).
-//   2. A script class loads the layout, finds widgets by name, and
-//      manipulates them (set text, show/hide, respond to clicks).
-//   3. The script shows/hides the root widget and manages input focus.
+// КАК РАБОТАЕТ UI В DAYZ:
+//   1. Файл .layout определяет иерархию виджетов (как HTML).
+//   2. Класс скрипта загружает макет, находит виджеты по имени и
+//      управляет ими (установка текста, показ/скрытие, реакция на клики).
+//   3. Скрипт показывает/скрывает корневой виджет и управляет фокусом ввода.
 //
-// WIDGET LIFECYCLE:
-//   GetGame().GetWorkspace().CreateWidgets() loads the layout file and
-//   returns the root widget. You then use FindAnyWidget() to get
-//   references to named child widgets. When done, call widget.Unlink()
-//   to destroy the entire widget tree.
+// ЖИЗНЕННЫЙ ЦИКЛ ВИДЖЕТОВ:
+//   GetGame().GetWorkspace().CreateWidgets() загружает файл макета и
+//   возвращает корневой виджет. Затем используйте FindAnyWidget() для получения
+//   ссылок на именованные дочерние виджеты. По завершении вызовите widget.Unlink()
+//   для уничтожения всего дерева виджетов.
 // ==========================================================================
 
 class MyModUI
 {
-    // Root widget of the panel (loaded from .layout).
+    // Корневой виджет панели (загружен из .layout).
     protected ref Widget m_Root;
 
-    // Named child widgets.
+    // Именованные дочерние виджеты.
     protected TextWidget m_TitleText;
     protected TextWidget m_DataText;
     protected TextWidget m_VersionText;
     protected ButtonWidget m_CloseButton;
 
-    // State tracking.
+    // Отслеживание состояния.
     protected bool m_IsOpen;
 
     // -----------------------------------------------------------------------
-    // Constructor: load the layout and find widget references
+    // Конструктор: загрузка макета и поиск ссылок на виджеты
     // -----------------------------------------------------------------------
     void MyModUI()
     {
-        // CreateWidgets loads the .layout file and instantiates all widgets.
-        // The path is relative to the mod root (same as config.cpp paths).
+        // CreateWidgets загружает файл .layout и создаёт все виджеты.
+        // Путь относительно корня мода (так же как пути config.cpp).
         m_Root = GetGame().GetWorkspace().CreateWidgets(
             "MyProfessionalMod/Scripts/GUI/layouts/MyModPanel.layout"
         );
 
-        // Initially hidden until Open() is called.
+        // Изначально скрыт до вызова Open().
         if (m_Root)
         {
             m_Root.Show(false);
 
-            // Find named widgets. These names MUST match the widget names
-            // in the .layout file exactly (case-sensitive).
+            // Поиск именованных виджетов. Эти имена ДОЛЖНЫ точно совпадать с именами виджетов
+            // в файле .layout (с учётом регистра).
             m_TitleText   = TextWidget.Cast(m_Root.FindAnyWidget("TitleText"));
             m_DataText    = TextWidget.Cast(m_Root.FindAnyWidget("DataText"));
             m_VersionText = TextWidget.Cast(m_Root.FindAnyWidget("VersionText"));
             m_CloseButton = ButtonWidget.Cast(m_Root.FindAnyWidget("CloseButton"));
 
-            // Set static content.
+            // Установка статического содержимого.
             if (m_TitleText)
                 m_TitleText.SetText("My Professional Mod");
 
@@ -1133,7 +1137,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Open: show the panel and capture input
+    // Open: показать панель и захватить ввод
     // -----------------------------------------------------------------------
     void Open()
     {
@@ -1142,8 +1146,8 @@ class MyModUI
         m_Root.Show(true);
         m_IsOpen = true;
 
-        // Lock player controls so WASD does not move the character
-        // while the panel is open. This shows a cursor.
+        // Блокируем управление игроком, чтобы WASD не двигало персонаж
+        // пока панель открыта. Это показывает курсор.
         GetGame().GetMission().PlayerControlDisable(INPUT_EXCLUDE_ALL);
         GetGame().GetUIManager().ShowUICursor(true);
 
@@ -1151,7 +1155,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Close: hide the panel and release input
+    // Close: скрыть панель и освободить ввод
     // -----------------------------------------------------------------------
     void Close()
     {
@@ -1160,7 +1164,7 @@ class MyModUI
         m_Root.Show(false);
         m_IsOpen = false;
 
-        // Re-enable player controls.
+        // Повторно включаем управление игроком.
         GetGame().GetMission().PlayerControlEnable(true);
         GetGame().GetUIManager().ShowUICursor(false);
 
@@ -1168,7 +1172,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Data update: called when the server sends UI data
+    // Обновление данных: вызывается, когда сервер отправляет данные UI
     // -----------------------------------------------------------------------
     void SetData(string data)
     {
@@ -1179,7 +1183,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // State query
+    // Запрос состояния
     // -----------------------------------------------------------------------
     bool IsOpen()
     {
@@ -1187,12 +1191,12 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Destructor: clean up the widget tree
+    // Деструктор: очистка дерева виджетов
     // -----------------------------------------------------------------------
     void ~MyModUI()
     {
-        // Unlink destroys the root widget and all its children.
-        // This frees the memory used by the widget tree.
+        // Unlink уничтожает корневой виджет и все его дочерние элементы.
+        // Это освобождает память, используемую деревом виджетов.
         if (m_Root)
         {
             m_Root.Unlink();
@@ -1203,32 +1207,32 @@ class MyModUI
 
 ---
 
-## Layout File
+## Файл макета
 
-Place at `Scripts/GUI/layouts/MyModPanel.layout`.
+Разместите по пути `Scripts/GUI/layouts/MyModPanel.layout`.
 
-This defines the visual structure of the UI panel. DayZ layouts use a custom text format (not XML).
+Определяет визуальную структуру UI-панели. Макеты DayZ используют пользовательский текстовый формат (не XML).
 
 ```
 // ==========================================================================
-// MyModPanel.layout - UI panel structure
+// MyModPanel.layout - Структура UI-панели
 //
-// SIZING RULES:
-//   hexactsize 1 + vexactsize 1 = size is in pixels (e.g., size 400 300)
-//   hexactsize 0 + vexactsize 0 = size is proportional (0.0 to 1.0)
-//   halign/valign control anchor point:
-//     left_ref/top_ref     = anchored to parent's left/top edge
-//     center_ref           = centered in parent
-//     right_ref/bottom_ref = anchored to parent's right/bottom edge
+// ПРАВИЛА РАЗМЕРОВ:
+//   hexactsize 1 + vexactsize 1 = размер в пикселях (например, size 400 300)
+//   hexactsize 0 + vexactsize 0 = размер пропорциональный (от 0.0 до 1.0)
+//   halign/valign управляют точкой привязки:
+//     left_ref/top_ref     = привязка к левому/верхнему краю родителя
+//     center_ref           = центрирование в родителе
+//     right_ref/bottom_ref = привязка к правому/нижнему краю родителя
 //
-// IMPORTANT:
-//   - Never use negative sizes. Use alignment and position instead.
-//   - Widget names must match FindAnyWidget() calls in the script exactly.
-//   - 'ignorepointer 1' means the widget does not receive mouse clicks.
-//   - 'scriptclass' links a widget to a script class for event handling.
+// ВАЖНО:
+//   - Никогда не используйте отрицательные размеры. Используйте выравнивание и позицию.
+//   - Имена виджетов должны точно совпадать с вызовами FindAnyWidget() в скрипте.
+//   - 'ignorepointer 1' означает, что виджет не получает клики мыши.
+//   - 'scriptclass' связывает виджет с классом скрипта для обработки событий.
 // ==========================================================================
 
-// Root panel: centered on screen, 400x300 pixels, semi-transparent background.
+// Корневая панель: центрирована на экране, 400x300 пикселей, полупрозрачный фон.
 PanelWidgetClass MyModPanelRoot {
  position 0 0
  size 400 300
@@ -1241,7 +1245,7 @@ PanelWidgetClass MyModPanelRoot {
  color 0.1 0.1 0.12 0.92
  priority 100
  {
-  // Title bar: full width, 36px tall, at the top.
+  // Панель заголовка: полная ширина, высота 36px, вверху.
   PanelWidgetClass TitleBar {
    position 0 0
    size 1 36
@@ -1251,7 +1255,7 @@ PanelWidgetClass MyModPanelRoot {
    vexactsize 1
    color 0.15 0.15 0.18 1
    {
-    // Title text: left-aligned with padding.
+    // Текст заголовка: выровнен влево с отступом.
     TextWidgetClass TitleText {
      position 12 0
      size 300 36
@@ -1266,7 +1270,7 @@ PanelWidgetClass MyModPanelRoot {
      "exact size" 16
      color 1 1 1 0.9
     }
-    // Version text: right side of title bar.
+    // Текст версии: правая сторона панели заголовка.
     TextWidgetClass VersionText {
      position 0 0
      size 80 36
@@ -1284,7 +1288,7 @@ PanelWidgetClass MyModPanelRoot {
     }
    }
   }
-  // Content area: below title bar, fills remaining space.
+  // Область содержимого: ниже панели заголовка, заполняет оставшееся пространство.
   PanelWidgetClass ContentArea {
    position 0 40
    size 380 200
@@ -1295,7 +1299,7 @@ PanelWidgetClass MyModPanelRoot {
    vexactsize 1
    color 0 0 0 0
    {
-    // Data text: where server data is displayed.
+    // Текст данных: где отображаются серверные данные.
     TextWidgetClass DataText {
      position 12 12
      size 356 160
@@ -1311,7 +1315,7 @@ PanelWidgetClass MyModPanelRoot {
     }
    }
   }
-  // Close button: bottom-right corner.
+  // Кнопка закрытия: правый нижний угол.
   ButtonWidgetClass CloseButton {
    position 0 0
    size 100 32
@@ -1333,11 +1337,11 @@ PanelWidgetClass MyModPanelRoot {
 
 ## stringtable.csv
 
-Place at `Scripts/stringtable.csv`.
+Разместите по пути `Scripts/stringtable.csv`.
 
-This provides localization for all player-facing text. The engine reads the column matching the player's game language. The `original` column is the fallback.
+Предоставляет локализацию для всего текста, видимого игрокам. Движок читает столбец, соответствующий языку игры. Столбец `original` используется как запасной вариант.
 
-DayZ supports 13 language columns. Every row must have all 13 columns (use the English text as placeholder for languages you do not translate).
+DayZ поддерживает 13 языковых столбцов. Каждая строка должна содержать все 13 столбцов (используйте английский текст как заполнитель для языков, которые вы не переводите).
 
 ```csv
 "Language","original","english","czech","german","russian","polish","hungarian","italian","spanish","french","chinese","japanese","portuguese","chinesesimp",
@@ -1348,61 +1352,61 @@ DayZ supports 13 language columns. Every row must have all 13 columns (use the E
 "STR_MYMOD_WELCOME","Welcome!","Welcome!","Vitejte!","Willkommen!","Dobro pozhalovat!","Witaj!","Udvozoljuk!","Benvenuto!","Bienvenido!","Bienvenue!","Welcome!","Welcome!","Bem-vindo!","Welcome!",
 ```
 
-**Важно:** Each line must end with a trailing comma after the last language column. This is a requirement of DayZ's CSV parser.
+**Важно:** Каждая строка должна заканчиваться завершающей запятой после последнего языкового столбца. Это требование CSV-парсера DayZ.
 
 ---
 
 ## Inputs.xml
 
-Place at `Scripts/Inputs.xml`.
+Разместите по пути `Scripts/Inputs.xml`.
 
-This defines custom keybinds that appear in the game's Options > Controls menu. The `inputs` field in `config.cpp` CfgMods must point to this file.
+Определяет пользовательские привязки клавиш, которые появляются в меню игры Настройки > Управление. Поле `inputs` в CfgMods файла `config.cpp` должно указывать на этот файл.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <!--
-    Inputs.xml - Custom keybind definitions
+    Inputs.xml - Определения пользовательских привязок клавиш
 
-    STRUCTURE:
-    - <actions>:  declares input action names and their display strings
-    - <sorting>:  groups actions under a category in the Controls menu
-    - <preset>:   sets the default key binding
+    СТРУКТУРА:
+    - <actions>:  объявляет имена действий ввода и их строки отображения
+    - <sorting>:  группирует действия под категорией в меню Управление
+    - <preset>:   устанавливает привязку клавиши по умолчанию
 
-    NAMING CONVENTION:
-    - Action names start with "UA" (User Action) followed by your mod prefix.
-    - The "loc" attribute references a string key from stringtable.csv.
+    СОГЛАШЕНИЕ ОБ ИМЕНОВАНИИ:
+    - Имена действий начинаются с "UA" (User Action), за которым следует префикс вашего мода.
+    - Атрибут "loc" ссылается на строковый ключ из stringtable.csv.
 
-    KEY NAMES:
-    - Keyboard: kA through kZ, k0-k9, kInsert, kHome, kEnd, kDelete,
+    ИМЕНА КЛАВИШ:
+    - Клавиатура: kA до kZ, k0-k9, kInsert, kHome, kEnd, kDelete,
       kNumpad0-kNumpad9, kF1-kF12, kLControl, kRControl, kLShift, kRShift,
       kLAlt, kRAlt, kSpace, kReturn, kBack, kTab, kEscape
-    - Mouse: mouse1 (left), mouse2 (right), mouse3 (middle)
-    - Combo keys: use <combo> element with multiple <btn> children
+    - Мышь: mouse1 (левая), mouse2 (правая), mouse3 (средняя)
+    - Комбинации клавиш: используйте элемент <combo> с несколькими дочерними <btn>
 -->
 <modded_inputs>
     <inputs>
-        <!-- Declare the input action. -->
+        <!-- Объявление действия ввода. -->
         <actions>
             <input name="UAMyModPanel" loc="STR_MYMOD_INPUT_PANEL" />
         </actions>
 
-        <!-- Group under a category in Options > Controls. -->
-        <!-- The "name" is an internal ID; "loc" is the display name from stringtable. -->
+        <!-- Группировка под категорией в Настройки > Управление. -->
+        <!-- "name" -- внутренний ID; "loc" -- отображаемое имя из stringtable. -->
         <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
             <input name="UAMyModPanel"/>
         </sorting>
     </inputs>
 
-    <!-- Default key preset. Players can rebind in Options > Controls. -->
+    <!-- Пресет клавиш по умолчанию. Игроки могут переназначить в Настройки > Управление. -->
     <preset>
-        <!-- Bind to the Home key by default. -->
+        <!-- Привязка к клавише Home по умолчанию. -->
         <input name="UAMyModPanel">
             <btn name="kHome"/>
         </input>
 
         <!--
-        COMBO KEY EXAMPLE (uncomment to use):
-        This would bind to Ctrl+H instead of a single key.
+        ПРИМЕР КОМБИНАЦИИ КЛАВИШ (раскомментируйте для использования):
+        Это привяжет к Ctrl+H вместо одной клавиши.
         <input name="UAMyModPanel">
             <combo>
                 <btn name="kLControl"/>
@@ -1416,86 +1420,86 @@ This defines custom keybinds that appear in the game's Options > Controls menu. 
 
 ---
 
-## Build Script
+## Скрипт сборки
 
-Place at `build.bat` in the mod root.
+Разместите `build.bat` в корне мода.
 
-This batch file automates PBO packing using Addon Builder from DayZ Tools.
+Этот пакетный файл автоматизирует упаковку PBO с помощью Addon Builder из DayZ Tools.
 
 ```batch
 @echo off
 REM ==========================================================================
-REM build.bat - Automated PBO packing for MyProfessionalMod
+REM build.bat - Автоматизированная упаковка PBO для MyProfessionalMod
 REM
-REM WHAT THIS DOES:
-REM   1. Packs the Scripts/ folder into a PBO file
-REM   2. Places the PBO in the distributable @mod folder
-REM   3. Copies mod.cpp to the distributable folder
+REM ЧТО ДЕЛАЕТ:
+REM   1. Упаковывает папку Scripts/ в PBO-файл
+REM   2. Размещает PBO в распространяемую папку @mod
+REM   3. Копирует mod.cpp в распространяемую папку
 REM
-REM PREREQUISITES:
-REM   - DayZ Tools installed via Steam
-REM   - Mod source at P:\MyProfessionalMod\
+REM ПРЕДВАРИТЕЛЬНЫЕ ТРЕБОВАНИЯ:
+REM   - DayZ Tools установлены через Steam
+REM   - Исходники мода в P:\MyProfessionalMod\
 REM
-REM USAGE:
-REM   Double-click this file or run from command line: build.bat
+REM ИСПОЛЬЗОВАНИЕ:
+REM   Дважды щёлкните этот файл или запустите из командной строки: build.bat
 REM ==========================================================================
 
-REM --- Configuration: update these paths to match your setup ---
+REM --- Конфигурация: обновите эти пути в соответствии с вашей установкой ---
 
-REM Path to DayZ Tools (check your Steam library path).
+REM Путь к DayZ Tools (проверьте путь библиотеки Steam).
 set DAYZ_TOOLS=C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools
 
-REM Source folder: the Scripts directory that gets packed into the PBO.
+REM Исходная папка: каталог Scripts, который упаковывается в PBO.
 set SOURCE=P:\MyProfessionalMod\Scripts
 
-REM Output folder: where the packed PBO goes.
+REM Выходная папка: куда помещается упакованный PBO.
 set OUTPUT=P:\@MyProfessionalMod\addons
 
-REM Prefix: the virtual path inside the PBO. Must match the paths
-REM in config.cpp (e.g., "MyProfessionalMod/Scripts/3_Game" must resolve).
+REM Префикс: виртуальный путь внутри PBO. Должен совпадать с путями
+REM в config.cpp (например, "MyProfessionalMod/Scripts/3_Game" должен разрешаться).
 set PREFIX=MyProfessionalMod\Scripts
 
-REM --- Build Steps ---
+REM --- Этапы сборки ---
 
 echo ============================================
-echo  Building MyProfessionalMod
+echo  Сборка MyProfessionalMod
 echo ============================================
 
-REM Create output directory if it does not exist.
+REM Создаём выходной каталог если не существует.
 if not exist "%OUTPUT%" mkdir "%OUTPUT%"
 
-REM Run Addon Builder.
-REM   -clear  = remove old PBO before packing
-REM   -prefix = set the PBO prefix (required for script paths to resolve)
-echo Packing PBO...
+REM Запускаем Addon Builder.
+REM   -clear  = удаление старого PBO перед упаковкой
+REM   -prefix = установка префикса PBO (необходимо для разрешения путей скриптов)
+echo Упаковка PBO...
 "%DAYZ_TOOLS%\Bin\AddonBuilder\AddonBuilder.exe" "%SOURCE%" "%OUTPUT%" -prefix=%PREFIX% -clear
 
-REM Check if Addon Builder succeeded.
+REM Проверяем, успешно ли завершился Addon Builder.
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo ERROR: PBO packing failed! Check the output above for details.
-    echo Common causes:
-    echo   - DayZ Tools path is wrong
-    echo   - Source folder does not exist
-    echo   - A .c file has a syntax error that prevents packing
+    echo ОШИБКА: Упаковка PBO не удалась! Проверьте вывод выше для деталей.
+    echo Частые причины:
+    echo   - Неправильный путь к DayZ Tools
+    echo   - Исходная папка не существует
+    echo   - Файл .c имеет синтаксическую ошибку, предотвращающую упаковку
     pause
     exit /b 1
 )
 
-REM Copy mod.cpp to the distributable folder.
-echo Copying mod.cpp...
+REM Копируем mod.cpp в распространяемую папку.
+echo Копирование mod.cpp...
 copy /Y "P:\MyProfessionalMod\mod.cpp" "P:\@MyProfessionalMod\mod.cpp" >nul
 
 echo.
 echo ============================================
-echo  Build complete!
-echo  Output: P:\@MyProfessionalMod\
+echo  Сборка завершена!
+echo  Результат: P:\@MyProfessionalMod\
 echo ============================================
 echo.
-echo To test with file patching (no PBO needed):
+echo Для тестирования с file patching (PBO не нужен):
 echo   DayZDiag_x64.exe -mod=P:\MyProfessionalMod -filePatching
 echo.
-echo To test with the built PBO:
+echo Для тестирования со собранным PBO:
 echo   DayZDiag_x64.exe -mod=P:\@MyProfessionalMod
 echo.
 pause
@@ -1503,29 +1507,29 @@ pause
 
 ---
 
-## Customization Guide
+## Руководство по настройке
 
-When you use this template for your own mod, you need to rename every occurrence of the placeholder names. Here is a complete checklist.
+При использовании этого шаблона для собственного мода необходимо переименовать все вхождения имён-заполнителей. Вот полный чеклист.
 
-### Шаг 1: Choose Your Names
+### Шаг 1: Выберите ваши имена
 
-Decide on these identifiers before making any edits:
+Определите эти идентификаторы до начала редактирования:
 
-| Identifier | Example | Rules |
-|------------|---------|-------|
-| **Mod folder name** | `MyBountySystem` | No spaces, PascalCase or underscores |
-| **Display name** | `"My Bounty System"` | Human-readable, for mod.cpp and config.cpp |
-| **CfgPatches class** | `MyBountySystem_Scripts` | Must be globally unique across all mods |
-| **CfgMods class** | `MyBountySystem` | Internal engine identifier |
-| **Script prefix** | `MyBounty` | Short prefix for classes: `MyBountyManager`, `MyBountyConfig` |
-| **Tag constant** | `MYBOUNTY_TAG` | For log messages: `"[MyBounty]"` |
-| **Preprocessor define** | `MYBOUNTYSYSTEM` | For `#ifdef` cross-mod detection |
-| **RPC ID** | `58432` | Unique 5-digit number, not used by other mods |
-| **Input action name** | `UAMyBountyPanel` | Starts with `UA`, unique |
+| Идентификатор | Пример | Правила |
+|---------------|--------|---------|
+| **Имя папки мода** | `MyBountySystem` | Без пробелов, PascalCase или подчёркивания |
+| **Отображаемое имя** | `"My Bounty System"` | Человекочитаемое, для mod.cpp и config.cpp |
+| **Класс CfgPatches** | `MyBountySystem_Scripts` | Должен быть глобально уникальным среди всех модов |
+| **Класс CfgMods** | `MyBountySystem` | Внутренний идентификатор движка |
+| **Префикс скриптов** | `MyBounty` | Короткий префикс для классов: `MyBountyManager`, `MyBountyConfig` |
+| **Константа тега** | `MYBOUNTY_TAG` | Для сообщений лога: `"[MyBounty]"` |
+| **Определение препроцессора** | `MYBOUNTYSYSTEM` | Для `#ifdef` обнаружения между модами |
+| **ID RPC** | `58432` | Уникальное 5-значное число, не используемое другими модами |
+| **Имя действия ввода** | `UAMyBountyPanel` | Начинается с `UA`, уникальное |
 
-### Шаг 2: Rename Files and Folders
+### Шаг 2: Переименование файлов и папок
 
-Rename every file and folder that contains "MyMod" or "MyProfessionalMod":
+Переименуйте каждый файл и папку, содержащие "MyMod" или "MyProfessionalMod":
 
 ```
 MyProfessionalMod/           -> MyBountySystem/
@@ -1544,75 +1548,75 @@ MyProfessionalMod/           -> MyBountySystem/
     MyModPanel.layout          -> MyBountyPanel.layout
 ```
 
-### Шаг 3: Find-and-Replace in Every File
+### Шаг 3: Поиск-и-замена во всех файлах
 
-Perform these replacements **in order** (longest strings first to avoid partial matches):
+Выполните эти замены **по порядку** (сначала самые длинные строки, чтобы избежать частичных совпадений):
 
-| Find | Replace | Files Affected |
-|------|---------|----------------|
-| `MyProfessionalMod` | `MyBountySystem` | config.cpp, mod.cpp, build.bat, UI script |
-| `MyModManager` | `MyBountyManager` | Manager, mission hooks, player handler |
-| `MyModConfig` | `MyBountyConfig` | Config class, manager |
-| `MyModConstants` | `MyBountyConstants` | (filename only) |
-| `MyModRPCHelper` | `MyBountyRPCHelper` | RPC helper, mission hooks |
-| `MyModUI` | `MyBountyUI` | UI script, client mission hook |
-| `MyModPanel` | `MyBountyPanel` | Layout file, UI script |
+| Найти | Заменить | Затронутые файлы |
+|-------|---------|-----------------|
+| `MyProfessionalMod` | `MyBountySystem` | config.cpp, mod.cpp, build.bat, скрипт UI |
+| `MyModManager` | `MyBountyManager` | Менеджер, хуки миссий, обработчик игрока |
+| `MyModConfig` | `MyBountyConfig` | Класс конфигурации, менеджер |
+| `MyModConstants` | `MyBountyConstants` | (только имя файла) |
+| `MyModRPCHelper` | `MyBountyRPCHelper` | Помощник RPC, хуки миссий |
+| `MyModUI` | `MyBountyUI` | Скрипт UI, клиентский хук миссии |
+| `MyModPanel` | `MyBountyPanel` | Файл макета, скрипт UI |
 | `MyMod_Scripts` | `MyBountySystem_Scripts` | config.cpp CfgPatches |
-| `MYMOD_RPC_ID` | `MYBOUNTY_RPC_ID` | Constants, RPC, mission hooks |
-| `MYMOD_RPC_` | `MYBOUNTY_RPC_` | All RPC route constants |
-| `MYMOD_TAG` | `MYBOUNTY_TAG` | Constants, all files using the log tag |
-| `MYMOD_CONFIG` | `MYBOUNTY_CONFIG` | Constants, config class |
-| `MYMOD_VERSION` | `MYBOUNTY_VERSION` | Constants, UI script |
+| `MYMOD_RPC_ID` | `MYBOUNTY_RPC_ID` | Константы, RPC, хуки миссий |
+| `MYMOD_RPC_` | `MYBOUNTY_RPC_` | Все константы маршрутов RPC |
+| `MYMOD_TAG` | `MYBOUNTY_TAG` | Константы, все файлы с тегом лога |
+| `MYMOD_CONFIG` | `MYBOUNTY_CONFIG` | Константы, класс конфигурации |
+| `MYMOD_VERSION` | `MYBOUNTY_VERSION` | Константы, скрипт UI |
 | `MYMOD` | `MYBOUNTYSYSTEM` | config.cpp defines[] |
-| `MyMod` | `MyBounty` | config.cpp CfgMods class, RPC route strings |
-| `My Mod` | `My Bounty System` | Strings in layouts, stringtable |
-| `mymod` | `mybounty` | Inputs.xml sorting name |
+| `MyMod` | `MyBounty` | config.cpp класс CfgMods, строки маршрутов RPC |
+| `My Mod` | `My Bounty System` | Строки в макетах, stringtable |
+| `mymod` | `mybounty` | Inputs.xml имя сортировки |
 | `STR_MYMOD_` | `STR_MYBOUNTY_` | stringtable.csv, Inputs.xml |
-| `UAMyMod` | `UAMyBounty` | Inputs.xml, client mission hook |
-| `m_MyMod` | `m_MyBounty` | Client mission hook member variables |
-| `74291` | `58432` | RPC ID (your chosen unique number) |
+| `UAMyMod` | `UAMyBounty` | Inputs.xml, клиентский хук миссии |
+| `m_MyMod` | `m_MyBounty` | Переменные-члены клиентского хука миссии |
+| `74291` | `58432` | ID RPC (ваше выбранное уникальное число) |
 
-### Шаг 4: Verify
+### Шаг 4: Проверка
 
-After renaming, do a project-wide search for "MyMod" and "MyProfessionalMod" to catch anything you missed. Then build and test:
+После переименования выполните поиск по всему проекту "MyMod" и "MyProfessionalMod", чтобы обнаружить пропущенное. Затем соберите и протестируйте:
 
 ```batch
 DayZDiag_x64.exe -mod=P:\MyBountySystem -filePatching
 ```
 
-Check the script log for your tag (e.g., `[MyBounty]`) to confirm everything loaded.
+Проверьте лог скриптов на наличие вашего тега (например, `[MyBounty]`), чтобы подтвердить, что всё загрузилось.
 
 ---
 
-## Feature Expansion Guide
+## Руководство по расширению функций
 
-Once your mod is running, here is how to add common features.
+Когда ваш мод запущен, вот как добавлять типичные функции.
 
-### Adding a New RPC Endpoint
+### Добавление новой конечной точки RPC
 
-**1. Define the route constant** in `MyModRPC.c` (3_Game):
+**1. Определите константу маршрута** в `MyModRPC.c` (3_Game):
 
 ```c
 const string MYMOD_RPC_BOUNTY_SET = "MyMod:BountySet";
 ```
 
-**2. Add the server handler** in `MyModManager.c` (4_World):
+**2. Добавьте серверный обработчик** в `MyModManager.c` (4_World):
 
 ```c
 void OnBountySet(PlayerIdentity sender, ParamsReadContext ctx)
 {
-    // Read parameters written by the client.
+    // Чтение параметров, записанных клиентом.
     string targetName;
     int bountyAmount;
     if (!ctx.Read(targetName)) return;
     if (!ctx.Read(bountyAmount)) return;
 
     Print(MYMOD_TAG + " Bounty set on " + targetName + ": " + bountyAmount.ToString());
-    // ... your logic here ...
+    // ... ваша логика здесь ...
 }
 ```
 
-**3. Add the dispatch case** in `MyModMissionServer.c` (5_Mission), inside `OnRPC()`:
+**3. Добавьте случай диспетчеризации** в `MyModMissionServer.c` (5_Mission), внутри `OnRPC()`:
 
 ```c
 else if (routeName == MYMOD_RPC_BOUNTY_SET)
@@ -1621,7 +1625,7 @@ else if (routeName == MYMOD_RPC_BOUNTY_SET)
 }
 ```
 
-**4. Send from the client** (wherever the action is triggered):
+**4. Отправьте с клиента** (где бы ни инициировалось действие):
 
 ```c
 ScriptRPC rpc = new ScriptRPC();
@@ -1631,30 +1635,30 @@ rpc.Write(5000);
 rpc.Send(null, MYMOD_RPC_ID, true, null);
 ```
 
-### Adding a New Config Field
+### Добавление нового поля конфигурации
 
-**1. Add the field** in `MyModConfig.c` with a default value:
+**1. Добавьте поле** в `MyModConfig.c` со значением по умолчанию:
 
 ```c
-// Minimum bounty amount players can set.
+// Минимальная сумма награды, которую могут установить игроки.
 int MinBountyAmount = 100;
 ```
 
-That is all. The JSON serializer picks up public fields automatically. Existing config files on disk will use the default value for the new field until the admin edits and saves.
+Это всё. JSON-сериализатор автоматически подхватывает публичные поля. Существующие файлы конфигурации на диске будут использовать значение по умолчанию для нового поля, пока администратор не отредактирует и не сохранит.
 
-**2. Reference it** from the manager:
+**2. Используйте его** из менеджера:
 
 ```c
 if (bountyAmount < m_Config.MinBountyAmount)
 {
-    // Reject: too low.
+    // Отклонить: слишком мало.
     return;
 }
 ```
 
-### Adding a New UI Panel
+### Добавление новой UI-панели
 
-**1. Create the layout** at `Scripts/GUI/layouts/MyModBountyList.layout`:
+**1. Создайте макет** по пути `Scripts/GUI/layouts/MyModBountyList.layout`:
 
 ```
 PanelWidgetClass BountyListRoot {
@@ -1684,7 +1688,7 @@ PanelWidgetClass BountyListRoot {
 }
 ```
 
-**2. Create the script** at `Scripts/5_Mission/MyMod/MyModBountyListUI.c`:
+**2. Создайте скрипт** по пути `Scripts/5_Mission/MyMod/MyModBountyListUI.c`:
 
 ```c
 class MyModBountyListUI
@@ -1712,9 +1716,9 @@ class MyModBountyListUI
 };
 ```
 
-### Adding a New Keybind
+### Добавление новой привязки клавиш
 
-**1. Add the action** in `Inputs.xml`:
+**1. Добавьте действие** в `Inputs.xml`:
 
 ```xml
 <actions>
@@ -1728,7 +1732,7 @@ class MyModBountyListUI
 </sorting>
 ```
 
-**2. Add the default binding** in the `<preset>` section:
+**2. Добавьте привязку по умолчанию** в разделе `<preset>`:
 
 ```xml
 <input name="UAMyModBountyList">
@@ -1736,13 +1740,13 @@ class MyModBountyListUI
 </input>
 ```
 
-**3. Add the localization** in `stringtable.csv`:
+**3. Добавьте локализацию** в `stringtable.csv`:
 
 ```csv
 "STR_MYMOD_INPUT_BOUNTYLIST","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List",
 ```
 
-**4. Poll for the input** in `MyModMissionClient.c`:
+**4. Опрашивайте ввод** в `MyModMissionClient.c`:
 
 ```c
 UAInput bountyInput = GetUApi().GetInputByName("UAMyModBountyList");
@@ -1752,24 +1756,24 @@ if (bountyInput && bountyInput.LocalPress())
 }
 ```
 
-### Adding a New stringtable Entry
+### Добавление новой записи stringtable
 
-**1. Add the row** in `stringtable.csv`. Every row needs all 13 language columns plus a trailing comma:
+**1. Добавьте строку** в `stringtable.csv`. Каждая строка должна содержать все 13 языковых столбцов плюс завершающую запятую:
 
 ```csv
 "STR_MYMOD_BOUNTY_PLACED","Bounty placed!","Bounty placed!","Odměna vypsána!","Kopfgeld gesetzt!","Награда назначена!","Nagroda wyznaczona!","Fejpénz kiírva!","Taglia piazzata!","Recompensa puesta!","Prime placée!","Bounty placed!","Bounty placed!","Recompensa colocada!","Bounty placed!",
 ```
 
-**2. Use it** in script code:
+**2. Используйте её** в коде скрипта:
 
 ```c
-// Widget.SetText() does NOT auto-resolve stringtable keys.
-// You must use Widget.SetText() with the resolved string:
+// Widget.SetText() НЕ разрешает ключи stringtable автоматически.
+// Вы должны использовать Widget.SetText() с разрешённой строкой:
 string localizedText = Widget.TranslateString("#STR_MYMOD_BOUNTY_PLACED");
 myTextWidget.SetText(localizedText);
 ```
 
-Or in a `.layout` file, the engine resolves `#STR_` keys automatically:
+Или в файле `.layout` движок разрешает ключи `#STR_` автоматически:
 
 ```
 text "#STR_MYMOD_BOUNTY_PLACED"
@@ -1779,15 +1783,15 @@ text "#STR_MYMOD_BOUNTY_PLACED"
 
 ## Следующие шаги
 
-With this professional template running, you can:
+С работающим профессиональным шаблоном вы можете:
 
-1. **Study production mods** -- Read [DayZ Expansion](https://github.com/salutesh/DayZ-Expansion-Scripts) and the `StarDZ_Core` source for real-world patterns at scale.
-2. **Add custom items** -- Follow [Chapter 8.2: Creating a Custom Item](02-custom-item.md) and integrate them with your manager.
-3. **Build an admin panel** -- Follow [Chapter 8.3: Building an Admin Panel](03-admin-panel.md) using your config system.
-4. **Add a HUD overlay** -- Follow [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) for always-visible UI elements.
-5. **Publish to the Workshop** -- Follow [Chapter 8.7: Publishing to Workshop](07-publishing-workshop.md) when your mod is ready.
-6. **Learn debugging** -- Read [Chapter 8.6: Debugging & Testing](06-debugging-testing.md) for log analysis and troubleshooting.
+1. **Изучать продакшн-моды** -- Читайте [DayZ Expansion](https://github.com/salutesh/DayZ-Expansion-Scripts) и исходный код `StarDZ_Core` для паттернов реального мира в масштабе.
+2. **Добавлять пользовательские предметы** -- Следуйте [Главе 8.2: Создание пользовательского предмета](02-custom-item.md) и интегрируйте их с вашим менеджером.
+3. **Создать админ-панель** -- Следуйте [Главе 8.3: Создание панели администратора](03-admin-panel.md), используя вашу систему конфигурации.
+4. **Добавить HUD-оверлей** -- Следуйте [Главе 8.8: Создание HUD-оверлея](08-hud-overlay.md) для постоянно видимых элементов UI.
+5. **Опубликовать в Workshop** -- Следуйте [Главе 8.7: Публикация в Workshop](07-publishing-workshop.md), когда ваш мод будет готов.
+6. **Изучить отладку** -- Прочитайте [Главу 8.6: Отладка и тестирование](06-debugging-testing.md) для анализа логов и устранения неполадок.
 
 ---
 
-**Previous:** [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) | [Главная](../../README.md)
+**Предыдущая:** [Глава 8.8: Создание HUD-оверлея](08-hud-overlay.md) | [Главная](../../README.md)

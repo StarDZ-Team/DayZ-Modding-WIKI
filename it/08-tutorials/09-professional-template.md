@@ -4,7 +4,11 @@
 
 ---
 
-## Indice
+> **Riepilogo:** This chapter provides a complete, production-ready mod template with every file you need for a professional DayZ mod. Unlike [Chapter 8.5](05-mod-template.md) which introduces InclementDab's starter skeleton, this is a full-featured template with a config system, singleton manager, client-server RPC, UI panel, keybinds, localization, and build automation. Every file is copy-paste ready and heavily commented to explain **why** each line exists.
+
+---
+
+## Indice dei Contenuti
 
 - [Overview](#overview)
 - [Complete Directory Structure](#complete-directory-structure)
@@ -32,7 +36,7 @@
 
 A "Hello World" mod proves the toolchain works. A professional mod needs much more:
 
-| Concern | Hello World | Professional Template |
+| Aspetto | Hello World | Professional Template |
 |---------|-------------|----------------------|
 | Configuration | Hardcoded values | JSON config with load/save/defaults |
 | Communication | Print statements | String-routed RPC (client to server and back) |
@@ -47,7 +51,7 @@ This template gives you all of these out of the box. You rename the identifiers,
 
 ---
 
-## Complete Directory Structure
+## Struttura Completa delle Directory
 
 This is the full source layout. Every file listed below is provided as a complete template in this chapter.
 
@@ -137,7 +141,7 @@ actionURL    = "";
 
 ## config.cpp
 
-This is the most critical file. It registers your mod with il motore, declares dependencies, wires up script layers, and optionally sets preprocessor definiscis and image sets.
+This is the most critical file. It registers your mod with the engine, declares dependencies, wires up script layers, and optionally sets preprocessor definisce and image sets.
 
 Place this at `Scripts/config.cpp`.
 
@@ -278,7 +282,7 @@ class CfgMods
 
 Place at `Scripts/3_Game/MyMod/MyModConstants.c`.
 
-This file definiscis all shared constants, enums, and the version string. It lives in `3_Game` so every higher layer can access these valori.
+This file definisce all shared constants, enums, and the version string. It lives in `3_Game` so every higher layer can access these values.
 
 ```c
 // ==========================================================================
@@ -458,7 +462,7 @@ Admins edit this file, restart the server, and the new values take effect.
 
 Place at `Scripts/3_Game/MyMod/MyModRPC.c`.
 
-RPC (Remote Procedure Call) is how the client and server communicate in DayZ. This file definiscis route names and provides helper methods for registration.
+RPC (Remote Procedure Call) is how the client and server communicate in DayZ. This file definisce route names and provides helper methods for registration.
 
 ```c
 // ==========================================================================
@@ -796,7 +800,7 @@ modded class PlayerBase
 
 Place at `Scripts/5_Mission/MyMod/MyModMissionServer.c`.
 
-This hooks into `MissionServer` to initialize and shut down the mod on the server side.
+Questo si aggancia a `MissionServer` to initialize and shut down the mod on the server side.
 
 ```c
 // ==========================================================================
@@ -912,7 +916,7 @@ modded class MissionServer
 
 Place at `Scripts/5_Mission/MyMod/MyModMissionClient.c`.
 
-This hooks into `MissionGameplay` for client-side initialization, input handling, and RPC receiving.
+Questo si aggancia a `MissionGameplay` for client-side initialization, input handling, and RPC receiving.
 
 ```c
 // ==========================================================================
@@ -1066,7 +1070,7 @@ modded class MissionGameplay
 
 Place at `Scripts/5_Mission/MyMod/MyModUI.c`.
 
-This script drives the UI panel definiscid in the `.layout` file. It finds widget references, populates them with data, and handles open/close.
+This script drives the UI panel defined in the `.layout` file. It finds widget references, populates them with data, and handles open/close.
 
 ```c
 // ==========================================================================
@@ -1207,7 +1211,7 @@ class MyModUI
 
 Place at `Scripts/GUI/layouts/MyModPanel.layout`.
 
-This definiscis the visual structure of the UI panel. DayZ layouts use a custom text format (not XML).
+This definisce the visual structure of the UI panel. DayZ layouts use a custom text format (not XML).
 
 ```
 // ==========================================================================
@@ -1335,7 +1339,7 @@ PanelWidgetClass MyModPanelRoot {
 
 Place at `Scripts/stringtable.csv`.
 
-This provides localization for all player-facing text. The engine reads the column matching the player's game language. The `original` column is the fallback.
+This provides localization for all player-facing text. Il motore reads the column matching the player's game language. The `original` column is the fallback.
 
 DayZ supports 13 language columns. Every row must have all 13 columns (use the English text as placeholder for languages you do not translate).
 
@@ -1356,7 +1360,7 @@ DayZ supports 13 language columns. Every row must have all 13 columns (use the E
 
 Place at `Scripts/Inputs.xml`.
 
-This definiscis custom keybinds that appear in the game's Options > Controls menu. The `inputs` field in `config.cpp` CfgMods must point to this file.
+This definisce custom keybinds that appear in the game's Options > Controls menu. The `inputs` field in `config.cpp` CfgMods must point to this file.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -1503,7 +1507,7 @@ pause
 
 ---
 
-## Customization Guide
+## Guida alla Personalizzazione
 
 When you use this template for your own mod, you need to rename every occurrence of the placeholder names. Here is a complete checklist.
 
@@ -1511,7 +1515,7 @@ When you use this template for your own mod, you need to rename every occurrence
 
 Decide on these identifiers before making any edits:
 
-| Identifier | Esempio | Rules |
+| Identificatore | Esempio | Regole |
 |------------|---------|-------|
 | **Mod folder name** | `MyBountySystem` | No spaces, PascalCase or underscores |
 | **Display name** | `"My Bounty System"` | Human-readable, for mod.cpp and config.cpp |
@@ -1519,7 +1523,7 @@ Decide on these identifiers before making any edits:
 | **CfgMods class** | `MyBountySystem` | Internal engine identifier |
 | **Script prefix** | `MyBounty` | Short prefix for classes: `MyBountyManager`, `MyBountyConfig` |
 | **Tag constant** | `MYBOUNTY_TAG` | For log messages: `"[MyBounty]"` |
-| **Preprocessor definisci** | `MYBOUNTYSYSTEM` | For `#ifdef` cross-mod detection |
+| **Preprocessor define** | `MYBOUNTYSYSTEM` | For `#ifdef` cross-mod detection |
 | **RPC ID** | `58432` | Unique 5-digit number, not used by other mods |
 | **Input action name** | `UAMyBountyPanel` | Starts with `UA`, unique |
 
@@ -1548,7 +1552,7 @@ MyProfessionalMod/           -> MyBountySystem/
 
 Perform these replacements **in order** (longest strings first to avoid partial matches):
 
-| Find | Replace | Files Affected |
+| Cerca | Sostituisci | File Interessati |
 |------|---------|----------------|
 | `MyProfessionalMod` | `MyBountySystem` | config.cpp, mod.cpp, build.bat, UI script |
 | `MyModManager` | `MyBountyManager` | Manager, mission hooks, player handler |
@@ -1563,7 +1567,7 @@ Perform these replacements **in order** (longest strings first to avoid partial 
 | `MYMOD_TAG` | `MYBOUNTY_TAG` | Constants, all files using the log tag |
 | `MYMOD_CONFIG` | `MYBOUNTY_CONFIG` | Constants, config class |
 | `MYMOD_VERSION` | `MYBOUNTY_VERSION` | Constants, UI script |
-| `MYMOD` | `MYBOUNTYSYSTEM` | config.cpp definiscis[] |
+| `MYMOD` | `MYBOUNTYSYSTEM` | config.cpp defines[] |
 | `MyMod` | `MyBounty` | config.cpp CfgMods class, RPC route strings |
 | `My Mod` | `My Bounty System` | Strings in layouts, stringtable |
 | `mymod` | `mybounty` | Inputs.xml sorting name |
@@ -1584,7 +1588,7 @@ Check the script log for your tag (e.g., `[MyBounty]`) to confirm everything loa
 
 ---
 
-## Feature Expansion Guide
+## Guida all'Espansione delle Funzionalità
 
 Once your mod is running, here is how to add common features.
 
@@ -1790,4 +1794,4 @@ With this professional template running, you can:
 
 ---
 
-**Previous:** [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) | [Home](../../README.md)
+**Precedente:** [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) | [Home](../../README.md)

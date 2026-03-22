@@ -1,16 +1,20 @@
-# Chapter 8.13: The Diagnostic Menu (Diag Menu)
+# 8.13. fejezet: A diagnosztikai menü (Diag Menu)
 
-[Home](../../README.md) | [<< Previous: Building a Trading System](12-trading-system.md) | **The Diagnostic Menu**
+[Kezdőlap](../../README.md) | [<< Előző: Kereskedési rendszer építése](12-trading-system.md) | **A diagnosztikai menü**
 
 ---
 
-## Tartalomjegyzek
+> **Összefoglalás:** A Diag Menu a DayZ beépített diagnosztikai eszköze, amely kizárólag a DayZDiag futtatható állományon keresztül érhető el. FPS-számlálót, szkript profilozást, renderelési hibakeresést, szabad kamerát, fizikai vizualizációt, időjárás-vezérlést, Central Economy eszközöket, AI navigációs hibakeresést és hangdiagnosztikát biztosít. Ez a fejezet a hivatalos Bohemia Interactive dokumentáció alapján minden menükategóriát, opciót és billentyűparancsot dokumentál.
 
-- [What is the Diag Menu?](#what-is-the-diag-menu)
-- [How to Access](#how-to-access)
-- [Navigacio Controls](#navigation-controls)
-- [Quick-Access Keyboard Gyorsbillentyus](#quick-access-keyboard-shortcuts)
-- [Menu Categories Attekintes](#menu-categories-overview)
+---
+
+## Tartalomjegyzék
+
+- [Mi az a Diag Menu?](#mi-az-a-diag-menu)
+- [Hogyan érhető el](#hogyan-érhető-el)
+- [Navigációs vezérlők](#navigációs-vezérlők)
+- [Gyorselérési billentyűparancsok](#gyorselérési-billentyűparancsok)
+- [Menükategóriák áttekintése](#menükategóriák-áttekintése)
 - [Statistics](#statistics)
 - [Enfusion Renderer](#enfusion-renderer)
 - [Enfusion World (Physics)](#enfusion-world-physics)
@@ -18,98 +22,98 @@
 - [Game](#game)
 - [AI](#ai)
 - [Sounds](#sounds)
-- [Useful Funkcios for Modders](#useful-features-for-modders)
-- [Mikor hasznald the Diag Menu](#when-to-use-the-diag-menu)
-- [Gyakori hibak](#common-mistakes)
-- [Kovetkezo lepesek](#next-steps)
+- [Hasznos funkciók modderek számára](#hasznos-funkciók-modderek-számára)
+- [Mikor használd a Diag Menüt](#mikor-használd-a-diag-menüt)
+- [Gyakori hibák](#gyakori-hibák)
+- [Következő lépések](#következő-lépések)
 
 ---
 
-## What is the Diag Menu?
+## Mi az a Diag Menu?
 
-The Diag Menu is a hierarchical debug menu built into the DayZ diagnostic executable. It lists options used to debug game scripting and assets across seven major categories: Statistics, Enfusion Renderer, Enfusion World, DayZ Render, Game, AI, and Sounds.
+A Diag Menu egy hierarchikus hibakereső menü, amely a DayZ diagnosztikai futtatható állományába van beépítve. A játék szkriptelésének és eszközeinek hibakereséséhez használt opciókat sorolja fel hét fő kategóriában: Statistics, Enfusion Renderer, Enfusion World, DayZ Render, Game, AI és Sounds.
 
-The Diag Menu is **not available** in the retail DayZ executable (`DayZ_x64.exe`). You must use `DayZDiag_x64.exe` -- the diagnostic build that ships alongside the retail version in your DayZ installation or DayZ Server directories.
+A Diag Menu **nem érhető el** a DayZ kereskedelmi futtatható állományában (`DayZ_x64.exe`). A `DayZDiag_x64.exe` fájlt kell használnod -- a diagnosztikai buildet, amely a kereskedelmi verzió mellett található meg a DayZ telepítési vagy DayZ Server könyvtáraiban.
 
 ---
 
-## How to Access
+## Hogyan érhető el
 
-### Requirements
+### Követelmények
 
-- **DayZDiag_x64.exe** -- The diagnostic executable. Found in your DayZ installation folder alongside the regular `DayZ_x64.exe`.
-- You must be running the game (not sitting in a loading screen). The menu is available in any 3D viewport.
+- **DayZDiag_x64.exe** -- A diagnosztikai futtatható állomány. A DayZ telepítési mappádban található a szokásos `DayZ_x64.exe` mellett.
+- A játéknak futnia kell (nem a betöltőképernyőn ülve). A menü bármely 3D nézetben elérhető.
 
-### Opening the Menu
+### A menü megnyitása
 
-Press **Win + Alt** to open the Diag Menu.
+Nyomd meg a **Win + Alt** billentyűkombinációt a Diag Menu megnyitásához.
 
-An alternative shortcut is **Ctrl + Win**, but this conflicts with a Windows 11 system shortcut and is not recommended on that platform.
+Egy alternatív gyorsbillentyű a **Ctrl + Win**, de ez ütközik egy Windows 11 rendszer-gyorsbillentyűvel, ezért azon a platformon nem ajánlott.
 
-### Enabling Mouse Cursor
+### Egérkurzor engedélyezése
 
-Some Diag Menu options require you to interact with the screen using your mouse. The mouse cursor can be toggled by pressing:
+Néhány Diag Menu opció megköveteli, hogy az egérrel interakcióba lépj a képernyővel. Az egérkurzor a következő billentyűkombinációval kapcsolható:
 
 **LCtrl + Numpad 9**
 
-This key binding is registered through script (`PluginKeyBinding`).
+Ez a billentyűkiosztás szkripten keresztül van regisztrálva (`PluginKeyBinding`).
 
 ---
 
-## Navigacio Controls
+## Navigációs vezérlők
 
-Once the Diag Menu is open:
+Amikor a Diag Menu meg van nyitva:
 
-| Key | Akcio |
-|-----|--------|
-| **Up / Down arrow** | Navigate between menu items |
-| **Right arrow** | Enter a sub-menu, or cycle through option values |
-| **Left arrow** | Cycle option values in reverse direction |
-| **Backspace** | Leave the current sub-menu (go back one level) |
+| Billentyű | Művelet |
+|-----------|---------|
+| **Fel / Le nyíl** | Navigálás a menüelemek között |
+| **Jobbra nyíl** | Almenübe lépés, vagy az opció értékeinek léptetése |
+| **Balra nyíl** | Az opció értékeinek visszafelé léptetése |
+| **Backspace** | Kilépés az aktuális almenüből (vissza egy szinttel) |
 
-When options show multiple values, they are listed in the order they appear in the menu. The first option is typically the default.
-
----
-
-## Quick-Access Keyboard Gyorsbillentyus
-
-These shortcuts work at any time while running DayZDiag, without needing to open the menu:
-
-| Gyorsbillentyu | Function |
-|----------|----------|
-| **LCtrl + Numpad 1** | Toggle FPS counter |
-| **LCtrl + Numpad 9** | Toggle mouse cursor on screen |
-| **RCtrl + RAlt + W** | Cycle render debug mode |
-| **LCtrl + LAlt + P** | Toggle postprocess effects |
-| **LAlt + Numpad 6** | Toggle physics body visualization |
-| **Page Up** | Free Camera: toggle player movement |
-| **Page Down** | Free Camera: freeze/unfreeze camera |
-| **Insert** | Teleport player to cursor position (while in free camera) |
-| **Fooldal** | Toggle free camera / disable and teleport player to cursor |
-| **Numpad /** | Toggle free camera (without teleport) |
-| **End** | Disable free camera (return to player camera) |
-
-> **Megjegyzes:** Any mention of "Cheat Inputs" in the official documentation refers to inputs hardcoded on the C++ side, not accessible through script.
+Ha az opciók több értéket mutatnak, azok a menüben megjelenő sorrendben vannak felsorolva. Az első opció általában az alapértelmezett.
 
 ---
 
-## Menu Categories Attekintes
+## Gyorselérési billentyűparancsok
 
-The Diag Menu contains seven top-level categories:
+Ezek a gyorsbillentyűk bármikor működnek a DayZDiag futtatása közben, anélkül, hogy meg kellene nyitni a menüt:
 
-1. **Statistics** -- FPS counter and script profiler
-2. **Enfusion Renderer** -- Lighting, shadows, materials, occlusion, postprocess, terrain, widgets
-3. **Enfusion World** -- Physics engine (Bullet) visualization and debug
-4. **DayZ Render** -- Sky rendering, geometry diagnostics
-5. **Game** -- Weather, free camera, vehicles, combat, Central Economy, surface sounds
-6. **AI** -- Navigacio mesh, pathfinding, AI agent behavior
-7. **Sounds** -- Playing samples debug, sound system info
+| Gyorsbillentyű | Funkció |
+|----------------|---------|
+| **LCtrl + Numpad 1** | FPS-számláló be-/kikapcsolása |
+| **LCtrl + Numpad 9** | Egérkurzor be-/kikapcsolása a képernyőn |
+| **RCtrl + RAlt + W** | Renderelési hibakeresési mód léptetése |
+| **LCtrl + LAlt + P** | Utófeldolgozási effektek be-/kikapcsolása |
+| **LAlt + Numpad 6** | Fizikai test vizualizáció be-/kikapcsolása |
+| **Page Up** | Szabad kamera: játékos mozgásának be-/kikapcsolása |
+| **Page Down** | Szabad kamera: kamera befagyasztása/feloldása |
+| **Insert** | Játékos teleportálása a kurzor pozíciójára (szabad kamerában) |
+| **Home** | Szabad kamera be-/kikapcsolása / kikapcsolás és játékos teleportálása a kurzorhoz |
+| **Numpad /** | Szabad kamera be-/kikapcsolása (teleport nélkül) |
+| **End** | Szabad kamera kikapcsolása (visszatérés a játékos kamerájára) |
+
+> **Megjegyzés:** A hivatalos dokumentációban szereplő bármely "Cheat Inputs" hivatkozás a C++ oldalon beégetett bemenetekre vonatkozik, amelyek nem érhetők el szkripten keresztül.
+
+---
+
+## Menükategóriák áttekintése
+
+A Diag Menu hét felső szintű kategóriát tartalmaz:
+
+1. **Statistics** -- FPS-számláló és szkript profilozó
+2. **Enfusion Renderer** -- Világítás, árnyékok, anyagok, takarás, utófeldolgozás, terep, widgetek
+3. **Enfusion World** -- Fizikai motor (Bullet) vizualizáció és hibakeresés
+4. **DayZ Render** -- Égbolt renderelés, geometria diagnosztika
+5. **Game** -- Időjárás, szabad kamera, járművek, harc, Central Economy, felületi hangok
+6. **AI** -- Navigációs háló, útvonalkeresés, AI ágens viselkedés
+7. **Sounds** -- Lejátszott minták hibakeresése, hangrendszer információk
 
 ---
 
 ## Statistics
 
-### Menu Structure
+### Menüstruktúra
 
 ```
 Statistics
@@ -127,79 +131,79 @@ Statistics
 
 ### FPS
 
-Enables the FPS counter in the top-left corner of the screen.
+Engedélyezi az FPS-számlálót a képernyő bal felső sarkában.
 
-The FPS value is calculated from the time between the last 10 frames, so it reflects a short rolling average rather than an instantaneous reading.
+Az FPS-érték az utolsó 10 képkocka közötti időből számított, tehát rövid gördülő átlagot tükröz, nem pillanatnyi értéket.
 
 ### Script Profiler UI
 
-Turns on the on-screen Script Profiler, which displays real-time performance data for script execution.
+Bekapcsolja a képernyőn megjelenő Script Profiler-t, amely valós idejű teljesítményadatokat jelenít meg a szkriptvégrehajtásról.
 
-The profiler shows six data sections:
+A profilozó hat adatszekciót mutat:
 
-| Section | What It Shows |
-|---------|---------------|
-| **Time per class** | Total time of all function calls belonging to a class (top 20) |
-| **Time per function** | Total time of all calls to a specific function (top 20) |
-| **Class allocations** | Number of allocations of a class (top 20) |
-| **Count per function** | Number of times a function was called (top 20) |
-| **Class count** | Number of live instances of a class (top 40) |
-| **Stats and settings** | Current profiler configuration and frame counters |
+| Szekció | Mit mutat |
+|---------|-----------|
+| **Time per class** | Egy osztályhoz tartozó összes függvényhívás összesített ideje (top 20) |
+| **Time per function** | Egy adott függvény összes hívásának összesített ideje (top 20) |
+| **Class allocations** | Egy osztály allokációinak száma (top 20) |
+| **Count per function** | Egy függvény meghívásának száma (top 20) |
+| **Class count** | Egy osztály élő példányainak száma (top 40) |
+| **Stats and settings** | Aktuális profilozó konfiguráció és képkocka-számlálók |
 
-The Stats and settings panel shows:
+A Stats and settings panel a következőket mutatja:
 
-| Mezo | Jelentes |
-|-------|---------|
-| UI enabled (DIAG) | Whether the script profiler UI is active |
-| Profiling enabled (SCRP) | Whether profiling runs even when UI is not active |
-| Profiling enabled (SCRC) | Whether profiling is actually occurring |
-| Jelzos | Current data gathering flags |
-| Module | Currently profiled module |
-| Interval | Current update interval |
-| Time Resolution | Current time resolution |
-| Average | Whether values displayed are averages |
-| Game Frame | Total frames passed |
-| Session Frame | Total frames in this profiling session |
-| Total Frames | Total frames across all profiling sessions |
-| Profiled Sess Frms | Frames profiled in this session |
-| Profiled Frames | Frames profiled across all sessions |
+| Mező | Jelentés |
+|------|----------|
+| UI enabled (DIAG) | A szkript profilozó UI aktív-e |
+| Profiling enabled (SCRP) | A profilozás fut-e akkor is, ha a UI nem aktív |
+| Profiling enabled (SCRC) | Ténylegesen folyik-e profilozás |
+| Flags | Aktuális adatgyűjtési jelzők |
+| Module | Jelenleg profilozott modul |
+| Interval | Aktuális frissítési intervallum |
+| Time Resolution | Aktuális időfelbontás |
+| Average | Az értékek átlagok-e |
+| Game Frame | Összes eltelt képkocka |
+| Session Frame | Összes képkocka ebben a profilozási munkamenetben |
+| Total Frames | Összes képkocka az összes profilozási munkamenetben |
+| Profiled Sess Frms | Ebben a munkamenetben profilozott képkockák |
+| Profiled Frames | Az összes munkamenetben profilozott képkockák |
 
-> **Fontos:** The Script Profiler only profiles script code. Proto (engine-bound) methods are not measured as separate entries, but their execution time is included in the total time of the script method that calls them.
+> **Fontos:** A Script Profiler csak szkriptkódot profiloz. A Proto (motorhoz kötött) metódusok nem jelennek meg külön bejegyzésként, de végrehajtási idejük benne van az őket hívó szkriptmetódus összesített idejében.
 
-> **Fontos:** The EnProfiler API and the script profiler itself are only available on the diagnostic executable.
+> **Fontos:** Az EnProfiler API és maga a szkript profilozó csak a diagnosztikai futtatható állományon érhető el.
 
-### Script Profiler Settings
+### Script Profiler beállítások
 
-These settings control how profiling data is gathered. They can also be adjusted programmatically through the `EnProfiler` API (documented in `EnProfiler.c`).
+Ezek a beállítások szabályozzák, hogyan történik a profilozási adatok gyűjtése. Programozottan is módosíthatók az `EnProfiler` API-n keresztül (dokumentálva az `EnProfiler.c` fájlban).
 
 #### Always Enabled
 
-Profiling data gathering is not enabled by default. This toggle shows whether it is currently active.
+A profilozási adatgyűjtés alapértelmezés szerint nem engedélyezett. Ez a kapcsoló mutatja, hogy jelenleg aktív-e.
 
-To enable profiling at startup, use the launch parameter `-profile`.
+A profilozás indításkor való engedélyezéséhez használd a `-profile` indítási paramétert.
 
-The Script Profiler UI ignores this setting -- it always forces profiling while the UI is visible. When the UI is turned off, profiling stops again (unless "Always enabled" is set to true).
+A Script Profiler UI figyelmen kívül hagyja ezt a beállítást -- mindig kényszeríti a profilozást, amíg a UI látható. Amikor a UI-t kikapcsolod, a profilozás újra leáll (hacsak az "Always enabled" nincs true-ra állítva).
 
-#### Jelzos
+#### Flags
 
-Controls how data is gathered. Four combinations are available:
+Szabályozza az adatgyűjtés módját. Négy kombináció érhető el:
 
-| Jelzo Combination | Scope | Data Lifetime |
-|-----------------|-------|---------------|
-| `SPF_RESET \| SPF_RECURSIVE` | Selected module + children | Per frame (reset each frame) |
-| `SPF_RECURSIVE` | Selected module + children | Accumulated across frames |
-| `SPF_RESET` | Selected module only | Per frame (reset each frame) |
-| `SPF_NONE` | Selected module only | Accumulated across frames |
+| Jelző kombináció | Hatókör | Adatok élettartama |
+|-----------------|---------|-------------------|
+| `SPF_RESET \| SPF_RECURSIVE` | Kiválasztott modul + gyermekek | Képkockánkénti (minden képkockában visszaállítva) |
+| `SPF_RECURSIVE` | Kiválasztott modul + gyermekek | Képkockákon átívelő halmozott |
+| `SPF_RESET` | Csak a kiválasztott modul | Képkockánkénti (minden képkockában visszaállítva) |
+| `SPF_NONE` | Csak a kiválasztott modul | Képkockákon átívelő halmozott |
 
-- **SPF_RECURSIVE**: Enables profiling of child modules (recursively)
-- **SPF_RESET**: Clears data at the end of each frame
+- **SPF_RECURSIVE**: Engedélyezi a gyermekmodulok profilozását (rekurzívan)
+- **SPF_RESET**: Törli az adatokat minden képkocka végén
 
 #### Module
 
-Selects which script module to profile:
+Kiválasztja, melyik szkriptmodult profilozzuk:
 
-| Option | Script Layer |
-|--------|-------------|
+| Opció | Szkript réteg |
+|-------|--------------|
 | CORE | 1_Core |
 | GAMELIB | 2_GameLib |
 | GAME | 3_Game |
@@ -209,43 +213,43 @@ Selects which script module to profile:
 
 #### Update Interval
 
-The number of frames to wait before updating the sorted data display. This also delays the reset caused by `SPF_RESET`.
+A képkockák száma, amelyet meg kell várni a rendezett adatmegjelenítés frissítése előtt. Ez késlelteti az `SPF_RESET` által okozott visszaállítást is.
 
-Available values: 0, 5, 10, 20, 30, 50, 60, 120, 144
+Elérhető értékek: 0, 5, 10, 20, 30, 50, 60, 120, 144
 
 #### Average
 
-Enable or disable the displaying of average values.
+Átlagértékek megjelenítésének engedélyezése vagy letiltása.
 
-- With `SPF_RESET` and no interval: values are the raw per-frame value
-- Without `SPF_RESET`: divides accumulated value by session frame count
-- With an interval set: divides by the interval
+- `SPF_RESET` esetén és intervallum nélkül: az értékek a nyers képkockánkénti értékek
+- `SPF_RESET` nélkül: az összegyűjtött értéket elosztja a munkamenet képkockaszámával
+- Beállított intervallummal: elosztja az intervallummal
 
-Class count is never averaged -- it always shows the current instance count. Allocations will show the average number of times an instance was created.
+Az osztályszám soha nem átlagolt -- mindig az aktuális példányszámot mutatja. Az allokációk az átlagos létrehozási számot mutatják.
 
 #### Time Resolution
 
-Sets the time unit for display. The value represents the denominator (nth of a second):
+Beállítja az idő megjelenítési egységét. Az érték a nevezőt jelöli (a másodperc hányad része):
 
-| Ertek | Unit |
-|-------|------|
-| 1 | Seconds |
-| 1000 | Milliseconds |
-| 1000000 | Microseconds |
+| Érték | Egység |
+|-------|--------|
+| 1 | Másodperc |
+| 1000 | Ezredmásodperc |
+| 1000000 | Mikroszekundum |
 
-Available values: 1, 10, 100, 1000, 10000, 100000, 1000000
+Elérhető értékek: 1, 10, 100, 1000, 10000, 100000, 1000000
 
 #### (UI) Scale
 
-Adjusts the visual scale of the on-screen profiler display for different screen sizes and resolutions.
+A képernyőn megjelenő profilozó megjelenítésének vizuális méretezését állítja be különböző képernyőméretekhez és felbontásokhoz.
 
-Range: 0.5 to 1.5 (default: 1.0, step: 0.05)
+Tartomány: 0.5-től 1.5-ig (alapértelmezett: 1.0, lépés: 0.05)
 
 ---
 
 ## Enfusion Renderer
 
-### Menu Structure
+### Menüstruktúra
 
 ```
 Enfusion Renderer
@@ -279,44 +283,44 @@ Enfusion Renderer
 
 ### Lights
 
-Toggles actual light sources (such as `PersonalLight` or in-game items like flashlights). This does not affect environment lighting -- use the Lighting sub-menu for that.
+A tényleges fényforrásokat kapcsolja (például `PersonalLight` vagy játékbeli tárgyak, mint zseblámpák). Ez nem érinti a környezeti világítást -- ahhoz a Lighting almenüt használd.
 
-### Lighting Sub-Menu
+### Lighting almenü
 
-Each toggle controls a specific lighting component:
+Minden kapcsoló egy adott világítási komponenst vezérel:
 
-| Option | Effect When Disabled |
-|--------|---------------------|
-| **Ambient lighting** | Removes the general ambient light in the scene |
-| **Ground lighting** | Removes light reflected from the ground (visible on roofs, character underarms) |
-| **Directional lighting** | Removes main directional (sun/moon) light. Also disables bidirectional lighting |
-| **Bidirectional lighting** | Removes bidirectional light component |
-| **Specular lighting** | Removes specular highlights (visible on shiny surfaces like cupboards, cars) |
-| **Reflection** | Removes reflection lighting (visible on metallic/glossy surfaces) |
-| **Emission lighting** | Removes emission (self-illumination) from materials |
+| Opció | Hatás kikapcsolt állapotban |
+|-------|-----------------------------|
+| **Ambient lighting** | Eltávolítja az általános környezeti fényt a jelenetből |
+| **Ground lighting** | Eltávolítja a talajról visszaverődő fényt (tetőkön, karakter hónalj alatt látható) |
+| **Directional lighting** | Eltávolítja a fő irányított (nap/hold) fényt. A kétirányú világítást is letiltja |
+| **Bidirectional lighting** | Eltávolítja a kétirányú fénykomponenst |
+| **Specular lighting** | Eltávolítja a tükrös fénycsúcsokat (fényes felületeken látható, mint szekrények, autók) |
+| **Reflection** | Eltávolítja a visszaverődési világítást (fémes/fényes felületeken látható) |
+| **Emission lighting** | Eltávolítja az emissziós (önvilágítás) anyagokból |
 
-These toggles are useful for isolating specific lighting contributions when debugging visual issues in custom models or scenes.
+Ezek a kapcsolók hasznosak az egyes világítási hozzájárulások elkülönítéséhez, amikor vizuális problémákat debugolsz egyedi modellekben vagy jelenetekben.
 
 ### Shadows
 
-Enables or disables shadow rendering. Disabling also removes the culling of rain inside objects (rain will fall through roofs).
+Engedélyezi vagy letiltja az árnyékrenderelést. A letiltás eltávolítja az eső objektumokon belüli kiszűrését is (az eső áthullik a tetőkön).
 
 ### Terrain Shadows
 
-Controls how terrain shadows are generated.
+Szabályozza a terepárnyékok generálásának módját.
 
-Options: `on (slice)`, `on (full)`, `no update`, `disabled`
+Opciók: `on (slice)`, `on (full)`, `no update`, `disabled`
 
 ### Render Debug Mode
 
-Switches between render visualization modes to inspect mesh geometry in-game.
+Renderelési vizualizációs módok között vált a háló geometria játékban történő vizsgálatához.
 
-Options: `normal`, `wire`, `wire only`, `overdraw`, `overdrawZ`
+Opciók: `normal`, `wire`, `wire only`, `overdraw`, `overdrawZ`
 
-Different materials display in different wireframe colors:
+A különböző anyagok különböző drótváz színekben jelennek meg:
 
-| Material | Color (RGB) |
-|----------|-------------|
+| Anyag | Szín (RGB) |
+|-------|------------|
 | TreeTrunk | 179, 126, 55 |
 | TreeCrown | 143, 227, 94 |
 | Grass | 41, 194, 53 |
@@ -332,42 +336,42 @@ Different materials display in different wireframe colors:
 
 ### Occluders
 
-A set of toggles for the occlusion culling system:
+Kapcsolók az okkluziós kiválogatási rendszerhez:
 
-| Option | Effect |
-|--------|--------|
-| **Occluders** | Enable/disable object occlusion |
-| **Occlude entities** | Enable/disable entity occlusion |
-| **Occlude proxies** | Enable/disable proxy occlusion |
-| **Show occluder volumes** | Takes a snapshot and draws debug shapes visualizing occlusion volumes |
-| **Show active occluders** | Shows currently active occluders with debug shapes |
-| **Show occluded** | Visualizes occluded objects with debug shapes |
+| Opció | Hatás |
+|-------|-------|
+| **Occluders** | Objektum okkluziós be-/kikapcsolása |
+| **Occlude entities** | Entitás okkluziós be-/kikapcsolása |
+| **Occlude proxies** | Proxy okkluziós be-/kikapcsolása |
+| **Show occluder volumes** | Pillanatfelvételt készít és hibakereső alakzatokat rajzol az okkluziós térfogatok vizualizálásához |
+| **Show active occluders** | A jelenleg aktív okkludereket mutatja hibakereső alakzatokkal |
+| **Show occluded** | Az okkludált objektumokat vizualizálja hibakereső alakzatokkal |
 
 ### Widgets
 
-Enable or disable the rendering of all UI widgets. Useful for taking clean screenshots or isolating rendering issues.
+Az összes UI widget renderelésének engedélyezése vagy letiltása. Hasznos tiszta képernyőképek készítéséhez vagy renderelési problémák elkülönítéséhez.
 
 ### Postprocess
 
-Enable or disable post-processing effects (bloom, color correction, vignette, etc.).
+Utófeldolgozási effektek (bloom, színkorrekció, vignetta stb.) engedélyezése vagy letiltása.
 
 ### Terrain
 
-Enable or disable terrain rendering entirely.
+A terepek renderelésének teljes engedélyezése vagy letiltása.
 
-### Materials Sub-Menu
+### Materials almenü
 
-Toggle the rendering of specific material types. Most are self-explanatory. Notable entries:
+Adott anyagtípusok renderelésének be-/kikapcsolása. A legtöbb magától értetődő. Figyelemre méltó bejegyzések:
 
-- **Super** -- An overarching toggle that covers every material related to the "super" shader
-- **Old Terrain** -- Covers both Terrain and Terrain Simple materials
-- **Water** -- Covers every material related to water (ocean, shore, rivers)
+- **Super** -- Átfogó kapcsoló, amely minden "super" shaderhez kapcsolódó anyagot lefed
+- **Old Terrain** -- Mind a Terrain, mind a Terrain Simple anyagokat lefedi
+- **Water** -- Minden vízhez kapcsolódó anyagot lefed (óceán, part, folyók)
 
 ---
 
 ## Enfusion World (Physics)
 
-### Menu Structure
+### Menüstruktúra
 
 ```
 Enfusion World
@@ -386,38 +390,38 @@ Enfusion World
   Show bodies                      [LAlt + Numpad 6]
 ```
 
-> **Megjegyzes:** "Bullet" here refers to the Bullet physics engine, not ammunition.
+> **Megjegyzés:** A "Bullet" itt a Bullet fizikai motorra utal, nem a lőszerre.
 
 ### Show Bullet
 
-Turns on the debug visualization for the Bullet physics engine.
+Bekapcsolja a Bullet fizikai motor hibakereső vizualizációját.
 
-### Bullet Sub-Menu
+### Bullet almenü
 
-| Option | Leiras |
-|--------|-------------|
-| **Draw Char Ctrl** | Visualize the player character controller. Depends on "Draw Bullet shape" |
-| **Draw Simple Char Ctrl** | Visualize the AI character controller. Depends on "Draw Bullet shape" |
-| **Max. Collider Distance** | Maximum distance from player to visualize colliders (values: 0, 1, 2, 5, 10, 20, 50, 100, 200, 500). Alapertelmezett is 0 |
-| **Draw Bullet shape** | Visualize physics collider shapes |
-| **Draw Bullet wireframe** | Show colliders as wireframe only. Depends on "Draw Bullet shape" |
-| **Draw Bullet shape AABB** | Show axis-aligned bounding boxes of colliders |
-| **Draw obj center of mass** | Show object centers of mass |
-| **Draw Bullet contacts** | Visualize colliders making contact |
-| **Force sleep Bullet** | Force all physics bodies to sleep |
-| **Show stats** | Show debug stats (options: disabled, basic, all). Stats remain visible for 10 seconds after disabling |
+| Opció | Leírás |
+|-------|--------|
+| **Draw Char Ctrl** | A játékos karaktervezérlő vizualizálása. A "Draw Bullet shape" opciótól függ |
+| **Draw Simple Char Ctrl** | Az AI karaktervezérlő vizualizálása. A "Draw Bullet shape" opciótól függ |
+| **Max. Collider Distance** | Maximális távolság a játékostól az ütközők vizualizálásához (értékek: 0, 1, 2, 5, 10, 20, 50, 100, 200, 500). Alapértelmezett: 0 |
+| **Draw Bullet shape** | Fizikai ütköző alakzatok vizualizálása |
+| **Draw Bullet wireframe** | Ütközők megjelenítése csak drótvázként. A "Draw Bullet shape" opciótól függ |
+| **Draw Bullet shape AABB** | Az ütközők tengelyre igazított befoglaló dobozainak megjelenítése |
+| **Draw obj center of mass** | Objektumok tömegközéppontjainak megjelenítése |
+| **Draw Bullet contacts** | Érintkező ütközők vizualizálása |
+| **Force sleep Bullet** | Az összes fizikai test alvásra kényszerítése |
+| **Show stats** | Hibakereső statisztikák megjelenítése (opciók: disabled, basic, all). A statisztikák 10 másodpercig láthatók maradnak a kikapcsolás után |
 
-> **Figyelmezetes:** Max. Collider Distance is 0 by default because this visualization is expensive. Setting it to a large distance will cause significant performance degradation.
+> **Figyelmeztetés:** A Max. Collider Distance alapértelmezés szerint 0, mert ez a vizualizáció költséges. Nagy távolságra állítása jelentős teljesítményromlást okoz.
 
 ### Show Bodies
 
-Visualize Bullet physics bodies. Options: `disabled`, `only`, `all`
+Bullet fizikai testek vizualizálása. Opciók: `disabled`, `only`, `all`
 
 ---
 
 ## DayZ Render
 
-### Menu Structure
+### Menüstruktúra
 
 ```
 DayZ Render
@@ -439,38 +443,38 @@ DayZ Render
       diagnostic mode
 ```
 
-### Sky Sub-Menu
+### Sky almenü
 
-Toggle individual sky rendering components:
+Egyedi égbolt renderelési komponensek be-/kikapcsolása:
 
-| Option | What It Controls |
-|--------|-----------------|
-| **Space** | The background texture behind the stars |
-| **Stars** | Star rendering |
-| **Sun** | Sun and its halo effect (not god rays) |
-| **Moon** | Moon and its halo effect (not god rays) |
-| **Atmosphere** | The atmosphere texture in the sky |
-| **Far (Clouds)** | Upper/distant clouds. These do not affect light shafts (less dense) |
-| **Near (Clouds)** | Lower/closer clouds. These are denser and act as occlusion for light shafts |
-| **Physical (Clouds)** | Deprecated object-based clouds. Removed from Chernarus and Livonia in DayZ 1.23 |
-| **Horizon** | Horizon rendering. The horizon will prevent light shafts |
-| **God Rays** | Light shaft post-process effect |
+| Opció | Mit vezérel |
+|-------|------------|
+| **Space** | A csillagok mögötti háttér textúra |
+| **Stars** | Csillagok renderelése |
+| **Sun** | A Nap és halóeffektje (nem az istensugarak) |
+| **Moon** | A Hold és halóeffektje (nem az istensugarak) |
+| **Atmosphere** | A légkör textúra az égen |
+| **Far (Clouds)** | Felső/távoli felhők. Ezek nem befolyásolják a fénysugarakat (kevésbé sűrűek) |
+| **Near (Clouds)** | Alsó/közelebbi felhők. Sűrűbbek és takarásként működnek a fénysugarakhoz |
+| **Physical (Clouds)** | Elavult objektumalapú felhők. A Chernarus-ból és Livonia-ból eltávolítva a DayZ 1.23-ban |
+| **Horizon** | Horizont renderelés. A horizont megakadályozza a fénysugarakat |
+| **God Rays** | Fénysugár utófeldolgozási effekt |
 
 ### Geometry Diagnostic
 
-Enables debug shape drawing to visualize how an object's geometry looks in-game.
+Hibakereső alakzatrajzolást engedélyez, hogy vizualizáld, hogyan néz ki egy objektum geometriája a játékban.
 
-Geometry types: `normal`, `roadway`, `geometry`, `viewGeometry`, `fireGeometry`, `paths`, `memory`, `wreck`
+Geometria típusok: `normal`, `roadway`, `geometry`, `viewGeometry`, `fireGeometry`, `paths`, `memory`, `wreck`
 
-Drawing modes: `solid+wire`, `Zsolid+wire`, `wire`, `ZWire`, `geom only`
+Rajzolási módok: `solid+wire`, `Zsolid+wire`, `wire`, `ZWire`, `geom only`
 
-This is extremely useful for modders creating custom models -- you can verify that your fire geometry, view geometry, and memory points are correctly configured without leaving the game.
+Ez rendkívül hasznos egyedi modelleket készítő modderek számára -- ellenőrizheted a tűz geometriát, nézet geometriát és memóriapontokat anélkül, hogy kilépnél a játékból.
 
 ---
 
 ## Game
 
-### Menu Structure
+### Menüstruktúra
 
 ```
 Game
@@ -545,26 +549,26 @@ Game
 
 ### Weather & Environment
 
-Debug functionality for the weather system.
+Hibakereső funkciók az időjárásrendszerhez.
 
 #### Display
 
-Enables the weather debug visualization. This shows an on-screen debug of fog/view distance and opens a separate real-time window with detailed weather data.
+Engedélyezi az időjárás hibakereső vizualizációt. Megjelenít egy képernyőn látható köd/látótávolság hibakeresőt, és megnyit egy külön valós idejű ablakot részletes időjárási adatokkal.
 
-To enable the separate window while running as a server, use the launch parameter `-debugweather`.
+A külön ablak szerveren futtatva való engedélyezéséhez használd a `-debugweather` indítási paramétert.
 
-Window settings are stored in profiles as `weather_client_imgui.ini` / `weather_client_imgui.bin` (or `weather_server_*` for servers).
+Az ablak beállításai a profilokban tárolódnak: `weather_client_imgui.ini` / `weather_client_imgui.bin` (vagy szervereknél `weather_server_*`).
 
 #### Force Fog at Camera
 
-Forces the fog height to match the player camera height. Has priority over the Height bias setting.
+A köd magasságát a játékos kamera magasságához kényszeríti. Elsőbbséget élvez a Height bias beállítással szemben.
 
 #### Override Fog
 
-Enables overriding fog values with manual settings:
+Engedélyezi a ködértékek kézi beállításokkal való felülírását:
 
-| Parameter | Range | Step |
-|-----------|-------|------|
+| Paraméter | Tartomány | Lépés |
+|-----------|-----------|-------|
 | Distance density | 0 -- 1 | 0.01 |
 | Height density | 0 -- 1 | 0.01 |
 | Distance offset | 0 -- 1 | 0.01 |
@@ -572,190 +576,190 @@ Enables overriding fog values with manual settings:
 
 ### Free Camera
 
-The free camera detaches the view from the player character and allows flying through the world. This is one of the most useful debug tools for modders.
+A szabad kamera leválasztja a nézetet a játékos karakteréről, és lehetővé teszi a világ átszelését repüléssel. Ez a modderek egyik leghasznosabb hibakereső eszköze.
 
-#### Free Camera Controls
+#### Szabad kamera vezérlők
 
-| Key | Origin | Function |
-|-----|--------|----------|
-| **W / A / S / D** | Inputs (xml) | Move forward / left / backward / right |
-| **Q** | Inputs (xml) | Move up |
-| **Z** | Inputs (xml) | Move down |
-| **Mouse** | Inputs (xml) | Look around |
-| **Mouse wheel up** | Inputs (C++) | Increase speed |
-| **Mouse wheel down** | Inputs (C++) | Decrease speed |
-| **Spacebar** | Cheat Inputs (C++) | Toggle on-screen debug of targeted object |
-| **Ctrl / Shift** | Cheat Inputs (C++) | Current speed x 10 |
-| **Alt** | Cheat Inputs (C++) | Current speed / 10 |
-| **End** | Cheat Inputs (C++) | Disable free camera (return to player) |
-| **Enter** | Cheat Inputs (C++) | Link camera to target object |
-| **Page Up** | Cheat Inputs (C++) | Toggle player movement while in free camera |
-| **Page Down** | Cheat Inputs (C++) | Freeze/unfreeze camera position |
-| **Insert** | PluginKeyBinding (Script) | Teleport player to cursor position |
-| **Fooldal** | PluginKeyBinding (Script) | Toggle free camera / disable and teleport to cursor |
-| **Numpad /** | PluginKeyBinding (Script) | Toggle free camera (no teleport) |
+| Billentyű | Eredet | Funkció |
+|-----------|--------|---------|
+| **W / A / S / D** | Inputs (xml) | Előre / balra / hátra / jobbra mozgás |
+| **Q** | Inputs (xml) | Felfelé mozgás |
+| **Z** | Inputs (xml) | Lefelé mozgás |
+| **Egér** | Inputs (xml) | Körülnézés |
+| **Egérgörgő fel** | Inputs (C++) | Sebesség növelése |
+| **Egérgörgő le** | Inputs (C++) | Sebesség csökkentése |
+| **Szóköz** | Cheat Inputs (C++) | Célzott objektum képernyőn megjelenő hibakeresésének be-/kikapcsolása |
+| **Ctrl / Shift** | Cheat Inputs (C++) | Aktuális sebesség x 10 |
+| **Alt** | Cheat Inputs (C++) | Aktuális sebesség / 10 |
+| **End** | Cheat Inputs (C++) | Szabad kamera kikapcsolása (visszatérés a játékoshoz) |
+| **Enter** | Cheat Inputs (C++) | Kamera összekapcsolása a célzott objektummal |
+| **Page Up** | Cheat Inputs (C++) | Játékos mozgásának be-/kikapcsolása szabad kamerában |
+| **Page Down** | Cheat Inputs (C++) | Kamera pozíciójának befagyasztása/feloldása |
+| **Insert** | PluginKeyBinding (Script) | Játékos teleportálása a kurzor pozíciójára |
+| **Home** | PluginKeyBinding (Script) | Szabad kamera be-/kikapcsolása / kikapcsolás és teleportálás a kurzorhoz |
+| **Numpad /** | PluginKeyBinding (Script) | Szabad kamera be-/kikapcsolása (teleport nélkül) |
 
-#### Free Camera Options
+#### Szabad kamera opciók
 
-| Option | Leiras |
-|--------|-------------|
-| **FrCam Player Move** | Enable/disable player inputs (WASD) moving the player while in free camera |
-| **FrCam NoClip** | Enable/disable the camera passing through terrain |
-| **FrCam Freeze** | Enable/disable inputs moving the camera |
+| Opció | Leírás |
+|-------|--------|
+| **FrCam Player Move** | A játékos bemenetek (WASD) mozgatják-e a játékost szabad kamerában |
+| **FrCam NoClip** | A kamera áthaladhat-e a terepen |
+| **FrCam Freeze** | A bemenetek mozgatják-e a kamerát |
 
 ### Vehicles
 
-Extended debug functionality for vehicles. These only work while the player is inside a vehicle.
+Kibővített hibakereső funkciók járművekhez. Ezek csak akkor működnek, ha a játékos járműben van.
 
-- **Audio** -- Opens a separate window to tweak sound settings in real time. Includes visualization of audio controllers.
-- **Simulation** -- Opens a separate window with car simulation debug: tweaking physics parameters and visualization.
+- **Audio** -- Külön ablakot nyit hangbeállítások valós idejű módosításához. Audio vezérlők vizualizációját tartalmazza.
+- **Simulation** -- Külön ablakot nyit autó szimulációs hibakereséssel: fizikai paraméterek módosítása és vizualizáció.
 
 ### Combat
 
-Debug tools for combat, shooting, and hitpoints:
+Hibakereső eszközök harchoz, lövészethez és találati pontokhoz:
 
-| Option | Leiras |
-|--------|-------------|
-| **DECombat** | Shows on-screen text with distances to cars, AI, and players |
-| **DEShots** | Projectile debug sub-menu (see below) |
-| **DEHitpoints** | Displays the DamageSystem of the player and the object they are looking at |
-| **DEExplosions** | Shows explosion penetration data. Numbers show slowdown values. Red cross = stopped. Green cross = penetrated |
+| Opció | Leírás |
+|-------|--------|
+| **DECombat** | Képernyőn megjelenő szöveget mutat autók, AI és játékosok távolságával |
+| **DEShots** | Lövedék hibakereső almenü (lásd alább) |
+| **DEHitpoints** | A játékos és a nézett objektum DamageSystem-jét jeleníti meg |
+| **DEExplosions** | Robbanás behatolási adatokat mutat. A számok a lassulási értékeket jelölik. Piros kereszt = megállítva. Zöld kereszt = áthatolt |
 
-**DEShots sub-menu:**
+**DEShots almenü:**
 
-| Option | Leiras |
-|--------|-------------|
-| Clear vis. | Clear any existing shot visualization |
-| Vis. trajectory | Trace the path of a shot, showing exit points and stop point |
-| Always Deflect | Forces all client-fired shots to deflect |
+| Opció | Leírás |
+|-------|--------|
+| Clear vis. | Meglévő lövés vizualizáció törlése |
+| Vis. trajectory | Lövés útvonalának nyomkövetése, kilépési és megállási pont megjelenítése |
+| Always Deflect | Kényszeríti az összes kliens által leadott lövés elpattanását |
 
 ### Legacy/Obsolete
 
-- **DEAmbient** -- Displays variables influencing ambient sounds
-- **DELight** -- Displays stats regarding the current lighting environment
+- **DEAmbient** -- A környezeti hangokat befolyásoló változókat jeleníti meg
+- **DELight** -- Az aktuális világítási környezet statisztikáit jeleníti meg
 
 ### DESurfaceSound
 
-Displays the surface type the player is standing on and the attenuation type.
+A játékos alatt lévő felülettípust és a csillapítás típusát jeleníti meg.
 
 ### Central Economy
 
-A comprehensive set of debugging tools for the Central Economy (CE) system.
+Átfogó hibakereső eszközkészlet a Central Economy (CE) rendszerhez.
 
-> **Fontos:** Most CE debug options only work in single-player client with CE enabled. Only "Building Stats" works in a multiplayer environment or when CE is turned off.
+> **Fontos:** A legtöbb CE hibakereső opció csak egyjátékos kliensben működik engedélyezett CE-vel. Csak a "Building Stats" működik többjátékos környezetben vagy kikapcsolt CE esetén.
 
-> **Megjegyzes:** Many of these functions are also available through the `CEApi` in script (`CentralEconomy.c`).
+> **Megjegyzés:** Ezek közül sok funkció szkripten keresztül is elérhető a `CEApi`-n át (`CentralEconomy.c`).
 
 #### Loot Spawn Edit
 
-Tools for creating and editing loot spawn points on objects. Free camera must be enabled to use the Edit Volume tool.
+Eszközök loot spawn pontok létrehozásához és szerkesztéséhez objektumokon. Az Edit Volume eszköz használatához a szabad kamerát engedélyezni kell.
 
-| Option | Leiras | Script Equivalent |
-|--------|-------------|-------------------|
-| **Spawn Volume Vis** | Visualize loot spawn points. Options: Off, Adaptive, Volume, Occupied | `GetCEApi().LootSetSpawnVolumeVisualisation()` |
-| **Setup Vis** | Show CE setup properties on screen with color-coded containers | `GetCEApi().LootToggleSpawnSetup()` |
-| **Edit Volume** | Interactive loot point editor (requires free camera) | `GetCEApi().LootToggleVolumeEditing()` |
-| **Re-Trace Group Points** | Re-trace loot points to fix hovering issues | `GetCEApi().LootRetraceGroupPoints()` |
-| **Spawn Candy** | Spawn loot in all spawn points of selected group | -- |
-| **Spawn Rotation Test** | Test rotation flags at cursor position | -- |
-| **Placement Test** | Visualize placement with sphere cylinder | -- |
-| **Export Group** | Export selected group to `storage/export/mapGroup_CLASSNAME.xml` | `GetCEApi().LootExportGroup()` |
-| **Export All Groups** | Export all groups to `storage/export/mapgroupproto.xml` | `GetCEApi().LootExportAllGroups()` |
-| **Export Map** | Generate `storage/export/mapgrouppos.xml` | `GetCEApi().LootExportMap()` |
-| **Export Clusters** | Generate `storage/export/mapgroupcluster.xml` | `GetCEApi().ExportClusterData()` |
-| **Export Economy [csv]** | Export economy to `storage/log/economy.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.Economy)` |
-| **Export Respawn Queue [csv]** | Export respawn queue to `storage/log/respawn_queue.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.RespawnQueue)` |
+| Opció | Leírás | Szkript megfelelő |
+|-------|--------|-------------------|
+| **Spawn Volume Vis** | Loot spawn pontok vizualizálása. Opciók: Off, Adaptive, Volume, Occupied | `GetCEApi().LootSetSpawnVolumeVisualisation()` |
+| **Setup Vis** | CE beállítási tulajdonságok megjelenítése a képernyőn színkódolt konténerekkel | `GetCEApi().LootToggleSpawnSetup()` |
+| **Edit Volume** | Interaktív loot pont szerkesztő (szabad kamera szükséges) | `GetCEApi().LootToggleVolumeEditing()` |
+| **Re-Trace Group Points** | Loot pontok újrakövetése a lebegési problémák javítására | `GetCEApi().LootRetraceGroupPoints()` |
+| **Spawn Candy** | Loot spawnolása a kiválasztott csoport összes spawn pontján | -- |
+| **Spawn Rotation Test** | Forgatási jelzők tesztelése a kurzor pozíciójánál | -- |
+| **Placement Test** | Elhelyezés vizualizálása gömb hengerrel | -- |
+| **Export Group** | Kiválasztott csoport exportálása a `storage/export/mapGroup_CLASSNAME.xml` fájlba | `GetCEApi().LootExportGroup()` |
+| **Export All Groups** | Összes csoport exportálása a `storage/export/mapgroupproto.xml` fájlba | `GetCEApi().LootExportAllGroups()` |
+| **Export Map** | `storage/export/mapgrouppos.xml` generálása | `GetCEApi().LootExportMap()` |
+| **Export Clusters** | `storage/export/mapgroupcluster.xml` generálása | `GetCEApi().ExportClusterData()` |
+| **Export Economy [csv]** | Gazdaság exportálása a `storage/log/economy.csv` fájlba | `GetCEApi().EconomyLog(EconomyLogCategories.Economy)` |
+| **Export Respawn Queue [csv]** | Újraspawn sor exportálása a `storage/log/respawn_queue.csv` fájlba | `GetCEApi().EconomyLog(EconomyLogCategories.RespawnQueue)` |
 
-**Edit Volume key bindings:**
+**Edit Volume billentyűkiosztás:**
 
-| Key | Function |
-|-----|----------|
-| **[** | Iterate backwards through containers |
-| **]** | Iterate forwards through containers |
-| **LMB** | Insert new point |
-| **RMB** | Delete point |
-| **;** | Increase point size |
-| **'** | Decrease point size |
-| **Insert** | Spawn loot at point |
-| **M** | Spawn 48 "AmmoBox_762x54_20Rnd" |
-| **Backspace** | Mark nearby loot for cleanup (depletes lifetime, not instant) |
+| Billentyű | Funkció |
+|-----------|---------|
+| **[** | Visszafelé léptetés a konténerek között |
+| **]** | Előre léptetés a konténerek között |
+| **LMB** | Új pont beszúrása |
+| **RMB** | Pont törlése |
+| **;** | Pont méretének növelése |
+| **'** | Pont méretének csökkentése |
+| **Insert** | Loot spawnolása a pontnál |
+| **M** | 48 db "AmmoBox_762x54_20Rnd" spawnolása |
+| **Backspace** | Közeli loot megjelölése takarításra (élettartam lejártatása, nem azonnali) |
 
 #### Loot Tool
 
-| Option | Leiras | Script Equivalent |
-|--------|-------------|-------------------|
-| **Deplete Lifetime** | Depletes lifetime to 3 seconds (scheduled for cleanup) | `GetCEApi().LootDepleteLifetime()` |
-| **Set Damage = 1.0** | Sets health to 0 | `GetCEApi().LootSetDamageToOne()` |
-| **Damage + Deplete** | Performs both of the above | `GetCEApi().LootDepleteAndDamage()` |
-| **Invert Avoidance** | Toggles player avoidance (detection of nearby players) | -- |
-| **Project Target Loot** | Emulates spawning of targeted item, generates images and logs. Requires "Loot Vis" enabled | `GetCEApi().SpawnAnalyze()` and `GetCEApi().EconomyMap()` |
+| Opció | Leírás | Szkript megfelelő |
+|-------|--------|-------------------|
+| **Deplete Lifetime** | Élettartam 3 másodpercre csökkentése (takarításra ütemezve) | `GetCEApi().LootDepleteLifetime()` |
+| **Set Damage = 1.0** | Életerő 0-ra állítása | `GetCEApi().LootSetDamageToOne()` |
+| **Damage + Deplete** | A fenti kettő végrehajtása | `GetCEApi().LootDepleteAndDamage()` |
+| **Invert Avoidance** | Játékos elkerülés (közeli játékosok érzékelése) be-/kikapcsolása | -- |
+| **Project Target Loot** | Célzott tárgy spawnolásának emulálása, képek és naplók generálása. A "Loot Vis" engedélyezése szükséges | `GetCEApi().SpawnAnalyze()` és `GetCEApi().EconomyMap()` |
 
 #### Infected
 
-| Option | Leiras | Script Equivalent |
-|--------|-------------|-------------------|
-| **Infected Vis** | Visualize zombie zones, locations, alive/dead status | `GetCEApi().InfectedToggleVisualisation()` |
-| **Infected Zone Info** | On-screen debug when camera is inside an infected zone | `GetCEApi().InfectedToggleZoneInfo()` |
-| **Infected Spawn** | Spawn infected in selected zone (or "InfectedArmy" at cursor) | `GetCEApi().InfectedSpawn()` |
-| **Reset Cleanup** | Sets cleanup timer to 3 seconds | `GetCEApi().InfectedResetCleanup()` |
+| Opció | Leírás | Szkript megfelelő |
+|-------|--------|-------------------|
+| **Infected Vis** | Zombi zónák, helyszínek, élő/halott állapot vizualizálása | `GetCEApi().InfectedToggleVisualisation()` |
+| **Infected Zone Info** | Képernyőn megjelenő hibakeresés, amikor a kamera egy fertőzött zónában van | `GetCEApi().InfectedToggleZoneInfo()` |
+| **Infected Spawn** | Fertőzött spawnolása a kiválasztott zónában (vagy "InfectedArmy" a kurzornál) | `GetCEApi().InfectedSpawn()` |
+| **Reset Cleanup** | Takarítási időzítő 3 másodpercre állítása | `GetCEApi().InfectedResetCleanup()` |
 
 #### Animal
 
-| Option | Leiras | Script Equivalent |
-|--------|-------------|-------------------|
-| **Animal Vis** | Visualize animal zones, locations, alive/dead status | `GetCEApi().AnimalToggleVisualisation()` |
-| **Animal Spawn** | Spawn animal in selected zone (or "AnimalGoat" at cursor) | `GetCEApi().AnimalSpawn()` |
-| **Ambient Spawn** | Spawn "AmbientHen" at cursor target | `GetCEApi().AnimalAmbientSpawn()` |
+| Opció | Leírás | Szkript megfelelő |
+|-------|--------|-------------------|
+| **Animal Vis** | Állat zónák, helyszínek, élő/halott állapot vizualizálása | `GetCEApi().AnimalToggleVisualisation()` |
+| **Animal Spawn** | Állat spawnolása a kiválasztott zónában (vagy "AnimalGoat" a kurzornál) | `GetCEApi().AnimalSpawn()` |
+| **Ambient Spawn** | "AmbientHen" spawnolása a kurzor célpontjánál | `GetCEApi().AnimalAmbientSpawn()` |
 
 #### Building
 
-**Building Stats** shows on-screen debug about building door states:
+A **Building Stats** képernyőn megjelenő hibakeresést mutat az épületek ajtóállapotairól:
 
-- Left side: whether each door is open/closed and free/locked
-- Middle: stats regarding `buildings.bin` (building persistence)
+- Bal oldal: minden ajtó nyitott/zárt és szabad/zárolt állapota
+- Közép: statisztikák a `buildings.bin`-ről (épület perzisztencia)
 
-Door randomization uses the `initOpened` config value. When `rand < initOpened`, the door spawns opened (so `initOpened=0` means doors never spawn open).
+Az ajtó véletlenszerűsítés az `initOpened` config értéket használja. Ha `rand < initOpened`, az ajtó nyitottan spawnol (tehát `initOpened=0` azt jelenti, hogy az ajtók soha nem spawnolnak nyitottan).
 
-Common `<building/>` setups in economy.xml:
+Gyakori `<building/>` beállítások az economy.xml-ben:
 
-| Setup | Behavior |
-|-------|----------|
-| `init="0" load="0" respawn="0" save="0"` | No persistence, no randomization, default state after restart |
-| `init="1" load="0" respawn="0" save="0"` | No persistence, doors randomized by initOpened |
-| `init="1" load="1" respawn="0" save="1"` | Saves only locked doors, doors randomized by initOpened |
-| `init="0" load="1" respawn="0" save="1"` | Full persistence, saves exact door state, no randomization |
+| Beállítás | Viselkedés |
+|-----------|-----------|
+| `init="0" load="0" respawn="0" save="0"` | Nincs perzisztencia, nincs véletlenszerűsítés, alapértelmezett állapot újraindítás után |
+| `init="1" load="0" respawn="0" save="0"` | Nincs perzisztencia, ajtók véletlenszerűsítve az initOpened által |
+| `init="1" load="1" respawn="0" save="1"` | Csak a zárolt ajtókat menti, ajtók véletlenszerűsítve az initOpened által |
+| `init="0" load="1" respawn="0" save="1"` | Teljes perzisztencia, pontos ajtóállapot mentése, nincs véletlenszerűsítés |
 
-#### Other Central Economy Tools
+#### Egyéb Central Economy eszközök
 
-| Option | Leiras | Script Equivalent |
-|--------|-------------|-------------------|
-| **Vehicle&Wreck Vis** | Visualize objects registered to "Vehicle" avoidance. Yellow = Car, Pink = Wrecks (Building), Blue = InventoryItem | `GetCEApi().ToggleVehicleAndWreckVisualisation()` |
-| **Loot Vis** | On-screen Economy Data for anything you look at (loot, infected, dynamic events) | `GetCEApi().ToggleLootVisualisation()` |
-| **Cluster Vis** | On-screen Trajectory DE stats | `GetCEApi().ToggleClusterVisualisation()` |
-| **Dynamic Events Status** | On-screen DE statistics | `GetCEApi().ToggleDynamicEventStatus()` |
-| **Dynamic Events Vis** | Visualize and edit DE spawn points | `GetCEApi().ToggleDynamicEventVisualisation()` |
-| **Dynamic Events Spawn** | Spawn a dynamic event at nearest point or "StaticChristmasTree" as fallback | `GetCEApi().DynamicEventSpawn()` |
-| **Export Dyn Event** | Export DE points to `storage/export/eventSpawn_CLASSNAME.xml` | `GetCEApi().DynamicEventExport()` |
-| **Overall Stats** | On-screen CE statistics | `GetCEApi().ToggleOverallStats()` |
-| **Updaters State** | Shows what the CE is currently processing | -- |
-| **Idle Mode** | Puts CE to sleep (stops processing) | -- |
-| **Force Save** | Forces saving of the entire `storage/data` folder (excludes player database) | -- |
+| Opció | Leírás | Szkript megfelelő |
+|-------|--------|-------------------|
+| **Vehicle&Wreck Vis** | "Vehicle" elkerülésre regisztrált objektumok vizualizálása. Sárga = Autó, Rózsaszín = Roncsok (Building), Kék = InventoryItem | `GetCEApi().ToggleVehicleAndWreckVisualisation()` |
+| **Loot Vis** | Képernyőn megjelenő gazdasági adatok bármihez, amit nézel (loot, fertőzött, dinamikus események) | `GetCEApi().ToggleLootVisualisation()` |
+| **Cluster Vis** | Képernyőn megjelenő trajektória DE statisztikák | `GetCEApi().ToggleClusterVisualisation()` |
+| **Dynamic Events Status** | Képernyőn megjelenő DE statisztikák | `GetCEApi().ToggleDynamicEventStatus()` |
+| **Dynamic Events Vis** | DE spawn pontok vizualizálása és szerkesztése | `GetCEApi().ToggleDynamicEventVisualisation()` |
+| **Dynamic Events Spawn** | Dinamikus esemény spawnolása a legközelebbi pontnál vagy "StaticChristmasTree" tartalékként | `GetCEApi().DynamicEventSpawn()` |
+| **Export Dyn Event** | DE pontok exportálása a `storage/export/eventSpawn_CLASSNAME.xml` fájlba | `GetCEApi().DynamicEventExport()` |
+| **Overall Stats** | Képernyőn megjelenő CE statisztikák | `GetCEApi().ToggleOverallStats()` |
+| **Updaters State** | Megmutatja, mit dolgoz fel jelenleg a CE | -- |
+| **Idle Mode** | CE alvásra küldése (feldolgozás leállítása) | -- |
+| **Force Save** | A teljes `storage/data` mappa kényszerített mentése (a játékos adatbázist nem tartalmazza) | -- |
 
-**Dynamic Events Vis key bindings:**
+**Dynamic Events Vis billentyűkiosztás:**
 
-| Key | Function |
-|-----|----------|
-| **[** | Iterate backwards through available DE |
-| **]** | Iterate forwards through available DE |
-| **LMB** | Insert new point for selected DE |
-| **RMB** | Delete point nearest to cursor |
-| **MMB** | Hold or click to rotate angle |
+| Billentyű | Funkció |
+|-----------|---------|
+| **[** | Visszafelé léptetés az elérhető DE-k között |
+| **]** | Előre léptetés az elérhető DE-k között |
+| **LMB** | Új pont beszúrása a kiválasztott DE-hez |
+| **RMB** | A kurzorhoz legközelebbi pont törlése |
+| **MMB** | Tartva vagy kattintva szög forgatása |
 
 ---
 
 ## AI
 
-### Menu Structure
+### Menüstruktúra
 
 ```
 AI
@@ -765,40 +769,40 @@ AI
   Debug AI Agent
 ```
 
-> **Fontos:** AI debugging currently does not work in a multiplayer environment.
+> **Fontos:** Az AI hibakeresés jelenleg nem működik többjátékos környezetben.
 
 ### Show NavMesh
 
-Draws debug shapes to visualize the navigation mesh. Shows an on-screen debug with stats.
+Hibakereső alakzatokat rajzol a navigációs háló vizualizálásához. Képernyőn megjelenő hibakeresőt mutat statisztikákkal.
 
-| Key | Function |
-|-----|----------|
-| **Numpad 0** | Register "Test start" at camera position |
-| **Numpad 1** | Regenerate tile at camera position |
-| **Numpad 2** | Regenerate tiles around camera position |
-| **Numpad 3** | Iterate forwards through visualization types |
-| **LAlt + Numpad 3** | Iterate backwards through visualization types |
-| **Numpad 4** | Register "Test end" at camera position. Draws spheres and a line between start and end. Green = path found, Red = no path |
-| **Numpad 5** | NavMesh nearest position test (SamplePosition). Blue sphere = query, pink sphere = result |
-| **Numpad 6** | NavMesh raycast test. Blue sphere = query, pink sphere = result |
+| Billentyű | Funkció |
+|-----------|---------|
+| **Numpad 0** | "Teszt kezdete" regisztrálása a kamera pozíciójánál |
+| **Numpad 1** | Csempe újragenerálása a kamera pozíciójánál |
+| **Numpad 2** | Csempék újragenerálása a kamera pozíciója körül |
+| **Numpad 3** | Előre léptetés a vizualizációs típusok között |
+| **LAlt + Numpad 3** | Visszafelé léptetés a vizualizációs típusok között |
+| **Numpad 4** | "Teszt vége" regisztrálása a kamera pozíciójánál. Gömböket és vonalat rajzol a kezdő és végpont között. Zöld = útvonal találva, Piros = nincs útvonal |
+| **Numpad 5** | NavMesh legközelebbi pozíció teszt (SamplePosition). Kék gömb = lekérdezés, rózsaszín gömb = eredmény |
+| **Numpad 6** | NavMesh raycast teszt. Kék gömb = lekérdezés, rózsaszín gömb = eredmény |
 
 ### Debug Pathgraph World
 
-On-screen debug showing how many path job requests have been completed and how many are currently pending.
+Képernyőn megjelenő hibakeresés, amely megmutatja, hány útvonalkérés fejeződött be és hány van folyamatban.
 
 ### Debug Path Agent
 
-On-screen debug and debug shapes for an AI's pathing. Target an AI entity to select it for tracking. Use this when you are specifically interested in how an AI finds its path.
+Képernyőn megjelenő hibakeresés és hibakereső alakzatok egy AI útvonalkereséshez. Célozz meg egy AI entitást a nyomkövetéshez való kiválasztásához. Használd ezt, amikor kifejezetten az érdekel, hogyan találja meg az útvonalát egy AI.
 
 ### Debug AI Agent
 
-On-screen debug and debug shapes for an AI's alertness and behavior. Target an AI entity to select it for tracking. Use this when you want to understand an AI's decision-making and awareness state.
+Képernyőn megjelenő hibakeresés és hibakereső alakzatok egy AI éberségi szintjéhez és viselkedéséhez. Célozz meg egy AI entitást a nyomkövetéshez való kiválasztásához. Használd ezt, amikor az AI döntéshozatalát és tudatossági állapotát akarod megérteni.
 
 ---
 
 ## Sounds
 
-### Menu Structure
+### Menüstruktúra
 
 ```
 Sounds
@@ -808,100 +812,100 @@ Sounds
 
 ### Show Playing Samples
 
-Debug visualization for currently playing sounds.
+Hibakereső vizualizáció a jelenleg lejátszott hangokhoz.
 
-| Option | Leiras |
-|--------|-------------|
-| **none** | Alapertelmezett, no debug |
-| **ImGui** | Separate window (newest iteration). Supports filtering, full category coverage. Settings saved as `playing_sounds_imgui.ini` / `.bin` in profiles |
-| **DbgUI** | Legacy. Has category filtering, more readable, but goes off-screen and lacks vehicle category |
-| **Engine** | Legacy. Shows real-time color-coded data with stats, but goes off-screen and has no color legend |
+| Opció | Leírás |
+|-------|--------|
+| **none** | Alapértelmezett, nincs hibakeresés |
+| **ImGui** | Külön ablak (legújabb iteráció). Szűrést és teljes kategória lefedettséget támogat. Beállítások mentése: `playing_sounds_imgui.ini` / `.bin` a profilokban |
+| **DbgUI** | Régi. Kategóriaszűréssel rendelkezik, olvashatóbb, de kimegy a képernyőről és hiányzik a jármű kategória |
+| **Engine** | Régi. Valós idejű színkódolt adatokat mutat statisztikákkal, de kimegy a képernyőről és nincs szín jelmagyarázat |
 
 ### Show System Info
 
-On-screen debug stats of the sound system (buffer counts, active sources, etc.).
+A hangrendszer képernyőn megjelenő hibakereső statisztikái (pufferszámok, aktív források stb.).
 
 ---
 
-## Useful Funkcios for Modders
+## Hasznos funkciók modderek számára
 
-While every option has its use, these are the ones modders reach for most frequently:
+Bár minden opciónak megvan a haszna, ezeket használják a modderek leggyakrabban:
 
-### Performance Analysis
+### Teljesítményelemzés
 
-1. **FPS counter** (LCtrl + Numpad 1) -- Quick check that your mod is not destroying frame rate
-2. **Script Profiler** -- Find which of your classes or functions consume the most CPU time. Set module to WORLD or MISSION to focus on your mod's script layer
+1. **FPS-számláló** (LCtrl + Numpad 1) -- Gyors ellenőrzés, hogy a modod nem rontja-e tönkre a képkockasebességet
+2. **Script Profiler** -- Keresd meg, mely osztályaid vagy függvényeid fogyasztják a legtöbb CPU-időt. Állítsd a modult WORLD-re vagy MISSION-re, hogy a modod szkript rétegére fókuszálj
 
-### Visual Debugging
+### Vizuális hibakeresés
 
-1. **Free Camera** -- Fly around to inspect spawned objects, verify positions, check AI behavior from a distance
-2. **Geometry Diagnostic** -- Verify your custom model's fire geometry, view geometry, roadway LOD, and memory points without leaving the game
-3. **Render Debug Mode** (RCtrl + RAlt + W) -- See wireframe overlays to check mesh density and material assignments
+1. **Szabad kamera** -- Repülj körbe a spawnolt objektumok vizsgálatához, pozíciók ellenőrzéséhez, AI viselkedés távolról való megfigyeléséhez
+2. **Geometry Diagnostic** -- Ellenőrizd az egyedi modelled tűz geometriáját, nézet geometriáját, roadway LOD-ját és memóriapontjait anélkül, hogy kilépnél a játékból
+3. **Render Debug Mode** (RCtrl + RAlt + W) -- Drótváz átfedések megtekintése a háló sűrűség és anyag hozzárendelések ellenőrzéséhez
 
-### Gameplay Testing
+### Játékmenet tesztelés
 
-1. **Free Camera + Insert** -- Teleport your player anywhere on the map instantly
-2. **Weather Override** -- Force specific fog conditions to test visibility-dependent features
-3. **Central Economy tools** -- Spawn infected, animals, loot, and dynamic events on demand
-4. **Combat debug** -- Trace shot trajectories, inspect hitpoint damage systems, test explosion penetration
+1. **Szabad kamera + Insert** -- Teleportáld a játékosodat bárhová a térképen azonnal
+2. **Időjárás felülírás** -- Kényszeríts ki konkrét ködkörülményeket a láthatóságfüggő funkciók teszteléséhez
+3. **Central Economy eszközök** -- Fertőzöttek, állatok, loot és dinamikus események spawnolása igény szerint
+4. **Harc hibakeresés** -- Lövés trajektóriák nyomkövetése, találati pont sérülési rendszerek vizsgálata, robbanás behatolás tesztelése
 
-### AI Development
+### AI fejlesztés
 
-1. **Show NavMesh** -- Verify that AI can actually navigate to where you expect
-2. **Debug AI Agent** -- See what an infected or animal is thinking, what alert level it is at
-3. **Debug Path Agent** -- See the actual path an AI is taking and whether pathfinding succeeds
-
----
-
-## Mikor hasznald the Diag Menu
-
-### During Development
-
-- **Script Profiler** when optimizing per-frame code (OnUpdate, EOnFrame)
-- **Free Camera** for positioning objects, verifying spawn locations, inspecting model placement
-- **Geometry Diagnostic** immediately after importing a new model to verify LODs and geometry types
-- **FPS counter** as a baseline before and after adding new features
-
-### During Testing
-
-- **Combat debug** to verify weapon damage, projectile behavior, explosion effects
-- **CE tools** to test loot distribution, spawn points, dynamic events
-- **AI debug** to verify infected/animal behavior responds correctly to player presence
-- **Weather debug** to test your mod under different weather conditions
-
-### During Bug Investigation
-
-- **FPS counter + Script Profiler** when players report performance issues
-- **Free Camera + Spacebar** (object debug) to inspect objects that are not behaving correctly
-- **Render Debug Mode** to diagnose visual artifacts or material issues
-- **Show Bullet** to debug physics collision problems
+1. **Show NavMesh** -- Ellenőrizd, hogy az AI tényleg el tud-e navigálni oda, ahova várod
+2. **Debug AI Agent** -- Lásd, mit gondol egy fertőzött vagy állat, milyen riasztási szinten van
+3. **Debug Path Agent** -- Lásd az AI tényleges útvonalát és azt, hogy az útvonalkeresés sikeres-e
 
 ---
 
-## Gyakori hibak
+## Mikor használd a Diag Menüt
 
-**Using retail executable.** The Diag Menu is only available in `DayZDiag_x64.exe`. If you press Win+Alt and nothing happens, you are running the retail build.
+### Fejlesztés közben
 
-**Forgetting Max. Collider Distance is 0.** The physics visualization (Draw Bullet shape) will show nothing if Max. Collider Distance is still at its default of 0. Set it to at least 10-20 to see colliders around you.
+- **Script Profiler** képkockánkénti kód optimalizálásakor (OnUpdate, EOnFrame)
+- **Szabad kamera** objektumok pozicionálásához, spawn helyek ellenőrzéséhez, modell elhelyezés vizsgálatához
+- **Geometry Diagnostic** közvetlenül egy új modell importálása után a LOD-ok és geometria típusok ellenőrzéséhez
+- **FPS-számláló** alapértékként új funkciók hozzáadása előtt és után
 
-**CE tools in multiplayer.** Most Central Economy debug options only work in single-player with CE enabled. Do not expect them to function on a dedicated server.
+### Tesztelés közben
 
-**AI debug in multiplayer.** AI debugging currently does not work in a multiplayer environment. Test AI behavior in single-player.
+- **Harc hibakeresés** fegyversérülés, lövedékviselkedés, robbanási effektek ellenőrzéséhez
+- **CE eszközök** loot elosztás, spawn pontok, dinamikus események teszteléséhez
+- **AI hibakeresés** a fertőzött/állat viselkedés játékos jelenlétére adott helyes válaszának ellenőrzéséhez
+- **Időjárás hibakeresés** a mod különböző időjárási körülmények közötti teszteléséhez
 
-**Confusing "Bullet" with ammunition.** The "Enfusion World" category's "Bullet" options refer to the Bullet physics engine, not weapon ammunition. Combat-related debugging is under Game > Combat.
+### Hibajelentés vizsgálatakor
 
-**Leaving profiler on.** The Script Profiler has measurable overhead. Turn it off when you are done profiling to get accurate FPS readings.
-
-**Large collider distance values.** Setting Max. Collider Distance to 200 or 500 will tank your frame rate. Use the smallest value that covers your area of interest.
-
-**Not enabling prerequisites.** Several options depend on others being enabled first:
-- "Draw Char Ctrl" and "Draw Bullet wireframe" depend on "Draw Bullet shape"
-- "Edit Volume" requires free camera
-- "Project Target Loot" requires "Loot Vis" to be enabled
+- **FPS-számláló + Script Profiler** amikor játékosok teljesítményproblémákat jelentenek
+- **Szabad kamera + Szóköz** (objektum hibakeresés) a nem megfelelően viselkedő objektumok vizsgálatához
+- **Render Debug Mode** vizuális hibák vagy anyagproblémák diagnosztizálásához
+- **Show Bullet** fizikai ütközési problémák hibakereséséhez
 
 ---
 
-## Kovetkezo lepesek
+## Gyakori hibák
 
-- **Chapter 8.6: [Debugging & Testing](06-debugging-testing.md)** -- Script logs, Print debugging, file patching, and Workbench
-- **Chapter 8.7: [Publishing to Workshop](07-publishing-workshop.md)** -- Package and publish your tested mod
+**Kereskedelmi futtatható állomány használata.** A Diag Menu csak a `DayZDiag_x64.exe`-ben érhető el. Ha megnyomod a Win+Alt-ot és semmi nem történik, a kereskedelmi buildet futtatod.
+
+**Elfelejteni, hogy a Max. Collider Distance 0.** A fizikai vizualizáció (Draw Bullet shape) semmit nem mutat, ha a Max. Collider Distance még az alapértelmezett 0-n van. Állítsd legalább 10-20-ra, hogy lásd a körülötted lévő ütközőket.
+
+**CE eszközök többjátékos módban.** A legtöbb Central Economy hibakereső opció csak egyjátékos módban működik engedélyezett CE-vel. Ne várd, hogy dedikált szerveren működjenek.
+
+**AI hibakeresés többjátékos módban.** Az AI hibakeresés jelenleg nem működik többjátékos környezetben. Teszteld az AI viselkedést egyjátékos módban.
+
+**A "Bullet" összekeverése a lőszerrel.** Az "Enfusion World" kategória "Bullet" opciói a Bullet fizikai motorra vonatkoznak, nem a fegyver lőszerre. A harchoz kapcsolódó hibakeresés a Game > Combat alatt található.
+
+**Profilozó bekapcsolva hagyása.** A Script Profiler mérhető terhelést jelent. Kapcsold ki, ha befejezted a profilozást, hogy pontos FPS-értékeket kapj.
+
+**Nagy ütköző távolsági értékek.** A Max. Collider Distance 200-ra vagy 500-ra állítása drasztikusan csökkenti a képkockasebességet. Használd a legkisebb értéket, amely lefedi az érdeklődési területedet.
+
+**Előfeltételek engedélyezésének elmulasztása.** Több opció is függ mások engedélyezésétől:
+- A "Draw Char Ctrl" és "Draw Bullet wireframe" a "Draw Bullet shape"-től függ
+- Az "Edit Volume" szabad kamerát igényel
+- A "Project Target Loot" megköveteli a "Loot Vis" engedélyezését
+
+---
+
+## Következő lépések
+
+- **8.6. fejezet: [Hibakeresés és tesztelés](06-debugging-testing.md)** -- Szkript naplók, Print hibakeresés, fájl foltozás és Workbench
+- **8.7. fejezet: [Publikálás a Workshopra](07-publishing-workshop.md)** -- A tesztelt mod csomagolása és publikálása

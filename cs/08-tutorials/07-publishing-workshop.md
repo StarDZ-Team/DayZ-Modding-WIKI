@@ -1,60 +1,64 @@
-# Chapter 8.7: Publishing to the Steam Workshop
+# Kapitola 8.7: Publikování na Steam Workshop
 
-[Home](../../README.md) | [<< Previous: Debugging & Testing](06-debugging-testing.md) | **Publishing to the Steam Workshop** | [Next: Building a HUD Overlay >>](08-hud-overlay.md)
+[Domů](../../README.md) | [<< Předchozí: Ladění a testování](06-debugging-testing.md) | **Publikování na Steam Workshop** | [Další: Vytváření HUD overlayi >>](08-hud-overlay.md)
+
+---
+
+> **Shrnutí:** Váš mod je sestaven, otestován a připraven pro svět. Tento tutoriál vás provede kompletním procesem publikování od začátku do konce: příprava složky modu, podepisování PBO pro kompatibilitu s multiplayerem, vytvoření položky na Steam Workshopu, nahrání přes DayZ Tools nebo příkazový řádek a udržování aktualizací v průběhu času. Na konci bude váš mod živě na Workshopu a hratelný kýmkoli.
 
 ---
 
 ## Obsah
 
-- [Uvod](#introduction)
-- [Pre-Publishing Checklist](#pre-publishing-checklist)
-- [Step 1: Prepare Your Mod Folder](#step-1-prepare-your-mod-folder)
-- [Step 2: Write a Complete mod.cpp](#step-2-write-a-complete-modcpp)
-- [Step 3: Prepare Logo and Preview Images](#step-3-prepare-logo-and-preview-images)
-- [Step 4: Generate a Key Pair](#step-4-generate-a-key-pair)
-- [Step 5: Sign Your PBOs](#step-5-sign-your-pbos)
-- [Step 6: Publish via DayZ Tools Publisher](#step-6-publish-via-dayz-tools-publisher)
-- [Publishing via Command Line (Alternative)](#publishing-via-command-line-alternative)
-- [Updating Your Mod](#updating-your-mod)
-- [Version Management Doporucene postupy](#version-management-best-practices)
-- [Workshop Page Doporucene postupy](#workshop-page-best-practices)
-- [Guide for Server Operators](#guide-for-server-operators)
-- [Distribution Without the Workshop](#distribution-without-the-workshop)
-- [Common Problems and Solutions](#common-problems-and-solutions)
-- [The Complete Mod Lifecycle](#the-complete-mod-lifecycle)
-- [Dalsi kroky](#next-steps)
+- [Úvod](#introduction)
+- [Kontrolní seznam před publikováním](#pre-publishing-checklist)
+- [Krok 1: Příprava složky modu](#step-1-prepare-your-mod-folder)
+- [Krok 2: Napsání kompletního mod.cpp](#step-2-write-a-complete-modcpp)
+- [Krok 3: Příprava loga a náhledových obrázků](#step-3-prepare-logo-and-preview-images)
+- [Krok 4: Generování páru klíčů](#step-4-generate-a-key-pair)
+- [Krok 5: Podepisování PBO](#step-5-sign-your-pbos)
+- [Krok 6: Publikování přes DayZ Tools Publisher](#step-6-publish-via-dayz-tools-publisher)
+- [Publikování přes příkazový řádek (alternativa)](#publishing-via-command-line-alternative)
+- [Aktualizace vašeho modu](#updating-your-mod)
+- [Doporučené postupy pro správu verzí](#version-management-best-practices)
+- [Doporučené postupy pro stránku Workshopu](#workshop-page-best-practices)
+- [Průvodce pro provozovatele serverů](#guide-for-server-operators)
+- [Distribuce bez Workshopu](#distribution-without-the-workshop)
+- [Časté problémy a řešení](#common-problems-and-solutions)
+- [Kompletní životní cyklus modu](#the-complete-mod-lifecycle)
+- [Další kroky](#next-steps)
 
 ---
 
-## Uvod
+## Úvod
 
-Publishing to the Steam Workshop is the final step in the DayZ modding journey. Everything you have learned in previous chapters culminates here. Once your mod is on the Workshop, any DayZ player can subscribe, download, and play with it. This chapter covers the complete process: preparing your mod, signing PBOs, uploading, and maintaining updates.
-
----
-
-## Pre-Publishing Checklist
-
-Before you upload anything, go through this list. Skipping items here causes the most common post-publish headaches.
-
-- [ ] All features tested on a **dedicated server** (not just single-player)
-- [ ] Multiplayer tested: another client can join and use mod features
-- [ ] No game-breaking errors in script logs (`DayZDiag_x64.RPT` or `script_*.log`)
-- [ ] All `Print()` debug statements removed or wrapped in `#ifdef DEVELOPER`
-- [ ] No hardcoded test values or leftover experimental code
-- [ ] `stringtable.csv` contains all user-facing strings with translations
-- [ ] `credits.json` filled out with author and contributor information
-- [ ] Logo image prepared (see [Step 3](#step-3-prepare-logo-and-preview-images) for sizes)
-- [ ] All textures converted to `.paa` format (not raw `.png`/`.tga` in PBOs)
-- [ ] Workshop description and installation instructions written
-- [ ] Zmenalog started (even if just "1.0.0 - Initial release")
+Publikování na Steam Workshop je posledním krokem na cestě k DayZ moddingu. Vše, co jste se naučili v předchozích kapitolách, zde vyvrcholí. Jakmile je váš mod na Workshopu, jakýkoli hráč DayZ se může přihlásit k odběru, stáhnout ho a hrát s ním. Tato kapitola pokrývá kompletní proces: přípravu modu, podepisování PBO, nahrávání a udržování aktualizací.
 
 ---
 
-## Step 1: Prepare Your Mod Folder
+## Kontrolní seznam před publikováním
 
-Your final mod folder must follow DayZ's expected structure exactly.
+Než cokoli nahrajete, projděte si tento seznam. Vynechání položek zde způsobuje nejčastější problémy po publikování.
 
-### Required Structure
+- [ ] Všechny funkce otestovány na **dedikovaném serveru** (ne jen v single-playeru)
+- [ ] Multiplayer otestován: jiný klient se může připojit a používat funkce modu
+- [ ] Žádné závažné chyby ve skriptových logech (`DayZDiag_x64.RPT` nebo `script_*.log`)
+- [ ] Všechny `Print()` ladicí výpisy odstraněny nebo zabaleny v `#ifdef DEVELOPER`
+- [ ] Žádné napevno zakódované testovací hodnoty nebo zbytky experimentálního kódu
+- [ ] `stringtable.csv` obsahuje všechny řetězce směřující k uživateli s překlady
+- [ ] `credits.json` vyplněn informacemi o autorovi a přispěvatelích
+- [ ] Obrázek loga připraven (viz [Krok 3](#step-3-prepare-logo-and-preview-images) pro velikosti)
+- [ ] Všechny textury převedeny do formátu `.paa` (ne surové `.png`/`.tga` v PBO)
+- [ ] Popis na Workshopu a pokyny k instalaci napsány
+- [ ] Změnový log zahájen (i kdyby jen "1.0.0 - Počáteční vydání")
+
+---
+
+## Krok 1: Příprava složky modu
+
+Vaše finální složka modu musí přesně odpovídat očekávané struktuře DayZ.
+
+### Požadovaná struktura
 
 ```
 @MyMod/
@@ -66,32 +70,32 @@ Your final mod folder must follow DayZ's expected structure exactly.
 ├── keys/
 │   └── MyMod.bikey
 ├── mod.cpp
-└── meta.cpp  (auto-generated by the DayZ Launcher on first load)
+└── meta.cpp  (automaticky generováno DayZ Launcherem při prvním načtení)
 ```
 
-### Folder Breakdown
+### Popis složek
 
-| Folder / File | Ucel |
+| Složka / Soubor | Účel |
 |---------------|---------|
-| `addons/` | Contains all `.pbo` files (packed mod content) and their `.bisign` signature files |
-| `keys/` | Contains the public key (`.bikey`) that servers use to verify your PBOs |
-| `mod.cpp` | Mod metadata: name, author, version, description, icon paths |
-| `meta.cpp` | Auto-generated by DayZ Launcher; contains the Workshop ID after publishing |
+| `addons/` | Obsahuje všechny `.pbo` soubory (zabalený obsah modu) a jejich `.bisign` soubory podpisů |
+| `keys/` | Obsahuje veřejný klíč (`.bikey`), který servery používají k ověření vašich PBO |
+| `mod.cpp` | Metadata modu: název, autor, verze, popis, cesty k ikonám |
+| `meta.cpp` | Automaticky generováno DayZ Launcherem; obsahuje ID Workshopu po publikování |
 
-### Important Pravidla
+### Důležitá pravidla
 
-- The folder name **must** start with `@`. This is how DayZ identifies mod directories.
-- Every `.pbo` in `addons/` must have a matching `.bisign` file next to it.
-- The `.bikey` file in `keys/` must correspond to the private key used to create the `.bisign` files.
-- Do **not** include source files (`.c` scripts, raw textures, Workbench projects) in the upload folder. Only packed PBOs belong here.
+- Název složky **musí** začínat `@`. Tak DayZ identifikuje adresáře modů.
+- Každý `.pbo` v `addons/` musí mít odpovídající `.bisign` soubor vedle sebe.
+- Soubor `.bikey` v `keys/` musí odpovídat soukromému klíči použitému k vytvoření `.bisign` souborů.
+- **Nezahrnujte** zdrojové soubory (`.c` skripty, surové textury, projekty Workbench) do složky pro nahrání. Patří sem pouze zabalená PBO.
 
 ---
 
-## Step 2: Write a Complete mod.cpp
+## Krok 2: Napsání kompletního mod.cpp
 
-The `mod.cpp` file tells DayZ and the launcher everything about your mod. An incomplete `mod.cpp` causes missing icons, blank descriptions, and display issues.
+Soubor `mod.cpp` říká DayZ a launcheru vše o vašem modu. Neúplný `mod.cpp` způsobuje chybějící ikony, prázdné popisy a problémy se zobrazením.
 
-### Full mod.cpp Priklad
+### Příklad kompletního mod.cpp
 
 ```cpp
 name         = "My Awesome Mod";
@@ -108,120 +112,120 @@ version      = "1.0.0";
 versionPath  = "MyMod/Data/version.txt";
 ```
 
-### Pole Reference
+### Reference polí
 
-| Pole | Required | Popis |
+| Pole | Povinné | Popis |
 |-------|----------|-------------|
-| `name` | Yes | Display name shown in the DayZ Launcher mod list |
-| `picture` | Yes | Path to the main logo image (displayed in launcher). Relative to the P: drive or mod root |
-| `logo` | Yes | Same as picture in most cases; used in some UI contexts |
-| `logoSmall` | No | Smaller version of the logo for compact views |
-| `logoOver` | No | Hover state of the logo (often same as `logo`) |
-| `tooltip` | Yes | Short one-line description shown on hover in the launcher |
-| `overview` | Yes | Longer description shown in the mod details panel |
-| `author` | Yes | Your name or team name |
-| `overviewPicture` | No | Large image shown in the mod overview panel |
-| `action` | No | URL opened when the player clicks "Website" (typically your Workshop page or GitHub) |
-| `version` | Yes | Current version string (e.g., `"1.0.0"`) |
-| `versionPath` | No | Path to a text file containing the version number (for automated builds) |
+| `name` | Ano | Zobrazovaný název v seznamu modů DayZ Launcheru |
+| `picture` | Ano | Cesta k hlavnímu obrázku loga (zobrazeno v launcheru). Relativní k P: disku nebo kořenu modu |
+| `logo` | Ano | Stejné jako picture ve většině případů; používáno v některých kontextech UI |
+| `logoSmall` | Ne | Menší verze loga pro kompaktní zobrazení |
+| `logoOver` | Ne | Stav loga při najetí myší (často stejné jako `logo`) |
+| `tooltip` | Ano | Krátký jednořádkový popis zobrazený při najetí myší v launcheru |
+| `overview` | Ano | Delší popis zobrazený v panelu detailů modu |
+| `author` | Ano | Vaše jméno nebo název týmu |
+| `overviewPicture` | Ne | Velký obrázek zobrazený v panelu přehledu modu |
+| `action` | Ne | URL otevřené při kliknutí na "Website" (typicky vaše stránka Workshopu nebo GitHub) |
+| `version` | Ano | Řetězec aktuální verze (např. `"1.0.0"`) |
+| `versionPath` | Ne | Cesta k textovému souboru obsahujícímu číslo verze (pro automatizované buildy) |
 
-### Caste chyby
+### Časté chyby
 
-- **Missing semicolons** at the end of each line. Every line must end with `;`.
-- **Wrong image paths.** Paths are relative to the P: drive root when building. After packing, the path should reflect the PBO prefix. Test by loading the mod locally before uploading.
-- **Forgetting to update the version** before re-uploading. Always increment the version string.
+- **Chybějící středníky** na konci každého řádku. Každý řádek musí končit `;`.
+- **Špatné cesty k obrázkům.** Cesty jsou relativní ke kořenu P: disku při buildování. Po zabalení by cesta měla odpovídat prefixu PBO. Otestujte načtením modu lokálně před nahráním.
+- **Zapomenutí aktualizovat verzi** před opětovným nahráním. Vždy inkrementujte řetězec verze.
 
 ---
 
-## Step 3: Prepare Logo and Preview Images
+## Krok 3: Příprava loga a náhledových obrázků
 
-### Image Requirements
+### Požadavky na obrázky
 
-| Image | Size | Format | Used For |
+| Obrázek | Velikost | Formát | Použití |
 |-------|------|--------|----------|
-| Mod logo (`picture` / `logo`) | 512 x 512 px | `.paa` (in-game) | DayZ Launcher mod list |
-| Small logo (`logoSmall`) | 128 x 128 px | `.paa` (in-game) | Compact launcher views |
-| Steam Workshop preview | 512 x 512 px | `.png` or `.jpg` | Workshop page thumbnail |
-| Prehled picture | 1024 x 512 px | `.paa` (in-game) | Mod details panel |
+| Logo modu (`picture` / `logo`) | 512 x 512 px | `.paa` (ve hře) | Seznam modů DayZ Launcheru |
+| Malé logo (`logoSmall`) | 128 x 128 px | `.paa` (ve hře) | Kompaktní zobrazení launcheru |
+| Náhled Steam Workshopu | 512 x 512 px | `.png` nebo `.jpg` | Miniatura stránky Workshopu |
+| Obrázek přehledu | 1024 x 512 px | `.paa` (ve hře) | Panel detailů modu |
 
-### Converting Images to PAA
+### Převod obrázků na PAA
 
-DayZ uses `.paa` textures internally. To convert PNG/TGA images:
+DayZ interně používá textury `.paa`. Pro převod obrázků PNG/TGA:
 
-1. Open **TexView2** (included with DayZ Tools)
-2. File > Open your `.png` or `.tga` image
-3. File > Save As > choose `.paa` format
-4. Save to your mod's `Data/Textures/` directory
+1. Otevřete **TexView2** (součást DayZ Tools)
+2. File > Open váš `.png` nebo `.tga` obrázek
+3. File > Save As > zvolte formát `.paa`
+4. Uložte do adresáře `Data/Textures/` vašeho modu
 
-Addon Builder can also auto-convert textures when packing PBOs if configured to binarize.
+Addon Builder může také automaticky převádět textury při balení PBO, pokud je nakonfigurován pro binarizaci.
 
-### Tips
+### Tipy
 
-- Use a clear, recognizable icon that reads well at small sizes.
-- Keep text on logos to a minimum -- it becomes unreadable at 128x128.
-- The Steam Workshop preview image (`.png`/`.jpg`) is separate from the in-game logo (`.paa`). You upload it through the Publisher.
+- Použijte jasnou, rozpoznatelnou ikonu, která je čitelná i v malých velikostech.
+- Udržujte text na logách na minimu -- při 128x128 se stává nečitelným.
+- Náhledový obrázek Steam Workshopu (`.png`/`.jpg`) je oddělený od herního loga (`.paa`). Nahráváte ho přes Publisher.
 
 ---
 
-## Step 4: Generate a Key Pair
+## Krok 4: Generování páru klíčů
 
-Key signing is **essential** for multiplayer. Almost all public servers enable signature verification, so without proper signatures players will be kicked when joining with your mod.
+Podepisování klíčem je **nezbytné** pro multiplayer. Téměř všechny veřejné servery mají povoleno ověřování podpisů, takže bez správných podpisů budou hráči vyhoštěni při připojení s vaším modem.
 
-### How Key Signing Works
+### Jak funguje podepisování klíčem
 
-- You create a **key pair**: a `.biprivatekey` (private) and a `.bikey` (public)
-- You sign each `.pbo` with the private key, producing a `.bisign` file
-- You distribute the `.bikey` with your mod; server operators place it in their `keys/` folder
-- When a player joins, the server checks each `.pbo` against its `.bisign` using the `.bikey`
+- Vytvoříte **pár klíčů**: `.biprivatekey` (soukromý) a `.bikey` (veřejný)
+- Podepíšete každý `.pbo` soukromým klíčem, čímž vytvoříte `.bisign` soubor
+- Distribuujete `.bikey` s vaším modem; provozovatelé serverů ho umístí do složky `keys/`
+- Když se hráč připojí, server ověří každý `.pbo` oproti jeho `.bisign` pomocí `.bikey`
 
-### Generating Keys with DayZ Tools
+### Generování klíčů pomocí DayZ Tools
 
-1. Open **DayZ Tools** from Steam
-2. In the main window, find and click **DS Create Key** (sometimes listed under Tools or Utilities)
-3. Enter a **key name** -- use your mod name (e.g., `MyMod`)
-4. Choose where to save the files
-5. Two files are created:
-   - `MyMod.bikey` -- the **public key** (distribute this)
-   - `MyMod.biprivatekey` -- the **private key** (keep this secret)
+1. Otevřete **DayZ Tools** ze Steamu
+2. V hlavním okně najděte a klikněte na **DS Create Key** (někdy uvedeno pod Tools nebo Utilities)
+3. Zadejte **název klíče** -- použijte název vašeho modu (např. `MyMod`)
+4. Zvolte, kam soubory uložit
+5. Vytvoří se dva soubory:
+   - `MyMod.bikey` -- **veřejný klíč** (tento distribuujte)
+   - `MyMod.biprivatekey` -- **soukromý klíč** (tento uchovejte v tajnosti)
 
-### Generating Keys via Command Line
+### Generování klíčů přes příkazový řádek
 
-You can also use the `DSCreateKey` tool directly from a terminal:
+Můžete také použít nástroj `DSCreateKey` přímo z terminálu:
 
 ```batch
 "C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\Bin\DsUtils\DSCreateKey.exe" MyMod
 ```
 
-This creates `MyMod.bikey` and `MyMod.biprivatekey` in the current directory.
+Toto vytvoří `MyMod.bikey` a `MyMod.biprivatekey` v aktuálním adresáři.
 
-### Critical Security Rule
+### Kritické bezpečnostní pravidlo
 
-> **NEVER share your `.biprivatekey` file.** Anyone who has your private key can sign modified PBOs that servers will accept as legitimate. Store it securely and back it up. If you lose it, you must generate a new key pair, re-sign everything, and server operators must update their keys.
+> **NIKDY nesdílejte soubor `.biprivatekey`.** Kdokoli, kdo má váš soukromý klíč, může podepsat modifikovaná PBO, která servery přijmou jako legitimní. Uložte ho bezpečně a zálohujte. Pokud ho ztratíte, musíte vygenerovat nový pár klíčů, vše znovu podepsat a provozovatelé serverů musí aktualizovat své klíče.
 
 ---
 
-## Step 5: Sign Your PBOs
+## Krok 5: Podepisování PBO
 
-Every `.pbo` file in your mod must be signed with your private key. This produces `.bisign` files that sit alongside the PBOs.
+Každý soubor `.pbo` ve vašem modu musí být podepsán vaším soukromým klíčem. Tím se vytvoří soubory `.bisign`, které jsou umístěny vedle PBO.
 
-### Signing with DayZ Tools
+### Podepisování pomocí DayZ Tools
 
-1. Open **DayZ Tools**
-2. Find and click **DS Sign File** (under Tools or Utilities)
-3. Select your `.biprivatekey` file
-4. Select the `.pbo` file to sign
-5. A `.bisign` file is created next to the PBO (e.g., `MyMod_Scripts.pbo.MyMod.bisign`)
-6. Repeat for every `.pbo` in your `addons/` folder
+1. Otevřete **DayZ Tools**
+2. Najděte a klikněte na **DS Sign File** (pod Tools nebo Utilities)
+3. Vyberte svůj soubor `.biprivatekey`
+4. Vyberte soubor `.pbo` k podepsání
+5. Vedle PBO se vytvoří soubor `.bisign` (např. `MyMod_Scripts.pbo.MyMod.bisign`)
+6. Opakujte pro každý `.pbo` ve složce `addons/`
 
-### Signing via Command Line
+### Podepisování přes příkazový řádek
 
-For automation or multiple PBOs, use the command line:
+Pro automatizaci nebo více PBO použijte příkazový řádek:
 
 ```batch
 "C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\Bin\DsUtils\DSSignFile.exe" MyMod.biprivatekey MyMod_Scripts.pbo
 ```
 
-To sign all PBOs in a folder with a batch script:
+Pro podepsání všech PBO ve složce dávkovým skriptem:
 
 ```batch
 @echo off
@@ -237,9 +241,9 @@ echo All PBOs signed.
 pause
 ```
 
-### After Signing: Verify Your Folder
+### Po podepsání: ověření složky
 
-Your `addons/` folder should look like this:
+Vaše složka `addons/` by měla vypadat takto:
 
 ```
 addons/
@@ -249,38 +253,38 @@ addons/
 └── MyMod_Data.pbo.MyMod.bisign
 ```
 
-Every `.pbo` must have a corresponding `.bisign`. If any `.bisign` is missing, players will be kicked from signature-verified servers.
+Každý `.pbo` musí mít odpovídající `.bisign`. Pokud jakýkoli `.bisign` chybí, hráči budou vyhoštěni ze serverů s ověřováním podpisů.
 
-### Place the Public Key
+### Umístění veřejného klíče
 
-Copy `MyMod.bikey` into your `@MyMod/keys/` folder. This is what server operators will copy into their server's `keys/` directory to allow your mod.
+Zkopírujte `MyMod.bikey` do složky `@MyMod/keys/`. Toto je to, co provozovatelé serverů zkopírují do adresáře `keys/` svého serveru pro povolení vašeho modu.
 
 ---
 
-## Step 6: Publish via DayZ Tools Publisher
+## Krok 6: Publikování přes DayZ Tools Publisher
 
-DayZ Tools includes a built-in Workshop publisher -- the easiest way to get your mod onto Steam.
+DayZ Tools obsahuje vestavěný Workshop publisher -- nejjednodušší způsob, jak dostat váš mod na Steam.
 
-### Open the Publisher
+### Otevření Publisheru
 
-1. Open **DayZ Tools** from Steam
-2. Click **Publisher** in the main window (may also be labeled "Workshop Tool")
-3. The Publisher window opens with fields for your mod details
+1. Otevřete **DayZ Tools** ze Steamu
+2. Klikněte na **Publisher** v hlavním okně (může být také označen jako "Workshop Tool")
+3. Otevře se okno Publisheru s poli pro detaily vašeho modu
 
-### Fill In the Details
+### Vyplnění detailů
 
-| Pole | What to Enter |
+| Pole | Co zadat |
 |-------|---------------|
-| **Title** | Your mod's display name (e.g., "My Awesome Mod") |
-| **Popis** | Detailed overview of what your mod does. Supports Steam's BB code formatting (see below) |
-| **Preview Image** | Browse to your 512 x 512 `.png` or `.jpg` preview image |
-| **Mod Folder** | Browse to your complete `@MyMod` folder |
-| **Tags** | Select relevant tags (e.g., Weapons, Vehicles, UI, Server, Gear, Maps) |
-| **Visibility** | **Public** (anyone can find it), **Friends Only**, or **Unlisted** (only accessible via direct link) |
+| **Title** | Zobrazovaný název vašeho modu (např. "My Awesome Mod") |
+| **Description** | Detailní přehled toho, co váš mod dělá. Podporuje formátování Steam BB kódem (viz níže) |
+| **Preview Image** | Přejděte k vašemu náhledovému obrázku 512 x 512 `.png` nebo `.jpg` |
+| **Mod Folder** | Přejděte k vaší kompletní složce `@MyMod` |
+| **Tags** | Vyberte relevantní tagy (např. Weapons, Vehicles, UI, Server, Gear, Maps) |
+| **Visibility** | **Public** (kdokoli ho může najít), **Friends Only** nebo **Unlisted** (přístupný pouze přes přímý odkaz) |
 
-### Steam BB Code Rychla reference
+### Rychlá reference Steam BB kódu
 
-The Workshop description supports BB code:
+Popis Workshopu podporuje BB kód:
 
 ```
 [h1]Features[/h1]
@@ -294,40 +298,40 @@ The Workshop description supports BB code:
 [img]https://example.com/image.png[/img]
 ```
 
-### Publish
+### Publikování
 
-1. Review all fields one final time
-2. Click **Publish** (or **Upload**)
-3. Wait for the upload to complete. Large mods may take several minutes depending on your connection.
-4. Once complete, you will see a confirmation with your **Workshop ID** (a long numeric ID like `2345678901`)
-5. **Save this Workshop ID.** You need it to push updates later.
+1. Naposledy zkontrolujte všechna pole
+2. Klikněte na **Publish** (nebo **Upload**)
+3. Počkejte na dokončení nahrávání. Velké mody mohou trvat několik minut v závislosti na vašem připojení.
+4. Po dokončení uvidíte potvrzení s vaším **Workshop ID** (dlouhé číselné ID jako `2345678901`)
+5. **Uložte si toto Workshop ID.** Potřebujete ho pro odesílání aktualizací.
 
-### After Publishing: Verify
+### Po publikování: ověření
 
-Do not skip this. Test your mod as a regular player would:
+Tento krok nevynechávejte. Otestujte svůj mod jako běžný hráč:
 
-1. Visit `https://steamcommunity.com/sharedfiles/filedetails/?id=YOUR_ID` and verify title, description, preview image
-2. **Subscribe** to your own mod on the Workshop
-3. Launch DayZ, confirm the mod appears in the launcher
-4. Enable it, launch the game, join a server (or run your own test server)
-5. Confirm all features work
-6. Update the `action` field in `mod.cpp` to point to your Workshop page URL
+1. Navštivte `https://steamcommunity.com/sharedfiles/filedetails/?id=YOUR_ID` a ověřte název, popis, náhledový obrázek
+2. **Přihlaste se k odběru** vlastního modu na Workshopu
+3. Spusťte DayZ, potvrďte, že mod se zobrazuje v launcheru
+4. Povolte ho, spusťte hru, připojte se na server (nebo spusťte vlastní testovací server)
+5. Potvrďte, že všechny funkce fungují
+6. Aktualizujte pole `action` v `mod.cpp` tak, aby odkazovalo na URL vaší stránky Workshopu
 
-If anything is broken, update and re-upload before announcing publicly.
+Pokud je cokoli nefunkční, aktualizujte a znovu nahrajte před veřejným oznámením.
 
 ---
 
-## Publishing via Command Line (Alternative)
+## Publikování přes příkazový řádek (alternativa)
 
-For automation, CI/CD, or batch uploads, SteamCMD provides a command-line alternative.
+Pro automatizaci, CI/CD nebo dávkové nahrávání poskytuje SteamCMD alternativu přes příkazový řádek.
 
-### Install SteamCMD
+### Instalace SteamCMD
 
-Download from [Valve's developer site](https://developer.valvesoftware.com/wiki/SteamCMD) and extract to a folder like `C:\SteamCMD\`.
+Stáhněte z [webu pro vývojáře Valve](https://developer.valvesoftware.com/wiki/SteamCMD) a rozbalte do složky jako `C:\SteamCMD\`.
 
-### Create a VDF File
+### Vytvoření VDF souboru
 
-SteamCMD uses a `.vdf` file to describe what to upload. Create a file called `workshop_publish.vdf`:
+SteamCMD používá soubor `.vdf` k popisu toho, co nahrát. Vytvořte soubor s názvem `workshop_publish.vdf`:
 
 ```
 "workshopitem"
@@ -343,53 +347,53 @@ SteamCMD uses a `.vdf` file to describe what to upload. Create a file called `wo
 }
 ```
 
-### Pole Reference
+### Reference polí
 
 | Pole | Hodnota |
 |-------|-------|
-| `appid` | Always `221100` for DayZ |
-| `publishedfileid` | `0` for a new item; use the Workshop ID for updates |
-| `contentfolder` | Absolute path to your `@MyMod` folder |
-| `previewfile` | Absolute path to your preview image |
+| `appid` | Vždy `221100` pro DayZ |
+| `publishedfileid` | `0` pro novou položku; pro aktualizace použijte Workshop ID |
+| `contentfolder` | Absolutní cesta k vaší složce `@MyMod` |
+| `previewfile` | Absolutní cesta k vašemu náhledovému obrázku |
 | `visibility` | `0` = Public, `1` = Friends Only, `2` = Unlisted, `3` = Private |
-| `title` | Mod name |
-| `description` | Mod description (plain text) |
-| `changenote` | Text shown in the change history on the Workshop page |
+| `title` | Název modu |
+| `description` | Popis modu (prostý text) |
+| `changenote` | Text zobrazený v historii změn na stránce Workshopu |
 
-### Run SteamCMD
+### Spuštění SteamCMD
 
 ```batch
 C:\SteamCMD\steamcmd.exe +login YourSteamUsername +workshop_build_item "C:\Path\To\workshop_publish.vdf" +quit
 ```
 
-SteamCMD will prompt for your password and Steam Guard code on first use. After authentication, it uploads the mod and prints the Workshop ID.
+SteamCMD vás při prvním použití vyzve k zadání hesla a kódu Steam Guard. Po ověření nahraje mod a vytiskne Workshop ID.
 
-### Kdy pouzit Command Line
+### Kdy použít příkazový řádek
 
-- **Automated builds:** integrate into a build script that packs PBOs, signs them, and uploads in one step
-- **Batch operations:** uploading multiple mods at once
-- **Headless servers:** environments without a GUI
-- **CI/CD pipelines:** GitHub Akces or similar can call SteamCMD
+- **Automatizované buildy:** integrace do build skriptu, který zabalí PBO, podepíše je a nahraje v jednom kroku
+- **Dávkové operace:** nahrávání více modů najednou
+- **Servery bez GUI:** prostředí bez grafického rozhraní
+- **CI/CD pipelines:** GitHub Actions nebo podobné mohou volat SteamCMD
 
 ---
 
-## Updating Your Mod
+## Aktualizace vašeho modu
 
-### Step-by-Step Update Process
+### Postup aktualizace krok za krokem
 
-1. **Make your code changes** and test thoroughly
-2. **Increment the version** in `mod.cpp` (e.g., `"1.0.0"` becomes `"1.0.1"`)
-3. **Rebuild all PBOs** using Addon Builder or your build script
-4. **Re-sign all PBOs** with the **same private key** you used originally
-5. **Open the DayZ Tools Publisher**
-6. Enter your existing **Workshop ID** (or select the existing item)
-7. Point to your updated `@MyMod` folder
-8. Write a **change note** describing what changed
-9. Click **Publish / Update**
+1. **Proveďte změny v kódu** a důkladně otestujte
+2. **Inkrementujte verzi** v `mod.cpp` (např. `"1.0.0"` se změní na `"1.0.1"`)
+3. **Znovu sestavte všechna PBO** pomocí Addon Builder nebo vašeho build skriptu
+4. **Znovu podepište všechna PBO** **stejným soukromým klíčem**, který jste použili původně
+5. **Otevřete DayZ Tools Publisher**
+6. Zadejte vaše existující **Workshop ID** (nebo vyberte existující položku)
+7. Namiřte na vaši aktualizovanou složku `@MyMod`
+8. Napište **poznámku ke změně** popisující, co se změnilo
+9. Klikněte na **Publish / Update**
 
-### Using SteamCMD for Updates
+### Použití SteamCMD pro aktualizace
 
-Update the VDF file with your Workshop ID and a new change note:
+Aktualizujte VDF soubor s vaším Workshop ID a novou poznámkou ke změně:
 
 ```
 "workshopitem"
@@ -401,29 +405,29 @@ Update the VDF file with your Workshop ID and a new change note:
 }
 ```
 
-Then run SteamCMD as before. The `publishedfileid` tells Steam to update the existing item instead of creating a new one.
+Poté spusťte SteamCMD jako předtím. `publishedfileid` řekne Steamu, aby aktualizoval existující položku místo vytvoření nové.
 
-### Dulezite: Use the Same Key
+### Důležité: Použijte stejný klíč
 
-Always sign updates with the **same private key** you used for the original release. If you sign with a different key, server operators must replace the old `.bikey` with your new one -- which means downtime and confusion. Only generate a new key pair if your private key is compromised.
+Aktualizace vždy podepisujte **stejným soukromým klíčem**, který jste použili pro původní vydání. Pokud podepíšete jiným klíčem, provozovatelé serverů musí nahradit starý `.bikey` novým -- což znamená výpadek a zmatek. Nový pár klíčů generujte pouze pokud je váš soukromý klíč kompromitován.
 
 ---
 
-## Version Management Doporucene postupy
+## Doporučené postupy pro správu verzí
 
-### Semantic Versioning
+### Sémantické verzování
 
-Use **MAJOR.MINOR.PATCH** format:
+Použijte formát **MAJOR.MINOR.PATCH**:
 
-| Component | When to Increment | Priklad |
+| Komponenta | Kdy inkrementovat | Příklad |
 |-----------|-------------------|---------|
-| **MAJOR** | Breaking changes: config format changes, removed features, API overhauls | `1.0.0` to `2.0.0` |
-| **MINOR** | New features that are backwards-compatible | `1.0.0` to `1.1.0` |
-| **PATCH** | Bug fixes, small tweaks, translation updates | `1.0.0` to `1.0.1` |
+| **MAJOR** | Přerušující změny: změny formátu configu, odebrané funkce, přepracování API | `1.0.0` na `2.0.0` |
+| **MINOR** | Nové funkce zpětně kompatibilní | `1.0.0` na `1.1.0` |
+| **PATCH** | Opravy chyb, drobné úpravy, aktualizace překladů | `1.0.0` na `1.0.1` |
 
-### Zmenalog Format
+### Formát změnového logu
 
-Maintain a changelog in your Workshop description or a separate file. A clean format:
+Udržujte změnový log v popisu Workshopu nebo v samostatném souboru. Čistý formát:
 
 ```
 v1.2.0 (2025-06-15)
@@ -440,21 +444,21 @@ v1.0.0 (2025-04-01)
 - Initial release
 ```
 
-### Backwards Compatibility
+### Zpětná kompatibilita
 
-When your mod saves persistent data (JSON configs, player data files), think carefully before changing the format:
+Když váš mod ukládá persistentní data (JSON configy, datové soubory hráčů), pečlivě zvažte před změnou formátu:
 
-- **Adding new fields** is safe. Use default values for missing fields when loading old files.
-- **Renaming or removing fields** is a breaking change. Increment MAJOR version.
-- **Consider a migration pattern:** detect the old format, convert to new format, save.
+- **Přidání nových polí** je bezpečné. Použijte výchozí hodnoty pro chybějící pole při načítání starých souborů.
+- **Přejmenování nebo odebrání polí** je přerušující změna. Inkrementujte verzi MAJOR.
+- **Zvažte vzor migrace:** detekujte starý formát, převeďte na nový formát, uložte.
 
-Priklad migration check in Enforce Script:
+Příklad kontroly migrace v Enforce Script:
 
 ```csharp
-// In your config load function
+// Ve vaší funkci načítání configu
 if (config.configVersion < 2)
 {
-    // Migrate from v1 to v2: rename "oldField" to "newField"
+    // Migrace z v1 na v2: přejmenování "oldField" na "newField"
     config.newField = config.oldField;
     config.configVersion = 2;
     SaveConfig(config);
@@ -462,106 +466,106 @@ if (config.configVersion < 2)
 }
 ```
 
-### Git Tagging
+### Git tagging
 
-If you use Git for version control (and you should), tag each release:
+Pokud používáte Git pro správu verzí (a měli byste), označte každé vydání tagem:
 
 ```bash
 git tag -a v1.0.0 -m "Initial release"
 git push origin v1.0.0
 ```
 
-This creates a permanent reference point so you can always go back to the exact code of any published version.
+Toto vytvoří trvalý referenční bod, takže se můžete vždy vrátit k přesnému kódu jakékoli publikované verze.
 
 ---
 
-## Workshop Page Doporucene postupy
+## Doporučené postupy pro stránku Workshopu
 
-### Popis Structure
+### Struktura popisu
 
-Organize your description with these sections:
+Organizujte popis s těmito sekcemi:
 
-1. **Prehled** -- what the mod does, in 2-3 sentences
-2. **Funkces** -- bullet list of key features
-3. **Requirements** -- list all dependency mods with Workshop links
-4. **Installation** -- step-by-step for players (usually just "subscribe and enable")
-5. **Server Setup** -- instructions for server operators (key placement, config files)
-6. **FAQ** -- common questions answered preemptively
-7. **Known Issues** -- be honest about current limitations
-8. **Support** -- link to your Discord, GitHub issues, or forum thread
-9. **Zmenalog** -- recent version history
-10. **License** -- how others can (or cannot) use your work
+1. **Přehled** -- co mod dělá, ve 2-3 větách
+2. **Funkce** -- odrážkový seznam klíčových funkcí
+3. **Požadavky** -- seznam všech závislostních modů s odkazy na Workshop
+4. **Instalace** -- krok za krokem pro hráče (obvykle jen "přihlaste se k odběru a povolte")
+5. **Nastavení serveru** -- pokyny pro provozovatele serverů (umístění klíčů, konfigurační soubory)
+6. **FAQ** -- běžné otázky zodpovězené preventivně
+7. **Známé problémy** -- buďte upřímní ohledně aktuálních omezení
+8. **Podpora** -- odkaz na váš Discord, GitHub issues nebo vlákno na fóru
+9. **Změnový log** -- nedávná historie verzí
+10. **Licence** -- jak ostatní mohou (nebo nemohou) používat vaši práci
 
-### Screenshots and Media
+### Screenshoty a média
 
-- Include **3-5 in-game screenshots** showing your mod in action
-- If your mod adds UI, show the UI panels clearly
-- If your mod adds items, show them in-game (not just in the editor)
-- A short gameplay video dramatically increases subscriptions
+- Zahrňte **3-5 herních screenshotů** ukazujících váš mod v akci
+- Pokud váš mod přidává UI, ukažte panely UI jasně
+- Pokud váš mod přidává předměty, ukažte je ve hře (ne jen v editoru)
+- Krátké video z hraní dramaticky zvyšuje počet odběrů
 
-### Dependencies
+### Závislosti
 
-If your mod requires other mods, list them clearly with Workshop links. Use the Steam Workshop "Required Items" feature so the launcher automatically loads dependencies.
+Pokud váš mod vyžaduje jiné mody, uveďte je jasně s odkazy na Workshop. Použijte funkci Steam Workshopu "Required Items", aby launcher automaticky načítal závislosti.
 
-### Update Schedule
+### Plán aktualizací
 
-Set expectations. If you update weekly, say so. If updates are occasional, say "updates as needed." Players are more understanding when they know what to expect.
+Nastavte očekávání. Pokud aktualizujete týdně, řekněte to. Pokud jsou aktualizace příležitostné, řekněte "aktualizace dle potřeby." Hráči jsou chápavější, když vědí, co očekávat.
 
 ---
 
-## Guide for Server Operators
+## Průvodce pro provozovatele serverů
 
-Include this information in your Workshop description for server admins.
+Zahrňte tyto informace do popisu Workshopu pro administrátory serverů.
 
-### Installing a Workshop Mod on a Dedicated Server
+### Instalace Workshop modu na dedikovaný server
 
-1. **Download the mod** using SteamCMD or the Steam client:
+1. **Stáhněte mod** pomocí SteamCMD nebo Steam klienta:
    ```batch
    steamcmd +login anonymous +workshop_download_item 221100 WORKSHOP_ID +quit
    ```
-2. **Copy** (or symlink) the `@ModName` folder to the DayZ Server directory
-3. **Copy the `.bikey` file** from `@ModName/keys/` to the server's `keys/` folder
-4. **Add the mod** to the `-mod=` launch parameter
+2. **Zkopírujte** (nebo vytvořte symlink) složku `@ModName` do adresáře DayZ Serveru
+3. **Zkopírujte soubor `.bikey`** z `@ModName/keys/` do složky `keys/` serveru
+4. **Přidejte mod** do spouštěcího parametru `-mod=`
 
-### Launch Parametr Syntaxe
+### Syntaxe spouštěcího parametru
 
-Mods are loaded via the `-mod=` parameter, separated by semicolons:
+Mody se načítají přes parametr `-mod=`, oddělené středníky:
 
 ```
 -mod=@CF;@VPPAdminTools;@MyMod
 ```
 
-Use the **full relative path** from the server root. On Linux, paths are case-sensitive.
+Použijte **úplnou relativní cestu** od kořene serveru. Na Linuxu jsou cesty citlivé na velikost písmen.
 
-### Load Order
+### Pořadí načítání
 
-Mods load in the order listed in `-mod=`. This matters when mods depend on each other:
+Mody se načítají v pořadí uvedeném v `-mod=`. To je důležité, když mody závisí na sobě:
 
-- **Dependencies first.** If `@MyMod` requires `@CF`, list `@CF` before `@MyMod`.
-- **General rule:** frameworks first, content mods last.
-- If your mod declares `requiredAddons` in `config.cpp`, DayZ will attempt to resolve load order automatically, but explicit ordering in `-mod=` is safer.
+- **Závislosti první.** Pokud `@MyMod` vyžaduje `@CF`, uveďte `@CF` před `@MyMod`.
+- **Obecné pravidlo:** frameworky první, obsahové mody poslední.
+- Pokud váš mod deklaruje `requiredAddons` v `config.cpp`, DayZ se pokusí automaticky vyřešit pořadí načítání, ale explicitní pořadí v `-mod=` je bezpečnější.
 
-### Key Management
+### Správa klíčů
 
-- Place **one `.bikey` per mod** in the server's `keys/` directory
-- When a mod updates with the same key, no action needed -- existing `.bikey` still works
-- If a mod author changes keys, you must replace the old `.bikey` with the new one
-- The `keys/` folder path is relative to the server root (e.g., `DayZServer/keys/`)
+- Umístěte **jeden `.bikey` na mod** do adresáře `keys/` serveru
+- Když se mod aktualizuje se stejným klíčem, není třeba nic dělat -- existující `.bikey` stále funguje
+- Pokud autor modu změní klíče, musíte nahradit starý `.bikey` novým
+- Cesta ke složce `keys/` je relativní ke kořenu serveru (např. `DayZServer/keys/`)
 
 ---
 
-## Distribution Without the Workshop
+## Distribuce bez Workshopu
 
-### When to Skip the Workshop
+### Kdy vynechat Workshop
 
-- **Private mods** for your own server community
-- **Beta testing** with a small group before public release
-- **Commercial or licensed mods** distributed through other channels
-- **Rapid iteration** during development (faster than re-uploading each time)
+- **Soukromé mody** pro vaši vlastní serverovou komunitu
+- **Beta testování** s malou skupinou před veřejným vydáním
+- **Komerční nebo licencované mody** distribuované jinými kanály
+- **Rychlá iterace** během vývoje (rychlejší než opětovné nahrávání pokaždé)
 
-### Creating a Release ZIP
+### Vytvoření release ZIP
 
-Package your mod for manual distribution:
+Zabalte váš mod pro manuální distribuci:
 
 ```
 MyMod_v1.0.0.zip
@@ -576,7 +580,7 @@ MyMod_v1.0.0.zip
     └── mod.cpp
 ```
 
-Include a `README.txt` with installation instructions:
+Přiložte `README.txt` s pokyny k instalaci:
 
 ```
 INSTALLATION:
@@ -587,52 +591,52 @@ INSTALLATION:
 
 ### GitHub Releases
 
-If your mod is open source, use GitHub Releases to host versioned downloads:
+Pokud je váš mod open source, použijte GitHub Releases pro hostování verzovaných stažení:
 
-1. Tag the release in Git (`git tag v1.0.0`)
-2. Build and sign PBOs
-3. Create a ZIP of the `@MyMod` folder
-4. Create a GitHub Release and attach the ZIP
-5. Write release notes in the release description
+1. Označte vydání v Git (`git tag v1.0.0`)
+2. Sestavte a podepište PBO
+3. Vytvořte ZIP složky `@MyMod`
+4. Vytvořte GitHub Release a přiložte ZIP
+5. Napište poznámky k vydání v popisu release
 
-This gives you version history, download counts, and a stable URL for each release.
+Toto vám dává historii verzí, počty stažení a stabilní URL pro každé vydání.
 
 ---
 
-## Common Problems and Solutions
+## Časté problémy a řešení
 
-| Problem | Pricina | Oprava |
+| Problém | Příčina | Oprava |
 |---------|-------|-----|
-| "Addon rejected by server" | Server missing `.bikey`, or `.bisign` does not match `.pbo` | Confirm `.bikey` is in server `keys/` folder. Re-sign PBOs with the correct `.biprivatekey`. |
-| "Signature check failed" | PBO modified after signing, or signed with wrong key | Rebuild PBO from clean source. Re-sign with the **same key** that generated the server's `.bikey`. |
-| Mod not in DayZ Launcher | Malformed `mod.cpp` or wrong folder structure | Check `mod.cpp` for syntax errors (missing `;`). Ensure folder starts with `@`. Restart launcher. |
-| Upload fails in Publisher | Auth, connection, or file lock issue | Verify Steam login. Close Workbench/Addon Builder. Try running DayZ Tools as Administrator. |
-| Wrong/missing Workshop icon | Bad path in `mod.cpp` or wrong image format | Verify `picture`/`logo` paths point to actual `.paa` files. Workshop preview (`.png`) is separate. |
-| Conflicts with other mods | Redefining vanilla classes instead of modding them | Use `modded class`, call `super` in overrides, set `requiredAddons` for load order. |
-| Players crash on load | Script errors, corrupt PBOs, or missing dependencies | Check `.RPT` logs. Rebuild PBOs from clean source. Verify dependencies load first. |
+| "Addon rejected by server" | Na serveru chybí `.bikey` nebo `.bisign` neodpovídá `.pbo` | Potvrďte, že `.bikey` je ve složce `keys/` serveru. Znovu podepište PBO správným `.biprivatekey`. |
+| "Signature check failed" | PBO modifikováno po podepsání nebo podepsáno špatným klíčem | Znovu sestavte PBO z čistého zdroje. Znovu podepište **stejným klíčem**, který vygeneroval serverový `.bikey`. |
+| Mod se nezobrazuje v DayZ Launcheru | Vadný `mod.cpp` nebo špatná struktura složek | Zkontrolujte `mod.cpp` na syntaktické chyby (chybějící `;`). Ujistěte se, že složka začíná `@`. Restartujte launcher. |
+| Nahrání selhává v Publisheru | Problém s autentizací, připojením nebo zámkem souboru | Ověřte přihlášení do Steamu. Zavřete Workbench/Addon Builder. Zkuste spustit DayZ Tools jako správce. |
+| Špatná/chybějící ikona Workshopu | Špatná cesta v `mod.cpp` nebo špatný formát obrázku | Ověřte, že cesty `picture`/`logo` vedou na skutečné `.paa` soubory. Náhled Workshopu (`.png`) je samostatný. |
+| Konflikty s jinými mody | Předefinování vanilla tříd místo moddování | Použijte `modded class`, volejte `super` v přepsáních, nastavte `requiredAddons` pro pořadí načítání. |
+| Hráči padají při načítání | Chyby ve skriptech, poškozená PBO nebo chybějící závislosti | Zkontrolujte `.RPT` logy. Znovu sestavte PBO z čistého zdroje. Ověřte, že se závislosti načítají první. |
 
 ---
 
-## The Complete Mod Lifecycle
+## Kompletní životní cyklus modu
 
 ```
-IDEA → SETUP (8.1) → STRUCTURE (8.1, 8.5) → CODE (8.2, 8.3, 8.4) → BUILD (8.1)
-  → TEST → DEBUG (8.6) → POLISH → SIGN (8.7) → PUBLISH (8.7) → MAINTAIN (8.7)
+NÁPAD → NASTAVENÍ (8.1) → STRUKTURA (8.1, 8.5) → KÓD (8.2, 8.3, 8.4) → BUILD (8.1)
+  → TEST → LADĚNÍ (8.6) → DOLADĚNÍ → PODPIS (8.7) → PUBLIKOVÁNÍ (8.7) → ÚDRŽBA (8.7)
                                     ↑                                    │
-                                    └────── feedback loop ───────────────┘
+                                    └────── zpětná vazba ───────────────┘
 ```
 
-After publishing, player feedback sends you back to CODE, TEST, and DEBUG. That cycle of publish-feedback-improve is how great mods are built.
+Po publikování vás zpětná vazba hráčů vrací zpět ke KÓDU, TESTU a LADĚNÍ. Tento cyklus publikování-zpětná vazba-vylepšení je způsob, jak se vytvářejí skvělé mody.
 
 ---
 
-## Dalsi kroky
+## Další kroky
 
-You have completed the full DayZ modding tutorial series -- from a blank workspace to a published, signed, and maintained mod on the Steam Workshop. From here:
+Dokončili jste kompletní sérii tutoriálů DayZ moddingu -- od prázdného workspace až po publikovaný, podepsaný a udržovaný mod na Steam Workshopu. Odtud:
 
-- **Explore the reference chapters** (Chapters 1-7) for deeper knowledge on the GUI system, config.cpp, and Enforce Script
-- **Study open-source mods** like CF, Community Online Tools, and Expansion for advanced patterns
-- **Join the DayZ modding community** on Discord and the Bohemia Interactive forums
-- **Build bigger.** Your first mod was Hello World. Your next one could be a complete gameplay overhaul.
+- **Prozkoumejte referenční kapitoly** (Kapitoly 1-7) pro hlubší znalosti o GUI systému, config.cpp a Enforce Script
+- **Studujte open-source mody** jako CF, Community Online Tools a Expansion pro pokročilé vzory
+- **Připojte se ke komunitě DayZ moddingu** na Discordu a na fórech Bohemia Interactive
+- **Stavějte větší věci.** Váš první mod byl Hello World. Další by mohl být kompletní přepracování hratelnosti.
 
-The tools are in your hands. Build something great.
+Nástroje máte v rukou. Vytvořte něco skvělého.

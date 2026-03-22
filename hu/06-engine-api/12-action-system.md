@@ -1,32 +1,32 @@
-# Chapter 6.12: Action System
+# 6.12. fejezet: Akció rendszer
 
-[Home](../../README.md) | [<< Previous: Mission Hooks](11-mission-hooks.md) | **Action System** | [Next: Input System >>](13-input-system.md)
-
----
-
-## Bevezetes
-
-The Akcio System is how DayZ handles all player interactions with items and the world. Every time a player eats food, opens a door, bandages a wound, repairs a wall, or turns on a flashlight, the engine runs through the action pipeline. Understanding this pipeline --- from condition checks to animation callbacks to server execution --- is fundamental to creating any interactive gameplay mod.
-
-The system lives primarily in `4_World/classes/useractionscomponent/` and is built around three pillars:
-
-1. **Akcio classes** that define what happens (logic, conditions, animations)
-2. **Condition components** that gate when an action can appear (distance, item state, target type)
-3. **Akcio components** that control how the action progresses (time, quantity, repeating cycles)
-
-This chapter covers the full API, class hierarchy, lifecycle, and practical patterns for creating custom actions.
+[Főoldal](../../README.md) | [<< Előző: Mission hookok](11-mission-hooks.md) | **Akció rendszer** | [Következő: Input rendszer >>](13-input-system.md)
 
 ---
 
-## Osztalyhierarchia
+## Bevezetés
+
+Az akció rendszer az, ahogyan a DayZ kezeli az összes játékos interakciót tárgyakkal és a világgal. Minden alkalommal, amikor egy játékos ételt eszik, ajtót nyit, sebet kötöz be, falat javít vagy zseblámpát kapcsol be, a motor végigfut az akció feldolgozási folyamaton. Ennek a folyamatnak a megértése --- a feltétel ellenőrzésektől az animáció visszahívásokon át a szerver oldali végrehajtásig --- alapvető bármilyen interaktív játékmenet mod létrehozásához.
+
+A rendszer elsősorban a `4_World/classes/useractionscomponent/` könyvtárban található, és három pillérre épül:
+
+1. **Akció osztályok**, amelyek meghatározzák, mi történik (logika, feltételek, animációk)
+2. **Feltétel komponensek**, amelyek szabályozzák, mikor jelenhet meg egy akció (távolság, tárgy állapot, cél típus)
+3. **Akció komponensek**, amelyek irányítják, hogyan halad az akció (idő, mennyiség, ismétlődő ciklusok)
+
+Ez a fejezet a teljes API-t, osztályhierarchiát, életciklust és gyakorlati mintákat tárgyalja egyéni akciók létrehozásához.
+
+---
+
+## Osztályhierarchia
 
 ```
-ActionBase_Basic                         // 3_Game — empty shell, compilation anchor
-└── ActionBase                           // 4_World — core logic, conditions, events
-    └── AnimatedActionBase               // 4_World — animation callbacks, OnExecute
-        ├── ActionSingleUseBase          // instant actions (eat pill, turn on light)
-        ├── ActionContinuousBase         // progress bar actions (bandage, repair, eat)
-        └── ActionInteractBase           // world interactions (open door, toggle switch)
+ActionBase_Basic                         // 3_Game — üres váz, fordítási horgony
+└── ActionBase                           // 4_World — alaplogika, feltételek, események
+    └── AnimatedActionBase               // 4_World — animáció visszahívások, OnExecute
+        ├── ActionSingleUseBase          // azonnali akciók (tabletta bevétele, lámpa bekapcsolása)
+        ├── ActionContinuousBase         // folyamatjelzős akciók (kötözés, javítás, evés)
+        └── ActionInteractBase           // világ interakciók (ajtó nyitás, kapcsoló váltás)
 ```
 
 ```mermaid
@@ -83,50 +83,50 @@ classDiagram
     }
 ```
 
-### Key Differences Between Akcio Tipuss
+### Kulcskülönbségek az akció típusok között
 
-| Property | SingleUse | Continuous | Interact |
+| Tulajdonság | SingleUse | Continuous | Interact |
 |----------|-----------|------------|----------|
-| Kategoria constant | `AC_SINGLE_USE` | `AC_CONTINUOUS` | `AC_INTERACT` |
-| Input type | `AlapertelmezettAkcioInput` | `ContinuousAlapertelmezettAkcioInput` | `InteractAkcioInput` |
-| Progress bar | No | Yes | No |
-| Uses main item | Yes | Yes | No (default) |
-| Has target | Varies | Varies | Yes (default) |
-| Typical use | Eat pill, toggle flashlight | Bandage, repair, eat food | Open door, turn on generator |
-| Callback class | `AkcioSingleUseBaseCB` | `AkcioContinuousBaseCB` | `AkcioInteractBaseCB` |
+| Kategória konstans | `AC_SINGLE_USE` | `AC_CONTINUOUS` | `AC_INTERACT` |
+| Input típus | `DefaultActionInput` | `ContinuousDefaultActionInput` | `InteractActionInput` |
+| Folyamatjelző | Nem | Igen | Nem |
+| Fő tárgyat használ | Igen | Igen | Nem (alapértelmezetten) |
+| Célpontja van | Változó | Változó | Igen (alapértelmezetten) |
+| Tipikus használat | Tabletta bevétele, zseblámpa váltás | Kötözés, javítás, ételfogyasztás | Ajtó nyitás, generátor bekapcsolás |
+| Visszahívás osztály | `ActionSingleUseBaseCB` | `ActionContinuousBaseCB` | `ActionInteractBaseCB` |
 
 ---
 
-## Akcio Lifecycle
+## Akció életciklus
 
-### State Konstansok
+### Állapot konstansok
 
-The action state machine uses these constants defined in `3_Game/constants.c`:
+Az akció állapotgép ezeket a konstansokat használja, amelyek a `3_Game/constants.c` fájlban vannak definiálva:
 
-| Konstans | Ertek | Jelentes |
+| Konstans | Érték | Jelentés |
 |----------|-------|---------|
-| `UA_NONE` | 0 | No action running |
-| `UA_PROCESSING` | 2 | Akcio in progress |
-| `UA_FINISHED` | 4 | Akcio completed successfully |
-| `UA_CANCEL` | 5 | Akcio cancelled by player |
-| `UA_INTERRUPT` | 6 | Akcio interrupted externally |
-| `UA_INITIALIZE` | 12 | Continuous action initializing |
-| `UA_ERROR` | 24 | Error state --- action aborted |
-| `UA_ANIM_EVENT` | 11 | Animation execute event fired |
-| `UA_IN_START` | 17 | Animation loop start event |
-| `UA_IN_END` | 18 | Animation loop end event |
+| `UA_NONE` | 0 | Nincs futó akció |
+| `UA_PROCESSING` | 2 | Akció folyamatban |
+| `UA_FINISHED` | 4 | Akció sikeresen befejezve |
+| `UA_CANCEL` | 5 | Akció a játékos által megszakítva |
+| `UA_INTERRUPT` | 6 | Akció külsőleg megszakítva |
+| `UA_INITIALIZE` | 12 | Folyamatos akció inicializálása |
+| `UA_ERROR` | 24 | Hiba állapot --- akció megszakítva |
+| `UA_ANIM_EVENT` | 11 | Animáció végrehajtási esemény aktiválva |
+| `UA_IN_START` | 17 | Animáció ciklus kezdő esemény |
+| `UA_IN_END` | 18 | Animáció ciklus záró esemény |
 
-### SingleUse Akcio Flow
+### SingleUse akció folyamat
 
 ```mermaid
 flowchart TD
-    A[Player presses action key] --> B{Condition Components}
+    A[A játékos megnyomja az akció gombot] --> B{Feltétel komponensek}
     B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
-    C -->|false| D[Action not shown]
+    C -->|false| D[Az akció nem jelenik meg]
     C -->|true| E[SetupAction]
     E --> F[OnStart / OnStartServer / OnStartClient]
-    F --> G[Animation plays]
-    G --> H[UA_ANIM_EVENT fires]
+    F --> G[Animáció lejátszása]
+    G --> H[UA_ANIM_EVENT aktiválódik]
     H --> I[OnExecute]
     I --> J[OnExecuteServer]
     I --> K[OnExecuteClient]
@@ -134,93 +134,93 @@ flowchart TD
     K --> L
 ```
 
-### Continuous Akcio Flow
+### Continuous akció folyamat
 
 ```mermaid
 flowchart TD
-    A[Player holds action key] --> B{Condition Components}
+    A[A játékos nyomva tartja az akció gombot] --> B{Feltétel komponensek}
     B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
-    C -->|false| D[Action not shown]
+    C -->|false| D[Az akció nem jelenik meg]
     C -->|true| E[SetupAction]
     E --> F[OnStart / OnStartServer / OnStartClient]
     F --> G[UA_IN_START: OnStartAnimationLoop]
-    G --> H[Animation loop begins]
+    G --> H[Animáció ciklus indul]
     H --> I{ActionComponent.Execute}
-    I -->|UA_PROCESSING| J[Do - loop continues]
+    I -->|UA_PROCESSING| J[Folytatás - ciklus folytatódik]
     J --> K{ActionConditionContinue?}
     K -->|true| I
-    K -->|false| M[Interrupt]
+    K -->|false| M[Megszakítás]
     I -->|UA_FINISHED| L[OnFinishProgress]
     L --> N[UA_IN_END: OnEndAnimationLoop]
     N --> O[OnEnd / OnEndServer / OnEndClient]
     M --> O
-    P[Player releases key] --> Q[OnEndInput - UserEndsAction]
+    P[A játékos elengedi a gombot] --> Q[OnEndInput - UserEndsAction]
     Q --> R[ActionComponent.Cancel]
     R --> O
 ```
 
-### Interact Akcio Flow
+### Interact akció folyamat
 
 ```mermaid
 flowchart TD
-    A[Player presses interact key] --> B{Condition Components}
+    A[A játékos megnyomja az interakció gombot] --> B{Feltétel komponensek}
     B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
-    C -->|false| D[Action not shown]
+    C -->|false| D[Az akció nem jelenik meg]
     C -->|true| E[SetupAction]
     E --> F[OnStart / OnStartServer / OnStartClient]
-    F --> G[Animation plays]
-    G --> H[UA_ANIM_EVENT fires]
+    F --> G[Animáció lejátszása]
+    G --> H[UA_ANIM_EVENT aktiválódik]
     H --> I[OnExecute / OnExecuteServer / OnExecuteClient]
     I --> J[OnEnd / OnEndServer / OnEndClient]
 ```
 
-### Lifecycle Metoduss Reference
+### Életciklus metódusok referencia
 
-These methods are called in order during an action's lifetime. Override them in your custom actions:
+Ezek a metódusok sorrendben kerülnek meghívásra egy akció élettartama alatt. Írd felül őket az egyéni akcióidban:
 
-| Metodus | Called on | Cel |
+| Metódus | Hol hívódik | Cél |
 |--------|-----------|---------|
-| `CreateConditionComponents()` | Both | Set `m_ConditionItem` and `m_ConditionTarget` |
-| `AkcioCondition()` | Both | Custom validation (distance, state, type checks) |
-| `AkcioConditionContinue()` | Both | Continuous-only: re-checked each frame during progress |
-| `SetupAkcio()` | Both | Internal: builds `AkcioData`, reserves inventory |
-| `OnStart()` | Both | Akcio begins (cancels placing if active) |
-| `OnStartServer()` | Server | Server-side start logic |
-| `OnStartClient()` | Client | Client-side start effects |
-| `OnExecute()` | Both | Animation event fired --- main execution |
-| `OnExecuteServer()` | Server | Server-side execution logic |
-| `OnExecuteClient()` | Client | Client-side execution effects |
-| `OnFinishProgress()` | Both | Continuous-only: one cycle completed |
-| `OnFinishProgressServer()` | Server | Continuous-only: server cycle complete |
-| `OnFinishProgressClient()` | Client | Continuous-only: client cycle complete |
-| `OnStartAnimationLoop()` | Both | Continuous-only: loop animation begins |
-| `OnEndAnimationLoop()` | Both | Continuous-only: loop animation ends |
-| `OnEnd()` | Both | Akcio finished (success or cancel) |
-| `OnEndServer()` | Server | Server-side cleanup |
-| `OnEndClient()` | Client | Client-side cleanup |
+| `CreateConditionComponents()` | Mindkettő | Az `m_ConditionItem` és `m_ConditionTarget` beállítása |
+| `ActionCondition()` | Mindkettő | Egyéni validáció (távolság, állapot, típus ellenőrzések) |
+| `ActionConditionContinue()` | Mindkettő | Csak folyamatos: minden frame-ben újraellenőrizve a folyamat során |
+| `SetupAction()` | Mindkettő | Belső: `ActionData` felépítése, inventory foglalás |
+| `OnStart()` | Mindkettő | Akció indul (aktív építés esetén megszakítja) |
+| `OnStartServer()` | Szerver | Szerver oldali indítási logika |
+| `OnStartClient()` | Kliens | Kliens oldali indítási effektek |
+| `OnExecute()` | Mindkettő | Animáció esemény aktiválva --- fő végrehajtás |
+| `OnExecuteServer()` | Szerver | Szerver oldali végrehajtási logika |
+| `OnExecuteClient()` | Kliens | Kliens oldali végrehajtási effektek |
+| `OnFinishProgress()` | Mindkettő | Csak folyamatos: egy ciklus befejezve |
+| `OnFinishProgressServer()` | Szerver | Csak folyamatos: szerver ciklus kész |
+| `OnFinishProgressClient()` | Kliens | Csak folyamatos: kliens ciklus kész |
+| `OnStartAnimationLoop()` | Mindkettő | Csak folyamatos: ciklus animáció indul |
+| `OnEndAnimationLoop()` | Mindkettő | Csak folyamatos: ciklus animáció befejeződik |
+| `OnEnd()` | Mindkettő | Akció befejeződött (siker vagy megszakítás) |
+| `OnEndServer()` | Szerver | Szerver oldali takarítás |
+| `OnEndClient()` | Kliens | Kliens oldali takarítás |
 
 ---
 
-## AkcioData
+## ActionData
 
-Every running action carries an `AkcioData` instance that holds the runtime context. This is passed to every lifecycle method:
+Minden futó akció egy `ActionData` példányt hordoz, amely tartalmazza a futásidejű kontextust. Ez minden életciklus metódusnak átadásra kerül:
 
 ```c
 class ActionData
 {
-    ref ActionBase       m_Action;          // the action class being performed
-    ItemBase             m_MainItem;        // item in player's hands (or null)
-    ActionBaseCB         m_Callback;        // animation callback handler
-    ref CABase           m_ActionComponent;  // progress component (time, quantity)
-    int                  m_State;           // current state (UA_PROCESSING, etc.)
-    ref ActionTarget     m_Target;          // target object + hit info
-    PlayerBase           m_Player;          // player performing the action
-    bool                 m_WasExecuted;     // true after OnExecute fires
-    bool                 m_WasActionStarted; // true after action loop starts
+    ref ActionBase       m_Action;          // a végrehajtott akció osztály
+    ItemBase             m_MainItem;        // a játékos kezében lévő tárgy (vagy null)
+    ActionBaseCB         m_Callback;        // animáció visszahívás kezelő
+    ref CABase           m_ActionComponent;  // folyamat komponens (idő, mennyiség)
+    int                  m_State;           // jelenlegi állapot (UA_PROCESSING, stb.)
+    ref ActionTarget     m_Target;          // célobjektum + találat info
+    PlayerBase           m_Player;          // az akciót végrehajtó játékos
+    bool                 m_WasExecuted;     // igaz az OnExecute aktiválása után
+    bool                 m_WasActionStarted; // igaz az akció ciklus indulása után
 }
 ```
 
-You can extend `AkcioData` for custom data. Override `CreateAkcioData()` in your action:
+Kiterjesztheted az `ActionData`-t egyéni adatokhoz. Írd felül a `CreateActionData()` metódust az akciódban:
 
 ```c
 class MyCustomActionData : ActionData
@@ -239,76 +239,76 @@ class MyCustomAction : ActionContinuousBase
     {
         MyCustomActionData data = MyCustomActionData.Cast(action_data);
         data.m_CustomValue = data.m_CustomValue + 1;
-        // ... use custom data
+        // ... egyéni adat használata
     }
 }
 ```
 
 ---
 
-## AkcioTarget
+## ActionTarget
 
-The `AkcioTarget` class represents what the player is aiming at:
+Az `ActionTarget` osztály reprezentálja, mire céloz a játékos:
 
-**File:** `4_World/classes/useractionscomponent/actiontargets.c`
+**Fájl:** `4_World/classes/useractionscomponent/actiontargets.c`
 
 ```c
 class ActionTarget
 {
-    Object GetObject();         // the direct object under cursor (or proxy child)
-    Object GetParent();         // parent object (if target is a proxy/attachment)
-    bool   IsProxy();           // true if target has a parent
-    int    GetComponentIndex(); // geometry component (named selection) index
-    float  GetUtility();        // priority score
-    vector GetCursorHitPos();   // exact world position of cursor hit
+    Object GetObject();         // a kurzor alatti közvetlen objektum (vagy proxy gyermek)
+    Object GetParent();         // szülő objektum (ha a cél proxy/csatolmány)
+    bool   IsProxy();           // igaz, ha a célnak van szülője
+    int    GetComponentIndex(); // geometria komponens (nevesített szekció) index
+    float  GetUtility();        // prioritás pontszám
+    vector GetCursorHitPos();   // a kurzor találat pontos világ pozíciója
 }
 ```
 
-### How Targets Are Selected
+### Hogyan kerülnek kiválasztásra a célpontok
 
-The `AkcioTargets` class runs each frame on the client, gathering potential targets:
+Az `ActionTargets` osztály minden frame-ben fut a kliensen, lehetséges célpontokat gyűjtve:
 
-1. **Raycast** from camera position along camera direction (`c_RayDistance`)
-2. **Vicinity scan** for nearby objects around the player
-3. For each candidate, the engine calls `GetAkcios()` on the object to find registered actions
-4. Each action's condition components (`CCIBase.Can()`, `CCTBase.Can()`) and `AkcioCondition()` are tested
-5. Valid actions are ranked by utility and displayed in the HUD
+1. **Sugárkibocsátás** a kamera pozíciójából a kamera irányába (`c_RayDistance`)
+2. **Környék átvizsgálás** a játékos körüli közeli objektumokért
+3. Minden jelöltre a motor meghívja a `GetActions()` metódust az objektumon a regisztrált akciók megkereséséhez
+4. Minden akció feltétel komponensei (`CCIBase.Can()`, `CCTBase.Can()`) és az `ActionCondition()` tesztelésre kerülnek
+5. Az érvényes akciók hasznosság szerint rangsorolódnak és megjelennek a HUD-on
 
 ---
 
-## Condition Components
+## Feltétel komponensek
 
-Every action has two condition components set in `CreateConditionComponents()`. These are checked **before** `AkcioCondition()` and determine whether the action can appear in the player's HUD at all.
+Minden akciónak két feltétel komponense van, amelyek a `CreateConditionComponents()` metódusban vannak beállítva. Ezek az `ActionCondition()` **előtt** kerülnek ellenőrzésre, és meghatározzák, hogy az akció egyáltalán megjelenhet-e a játékos HUD-ján.
 
-### Item Conditions (CCIBase)
+### Tárgy feltételek (CCIBase)
 
-Controls whether the item in the player's hand qualifies for this action.
+Szabályozza, hogy a játékos kezében lévő tárgy megfelel-e ennek az akciónak.
 
-**File:** `4_World/classes/useractionscomponent/itemconditioncomponents/`
+**Fájl:** `4_World/classes/useractionscomponent/itemconditioncomponents/`
 
-| Class | Behavior |
+| Osztály | Viselkedés |
 |-------|----------|
-| `CCINone` | Always passes --- no item requirement |
-| `CCIDummy` | Passes if item is not null (item must exist) |
-| `CCINonRuined` | Passes if item exists AND is not ruined |
-| `CCINotPresent` | Passes if item is null (hands must be empty) |
-| `CCINotRuinedAndEmpty` | Passes if item exists, not ruined, and not empty |
+| `CCINone` | Mindig teljesül --- nincs tárgy követelmény |
+| `CCIDummy` | Teljesül, ha a tárgy nem null (tárgynak léteznie kell) |
+| `CCINonRuined` | Teljesül, ha a tárgy létezik ÉS nincs tönkremenve |
+| `CCINotPresent` | Teljesül, ha a tárgy null (a kezeknek üresnek kell lenniük) |
+| `CCINotRuinedAndEmpty` | Teljesül, ha a tárgy létezik, nincs tönkre és nem üres |
 
 ```c
-// CCINone — no item needed, always true
+// CCINone — nincs szükség tárgyra, mindig igaz
 class CCINone : CCIBase
 {
     override bool Can(PlayerBase player, ItemBase item) { return true; }
     override bool CanContinue(PlayerBase player, ItemBase item) { return true; }
 }
 
-// CCINotPresent — hands must be empty
+// CCINotPresent — a kezeknek üresnek kell lenniük
 class CCINotPresent : CCIBase
 {
     override bool Can(PlayerBase player, ItemBase item) { return !item; }
 }
 
-// CCINonRuined — item must exist and not be destroyed
+// CCINonRuined — a tárgynak léteznie kell és nem lehet megsemmisítve
 class CCINonRuined : CCIBase
 {
     override bool Can(PlayerBase player, ItemBase item)
@@ -318,23 +318,23 @@ class CCINonRuined : CCIBase
 }
 ```
 
-### Target Conditions (CCTBase)
+### Célpont feltételek (CCTBase)
 
-Controls whether the target object (what the player is looking at) qualifies.
+Szabályozza, hogy a célobjektum (amire a játékos néz) megfelel-e.
 
-**File:** `4_World/classes/useractionscomponent/targetconditionscomponents/`
+**Fájl:** `4_World/classes/useractionscomponent/targetconditionscomponents/`
 
-| Class | Constructor | Behavior |
+| Osztály | Konstruktor | Viselkedés |
 |-------|-------------|----------|
-| `CCTNone` | `CCTNone()` | Always passes --- no target needed |
-| `CCTDummy` | `CCTDummy()` | Passes if target object exists |
-| `CCTSelf` | `CCTSelf()` | Passes if player exists and is alive |
-| `CCTObject` | `CCTObject(float dist)` | Target object within distance |
-| `CCTCursor` | `CCTCursor(float dist)` | Cursor hit position within distance |
-| `CCTNonRuined` | `CCTNonRuined(float dist)` | Target within distance AND not ruined |
-| `CCTCursorParent` | `CCTCursorParent(float dist)` | Cursor on parent object within distance |
+| `CCTNone` | `CCTNone()` | Mindig teljesül --- nincs szükség célpontra |
+| `CCTDummy` | `CCTDummy()` | Teljesül, ha a célobjektum létezik |
+| `CCTSelf` | `CCTSelf()` | Teljesül, ha a játékos létezik és él |
+| `CCTObject` | `CCTObject(float dist)` | Célobjektum távolságon belül |
+| `CCTCursor` | `CCTCursor(float dist)` | Kurzor találat pozíció távolságon belül |
+| `CCTNonRuined` | `CCTNonRuined(float dist)` | Cél távolságon belül ÉS nem tönkrement |
+| `CCTCursorParent` | `CCTCursorParent(float dist)` | Kurzor a szülő objektumon távolságon belül |
 
-Distance is measured from **both** the player's root position and head bone position (whichever is closer). The `CCTObject` check:
+A távolság **mindkét** pozícióból mérődik: a játékos gyökérpozíciójából és a fej csont pozícióból (amelyik közelebb van). A `CCTObject` ellenőrzés:
 
 ```c
 class CCTObject : CCTBase
@@ -363,41 +363,41 @@ class CCTObject : CCTBase
 }
 ```
 
-### Distance Konstansok
+### Távolság konstansok
 
-**File:** `4_World/classes/useractionscomponent/actions/actionconstants.c`
+**Fájl:** `4_World/classes/useractionscomponent/actions/actionconstants.c`
 
-| Konstans | Ertek (meters) | Typical use |
+| Konstans | Érték (méter) | Tipikus használat |
 |----------|---------------|-------------|
-| `UAMaxDistances.SMALL` | 1.3 | Close interactions, ladders |
-| `UAMaxDistances.DEFAULT` | 2.0 | Standard actions |
-| `UAMaxDistances.REPAIR` | 3.0 | Repair actions |
-| `UAMaxDistances.LARGE` | 8.0 | Large area actions |
-| `UAMaxDistances.BASEBUILDING` | 20.0 | Base building |
-| `UAMaxDistances.EXPLOSIVE_REMOTE_ACTIVATION` | 100.0 | Remote detonation |
+| `UAMaxDistances.SMALL` | 1.3 | Közeli interakciók, létrák |
+| `UAMaxDistances.DEFAULT` | 2.0 | Szabványos akciók |
+| `UAMaxDistances.REPAIR` | 3.0 | Javítási akciók |
+| `UAMaxDistances.LARGE` | 8.0 | Nagy területű akciók |
+| `UAMaxDistances.BASEBUILDING` | 20.0 | Bázisépítés |
+| `UAMaxDistances.EXPLOSIVE_REMOTE_ACTIVATION` | 100.0 | Távoli detonálás |
 
 ---
 
-## Registering Akcios on Items
+## Akciók regisztrálása tárgyakon
 
-Akcios are registered on entities through the `SetAkcios()` / `AddAkcio()` / `RemoveAkcio()` pattern. The engine calls `GetAkcios()` on an entity to retrieve its action list; the first time this happens, `InitializeAkcios()` builds the map via `SetAkcios()`.
+Az akciók a `SetActions()` / `AddAction()` / `RemoveAction()` mintán keresztül regisztrálódnak entitásokon. A motor a `GetActions()` metódust hívja meg egy entitáson a akciólista lekéréséhez; amikor ez először történik, az `InitializeActions()` felépíti a leképezést a `SetActions()` segítségével.
 
-### On ItemBase (Inventory Items)
+### ItemBase-en (inventory tárgyak)
 
-The most common pattern. Override `SetAkcios()` in a `modded class`:
+A leggyakoribb minta. Írd felül a `SetActions()` metódust egy `modded class`-ban:
 
 ```c
 modded class MyCustomItem extends ItemBase
 {
     override void SetActions()
     {
-        super.SetActions();          // CRITICAL: keep all vanilla actions
-        AddAction(MyCustomAction);   // add your action
+        super.SetActions();          // KRITIKUS: tartsd meg az összes vanilla akciót
+        AddAction(MyCustomAction);   // add hozzá az akciódat
     }
 }
 ```
 
-To remove a vanilla action and add your own replacement:
+Vanilla akció eltávolítása és saját helyettesítése:
 
 ```c
 modded class Bandage_Basic extends ItemBase
@@ -405,18 +405,18 @@ modded class Bandage_Basic extends ItemBase
     override void SetActions()
     {
         super.SetActions();
-        RemoveAction(ActionBandageTarget);       // remove vanilla
-        AddAction(MyImprovedBandageAction);      // add replacement
+        RemoveAction(ActionBandageTarget);       // vanilla eltávolítása
+        AddAction(MyImprovedBandageAction);      // helyettesítő hozzáadása
     }
 }
 ```
 
-### On BuildingBase (World Buildings)
+### BuildingBase-en (világ épületek)
 
-Buildings use the same pattern but through `BuildingBase`:
+Az épületek ugyanazt a mintát használják, de a `BuildingBase` osztályon keresztül:
 
 ```c
-// Vanilla example: Well registers water actions
+// Vanilla példa: a kút víz akciókat regisztrál
 class Well extends BuildingSuper
 {
     override void SetActions()
@@ -428,12 +428,12 @@ class Well extends BuildingSuper
 }
 ```
 
-### On PlayerBase (Player Akcios)
+### PlayerBase-en (játékos akciók)
 
-Player-level actions (drinking from ponds, opening doors, etc.) are registered in `PlayerBase.SetAkcios()`. There are two signatures:
+A játékos szintű akciók (tócsából ivás, ajtók nyitása, stb.) a `PlayerBase.SetActions()` metódusban vannak regisztrálva. Két aláírás létezik:
 
 ```c
-// Modern approach (recommended) — uses InputActionMap parameter
+// Modern megközelítés (ajánlott) — InputActionMap paramétert használ
 void SetActions(out TInputActionMap InputActionMap)
 {
     AddAction(ActionOpenDoors, InputActionMap);
@@ -441,14 +441,14 @@ void SetActions(out TInputActionMap InputActionMap)
     // ...
 }
 
-// Legacy approach (backwards compatibility) — not recommended
+// Régi megközelítés (visszafelé kompatibilitás) — nem ajánlott
 void SetActions()
 {
     // ...
 }
 ```
 
-Player also has `SetAkciosRemoteTarget()` for actions performed **on** a player by another player (CPR, checking pulse, etc.):
+A játékosnak van `SetActionsRemoteTarget()` metódusa is a másik játékos **által** egy játékoson végrehajtott akciókhoz (CPR, pulzus ellenőrzés, stb.):
 
 ```c
 void SetActionsRemoteTarget(out TInputActionMap InputActionMap)
@@ -458,27 +458,27 @@ void SetActionsRemoteTarget(out TInputActionMap InputActionMap)
 }
 ```
 
-### How the Registration System Works Internally
+### Hogyan működik a regisztrációs rendszer belsőleg
 
-Each entity type maintains a static `TInputAkcioMap` (a `map<typename, ref array<AkcioBase_Basic>>`) keyed by input type. When `AddAkcio()` is called:
+Minden entitás típus egy statikus `TInputActionMap`-et (`map<typename, ref array<ActionBase_Basic>>`) tart fenn, input típus szerint kulcsolva. Amikor az `AddAction()` meghívásra kerül:
 
-1. The action singleton is fetched from `AkcioManagerBase.GetAkcio()`
-2. The action's input type is queried (`GetInputTipus()`)
-3. The action is inserted into the array for that input type
-4. At runtime, the engine queries all actions for the matching input type
+1. Az akció szingleton lekérésre kerül az `ActionManagerBase.GetAction()` metódusból
+2. Az akció input típusa lekérdezésre kerül (`GetInputType()`)
+3. Az akció beillesztésre kerül az adott input típus tömbjébe
+4. Futásidőben a motor lekérdezi az összes akciót a megfelelő input típushoz
 
-This means actions are shared per **type** (class), not per instance. All items of the same class share the same action list.
+Ez azt jelenti, hogy az akciók **típusonként** (osztályonként) vannak megosztva, nem példányonként. Azonos osztályú tárgyak ugyanazt az akciólistát használják.
 
 ---
 
-## Creating a Custom Akcio --- Step by Step
+## Egyéni akció létrehozása --- lépésről lépésre
 
-### Pelda 1: Simple Single-Use Akcio
+### 1. példa: Egyszerű egyszeri használatú akció
 
-A custom action that instantly heals the player when they use a special item:
+Egyéni akció, amely azonnal meggyógyítja a játékost egy speciális tárgy használatakor:
 
 ```c
-// File: 4_World/actions/ActionHealInstant.c
+// Fájl: 4_World/actions/ActionHealInstant.c
 
 class ActionHealInstant : ActionSingleUseBase
 {
@@ -486,28 +486,28 @@ class ActionHealInstant : ActionSingleUseBase
     {
         m_CommandUID = DayZPlayerConstants.CMD_ACTIONMOD_EAT_PILL;
         m_CommandUIDProne = DayZPlayerConstants.CMD_ACTIONFB_EAT_PILL;
-        m_Text = "#heal";  // stringtable key, or plain text: "Heal"
+        m_Text = "#heal";  // stringtable kulcs, vagy egyszerű szöveg: "Heal"
     }
 
     override void CreateConditionComponents()
     {
-        m_ConditionItem = new CCINonRuined;    // item must not be ruined
-        m_ConditionTarget = new CCTSelf;       // self-action
+        m_ConditionItem = new CCINonRuined;    // a tárgy nem lehet tönkrement
+        m_ConditionTarget = new CCTSelf;       // ön-akció
     }
 
     override bool HasTarget()
     {
-        return false;  // no external target needed
+        return false;  // nincs szükség külső célpontra
     }
 
     override bool HasProneException()
     {
-        return true;  // allow different animation when prone
+        return true;  // engedélyez más animációt fekvő helyzetben
     }
 
     override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
     {
-        // Only show if player is actually hurt
+        // Csak akkor jelenjen meg, ha a játékos tényleg sérült
         if (player.GetHealth("GlobalHealth", "Health") >= player.GetMaxHealth("GlobalHealth", "Health"))
             return false;
 
@@ -516,11 +516,11 @@ class ActionHealInstant : ActionSingleUseBase
 
     override void OnExecuteServer(ActionData action_data)
     {
-        // Heal the player on server
+        // A játékos meggyógyítása a szerveren
         PlayerBase player = action_data.m_Player;
         player.SetHealth("GlobalHealth", "Health", player.GetMaxHealth("GlobalHealth", "Health"));
 
-        // Consume the item (reduce quantity by 1)
+        // A tárgy felhasználása (mennyiség csökkentése 1-gyel)
         ItemBase item = action_data.m_MainItem;
         if (item)
         {
@@ -530,15 +530,15 @@ class ActionHealInstant : ActionSingleUseBase
 
     override void OnExecuteClient(ActionData action_data)
     {
-        // Optional: play a client-side effect, sound, or notification
+        // Opcionális: kliens oldali effekt, hang vagy értesítés lejátszása
     }
 }
 ```
 
-Register it on an item:
+Regisztráld egy tárgyra:
 
 ```c
-// File: 4_World/entities/HealingKit.c
+// Fájl: 4_World/entities/HealingKit.c
 
 modded class HealingKit extends ItemBase
 {
@@ -550,31 +550,31 @@ modded class HealingKit extends ItemBase
 }
 ```
 
-### Pelda 2: Continuous Akcio with Progress Bar
+### 2. példa: Folyamatos akció folyamatjelzővel
 
-A custom repair action that takes time and consumes item durability:
+Egyéni javítási akció, amely időbe telik és elhasználja a tárgy tartósságát:
 
 ```c
-// File: 4_World/actions/ActionRepairCustom.c
+// Fájl: 4_World/actions/ActionRepairCustom.c
 
-// Step 1: Define the callback with an action component
+// 1. lépés: Definiáld a visszahívást egy akció komponenssel
 class ActionRepairCustomCB : ActionContinuousBaseCB
 {
     override void CreateActionComponent()
     {
-        // CAContinuousTime(seconds) — single progress bar that completes once
+        // CAContinuousTime(másodperc) — egyetlen folyamatjelző, ami egyszer fejeződik be
         m_ActionData.m_ActionComponent = new CAContinuousTime(UATimeSpent.DEFAULT_REPAIR_CYCLE);
     }
 }
 
-// Step 2: Define the action
+// 2. lépés: Definiáld az akciót
 class ActionRepairCustom : ActionContinuousBase
 {
     void ActionRepairCustom()
     {
         m_CallbackClass = ActionRepairCustomCB;
         m_CommandUID = DayZPlayerConstants.CMD_ACTIONFB_ASSEMBLE;
-        m_FullBody = true;  // full body animation (player cannot move)
+        m_FullBody = true;  // teljes test animáció (a játékos nem tud mozogni)
         m_StanceMask = DayZPlayerConstants.STANCEMASK_ERECT;
         m_SpecialtyWeight = UASoftSkillsWeight.ROUGH_HIGH;
         m_Text = "#repair";
@@ -592,7 +592,7 @@ class ActionRepairCustom : ActionContinuousBase
         if (!obj)
             return false;
 
-        // Only allow repairing damaged (but not ruined) objects
+        // Csak sérült (de nem tönkrement) objektumok javítása engedélyezett
         EntityAI entity = EntityAI.Cast(obj);
         if (!entity)
             return false;
@@ -600,7 +600,7 @@ class ActionRepairCustom : ActionContinuousBase
         float health = entity.GetHealth("", "Health");
         float maxHealth = entity.GetMaxHealth("", "Health");
 
-        // Must be damaged but not ruined
+        // Sérültnek kell lennie, de nem tönkrementnek
         if (health >= maxHealth || entity.IsDamageDestroyed())
             return false;
 
@@ -609,31 +609,31 @@ class ActionRepairCustom : ActionContinuousBase
 
     override void OnFinishProgressServer(ActionData action_data)
     {
-        // Called when the progress bar completes
+        // Meghívásra kerül, amikor a folyamatjelző befejeződik
         Object target = action_data.m_Target.GetObject();
         if (target)
         {
             EntityAI entity = EntityAI.Cast(target);
             if (entity)
             {
-                // Restore some health
+                // Életerő visszaállítás
                 float currentHealth = entity.GetHealth("", "Health");
                 entity.SetHealth("", "Health", currentHealth + 25);
             }
         }
 
-        // Damage the tool
+        // A szerszám sérülése
         action_data.m_MainItem.DecreaseHealth(UADamageApplied.REPAIR, false);
     }
 }
 ```
 
-### Pelda 3: Interact Akcio (World Object Toggle)
+### 3. példa: Interact akció (világ objektum váltás)
 
-An interact action for toggling a custom device on/off:
+Interact akció egyéni eszköz be/kikapcsolásához:
 
 ```c
-// File: 4_World/actions/ActionToggleMyDevice.c
+// Fájl: 4_World/actions/ActionToggleMyDevice.c
 
 class ActionToggleMyDevice : ActionInteractBase
 {
@@ -646,7 +646,7 @@ class ActionToggleMyDevice : ActionInteractBase
 
     override void CreateConditionComponents()
     {
-        m_ConditionItem = new CCINone;     // no item needed in hands
+        m_ConditionItem = new CCINone;     // nem kell tárgy a kézben
         m_ConditionTarget = new CCTCursor(UAMaxDistances.DEFAULT);
     }
 
@@ -656,12 +656,12 @@ class ActionToggleMyDevice : ActionInteractBase
         if (!obj)
             return false;
 
-        // Check if target is our custom device type
+        // Ellenőrizd, hogy a cél az egyéni eszköz típusunk-e
         MyCustomDevice device = MyCustomDevice.Cast(obj);
         if (!device)
             return false;
 
-        // Update display text based on current state
+        // Kijelzett szöveg frissítése az aktuális állapot alapján
         if (device.IsActive())
             m_Text = "#switch_off";
         else
@@ -684,7 +684,7 @@ class ActionToggleMyDevice : ActionInteractBase
 }
 ```
 
-Register it on the building/device:
+Regisztráld az épületen/eszközön:
 
 ```c
 class MyCustomDevice extends BuildingBase
@@ -697,9 +697,9 @@ class MyCustomDevice extends BuildingBase
 }
 ```
 
-### Pelda 4: Akcio with Specific Item Requirement
+### 4. példa: Akció meghatározott tárgy követelménnyel
 
-An action that requires the player to hold a specific tool type while targeting a specific object:
+Akció, amely megköveteli, hogy a játékos egy adott eszköztípust tartson, miközben egy adott objektumra céloz:
 
 ```c
 class ActionUnlockWithKey : ActionInteractBase
@@ -712,27 +712,27 @@ class ActionUnlockWithKey : ActionInteractBase
 
     override void CreateConditionComponents()
     {
-        m_ConditionItem = new CCINonRuined;   // must hold a non-ruined item
+        m_ConditionItem = new CCINonRuined;   // nem tönkrement tárgyat kell tartani
         m_ConditionTarget = new CCTObject(UAMaxDistances.DEFAULT);
     }
 
     override bool UseMainItem()
     {
-        return true;  // action requires an item in hand
+        return true;  // az akció tárgyat igényel a kézben
     }
 
     override bool MainItemAlwaysInHands()
     {
-        return true;  // item must be in hands, not just inventory
+        return true;  // a tárgynak a kézben kell lennie, nem csak az inventoryban
     }
 
     override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
     {
-        // Item must be a key
+        // A tárgynak kulcsnak kell lennie
         if (!item || !item.IsInherited(MyKeyItem))
             return false;
 
-        // Target must be a locked container
+        // A célnak zárt konténernek kell lennie
         MyLockedContainer container = MyLockedContainer.Cast(target.GetObject());
         if (!container || !container.IsLocked())
             return false;
@@ -753,33 +753,33 @@ class ActionUnlockWithKey : ActionInteractBase
 
 ---
 
-## Akcio Components (Progress Control)
+## Akció komponensek (folyamatvezérlés)
 
-Akcio components control _how_ the action progresses over time. They are created in the callback's `CreateAkcioComponent()` method.
+Az akció komponensek szabályozzák, _hogyan_ halad az akció az idő múlásával. A visszahívás `CreateActionComponent()` metódusában jönnek létre.
 
-**File:** `4_World/classes/useractionscomponent/actioncomponents/`
+**Fájl:** `4_World/classes/useractionscomponent/actioncomponents/`
 
-### Available Components
+### Elérhető komponensek
 
-| Component | Parameterek | Behavior |
+| Komponens | Paraméterek | Viselkedés |
 |-----------|------------|----------|
-| `CASingleUse` | none | Instant execution, no progress |
-| `CAInteract` | none | Instant execution for interact actions |
-| `CAContinuousTime` | `float time` | Progress bar, completes after `time` seconds |
-| `CAContinuousRepeat` | `float time` | Repeating cycles, fires `OnFinishProgress` each cycle |
-| `CAContinuousQuantity` | `float quantity, float time` | Consumes quantity over time |
-| `CAContinuousQuantityEdible` | `float quantity, float time` | Like Quantity but applies food/drink modifiers |
+| `CASingleUse` | nincs | Azonnali végrehajtás, nincs folyamat |
+| `CAInteract` | nincs | Azonnali végrehajtás interact akciókhoz |
+| `CAContinuousTime` | `float time` | Folyamatjelző, `time` másodperc után fejeződik be |
+| `CAContinuousRepeat` | `float time` | Ismétlődő ciklusok, minden ciklusban `OnFinishProgress` aktiválódik |
+| `CAContinuousQuantity` | `float quantity, float time` | Mennyiséget fogyaszt az idő múlásával |
+| `CAContinuousQuantityEdible` | `float quantity, float time` | Mint a Quantity, de étel/ital módosítókkal |
 
 ### CAContinuousTime
 
-Single progress bar that completes once:
+Egyetlen folyamatjelző, ami egyszer fejeződik be:
 
 ```c
 class MyActionCB : ActionContinuousBaseCB
 {
     override void CreateActionComponent()
     {
-        // 5-second progress bar
+        // 5 másodperces folyamatjelző
         m_ActionData.m_ActionComponent = new CAContinuousTime(UATimeSpent.DEFAULT_CONSTRUCT);
     }
 }
@@ -787,42 +787,42 @@ class MyActionCB : ActionContinuousBaseCB
 
 ### CAContinuousRepeat
 
-Repeating cycles --- `OnFinishProgressServer()` is called each time a cycle completes, and the action continues until the player releases the key:
+Ismétlődő ciklusok --- az `OnFinishProgressServer()` minden ciklus befejezésekor meghívásra kerül, és az akció folytatódik, amíg a játékos el nem engedi a gombot:
 
 ```c
 class MyRepeatActionCB : ActionContinuousBaseCB
 {
     override void CreateActionComponent()
     {
-        // Each cycle takes 5 seconds, repeats until player stops
+        // Minden ciklus 5 másodperc, ismétlődik amíg a játékos meg nem állítja
         m_ActionData.m_ActionComponent = new CAContinuousRepeat(UATimeSpent.DEFAULT_REPAIR_CYCLE);
     }
 }
 ```
 
-### Time Konstansok
+### Idő konstansok
 
-**File:** `4_World/classes/useractionscomponent/actions/actionconstants.c`
+**Fájl:** `4_World/classes/useractionscomponent/actions/actionconstants.c`
 
-| Konstans | Ertek (seconds) | Use |
+| Konstans | Érték (másodperc) | Használat |
 |----------|----------------|-----|
-| `UATimeSpent.DEFAULT` | 1.0 | General |
-| `UATimeSpent.DEFAULT_CONSTRUCT` | 5.0 | Construction |
-| `UATimeSpent.DEFAULT_REPAIR_CYCLE` | 5.0 | Repair per cycle |
-| `UATimeSpent.DEFAULT_DEPLOY` | 5.0 | Deploying items |
-| `UATimeSpent.BANDAGE` | 4.0 | Bandaging |
-| `UATimeSpent.RESTRAIN` | 10.0 | Restraining |
-| `UATimeSpent.SHAVE` | 12.75 | Shaving |
-| `UATimeSpent.SKIN` | 10.0 | Skinning animals |
-| `UATimeSpent.DIG_STASH` | 10.0 | Digging stash |
+| `UATimeSpent.DEFAULT` | 1.0 | Általános |
+| `UATimeSpent.DEFAULT_CONSTRUCT` | 5.0 | Építés |
+| `UATimeSpent.DEFAULT_REPAIR_CYCLE` | 5.0 | Javítás ciklusonként |
+| `UATimeSpent.DEFAULT_DEPLOY` | 5.0 | Tárgyak telepítése |
+| `UATimeSpent.BANDAGE` | 4.0 | Kötözés |
+| `UATimeSpent.RESTRAIN` | 10.0 | Megkötözés |
+| `UATimeSpent.SHAVE` | 12.75 | Borotválás |
+| `UATimeSpent.SKIN` | 10.0 | Állatok nyúzása |
+| `UATimeSpent.DIG_STASH` | 10.0 | Rejtekárok ásása |
 
 ---
 
-## Vanilla Peldas Annotated
+## Annotált vanilla példák
 
-### AkcioOpenDoors (Interact)
+### ActionOpenDoors (Interact)
 
-**File:** `4_World/classes/useractionscomponent/actions/interact/actionopendoors.c`
+**Fájl:** `4_World/classes/useractionscomponent/actions/interact/actionopendoors.c`
 
 ```c
 class ActionOpenDoors : ActionInteractBase
@@ -831,13 +831,13 @@ class ActionOpenDoors : ActionInteractBase
     {
         m_CommandUID  = DayZPlayerConstants.CMD_ACTIONMOD_OPENDOORFW;
         m_StanceMask  = DayZPlayerConstants.STANCEMASK_CROUCH | DayZPlayerConstants.STANCEMASK_ERECT;
-        m_Text        = "#open";   // stringtable reference
+        m_Text        = "#open";   // stringtable hivatkozás
     }
 
     override void CreateConditionComponents()
     {
-        m_ConditionItem   = new CCINone();      // no item needed
-        m_ConditionTarget = new CCTCursor();     // cursor must be on something
+        m_ConditionItem   = new CCINone();      // nem kell tárgy
+        m_ConditionTarget = new CCTCursor();     // a kurzornak valamin kell lennie
     }
 
     override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
@@ -873,14 +873,14 @@ class ActionOpenDoors : ActionInteractBase
 }
 ```
 
-Key takeaways:
-- Uses `OnStartServer()` (not `OnExecuteServer()`) because interact actions fire immediately
-- `GetComponentIndex()` retrieves which door the player is looking at
-- Distance check done manually with `IsInReach()` as well as via `CCTCursor`
+Kulcs tanulságok:
+- Az `OnStartServer()` metódust használja (nem `OnExecuteServer()`), mert az interact akciók azonnal aktiválódnak
+- A `GetComponentIndex()` lekéri, melyik ajtóra néz a játékos
+- A távolság ellenőrzés manuálisan is történik az `IsInReach()` segítségével, a `CCTCursor` mellett
 
-### AkcioTurnOnPowerGenerator (Interact)
+### ActionTurnOnPowerGenerator (Interact)
 
-**File:** `4_World/classes/useractionscomponent/actions/interact/actionturnonpowergenerator.c`
+**Fájl:** `4_World/classes/useractionscomponent/actions/interact/actionturnonpowergenerator.c`
 
 ```c
 class ActionTurnOnPowerGenerator : ActionInteractBase
@@ -916,14 +916,14 @@ class ActionTurnOnPowerGenerator : ActionInteractBase
 }
 ```
 
-Key takeaways:
-- Inherits default `CreateConditionComponents()` from `AkcioInteractBase` (`CCINone` + `CCTObject(DEFAULT)`)
-- Uses `OnExecuteServer()` for the actual toggle --- this fires on the animation event
-- Multiple condition checks chained in `AkcioCondition()`
+Kulcs tanulságok:
+- Örökli az alapértelmezett `CreateConditionComponents()` metódust az `ActionInteractBase`-ből (`CCINone` + `CCTObject(DEFAULT)`)
+- Az `OnExecuteServer()` metódust használja a tényleges váltáshoz --- ez az animáció eseménynél aktiválódik
+- Több feltétel ellenőrzés van láncolva az `ActionCondition()`-ben
 
-### AkcioEat (Continuous)
+### ActionEat (Continuous)
 
-**File:** `4_World/classes/useractionscomponent/actions/continuous/actioneat.c`
+**Fájl:** `4_World/classes/useractionscomponent/actions/continuous/actioneat.c`
 
 ```c
 class ActionEatBigCB : ActionContinuousBaseCB
@@ -931,8 +931,8 @@ class ActionEatBigCB : ActionContinuousBaseCB
     override void CreateActionComponent()
     {
         m_ActionData.m_ActionComponent = new CAContinuousQuantityEdible(
-            UAQuantityConsumed.EAT_BIG,   // 25 units consumed per cycle
-            UATimeSpent.DEFAULT            // 1 second per cycle
+            UAQuantityConsumed.EAT_BIG,   // 25 egység fogyasztva ciklusonként
+            UATimeSpent.DEFAULT            // 1 másodperc ciklusonként
         );
     }
 }
@@ -958,38 +958,38 @@ class ActionEatBig : ActionConsume
 }
 ```
 
-Key takeaways:
-- The callback class controls the pacing (`CAContinuousQuantityEdible`)
-- `AkcioConsume` (the parent) handles all the food consumption logic
-- `HasTarget()` returns false --- eating is a self-action
-- Different eat sizes just swap the callback class with different `UAQuantityConsumed` values
+Kulcs tanulságok:
+- A visszahívás osztály vezérli az ütemezést (`CAContinuousQuantityEdible`)
+- Az `ActionConsume` (a szülő) kezeli az összes étel fogyasztási logikát
+- A `HasTarget()` false-t ad vissza --- az evés ön-akció
+- A különböző evés méretek csak a visszahívás osztályt cserélik más `UAQuantityConsumed` értékekkel
 
 ---
 
-## Advanced Topics
+## Haladó témák
 
-### Akcio Condition Masks
+### Akció feltétel maszkok
 
-Akcios can be restricted to specific player states using `AkcioConditionMask`:
+Az akciók korlátozhatók meghatározott játékos állapotokra az `ActionConditionMask` használatával:
 
 ```c
 enum ActionConditionMask
 {
-    ACM_NO_EXEPTION    = 0,     // no special conditions
-    ACM_IN_VEHICLE     = 1,     // can use in vehicle
-    ACM_ON_LADDER      = 2,     // can use on ladder
-    ACM_SWIMMING       = 4,     // can use while swimming
-    ACM_RESTRAIN       = 8,     // can use while restrained
-    ACM_RAISED         = 16,    // can use with weapon raised
-    ACM_ON_BACK        = 32,    // can use while on back
-    ACM_THROWING       = 64,    // can use while throwing
-    ACM_LEANING        = 128,   // can use while leaning
-    ACM_BROKEN_LEGS    = 256,   // can use with broken legs
-    ACM_IN_FREELOOK    = 512,   // can use in freelook
+    ACM_NO_EXEPTION    = 0,     // nincs speciális feltétel
+    ACM_IN_VEHICLE     = 1,     // használható járműben
+    ACM_ON_LADDER      = 2,     // használható létrán
+    ACM_SWIMMING       = 4,     // használható úszás közben
+    ACM_RESTRAIN       = 8,     // használható megkötözve
+    ACM_RAISED         = 16,    // használható emelt fegyverrel
+    ACM_ON_BACK        = 32,    // használható háton fekve
+    ACM_THROWING       = 64,    // használható dobás közben
+    ACM_LEANING        = 128,   // használható dőlés közben
+    ACM_BROKEN_LEGS    = 256,   // használható törött lábakkal
+    ACM_IN_FREELOOK    = 512,   // használható szabad nézet módban
 }
 ```
 
-Override the corresponding methods in your action to enable these:
+Írd felül a megfelelő metódusokat az akciódban ezek engedélyezéséhez:
 
 ```c
 class MyVehicleAction : ActionSingleUseBase
@@ -1001,46 +1001,46 @@ class MyVehicleAction : ActionSingleUseBase
 }
 ```
 
-### Full Body vs Additive Animations
+### Teljes test vs additív animációk
 
-Akcios can be **additive** (player can walk) or **full body** (player is locked in place):
+Az akciók lehetnek **additív** (a játékos tud járni) vagy **teljes test** (a játékos helyhez kötött):
 
 ```c
 class MyFullBodyAction : ActionContinuousBase
 {
     void MyFullBodyAction()
     {
-        m_FullBody = true;   // player cannot move during action
+        m_FullBody = true;   // a játékos nem tud mozogni az akció alatt
         m_CommandUID = DayZPlayerConstants.CMD_ACTIONFB_ASSEMBLE;
         m_StanceMask = DayZPlayerConstants.STANCEMASK_ERECT;
     }
 }
 ```
 
-- **Additive** (`m_FullBody = false`): Uses `CMD_ACTIONMOD_*` command UIDs. Player can walk.
-- **Full body** (`m_FullBody = true`): Uses `CMD_ACTIONFB_*` command UIDs. Player is stationary.
+- **Additív** (`m_FullBody = false`): `CMD_ACTIONMOD_*` parancs UID-ket használ. A játékos tud járni.
+- **Teljes test** (`m_FullBody = true`): `CMD_ACTIONFB_*` parancs UID-ket használ. A játékos álló helyzetben van.
 
-### Prone Exception
+### Fekvő kivétel
 
-Some actions need different animations when prone vs standing:
+Egyes akciók más animációt igényelnek fekvő vs álló helyzetben:
 
 ```c
 override bool HasProneException()
 {
-    return true;  // uses m_CommandUIDProne when player is prone
+    return true;  // m_CommandUIDProne-t használ, amikor a játékos fekszik
 }
 ```
 
-When `HasProneException()` returns true, the engine uses `m_CommandUIDProne` instead of `m_CommandUID` if the player is in prone stance.
+Amikor a `HasProneException()` true-t ad vissza, a motor az `m_CommandUIDProne` értéket használja az `m_CommandUID` helyett, ha a játékos fekvő testhelyzetben van.
 
-### Akcio Interruption
+### Akció megszakítás
 
-Akcios can be interrupted server-side through the callback:
+Az akciók szerver oldalról megszakíthatók a visszahíváson keresztül:
 
 ```c
 override void OnFinishProgressServer(ActionData action_data)
 {
-    // Check if action should be interrupted
+    // Ellenőrizd, hogy az akciót meg kell-e szakítani
     if (SomeConditionFailed())
     {
         if (action_data.m_Callback)
@@ -1048,96 +1048,96 @@ override void OnFinishProgressServer(ActionData action_data)
         return;
     }
 
-    // Normal execution...
+    // Normál végrehajtás...
 }
 ```
 
-### Inventory and Quickbar Execution
+### Inventory és gyorssáv végrehajtás
 
-Akcios can be configured to run from the inventory screen or quickbar:
+Az akciók konfigurálhatók, hogy az inventory képernyőről vagy a gyorssávról fussanak:
 
 ```c
 override bool CanBePerformedFromInventory()
 {
-    return true;   // action appears in inventory item context menu
+    return true;   // az akció megjelenik az inventory tárgy kontextus menüben
 }
 
 override bool CanBePerformedFromQuickbar()
 {
-    return true;   // action can be triggered via quickbar
+    return true;   // az akció aktiválható a gyorssávról
 }
 ```
 
-### Lock Target On Use
+### Célpont zárolás használatkor
 
-By default, actions with targets lock the target so only one player can interact at a time:
+Alapértelmezetten a célponttal rendelkező akciók zárolják a célpontot, így egyszerre csak egy játékos léphet interakcióba:
 
 ```c
 override bool IsLockTargetOnUse()
 {
-    return false;  // allow multiple players to interact simultaneously
+    return false;  // több játékos is interakcióba léphet egyszerre
 }
 ```
 
 ---
 
-## Akcio Kategoria Konstansok
+## Akció kategória konstansok
 
-**File:** `4_World/classes/useractionscomponent/_constants.c`
+**Fájl:** `4_World/classes/useractionscomponent/_constants.c`
 
-| Konstans | Ertek | Leiras |
+| Konstans | Érték | Leírás |
 |----------|-------|-------------|
-| `AC_UNCATEGORIZED` | 0 | Alapertelmezett --- should not be used |
-| `AC_SINGLE_USE` | 1 | Single-use actions |
-| `AC_CONTINUOUS` | 2 | Continuous (progress bar) actions |
-| `AC_INTERACT` | 3 | Interact actions |
+| `AC_UNCATEGORIZED` | 0 | Alapértelmezett --- nem használandó |
+| `AC_SINGLE_USE` | 1 | Egyszeri használatú akciók |
+| `AC_CONTINUOUS` | 2 | Folyamatos (folyamatjelzős) akciók |
+| `AC_INTERACT` | 3 | Interact akciók |
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-### 1. Forgetting `super.SetAkcios()`
+### 1. A `super.SetActions()` elfelejtése
 
-**Wrong:**
+**Hibás:**
 ```c
 modded class Apple extends ItemBase
 {
     override void SetActions()
     {
-        // Missing super.SetActions()!
+        // Hiányzik a super.SetActions()!
         AddAction(MyCustomEatAction);
     }
 }
 ```
 
-This **removes all vanilla actions** from the item. The player will no longer be able to eat, drop, or otherwise interact with apples through standard actions.
+Ez **eltávolítja az összes vanilla akciót** a tárgyról. A játékos többé nem tudja megenni, ledobni vagy más szabványos akciókon keresztül kezelni az almákat.
 
-**Correct:**
+**Helyes:**
 ```c
 modded class Apple extends ItemBase
 {
     override void SetActions()
     {
-        super.SetActions();          // preserve vanilla actions
+        super.SetActions();          // vanilla akciók megőrzése
         AddAction(MyCustomEatAction);
     }
 }
 ```
 
-### 2. Putting Server Logic in OnExecuteClient
+### 2. Szerver logika az OnExecuteClient-ben
 
-**Wrong:**
+**Hibás:**
 ```c
 override void OnExecuteClient(ActionData action_data)
 {
-    action_data.m_Player.SetHealth("GlobalHealth", "Health", 100);  // NO EFFECT
-    action_data.m_MainItem.Delete();  // client-side only, will desync
+    action_data.m_Player.SetHealth("GlobalHealth", "Health", 100);  // NINCS HATÁSA
+    action_data.m_MainItem.Delete();  // csak kliens oldali, deszinkronizálódik
 }
 ```
 
-Health changes and inventory operations must happen on the server. `OnExecuteClient` is only for visual feedback (sounds, particle effects, UI updates).
+Az életerő változtatások és inventory műveletek a szerveren kell hogy történjenek. Az `OnExecuteClient` csak vizuális visszajelzésre szolgál (hangok, részecskehatások, UI frissítések).
 
-**Correct:**
+**Helyes:**
 ```c
 override void OnExecuteServer(ActionData action_data)
 {
@@ -1147,21 +1147,21 @@ override void OnExecuteServer(ActionData action_data)
 
 override void OnExecuteClient(ActionData action_data)
 {
-    // Visual feedback only
+    // Csak vizuális visszajelzés
 }
 ```
 
-### 3. Not Checking for Null in AkcioCondition
+### 3. Null ellenőrzés hiánya az ActionCondition-ben
 
-**Wrong:**
+**Hibás:**
 ```c
 override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
 {
-    return target.GetObject().IsInherited(MyClass);  // CRASH if target or object is null
+    return target.GetObject().IsInherited(MyClass);  // ÖSSZEOMLÁS ha a target vagy object null
 }
 ```
 
-**Correct:**
+**Helyes:**
 ```c
 override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
 {
@@ -1176,44 +1176,44 @@ override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase i
 }
 ```
 
-### 4. Wrong Condition Components (Akcio Never Appears)
+### 4. Rossz feltétel komponensek (az akció soha nem jelenik meg)
 
-**Problema:** Akcio does not show up in the HUD.
+**Probléma:** Az akció nem jelenik meg a HUD-on.
 
-Common causes:
-- `CCIDummy` requires an item in hand, but the action should work with empty hands --- use `CCINone` instead
-- `CCTDummy` requires a target object, but the action is a self-action --- use `CCTSelf` or `CCTNone`
-- `CCTObject` distance too small for the target type --- increase distance parameter
-- `HasTarget()` returns true but there is no valid target condition --- either add `CCTCursor`/`CCTObject` or set `HasTarget()` to false
+Gyakori okok:
+- `CCIDummy` tárgyat igényel a kézben, de az akciónak üres kézzel kellene működnie --- használj `CCINone`-t helyette
+- `CCTDummy` célobjektumot igényel, de az akció ön-akció --- használj `CCTSelf`-et vagy `CCTNone`-t
+- `CCTObject` távolság túl kicsi a céltípushoz --- növeld a távolság paramétert
+- `HasTarget()` true-t ad vissza, de nincs érvényes célpont feltétel --- vagy adj hozzá `CCTCursor`/`CCTObject` feltételt, vagy állítsd a `HasTarget()` értékét false-ra
 
-### 5. Mixing Up OnStart vs OnExecute
+### 5. OnStart és OnExecute összekeverése
 
-- `OnStart` / `OnStartServer`: Called when the action **begins** (animation starts). Use for setup, reserving items.
-- `OnExecute` / `OnExecuteServer`: Called when the animation **event fires** (the "do" moment). Use for the actual effect.
+- `OnStart` / `OnStartServer`: Akkor hívódik, amikor az akció **elindul** (animáció kezdődik). Használd beállításhoz, tárgyak foglalásához.
+- `OnExecute` / `OnExecuteServer`: Akkor hívódik, amikor az animáció **esemény aktiválódik** (a "végrehajtás" pillanata). Használd a tényleges hatáshoz.
 
-For interact actions, `OnStartServer` is commonly used because the action is instantaneous. For single-use actions, `OnExecuteServer` fires at the animation event. Choose the right one based on when you need the effect to happen.
+Interact akciókhoz az `OnStartServer` gyakran használatos, mert az akció azonnali. Egyszeri használatú akciókhoz az `OnExecuteServer` az animáció eseménynél aktiválódik. Válaszd ki a megfelelőt aszerint, mikor kell a hatásnak bekövetkeznie.
 
-### 6. Continuous Akcio Not Repeating
+### 6. A folyamatos akció nem ismétlődik
 
-If your continuous action completes once and stops instead of repeating, you are using `CAContinuousTime` (single completion). Switch to `CAContinuousRepeat` for repeating cycles:
+Ha a folyamatos akciód egyszer befejeződik és megáll ahelyett, hogy ismétlődne, `CAContinuousTime`-ot használsz (egyszeri befejezés). Váltsd `CAContinuousRepeat`-re ismétlődő ciklusokhoz:
 
 ```c
-// Single completion — progress bar fills once then action ends
+// Egyszeri befejezés — a folyamatjelző egyszer telik meg, aztán az akció véget ér
 m_ActionData.m_ActionComponent = new CAContinuousTime(5.0);
 
-// Repeating — progress bar fills, fires OnFinishProgress, resets, continues
+// Ismétlődő — a folyamatjelző megtelik, OnFinishProgress aktiválódik, visszaáll, folytatódik
 m_ActionData.m_ActionComponent = new CAContinuousRepeat(5.0);
 ```
 
-### 7. Akcio Shows on Wrong Items
+### 7. Az akció rossz tárgyakon jelenik meg
 
-Remember: `SetAkcios()` is called per **class type**, not per instance. If you add an action in a parent class, all children inherit it. If you only want the action on specific subclasses, either:
-- Add it only in the specific subclass's `SetAkcios()`
-- Add a type check in `AkcioCondition()` as a guard
+Ne feledd: a `SetActions()` **osztálytípusonként** hívódik, nem példányonként. Ha egy szülőosztályban adsz hozzá akciót, minden gyermek örökli. Ha csak meghatározott alosztályokra akarod az akciót, vagy:
+- Csak az adott alosztály `SetActions()` metódusában add hozzá
+- Adj hozzá típus ellenőrzést az `ActionCondition()` metódusban védelemként
 
-### 8. Forgetting HasTarget() Override
+### 8. A HasTarget() felülírás elfelejtése
 
-If your action is a self-action (eating, healing, toggling held item), you must override:
+Ha az akciód ön-akció (evés, gyógyítás, tartott tárgy váltása), felül kell írnod:
 
 ```c
 override bool HasTarget()
@@ -1222,56 +1222,56 @@ override bool HasTarget()
 }
 ```
 
-Without this, the engine expects a target object and may not show the action, or will try to sync a non-existent target to the server.
+Enélkül a motor célobjektumot vár és lehet, hogy nem jeleníti meg az akciót, vagy megpróbál egy nem létező célpontot szinkronizálni a szerverre.
 
 ---
 
-## File Locations Gyors referencia
+## Fájl helyek gyors referencia
 
-| File | Cel |
+| Fájl | Cél |
 |------|---------|
-| `4_World/classes/useractionscomponent/actionbase.c` | `AkcioBase` --- core action class |
-| `4_World/classes/useractionscomponent/animatedactionbase.c` | `AnimatedAkcioBase` + `AkcioBaseCB` |
-| `4_World/classes/useractionscomponent/actions/actionsingleusebase.c` | `AkcioSingleUseBase` |
-| `4_World/classes/useractionscomponent/actions/actioncontinuousbase.c` | `AkcioContinuousBase` |
-| `4_World/classes/useractionscomponent/actions/actioninteractbase.c` | `AkcioInteractBase` |
+| `4_World/classes/useractionscomponent/actionbase.c` | `ActionBase` --- alap akció osztály |
+| `4_World/classes/useractionscomponent/animatedactionbase.c` | `AnimatedActionBase` + `ActionBaseCB` |
+| `4_World/classes/useractionscomponent/actions/actionsingleusebase.c` | `ActionSingleUseBase` |
+| `4_World/classes/useractionscomponent/actions/actioncontinuousbase.c` | `ActionContinuousBase` |
+| `4_World/classes/useractionscomponent/actions/actioninteractbase.c` | `ActionInteractBase` |
 | `4_World/classes/useractionscomponent/actions/actionconstants.c` | `UATimeSpent`, `UAMaxDistances`, `UAQuantityConsumed` |
 | `4_World/classes/useractionscomponent/_constants.c` | `AC_SINGLE_USE`, `AC_CONTINUOUS`, `AC_INTERACT` |
-| `4_World/classes/useractionscomponent/actiontargets.c` | `AkcioTarget`, `AkcioTargets` |
-| `4_World/classes/useractionscomponent/itemconditioncomponents/` | `CCI*` classes |
-| `4_World/classes/useractionscomponent/targetconditionscomponents/` | `CCT*` classes |
-| `4_World/classes/useractionscomponent/actioncomponents/` | `CA*` progress components |
-| `3_Game/constants.c` | `UA_NONE`, `UA_PROCESSING`, `UA_FINISHED`, etc. |
+| `4_World/classes/useractionscomponent/actiontargets.c` | `ActionTarget`, `ActionTargets` |
+| `4_World/classes/useractionscomponent/itemconditioncomponents/` | `CCI*` osztályok |
+| `4_World/classes/useractionscomponent/targetconditionscomponents/` | `CCT*` osztályok |
+| `4_World/classes/useractionscomponent/actioncomponents/` | `CA*` folyamat komponensek |
+| `3_Game/constants.c` | `UA_NONE`, `UA_PROCESSING`, `UA_FINISHED`, stb. |
 
 ---
 
-## Osszefoglalas
+## Összefoglalás
 
-The DayZ Akcio System follows a consistent pattern:
+A DayZ akció rendszer következetes mintát követ:
 
-1. **Choose your base class**: `AkcioSingleUseBase` for instant, `AkcioContinuousBase` for timed, `AkcioInteractBase` for world toggles
-2. **Set condition components** in `CreateConditionComponents()`: CCI for item requirements, CCT for target requirements
-3. **Add custom validation** in `AkcioCondition()`: type checks, state checks, distance checks
-4. **Implement server logic** in `OnExecuteServer()` or `OnFinishProgressServer()`
-5. **Register the action** via `AddAkcio()` in the appropriate entity's `SetAkcios()`
-6. **Always call `super.SetAkcios()`** to preserve vanilla actions
+1. **Válaszd ki az alaposztályt**: `ActionSingleUseBase` azonnalihoz, `ActionContinuousBase` időzítetthez, `ActionInteractBase` világ váltásokhoz
+2. **Állítsd be a feltétel komponenseket** a `CreateConditionComponents()` metódusban: CCI tárgy követelményekhez, CCT célpont követelményekhez
+3. **Adj hozzá egyéni validációt** az `ActionCondition()` metódusban: típus ellenőrzések, állapot ellenőrzések, távolság ellenőrzések
+4. **Implementáld a szerver logikát** az `OnExecuteServer()` vagy `OnFinishProgressServer()` metódusban
+5. **Regisztráld az akciót** az `AddAction()` segítségével a megfelelő entitás `SetActions()` metódusában
+6. **Mindig hívd meg a `super.SetActions()` metódust** a vanilla akciók megőrzéséhez
 
-The system is designed to be modular: condition components handle "can this happen?", action components handle "how long does it take?", and your overrides handle "what does it do?". Keep server logic on the server, visual feedback on the client, and always null-check your targets.
+A rendszer moduláris felépítésű: a feltétel komponensek kezelik a "megtörténhet-e?", az akció komponensek kezelik a "mennyi ideig tart?", és a te felülírásaid kezelik a "mit csinál?" kérdést. Tartsd a szerver logikát a szerveren, a vizuális visszajelzést a kliensen, és mindig ellenőrizd null értékre a célpontjaidat.
 
 ---
 
 ## Legjobb gyakorlatok
 
-- **Always call `super.SetAkcios()` when modding existing items.** Omitting it removes all vanilla actions (eat, drop, inspect) from the item, breaking core gameplay.
-- **Put all state-changing logic in `OnExecuteServer` or `OnFinishProgressServer`.** Health changes, item deletion, and inventory manipulation must run server-side. `OnExecuteClient` is only for visual feedback.
-- **Use `CCTObject` with appropriate distance constants.** Hardcoding distance checks in `AkcioCondition()` is fragile. The built-in condition components handle distance gating, cursor alignment, and item state checks consistently.
-- **Null-check every object in `AkcioCondition()`.** The method is called frequently with potentially null targets. Accessing `.GetObject()` without a guard causes crashes that are hard to diagnose.
-- **Prefer `CAContinuousRepeat` over `CAContinuousTime` for repair-style actions.** Repeat fires `OnFinishProgressServer` each cycle and continues until the player releases the key, which feels more natural for ongoing tasks.
+- **Mindig hívd meg a `super.SetActions()` metódust meglévő tárgyak módosításakor.** Az elhagyása eltávolítja az összes vanilla akciót (evés, ledobás, vizsgálat) a tárgyról, megszakítva az alap játékmenetet.
+- **Minden állapotmódosító logikát az `OnExecuteServer` vagy `OnFinishProgressServer` metódusba helyezz.** Az életerő változtatások, tárgy törlés és inventory manipuláció szerver oldalon kell hogy fusson. Az `OnExecuteClient` csak vizuális visszajelzésre szolgál.
+- **Használj `CCTObject`-et megfelelő távolság konstansokkal.** A távolság ellenőrzések hardkódolása az `ActionCondition()`-ben törékeny. A beépített feltétel komponensek következetesen kezelik a távolság szűrést, kurzor igazítást és tárgy állapot ellenőrzéseket.
+- **Minden objektumot null-ellenőrizz az `ActionCondition()`-ben.** A metódus gyakran hívódik potenciálisan null célpontokkal. A `.GetObject()` elérése védelem nélkül összeomlást okoz, amit nehéz diagnosztizálni.
+- **Részesítsd előnyben a `CAContinuousRepeat`-et a `CAContinuousTime` helyett javítás stílusú akcióknál.** A Repeat minden ciklusban aktiválja az `OnFinishProgressServer` metódust és folytatódik, amíg a játékos elengedi a gombot, ami természetesebb érzést ad folyamatos feladatoknál.
 
 ---
 
-## Kompatibilitas es hatas
+## Kompatibilitás és hatás
 
-- **Multi-Mod:** Akcios are registered per class type via `SetAkcios()`. Two mods adding different actions to the same item class both work -- actions accumulate. However, if both mods override `SetAkcios()` without calling `super`, only the last-loaded mod's actions survive.
-- **Performance:** `AkcioCondition()` is evaluated every frame for every candidate action on the player's current target. Keep it lightweight -- avoid expensive raycasts, config lookups, or array iterations inside condition checks.
-- **Server/Client:** The action pipeline is split: condition checks and UI display run on the client, execution callbacks run on the server. The engine handles synchronization via internal RPCs. Never rely on client-side state for authoritative game logic.
+- **Több mod:** Az akciók osztálytípusonként regisztrálódnak a `SetActions()` segítségével. Két mod, amelyek különböző akciókat adnak ugyanahhoz a tárgyosztályhoz, mindkettő működik -- az akciók halmozódnak. Azonban ha mindkét mod felülírja a `SetActions()`-t a `super` hívása nélkül, csak az utoljára betöltött mod akciói maradnak meg.
+- **Teljesítmény:** Az `ActionCondition()` minden frame-ben kiértékelésre kerül minden jelölt akcióra a játékos aktuális célpontján. Tartsd könnyűnek -- kerüld a költséges sugárkibocsátásokat, config kereséseket vagy tömb iterációkat a feltétel ellenőrzésekben.
+- **Szerver/Kliens:** Az akció feldolgozási folyamat megosztott: a feltétel ellenőrzések és UI megjelenítés a kliensen futnak, a végrehajtási visszahívások a szerveren. A motor a szinkronizálást belső RPC-ken keresztül kezeli. Soha ne hagyatkozz kliens oldali állapotra mérvadó játéklogikában.

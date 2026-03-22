@@ -1,30 +1,34 @@
-# Chapter 8.8: Building a HUD Overlay
+# Kapitola 8.8: Tvorba HUD překryvu
 
-[Home](../../README.md) | [<< Previous: Publishing to the Steam Workshop](07-publishing-workshop.md) | **Building a HUD Overlay** | [Next: Professional Mod Template >>](09-professional-template.md)
+[Domů](../../README.md) | [<< Předchozí: Publikování na Steam Workshop](07-publishing-workshop.md) | **Tvorba HUD překryvu** | [Další: Profesionální šablona modu >>](09-professional-template.md)
+
+---
+
+> **Shrnutí:** Tento tutoriál vás provede tvorbou HUD (Heads-Up Display) překryvu pro DayZ. Vytvoříte poloprůhledný informační panel ukotvený v pravém horním rohu obrazovky, který zobrazuje název serveru, počet hráčů a herní čas. Panel se automaticky skrývá při otevřeném inventáři a lze ho přepínat klávesovou zkratkou s plynulou animací prolínání.
 
 ---
 
 ## Obsah
 
-- [What We Are Building](#what-we-are-building)
-- [Predpoklady](#prerequisites)
-- [Mod Structure](#mod-structure)
-- [Step 1: Create the Layout File](#step-1-create-the-layout-file)
-- [Step 2: Create the HUD Controller Class](#step-2-create-the-hud-controller-class)
-- [Step 3: Hook into MissionGameplay](#step-3-hook-into-missiongameplay)
-- [Step 4: Request Data from Server](#step-4-request-data-from-server)
-- [Step 5: Add Toggle with Keybind](#step-5-add-toggle-with-keybind)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Extending the HUD](#extending-the-hud)
-- [Caste chyby](#common-mistakes)
-- [Dalsi kroky](#next-steps)
+- [Co budeme vytvářet](#co-budeme-vytvářet)
+- [Předpoklady](#předpoklady)
+- [Struktura modu](#struktura-modu)
+- [Krok 1: Vytvoření souboru rozvržení](#krok-1-vytvoření-souboru-rozvržení)
+- [Krok 2: Vytvoření třídy HUD řadiče](#krok-2-vytvoření-třídy-hud-řadiče)
+- [Krok 3: Napojení na MissionGameplay](#krok-3-napojení-na-missiongameplay)
+- [Krok 4: Vyžádání dat ze serveru](#krok-4-vyžádání-dat-ze-serveru)
+- [Krok 5: Přidání přepínání klávesovou zkratkou](#krok-5-přidání-přepínání-klávesovou-zkratkou)
+- [Krok 6: Doladění](#krok-6-doladění)
+- [Kompletní referenční kód](#kompletní-referenční-kód)
+- [Rozšíření HUD](#rozšíření-hud)
+- [Časté chyby](#časté-chyby)
+- [Další kroky](#další-kroky)
 
 ---
 
-## What We Are Building
+## Co budeme vytvářet
 
-A small, semi-transparent panel anchored to the top-right corner of the screen that displays three lines of information:
+Malý, poloprůhledný panel ukotvený v pravém horním rohu obrazovky, který zobrazuje tři řádky informací:
 
 ```
   Aurora Survival [Official]
@@ -32,25 +36,25 @@ A small, semi-transparent panel anchored to the top-right corner of the screen t
   Time: 14:35
 ```
 
-The panel sits below the status indicators and above the quickbar. It updates once per second (not every frame), fades in when shown and fades out when hidden, and automatically hides when the inventory or pause menu is open. The player can toggle it on and off with a configurable key (default: **F7**).
+Panel sedí pod stavovými indikátory a nad rychlou lištou. Aktualizuje se jednou za sekundu (ne každý snímek), plynule se zobrazí při zobrazení a plynule zmizí při skrytí a automaticky se skryje, když je otevřený inventář nebo pauza menu. Hráč ho může zapínat a vypínat konfigurovatelnou klávesou (výchozí: **F7**).
 
-### Expected Result
+### Očekávaný výsledek
 
-When loaded, you will see a dark semi-transparent rectangle in the top-right area of the screen. White text shows the server name on the first line, the current player count on the second line, and the in-game world time on the third line. Pressing F7 smoothly fades it out; pressing F7 again fades it back in.
-
----
-
-## Predpoklady
-
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) first)
-- Basic understanding of Enforce Script syntax
-- Familiarity with DayZ's client-server model (the HUD runs on the client; player count comes from the server)
+Po načtení uvidíte tmavý poloprůhledný obdélník v pravé horní oblasti obrazovky. Bílý text zobrazuje název serveru na prvním řádku, aktuální počet hráčů na druhém řádku a herní světový čas na třetím řádku. Stisknutí F7 ho plynule zneviditelní; opětovné stisknutí F7 ho plynule vrátí zpět.
 
 ---
 
-## Mod Structure
+## Předpoklady
 
-Create the following directory tree:
+- Funkční struktura modu (nejprve dokončete [Kapitolu 8.1](01-first-mod.md))
+- Základní pochopení syntaxe Enforce Script
+- Znalost modelu klient-server v DayZ (HUD běží na klientu; počet hráčů přichází ze serveru)
+
+---
+
+## Struktura modu
+
+Vytvořte následující adresářový strom:
 
 ```
 ServerInfoHUD/
@@ -74,13 +78,13 @@ ServerInfoHUD/
             ServerInfoHUD.layout
 ```
 
-The `3_Game` layer defines constants (our RPC ID). The `4_World` layer handles the server-side response. The `5_Mission` layer contains the HUD class and the mission hook. The layout file defines the widget tree.
+Vrstva `3_Game` definuje konstanty (naše RPC ID). Vrstva `4_World` zpracovává odpověď na straně serveru. Vrstva `5_Mission` obsahuje třídu HUD a hook mise. Soubor rozvržení definuje strom widgetů.
 
 ---
 
-## Step 1: Create the Layout File
+## Krok 1: Vytvoření souboru rozvržení
 
-Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system uses a coordinate model where each widget has a position and size expressed as proportional values (0.0 to 1.0 of the parent) plus pixel offsets.
+Soubory rozvržení (`.layout`) definují hierarchii widgetů v XML. GUI systém DayZ používá souřadnicový model, kde každý widget má pozici a velikost vyjádřenou jako proporcionální hodnoty (0.0 až 1.0 z rodiče) plus pixelové offsety.
 
 ### `GUI/layouts/ServerInfoHUD.layout`
 
@@ -88,7 +92,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 <?xml version="1.0" encoding="UTF-8"?>
 <layoutset>
   <children>
-    <!-- Root frame: covers the full screen, does not consume input -->
+    <!-- Kořenový rámec: pokrývá celou obrazovku, nespotřebovává vstup -->
     <Widget name="ServerInfoRoot" type="FrameWidgetClass">
       <Attribute name="position" value="0 0" />
       <Attribute name="size" value="1 1" />
@@ -99,7 +103,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
       <Attribute name="hexactsize" value="0" />
       <Attribute name="vexactsize" value="0" />
       <children>
-        <!-- Background panel: top-right corner -->
+        <!-- Panel pozadí: pravý horní roh -->
         <Widget name="ServerInfoPanel" type="ImageWidgetClass">
           <Attribute name="position" value="1 0" />
           <Attribute name="size" value="220 70" />
@@ -111,7 +115,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
           <Attribute name="vexactsize" value="1" />
           <Attribute name="color" value="0 0 0 0.55" />
           <children>
-            <!-- Server name text -->
+            <!-- Text názvu serveru -->
             <Widget name="ServerNameText" type="TextWidgetClass">
               <Attribute name="position" value="8 6" />
               <Attribute name="size" value="204 20" />
@@ -126,7 +130,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- Player count text -->
+            <!-- Text počtu hráčů -->
             <Widget name="PlayerCountText" type="TextWidgetClass">
               <Attribute name="position" value="8 28" />
               <Attribute name="size" value="204 18" />
@@ -141,7 +145,7 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
               <Attribute name="halign" value="0" />
               <Attribute name="valign" value="0" />
             </Widget>
-            <!-- In-game time text -->
+            <!-- Text herního času -->
             <Widget name="TimeText" type="TextWidgetClass">
               <Attribute name="position" value="8 48" />
               <Attribute name="size" value="204 18" />
@@ -164,25 +168,25 @@ Layout files (`.layout`) define the widget hierarchy in XML. DayZ's GUI system u
 </layoutset>
 ```
 
-### Key Layout Koncepts
+### Klíčové koncepty rozvržení
 
-| Attribute | Vyznam |
-|-----------|---------|
-| `halign="2"` | Horizontal alignment: **right**. The widget anchors to the right edge of its parent. |
-| `valign="0"` | Vertical alignment: **top**. |
-| `hexactpos="0"` + `vexactpos="1"` | Horizontal position is proportional (1.0 = right edge), vertical position is in pixels. |
-| `hexactsize="1"` + `vexactsize="1"` | Width and height are in pixels (220 x 70). |
-| `color="0 0 0 0.55"` | RGBA as floats. Black at 55% opacity for the background panel. |
+| Atribut | Význam |
+|---------|--------|
+| `halign="2"` | Horizontální zarovnání: **doprava**. Widget se kotví k pravému okraji rodiče. |
+| `valign="0"` | Vertikální zarovnání: **nahoru**. |
+| `hexactpos="0"` + `vexactpos="1"` | Horizontální pozice je proporcionální (1.0 = pravý okraj), vertikální pozice je v pixelech. |
+| `hexactsize="1"` + `vexactsize="1"` | Šířka a výška jsou v pixelech (220 x 70). |
+| `color="0 0 0 0.55"` | RGBA jako desetinná čísla. Černá na 55% průhlednosti pro panel pozadí. |
 
-The `ServerInfoPanel` is positioned at proportional X=1.0 (right edge) with `halign="2"` (right-aligned), so the panel's right edge touches the right side of the screen. The Y position is 0 pixels from the top. This places our HUD in the top-right corner.
+`ServerInfoPanel` je umístěn na proporcionální X=1.0 (pravý okraj) s `halign="2"` (zarovnání doprava), takže pravý okraj panelu se dotýká pravé strany obrazovky. Pozice Y je 0 pixelů od vrchu. Tím se náš HUD umístí do pravého horního rohu.
 
-**Why pixel sizes for the panel?** Proportional sizing would make the panel scale with resolution, but for small info widgets you want a fixed pixel footprint so the text stays readable at all resolutions.
+**Proč pixelové velikosti pro panel?** Proporcionální dimenzování by panel škálovalo s rozlišením, ale pro malé informační widgety chcete pevnou pixelovou stopu, aby text zůstal čitelný při všech rozlišeních.
 
 ---
 
-## Step 2: Create the HUD Controller Class
+## Krok 2: Vytvoření třídy HUD řadiče
 
-The controller class loads the layout, finds widgets by name, and exposes methods to update the displayed text. It extends `ScriptedWidgetEventHandler` so it can receive widget events if needed later.
+Třída řadiče načte rozvržení, najde widgety podle názvu a zpřístupní metody pro aktualizaci zobrazeného textu. Rozšiřuje `ScriptedWidgetEventHandler`, aby mohla v případě potřeby přijímat události widgetů.
 
 ### `Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
@@ -198,7 +202,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
     protected bool m_IsVisible;
     protected float m_UpdateTimer;
 
-    // How often to refresh displayed data (seconds)
+    // Jak často obnovovat zobrazená data (sekundy)
     static const float UPDATE_INTERVAL = 1.0;
 
     void ServerInfoHUD()
@@ -212,7 +216,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         Destroy();
     }
 
-    // Create and show the HUD
+    // Vytvoření a zobrazení HUD
     void Init()
     {
         if (m_Root)
@@ -242,11 +246,11 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_Root.Show(true);
         m_IsVisible = true;
 
-        // Request initial data from server
+        // Vyžádání počátečních dat ze serveru
         RequestServerInfo();
     }
 
-    // Remove all widgets
+    // Odebrání všech widgetů
     void Destroy()
     {
         if (m_Root)
@@ -256,7 +260,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Called every frame from MissionGameplay.OnUpdate
+    // Voláno každý snímek z MissionGameplay.OnUpdate
     void Update(float timeslice)
     {
         if (!m_Root)
@@ -275,7 +279,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Update the in-game time display (client-side, no RPC needed)
+    // Aktualizace zobrazení herního času (na straně klienta, bez potřeby RPC)
     protected void RefreshTime()
     {
         if (!m_TimeText)
@@ -296,12 +300,12 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_TimeText.SetText("Time: " + hourStr + ":" + minStr);
     }
 
-    // Send RPC to server asking for player count and server name
+    // Odeslání RPC na server s žádostí o počet hráčů a název serveru
     protected void RequestServerInfo()
     {
         if (!GetGame().IsMultiplayer())
         {
-            // Offline mode: just show local info
+            // Offline režim: jen zobrazit lokální info
             SetServerName("Offline Mode");
             SetPlayerCount(1, 1);
             return;
@@ -315,7 +319,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         rpc.Send(player, SIH_RPC_REQUEST_INFO, true, NULL);
     }
 
-    // --- Setters called when data arrives ---
+    // --- Settery volané při příchodu dat ---
 
     void SetServerName(string name)
     {
@@ -333,7 +337,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // Toggle visibility
+    // Přepnutí viditelnosti
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -342,7 +346,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
             m_Root.Show(m_IsVisible);
     }
 
-    // Hide when menus are open
+    // Skrytí při otevřených menu
     void SetMenuState(bool menuOpen)
     {
         if (!m_Root)
@@ -370,18 +374,18 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 ```
 
-### Important Details
+### Důležité detaily
 
-1. **`CreateWidgets` path**: The path is relative to the mod root. Since we pack the `GUI/` folder inside the PBO, the engine resolves `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` using the mod prefix.
-2. **`FindAnyWidget`**: Searches the widget tree recursively by name. Always check for NULL after casting.
-3. **`Widget.Unlink()`**: Properly removes the widget and all its children from the UI tree. Always call this in cleanup.
-4. **Timer accumulator pattern**: We add `timeslice` each frame and act only when the accumulated time exceeds `UPDATE_INTERVAL`. This prevents doing work every single frame.
+1. **Cesta `CreateWidgets`**: Cesta je relativní ke kořenu modu. Jelikož balíme složku `GUI/` uvnitř PBO, engine vyřeší `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout` pomocí prefixu modu.
+2. **`FindAnyWidget`**: Prohledává strom widgetů rekurzivně podle názvu. Vždy kontrolujte NULL po přetypování.
+3. **`Widget.Unlink()`**: Správně odebere widget a všechny jeho potomky ze stromu UI. Vždy volejte při úklidu.
+4. **Vzor akumulátoru časovače**: Přidáváme `timeslice` každý snímek a jednáme pouze tehdy, když akumulovaný čas překročí `UPDATE_INTERVAL`. Tím se zabrání provádění práce každý jednotlivý snímek.
 
 ---
 
-## Step 3: Hook into MissionGameplay
+## Krok 3: Napojení na MissionGameplay
 
-The `MissionGameplay` class is the mission controller on the client side. We use `modded class` to inject our HUD into its lifecycle without replacing the vanilla file.
+Třída `MissionGameplay` je řadič mise na straně klienta. Použijeme `modded class` pro vložení našeho HUD do jejího životního cyklu bez nahrazení vanilkového souboru.
 
 ### `Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
@@ -394,14 +398,14 @@ modded class MissionGameplay
     {
         super.OnInit();
 
-        // Create the HUD overlay
+        // Vytvoření HUD překryvu
         m_ServerInfoHUD = new ServerInfoHUD();
         m_ServerInfoHUD.Init();
     }
 
     override void OnMissionFinish()
     {
-        // Clean up BEFORE calling super
+        // Úklid PŘED voláním super
         if (m_ServerInfoHUD)
         {
             m_ServerInfoHUD.Destroy();
@@ -418,7 +422,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Hide HUD when inventory or any menu is open
+        // Skrytí HUD, když je otevřený inventář nebo jakékoli menu
         UIManager uiMgr = GetGame().GetUIManager();
         bool menuOpen = false;
 
@@ -431,10 +435,10 @@ modded class MissionGameplay
 
         m_ServerInfoHUD.SetMenuState(menuOpen);
 
-        // Update HUD data (throttled internally)
+        // Aktualizace dat HUD (interně omezená)
         m_ServerInfoHUD.Update(timeslice);
 
-        // Check toggle key
+        // Kontrola klávesy přepnutí
         Input input = GetGame().GetInput();
         if (input)
         {
@@ -445,7 +449,7 @@ modded class MissionGameplay
         }
     }
 
-    // Accessor so the RPC handler can reach the HUD
+    // Přístupová metoda, aby RPC handler mohl dosáhnout na HUD
     ServerInfoHUD GetServerInfoHUD()
     {
         return m_ServerInfoHUD;
@@ -453,41 +457,41 @@ modded class MissionGameplay
 };
 ```
 
-### Why This Vzor Works
+### Proč tento vzor funguje
 
-- **`OnInit`** runs once when the player enters gameplay. We create and initialize the HUD here.
-- **`OnUpdate`** runs every frame. We pass `timeslice` to the HUD, which internally throttles to once per second. We also check for the toggle key press and menu visibility here.
-- **`OnMissionFinish`** runs when the player disconnects or the mission ends. We destroy our widgets here to prevent memory leaks.
+- **`OnInit`** se spustí jednou, když hráč vstoupí do hry. Zde vytváříme a inicializujeme HUD.
+- **`OnUpdate`** se spouští každý snímek. Předáváme `timeslice` do HUD, který interně omezuje na jednou za sekundu. Také zde kontrolujeme stisk přepínací klávesy a viditelnost menu.
+- **`OnMissionFinish`** se spustí, když se hráč odpojí nebo mise skončí. Zde ničíme naše widgety, abychom zabránili únikům paměti.
 
-### Critical Rule: Always Clean Up
+### Kritické pravidlo: Vždy ukliďte
 
-If you forget to destroy your widgets in `OnMissionFinish`, the widget root will leak into the next session. After a few server hops, the player ends up with stacked ghost widgets consuming memory. Always pair `Init()` with `Destroy()`.
+Pokud zapomenete zničit vaše widgety v `OnMissionFinish`, kořen widgetu unikne do další relace. Po několika přepnutích serverů hráč skončí se naskládanými duchy widgetů spotřebovávajícími paměť. Vždy párujte `Init()` s `Destroy()`.
 
 ---
 
-## Step 4: Request Data from Server
+## Krok 4: Vyžádání dat ze serveru
 
-The player count is only known on the server. We need a simple RPC (Remote Procedure Call) round-trip: the client sends a request, the server reads the data and sends it back.
+Počet hráčů je znám pouze na serveru. Potřebujeme jednoduchý RPC (Remote Procedure Call) obousměrný přenos: klient odešle požadavek, server přečte data a odešle je zpět.
 
-### Step 4a: Define the RPC ID
+### Krok 4a: Definování RPC ID
 
-RPC IDs must be unique across all mods. We define ours in the `3_Game` layer so both client and server code can reference it.
+RPC ID musí být unikátní napříč všemi mody. Definujeme naše ve vrstvě `3_Game`, aby na ně mohl odkazovat jak klientský, tak serverový kód.
 
 ### `Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for the Server Info HUD.
-// Using high numbers to avoid conflicts with vanilla and other mods.
+// RPC ID pro Server Info HUD.
+// Použití vysokých čísel pro zamezení konfliktů s vanilkou a jinými mody.
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-**Why `3_Game`?** Konstanty and enums belong in the lowest layer that both client and server can access. The `3_Game` layer loads before `4_World` and `5_Mission`, so both sides can see these values.
+**Proč `3_Game`?** Konstanty a enumy patří do nejnižší vrstvy, ke které mají přístup jak klient, tak server. Vrstva `3_Game` se načítá před `4_World` a `5_Mission`, takže obě strany vidí tyto hodnoty.
 
-### Step 4b: Server-Side Handler
+### Krok 4b: Handler na straně serveru
 
-The server listens for `SIH_RPC_REQUEST_INFO`, gathers the data, and responds with `SIH_RPC_RESPONSE_INFO`.
+Server naslouchá `SIH_RPC_REQUEST_INFO`, shromáždí data a odpoví `SIH_RPC_RESPONSE_INFO`.
 
 ### `Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
@@ -516,22 +520,22 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Gather server info
+        // Shromáždění informací o serveru
         string serverName = "";
         GetGame().GetHostName(serverName);
 
         int playerCount = 0;
         int maxPlayers = 0;
 
-        // Get the player list
+        // Získání seznamu hráčů
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         playerCount = players.Count();
 
-        // Max players from server config
+        // Maximum hráčů z konfigurace serveru
         maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send response back to the requesting client
+        // Odeslání odpovědi zpět žádajícímu klientovi
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -541,13 +545,13 @@ modded class PlayerBase
 };
 ```
 
-### Step 4c: Client-Side RPC Receiver
+### Krok 4c: Přijímač RPC na straně klienta
 
-The client receives the response and updates the HUD.
+Klient přijme odpověď a aktualizuje HUD.
 
-Add this to the same `ServerInfoHUD.c` file (at the bottom, outside the class), or create a separate file in `5_Mission/ServerInfoHUD/`:
+Přidejte toto do stejného souboru `ServerInfoHUD.c` (na konec, mimo třídu), nebo vytvořte samostatný soubor v `5_Mission/ServerInfoHUD/`:
 
-Add the following **below** the `ServerInfoHUD` class in `ServerInfoHUD.c`:
+Přidejte následující **pod** třídu `ServerInfoHUD` v `ServerInfoHUD.c`:
 
 ```c
 modded class PlayerBase
@@ -582,7 +586,7 @@ modded class PlayerBase
         if (!ctx.Read(maxPlayers))
             return;
 
-        // Access the HUD through MissionGameplay
+        // Přístup k HUD přes MissionGameplay
         MissionGameplay mission = MissionGameplay.Cast(
             GetGame().GetMission()
         );
@@ -600,29 +604,29 @@ modded class PlayerBase
 };
 ```
 
-### How the RPC Flow Works
+### Jak funguje tok RPC
 
 ```
-CLIENT                           SERVER
+KLIENT                           SERVER
   |                                |
   |--- SIH_RPC_REQUEST_INFO ----->|
-  |                                | reads serverName, playerCount, maxPlayers
+  |                                | čte serverName, playerCount, maxPlayers
   |<-- SIH_RPC_RESPONSE_INFO ----|
   |                                |
-  | updates HUD text              |
+  | aktualizuje text HUD          |
 ```
 
-The client sends the request once per second (throttled by the update timer). The server responds with three values packed into the RPC context. The client reads them in the same order they were written.
+Klient odešle požadavek jednou za sekundu (omezeno aktualizačním časovačem). Server odpoví třemi hodnotami zabalenými do kontextu RPC. Klient je čte ve stejném pořadí, v jakém byly zapsány.
 
-**Dulezite:** `rpc.Write()` and `ctx.Read()` must use the same types in the same order. If the server writes a `string` then two `int` values, the client must read a `string` then two `int` values.
+**Důležité:** `rpc.Write()` a `ctx.Read()` musí používat stejné typy ve stejném pořadí. Pokud server zapíše `string` a poté dvě hodnoty `int`, klient musí přečíst `string` a poté dvě hodnoty `int`.
 
 ---
 
-## Step 5: Add Toggle with Keybind
+## Krok 5: Přidání přepínání klávesovou zkratkou
 
-### Step 5a: Define the Input in `inputs.xml`
+### Krok 5a: Definování vstupu v `inputs.xml`
 
-DayZ uses `inputs.xml` to register custom key actions. The file must be placed in `Scripts/data/inputs.xml` and referenced from `config.cpp`.
+DayZ používá `inputs.xml` pro registraci vlastních klávesových akcí. Soubor musí být umístěn v `Scripts/data/inputs.xml` a odkazován z `config.cpp`.
 
 ### `Scripts/data/inputs.xml`
 
@@ -642,14 +646,14 @@ DayZ uses `inputs.xml` to register custom key actions. The file must be placed i
 </modded_inputs>
 ```
 
-| Prvek | Ucel |
-|---------|---------|
-| `<actions>` | Declares the input action by name. `loc` is the display string shown in the keybinding options menu. |
-| `<preset>` | Assigns the default key. `kF7` maps to the F7 key. |
+| Prvek | Účel |
+|-------|------|
+| `<actions>` | Deklaruje vstupní akci podle názvu. `loc` je zobrazovaný řetězec uvedený v menu nastavení klávesových zkratek. |
+| `<preset>` | Přiřazuje výchozí klávesu. `kF7` mapuje na klávesu F7. |
 
-### Step 5b: Reference `inputs.xml` in `config.cpp`
+### Krok 5b: Odkaz na `inputs.xml` v `config.cpp`
 
-Your `config.cpp` must tell the engine where to find the inputs file. Add an `inputs` entry inside the `defs` block:
+Váš `config.cpp` musí říci enginu, kde najít soubor vstupů. Přidejte záznam `inputs` dovnitř bloku `defs`:
 
 ```cpp
 class defs
@@ -680,9 +684,9 @@ class defs
 };
 ```
 
-### Step 5c: Read the Key Press
+### Krok 5c: Čtení stisku klávesy
 
-We already handle this in the `MissionGameplay` hook from Step 3:
+Toto již zpracováváme v hooku `MissionGameplay` z kroku 3:
 
 ```c
 if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
@@ -691,22 +695,22 @@ if (GetUApi().GetInputByName("UAServerInfoToggle").LocalPress())
 }
 ```
 
-`GetUApi()` returns the input API singleton. `GetInputByName` looks up our registered action. `LocalPress()` returns `true` for exactly one frame when the key is pressed down.
+`GetUApi()` vrací singleton vstupního API. `GetInputByName` vyhledá naši registrovanou akci. `LocalPress()` vrací `true` přesně pro jeden snímek při stisknutí klávesy.
 
-### Key Name Reference
+### Referenční seznam názvů kláves
 
-Common key names for `<btn>`:
+Běžné názvy kláves pro `<btn>`:
 
-| Key Name | Key |
-|----------|-----|
-| `kF1` through `kF12` | Function keys |
-| `kH`, `kI`, etc. | Letter keys |
-| `kNumpad0` through `kNumpad9` | Numpad |
-| `kLControl` | Left Control |
-| `kLShift` | Left Shift |
-| `kLAlt` | Left Alt |
+| Název klávesy | Klávesa |
+|---------------|---------|
+| `kF1` až `kF12` | Funkční klávesy |
+| `kH`, `kI` atd. | Písmenkové klávesy |
+| `kNumpad0` až `kNumpad9` | Číselná klávesnice |
+| `kLControl` | Levý Control |
+| `kLShift` | Levý Shift |
+| `kLAlt` | Levý Alt |
 
-Modifikator combos use nesting:
+Kombinace modifikátorů používají vnořování:
 
 ```xml
 <input name="UAServerInfoToggle">
@@ -716,20 +720,20 @@ Modifikator combos use nesting:
 </input>
 ```
 
-This means "hold Left Control and press H."
+To znamená "podržte levý Control a stiskněte H."
 
 ---
 
-## Step 6: Polish
+## Krok 6: Doladění
 
-### 6a: Fade In/Out Animation
+### 6a: Animace zobrazení/skrytí
 
-DayZ provides `WidgetFadeTimer` for smooth alpha transitions. Update the `ServerInfoHUD` class to use it:
+DayZ poskytuje `WidgetFadeTimer` pro plynulé přechody průhlednosti. Aktualizujte třídu `ServerInfoHUD` pro jeho použití:
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
 {
-    // ... existing fields ...
+    // ... existující pole ...
 
     protected ref WidgetFadeTimer m_FadeTimer;
 
@@ -740,7 +744,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         m_FadeTimer = new WidgetFadeTimer();
     }
 
-    // Replace the ToggleVisibility method:
+    // Nahrazení metody ToggleVisibility:
     void ToggleVisibility()
     {
         m_IsVisible = !m_IsVisible;
@@ -759,15 +763,15 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
         }
     }
 
-    // ... rest of class ...
+    // ... zbytek třídy ...
 };
 ```
 
-`FadeIn(widget, duration)` animates the widget's alpha from 0 to 1 over the given duration in seconds. `FadeOut` goes from 1 to 0 and hides the widget when done.
+`FadeIn(widget, duration)` animuje průhlednost widgetu od 0 do 1 po danou dobu v sekundách. `FadeOut` jde od 1 do 0 a po dokončení widget skryje.
 
-### 6b: Background Panel with Alpha
+### 6b: Panel pozadí s průhledností
 
-We already set this in the layout (`color="0 0 0 0.55"`), giving a dark overlay at 55% opacity. If you want to adjust the alpha at runtime:
+Toto jsme již nastavili v rozvržení (`color="0 0 0 0.55"`), což dává tmavý překryv na 55% průhlednosti. Pokud chcete upravit průhlednost za běhu:
 
 ```c
 void SetBackgroundAlpha(float alpha)
@@ -783,20 +787,20 @@ void SetBackgroundAlpha(float alpha)
 }
 ```
 
-The `ARGB()` function takes integer values 0-255 for alpha, red, green, and blue.
+Funkce `ARGB()` přijímá celočíselné hodnoty 0-255 pro průhlednost, červenou, zelenou a modrou.
 
-### 6c: Font and Color Choices
+### 6c: Výběr fontu a barev
 
-DayZ ships several fonts you can reference in layouts:
+DayZ obsahuje několik fontů, na které můžete odkazovat v rozvrženích:
 
-| Font Path | Style |
-|-----------|-------|
-| `gui/fonts/MetronBook` | Clean sans-serif (used in vanilla HUD) |
-| `gui/fonts/MetronMedium` | Bolder version of MetronBook |
-| `gui/fonts/Metron` | Thinnest variant |
-| `gui/fonts/luxuriousscript` | Decorative script (avoid for HUD) |
+| Cesta fontu | Styl |
+|-------------|------|
+| `gui/fonts/MetronBook` | Čistý sans-serif (používaný ve vanilkovém HUD) |
+| `gui/fonts/MetronMedium` | Tučnější verze MetronBook |
+| `gui/fonts/Metron` | Nejtenčí varianta |
+| `gui/fonts/luxuriousscript` | Dekorativní skript (vyhněte se pro HUD) |
 
-To change text color at runtime:
+Pro změnu barvy textu za běhu:
 
 ```c
 void SetTextColor(TextWidget widget, int r, int g, int b, int a)
@@ -806,12 +810,12 @@ void SetTextColor(TextWidget widget, int r, int g, int b, int a)
 }
 ```
 
-### 6d: Respecting Other UI
+### 6d: Respektování ostatního UI
 
-Our `MissionHook.c` already detects when a menu is open and calls `SetMenuState(true)`. Here is a more thorough approach that checks the inventory specifically:
+Náš `MissionHook.c` již detekuje otevřené menu a volá `SetMenuState(true)`. Zde je důkladnější přístup, který kontroluje specificky inventář:
 
 ```c
-// In the OnUpdate override of modded MissionGameplay:
+// V override OnUpdate moddované MissionGameplay:
 bool menuOpen = false;
 
 UIManager uiMgr = GetGame().GetUIManager();
@@ -822,22 +826,22 @@ if (uiMgr)
         menuOpen = true;
 }
 
-// Also check if inventory is open
+// Také kontrola, zda je otevřený inventář
 if (uiMgr && uiMgr.FindMenu(MENU_INVENTORY))
     menuOpen = true;
 
 m_ServerInfoHUD.SetMenuState(menuOpen);
 ```
 
-This ensures your HUD hides behind the inventory screen, the pause menu, the options screen, and any other scripted menu.
+Tím zajistíte, že se váš HUD skryje za obrazovkou inventáře, menu pauzy, obrazovkou nastavení a jakýmkoli dalším skriptovaným menu.
 
 ---
 
-## Complete Code Reference
+## Kompletní referenční kód
 
-Below is every file in the mod, in its final form with all polish applied.
+Níže je každý soubor v modu ve své finální podobě se všemi vylepšeními.
 
-### File 1: `ServerInfoHUD/mod.cpp`
+### Soubor 1: `ServerInfoHUD/mod.cpp`
 
 ```cpp
 name = "Server Info HUD";
@@ -846,7 +850,7 @@ version = "1.0";
 overview = "Displays server name, player count, and in-game time.";
 ```
 
-### File 2: `ServerInfoHUD/Scripts/config.cpp`
+### Soubor 2: `ServerInfoHUD/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -905,7 +909,7 @@ class CfgMods
 };
 ```
 
-### File 3: `ServerInfoHUD/Scripts/data/inputs.xml`
+### Soubor 3: `ServerInfoHUD/Scripts/data/inputs.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -923,17 +927,17 @@ class CfgMods
 </modded_inputs>
 ```
 
-### File 4: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
+### Soubor 4: `ServerInfoHUD/Scripts/3_Game/ServerInfoHUD/ServerInfoRPC.c`
 
 ```c
-// RPC IDs for Server Info HUD.
-// Use high numbers to avoid collisions with vanilla ERPCs and other mods.
+// RPC ID pro Server Info HUD.
+// Použití vysokých čísel pro zamezení kolizí s vanilkovými ERPC a jinými mody.
 
 const int SIH_RPC_REQUEST_INFO = 72810;
 const int SIH_RPC_RESPONSE_INFO = 72811;
 ```
 
-### File 5: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
+### Soubor 5: `ServerInfoHUD/Scripts/4_World/ServerInfoHUD/ServerInfoServer.c`
 
 ```c
 modded class PlayerBase
@@ -946,7 +950,7 @@ modded class PlayerBase
     {
         super.OnRPC(sender, rpc_type, ctx);
 
-        // Only the server handles this RPC
+        // Pouze server zpracovává toto RPC
         if (!GetGame().IsServer())
             return;
 
@@ -961,19 +965,19 @@ modded class PlayerBase
         if (!sender)
             return;
 
-        // Get server name
+        // Získání názvu serveru
         string serverName = "";
         GetGame().GetHostName(serverName);
 
-        // Count players
+        // Spočítání hráčů
         ref array<Man> players = new array<Man>();
         GetGame().GetPlayers(players);
         int playerCount = players.Count();
 
-        // Get max player slots
+        // Získání maximálního počtu slotů hráčů
         int maxPlayers = GetGame().GetMaxPlayers();
 
-        // Send the data back to the requesting client
+        // Odeslání dat zpět žádajícímu klientovi
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(serverName);
         rpc.Write(playerCount);
@@ -983,7 +987,7 @@ modded class PlayerBase
 };
 ```
 
-### File 6: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
+### Soubor 6: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/ServerInfoHUD.c`
 
 ```c
 class ServerInfoHUD : ScriptedWidgetEventHandler
@@ -1166,7 +1170,7 @@ class ServerInfoHUD : ScriptedWidgetEventHandler
 };
 
 // -----------------------------------------------
-// Client-side RPC receiver
+// Přijímač RPC na straně klienta
 // -----------------------------------------------
 modded class PlayerBase
 {
@@ -1216,7 +1220,7 @@ modded class PlayerBase
 };
 ```
 
-### File 7: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
+### Soubor 7: `ServerInfoHUD/Scripts/5_Mission/ServerInfoHUD/MissionHook.c`
 
 ```c
 modded class MissionGameplay
@@ -1249,7 +1253,7 @@ modded class MissionGameplay
         if (!m_ServerInfoHUD)
             return;
 
-        // Detect open menus
+        // Detekce otevřených menu
         bool menuOpen = false;
         UIManager uiMgr = GetGame().GetUIManager();
         if (uiMgr)
@@ -1262,7 +1266,7 @@ modded class MissionGameplay
         m_ServerInfoHUD.SetMenuState(menuOpen);
         m_ServerInfoHUD.Update(timeslice);
 
-        // Toggle key
+        // Přepínací klávesa
         if (GetUApi().GetInputByName(
             "UAServerInfoToggle"
         ).LocalPress())
@@ -1278,7 +1282,7 @@ modded class MissionGameplay
 };
 ```
 
-### File 8: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
+### Soubor 8: `ServerInfoHUD/GUI/layouts/ServerInfoHUD.layout`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1351,16 +1355,16 @@ modded class MissionGameplay
 
 ---
 
-## Extending the HUD
+## Rozšíření HUD
 
-Once you have the basic HUD working, here are natural extensions.
+Jakmile máte základní HUD funkční, zde jsou přirozená rozšíření.
 
-### Adding FPS Display
+### Přidání zobrazení FPS
 
-FPS can be read client-side without any RPC:
+FPS lze číst na straně klienta bez jakéhokoli RPC:
 
 ```c
-// Add a TextWidget m_FPSText field and find it in Init()
+// Přidejte pole TextWidget m_FPSText a najděte ho v Init()
 
 protected void RefreshFPS()
 {
@@ -1372,7 +1376,7 @@ protected void RefreshFPS()
 }
 ```
 
-Call `RefreshFPS()` alongside `RefreshTime()` in the update method. Note that `GetDeltaT()` returns the time of the current frame, so the FPS value will fluctuate. For a smoother display, average over several frames:
+Volejte `RefreshFPS()` spolu s `RefreshTime()` v aktualizační metodě. Poznámka: `GetDeltaT()` vrací čas aktuálního snímku, takže hodnota FPS bude kolísat. Pro hladší zobrazení průměrujte přes několik snímků:
 
 ```c
 protected float m_FPSAccum;
@@ -1389,13 +1393,13 @@ protected void RefreshFPS()
     float avgFPS = m_FPSFrames / m_FPSAccum;
     m_FPSText.SetText("FPS: " + Math.Round(avgFPS).ToString());
 
-    // Reset every second (when main timer fires)
+    // Reset každou sekundu (když se spustí hlavní časovač)
     m_FPSAccum = 0;
     m_FPSFrames = 0;
 }
 ```
 
-### Adding Player Position
+### Přidání pozice hráče
 
 ```c
 protected void RefreshPosition()
@@ -1414,9 +1418,9 @@ protected void RefreshPosition()
 }
 ```
 
-### Multiple HUD Panels
+### Více HUD panelů
 
-For multiple panels (compass, status, minimap), create a parent manager class that holds an array of HUD elements:
+Pro více panelů (kompas, stav, minimapa) vytvořte nadřazenou třídu manažera, která drží pole HUD prvků:
 
 ```c
 class HUDManager
@@ -1446,9 +1450,9 @@ class HUDManager
 };
 ```
 
-### Draggable HUD Prveks
+### Přetahovatelné HUD prvky
 
-Making a widget draggable requires handling mouse events via `ScriptedWidgetEventHandler`:
+Zpřístupnění widgetu pro přetahování vyžaduje zpracování událostí myši přes `ScriptedWidgetEventHandler`:
 
 ```c
 class DraggableHUD : ScriptedWidgetEventHandler
@@ -1491,30 +1495,30 @@ class DraggableHUD : ScriptedWidgetEventHandler
 };
 ```
 
-Poznamka: for dragging to work, the widget must have `SetHandler(this)` called on it so the event handler receives events. Also, the cursor must be visible, which limits draggable HUDs to situations where a menu or edit mode is active.
+Poznámka: aby přetahování fungovalo, widget musí mít voláno `SetHandler(this)`, aby event handler přijímal události. Také kurzor musí být viditelný, což omezuje přetahovatelné HUD na situace, kdy je aktivní menu nebo editační režim.
 
 ---
 
-## Caste chyby
+## Časté chyby
 
-### 1. Updating Every Frame Instead of Throttled
+### 1. Aktualizace každý snímek místo omezené
 
-**Wrong:**
+**Špatně:**
 
 ```c
 override void OnUpdate(float timeslice)
 {
     super.OnUpdate(timeslice);
-    m_ServerInfoHUD.RefreshTime();      // Runs 60+ times per second!
-    m_ServerInfoHUD.RequestServerInfo(); // Sends 60+ RPCs per second!
+    m_ServerInfoHUD.RefreshTime();      // Běží 60+ krát za sekundu!
+    m_ServerInfoHUD.RequestServerInfo(); // Odesílá 60+ RPC za sekundu!
 }
 ```
 
-**Right:** Use a timer accumulator (as shown in the tutorial) so expensive operations run at most once per second. HUD text that changes every frame (like an FPS counter) is fine to update per-frame, but RPC requests must be throttled.
+**Správně:** Použijte akumulátor časovače (jak je ukázáno v tutoriálu), aby nákladné operace běžely maximálně jednou za sekundu. HUD text, který se mění každý snímek (jako počítadlo FPS), je v pořádku aktualizovat každý snímek, ale požadavky RPC musí být omezeny.
 
-### 2. Not Cleaning Up in OnMissionFinish
+### 2. Neúklid v OnMissionFinish
 
-**Wrong:**
+**Špatně:**
 
 ```c
 modded class MissionGameplay
@@ -1526,67 +1530,67 @@ modded class MissionGameplay
         super.OnInit();
         m_HUD = new ServerInfoHUD();
         m_HUD.Init();
-        // No cleanup anywhere -- widget leaks on disconnect!
+        // Žádný úklid nikde -- widget uniká při odpojení!
     }
 };
 ```
 
-**Right:** Always destroy widgets and null references in `OnMissionFinish()`. The destructor (`~ServerInfoHUD`) is a safety net, but do not rely on it -- `OnMissionFinish` is the correct place for explicit cleanup.
+**Správně:** Vždy zničte widgety a vynulujte reference v `OnMissionFinish()`. Destruktor (`~ServerInfoHUD`) je záchranná síť, ale nespoléhejte se na něj -- `OnMissionFinish` je správné místo pro explicitní úklid.
 
-### 3. HUD Behind Other UI Prveks
+### 3. HUD za ostatními UI prvky
 
-Widgets created later render on top of widgets created earlier. If your HUD appears behind vanilla UI, it was created too early. Solutions:
+Widgety vytvořené později se vykreslují nad widgety vytvořenými dříve. Pokud se váš HUD zobrazuje za vanilkovým UI, byl vytvořen příliš brzy. Řešení:
 
-- Create the HUD later in the initialization sequence (e.g., on the first `OnUpdate` call rather than in `OnInit`).
-- Use `m_Root.SetSort(100)` to force a higher sort order, pushing your widget above others.
+- Vytvořte HUD později v inicializační sekvenci (např. při prvním volání `OnUpdate` místo v `OnInit`).
+- Použijte `m_Root.SetSort(100)` pro vynucení vyššího pořadí řazení, čímž se váš widget posune nad ostatní.
 
-### 4. Requesting Data Too Frequently (RPC Spam)
+### 4. Příliš časté vyžadování dat (RPC spam)
 
-Sending an RPC every frame creates 60+ network packets per second per connected player. On a 60-player server, that is 3,600 packets per second of unnecessary traffic. Always throttle RPC requests. Once per second is reasonable for non-critical info. For data that rarely changes (like server name), you could request it only once at init and cache it.
+Odesílání RPC každý snímek vytváří 60+ síťových paketů za sekundu na připojeného hráče. Na serveru s 60 hráči je to 3 600 paketů za sekundu zbytečného provozu. Vždy omezujte požadavky RPC. Jednou za sekundu je rozumné pro nekritické informace. Pro data, která se zřídka mění (jako název serveru), můžete požádat pouze jednou při inicializaci a uložit do cache.
 
-### 5. Forgetting the `super` Call
+### 5. Zapomenutí volání `super`
 
 ```c
-// WRONG: breaks vanilla HUD functionality
+// ŠPATNĚ: rozbije vanilkovou funkčnost HUD
 override void OnInit()
 {
     m_HUD = new ServerInfoHUD();
     m_HUD.Init();
-    // Missing super.OnInit()! Vanilla HUD will not initialize.
+    // Chybí super.OnInit()! Vanilkový HUD se neinicializuje.
 }
 ```
 
-Always call `super.OnInit()` (and `super.OnUpdate()`, `super.OnMissionFinish()`) first. Omitting the super call breaks the vanilla implementation and every other mod that hooks the same method.
+Vždy volejte `super.OnInit()` (a `super.OnUpdate()`, `super.OnMissionFinish()`) jako první. Vynechání volání super rozbije vanilkovou implementaci a každý další mod, který hookuje stejnou metodu.
 
-### 6. Using Wrong Script Layer
+### 6. Použití špatné skriptové vrstvy
 
-If you try to reference `MissionGameplay` from `4_World`, you will get an "Undefined type" error because `5_Mission` types are not visible to `4_World`. The RPC constants go in `3_Game`, the server handler goes in `4_World` (modding `PlayerBase` which lives there), and the HUD class and mission hook go in `5_Mission`.
+Pokud se pokusíte odkazovat na `MissionGameplay` z `4_World`, dostanete chybu "Undefined type", protože typy `5_Mission` nejsou viditelné pro `4_World`. RPC konstanty jdou do `3_Game`, handler serveru jde do `4_World` (moddování `PlayerBase`, který tam žije) a třída HUD a hook mise jdou do `5_Mission`.
 
-### 7. Hardcoded Layout Path
+### 7. Hardkódovaná cesta rozvržení
 
-The layout path in `CreateWidgets()` is relative to the game's search paths. If your PBO prefix does not match the path string, the layout will not load and `CreateWidgets` returns NULL. Always check for NULL after `CreateWidgets` and log an error if it fails.
-
----
-
-## Dalsi kroky
-
-Now that you have a working HUD overlay, consider these progressions:
-
-1. **Save user preferences** -- Store whether the HUD is visible in a local JSON file so the toggle state persists across sessions. 
-2. **Add server-side configuration** -- Let server admins enable/disable the HUD or choose which fields to show via a JSON config file.
-3. **Build an admin overlay** -- Expand the HUD to show admin-only information (server performance, entity count, restart timer) using permission checks.
-4. **Create a compass HUD** -- Use `GetGame().GetCurrentCameraDirection()` to calculate heading and display a compass bar at the top of the screen.
-5. **Study existing mods** -- Look at DayZ Expansion's quest HUD and Colorful UI's overlay system for production-quality HUD implementations.
+Cesta rozvržení v `CreateWidgets()` je relativní k vyhledávacím cestám hry. Pokud prefix vašeho PBO neodpovídá řetězci cesty, rozvržení se nenačte a `CreateWidgets` vrátí NULL. Vždy kontrolujte NULL po `CreateWidgets` a logujte chybu, pokud selže.
 
 ---
 
-## Doporucene postupy
+## Další kroky
 
-- **Throttle `OnUpdate` to 1-second intervals minimum.** Use a timer accumulator to avoid running expensive operations (RPC requests, text formatting) 60+ times per second. Only per-frame visuals like FPS counters should update every frame.
-- **Hide the HUD when inventory or any menu is open.** Check `GetGame().GetUIManager().GetMenu()` on each update and suppress your overlay. Overlapping UI elements confuse players and block interaction.
-- **Always clean up widgets in `OnMissionFinish`.** Leaked widget roots persist across server hops, stacking ghost panels that consume memory and eventually cause visual glitches.
-- **Use `SetSort()` to control render order.** If your HUD appears behind vanilla elements, call `m_Root.SetSort(100)` to push it above. Without explicit sort order, creation timing determines layering.
-- **Cache server data that rarely changes.** The server name does not change during a session. Request it once at init and cache it locally instead of re-requesting it every second.
+Nyní, když máte funkční HUD překryv, zvažte tato pokročení:
+
+1. **Uložení uživatelských předvoleb** -- Uložte, zda je HUD viditelný, do lokálního JSON souboru, aby stav přepnutí přetrval mezi relacemi.
+2. **Přidání konfigurace na straně serveru** -- Umožněte administrátorům serveru zapnout/vypnout HUD nebo vybrat, která pole zobrazovat přes JSON konfigurační soubor.
+3. **Sestavení administrátorského překryvu** -- Rozšiřte HUD o zobrazení informací pouze pro administrátory (výkon serveru, počet entit, časovač restartu) pomocí kontrol oprávnění.
+4. **Vytvoření HUD kompasu** -- Použijte `GetGame().GetCurrentCameraDirection()` pro výpočet směru a zobrazte lištu kompasu v horní části obrazovky.
+5. **Studium existujících modů** -- Podívejte se na quest HUD DayZ Expansion a překryvový systém Colorful UI pro produkčně kvalitní implementace HUD.
+
+---
+
+## Doporučené postupy
+
+- **Omezte `OnUpdate` na minimálně 1-sekundové intervaly.** Použijte akumulátor časovače, abyste se vyhnuli spouštění nákladných operací (požadavky RPC, formátování textu) 60+ krát za sekundu. Pouze vizuály každý snímek jako počítadla FPS by se měly aktualizovat každý snímek.
+- **Skryjte HUD, když je otevřený inventář nebo jakékoli menu.** Kontrolujte `GetGame().GetUIManager().GetMenu()` při každé aktualizaci a potlačte váš překryv. Překrývající se UI prvky matou hráče a blokují interakci.
+- **Vždy ukliďte widgety v `OnMissionFinish`.** Neuklizenékořeny widgetů přetrvávají mezi přepnutími serverů, hromadí duchové panely, které spotřebovávají paměť a nakonec způsobují vizuální závady.
+- **Použijte `SetSort()` pro řízení pořadí vykreslování.** Pokud se váš HUD zobrazuje za vanilkovými prvky, volejte `m_Root.SetSort(100)` pro jeho posunutí nad. Bez explicitního pořadí řazení o vrstvení rozhoduje načasování vytvoření.
+- **Cachujte serverová data, která se zřídka mění.** Název serveru se během relace nemění. Vyžádejte ho jednou při inicializaci a uložte lokálně do cache místo opětovného vyžádání každou sekundu.
 
 ---
 
@@ -1594,20 +1598,20 @@ Now that you have a working HUD overlay, consider these progressions:
 
 | Koncept | Teorie | Realita |
 |---------|--------|---------|
-| `OnUpdate(float timeslice)` | Called once per frame with the frame delta time | On a 144 FPS client, this fires 144 times per second. Sending an RPC each call creates 144 network packets/second per player. Always accumulate `timeslice` and act only when the sum exceeds your interval. |
-| `CreateWidgets()` layout path | Loads the layout from the path you provide | The path is relative to the PBO prefix, not the file system. If your PBO prefix does not match the path string, `CreateWidgets` silently returns NULL with no error in the log. |
-| `WidgetFadeTimer` | Smoothly animates widget opacity | `FadeOut` hides the widget after the animation completes, but `FadeIn` does NOT call `Show(true)` first. You must manually show the widget before calling `FadeIn`, or nothing appears. |
-| `GetUApi().GetInputByName()` | Vraci the input action for your custom keybind | If `inputs.xml` is not referenced in `config.cpp` under `class inputs`, the action name is unknown and `GetInputByName` returns null, causing a crash on `.LocalPress()`. |
+| `OnUpdate(float timeslice)` | Voláno jednou za snímek s delta časem snímku | Na klientu se 144 FPS se toto spustí 144krát za sekundu. Odeslání RPC při každém volání vytváří 144 síťových paketů/sekundu na hráče. Vždy akumulujte `timeslice` a jednejte pouze tehdy, když součet překročí váš interval. |
+| Cesta rozvržení `CreateWidgets()` | Načte rozvržení z cesty, kterou poskytnete | Cesta je relativní k PBO prefixu, nikoliv k souborovému systému. Pokud PBO prefix neodpovídá řetězci cesty, `CreateWidgets` tiše vrátí NULL bez chyby v logu. |
+| `WidgetFadeTimer` | Plynule animuje průhlednost widgetu | `FadeOut` skryje widget po dokončení animace, ale `FadeIn` NEVOLÁ `Show(true)` jako první. Musíte widget ručně zobrazit před voláním `FadeIn`, jinak se nic neobjeví. |
+| `GetUApi().GetInputByName()` | Vrací vstupní akci pro vaši vlastní klávesovou zkratku | Pokud `inputs.xml` není odkázán v `config.cpp` pod `class inputs`, název akce je neznámý a `GetInputByName` vrátí null, což způsobí pád při volání `.LocalPress()`. |
 
 ---
 
-## What You Learned
+## Co jste se naučili
 
-In this tutorial you learned:
-- How to create a HUD layout with anchored, semi-transparent panels
-- How to build a controller class that throttles updates to a fixed interval
-- How to hook into `MissionGameplay` for HUD lifecycle management (init, update, cleanup)
-- How to request server data via RPC and display it on the client
-- How to register a custom keybind via `inputs.xml` and toggle HUD visibility with fade animations
+V tomto tutoriálu jste se naučili:
+- Jak vytvořit rozvržení HUD s ukotvenými, poloprůhlednými panely
+- Jak sestavit třídu řadiče, která omezuje aktualizace na pevný interval
+- Jak se napojit na `MissionGameplay` pro správu životního cyklu HUD (inicializace, aktualizace, úklid)
+- Jak vyžádat serverová data přes RPC a zobrazit je na klientu
+- Jak zaregistrovat vlastní klávesovou zkratku přes `inputs.xml` a přepínat viditelnost HUD s animacemi prolínání
 
-**Predchozi:** [Chapter 8.7: Publishing to Steam Workshop](07-publishing-workshop.md)
+**Předchozí:** [Kapitola 8.7: Publikování na Steam Workshop](07-publishing-workshop.md)

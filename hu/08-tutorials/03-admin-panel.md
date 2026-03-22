@@ -1,51 +1,55 @@
-# Chapter 8.3: Building an Admin Panel Module
+# 8.3. fejezet: Admin panel modul építése
 
-[Home](../../README.md) | [<< Previous: Creating a Custom Item](02-custom-item.md) | **Building an Admin Panel** | [Next: Adding Chat Commands >>](04-chat-commands.md)
-
----
-
-## Tartalomjegyzek
-
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Step 1: Create the Module Class](#step-1-create-the-module-class)
-- [Step 2: Create the Layout File](#step-2-create-the-layout-file)
-- [Step 3: Bind Widgets in OnActivated](#step-3-bind-widgets-in-onactivated)
-- [Step 4: Handle Button Clicks](#step-4-handle-button-clicks)
-- [Step 5: Send an RPC to the Server](#step-5-send-an-rpc-to-the-server)
-- [Step 6: Handle the Server-Side Response](#step-6-handle-the-server-side-response)
-- [Step 7: Update the UI with Received Data](#step-7-update-the-ui-with-received-data)
-- [Step 8: Register the Module](#step-8-register-the-module)
-- [Complete File Reference](#complete-file-reference)
-- [The Full Roundtrip Explained](#the-full-roundtrip-explained)
-- [Troubleshooting](#troubleshooting)
-- [Next Steps](#next-steps)
+[Kezdőlap](../../README.md) | [<< Előző: Egyedi tárgy készítése](02-custom-item.md) | **Admin panel építése** | [Következő: Chat parancsok hozzáadása >>](04-chat-commands.md)
 
 ---
 
-## What We Are Building
-
-We will create an **Admin Player Info** panel that:
-
-1. Shows a "Refresh" button in a simple UI panel
-2. When the admin clicks Refresh, sends an RPC to the server requesting player count data
-3. The server receives the request, gathers the information, and sends it back
-4. The client receives the response and displays the player count and list in the UI
-
-This demonstrates the fundamental pattern used by every networked admin tool, mod configuration panel, and multiplayer UI in DayZ.
+> **Összefoglalás:** Ez az oktatóanyag végigvezet egy komplett admin panel modul nulláról való felépítésén. Létrehozol egy UI layout-ot, widgeteket kötsz össze szkriptben, gombkattintásokat kezelsz, RPC-t küldesz kliensről szerverre, feldolgozod a kérést a szerveren, választ küldesz vissza, és megjeleníted az eredményt a UI-ban. Ez lefedi a teljes kliens-szerver-kliens körútat, amelyre minden hálózati modnak szüksége van.
 
 ---
 
-## Prerequisites
+## Tartalomjegyzék
 
-- A working mod from [Chapter 8.1](01-first-mod.md) or a new mod with the standard structure
-- Understanding of the [5-Layer Script Hierarchy](../02-mod-structure/01-five-layers.md) (we will use `3_Game`, `4_World`, and `5_Mission`)
-- Basic comfort reading Enforce Script code
+- [Mit építünk](#mit-építünk)
+- [Előfeltételek](#előfeltételek)
+- [Architektúra áttekintés](#architektúra-áttekintés)
+- [1. lépés: A modul osztály létrehozása](#1-lépés-a-modul-osztály-létrehozása)
+- [2. lépés: A layout fájl létrehozása](#2-lépés-a-layout-fájl-létrehozása)
+- [3. lépés: Widgetek kötése az OnActivated-ben](#3-lépés-widgetek-kötése-az-onactivated-ben)
+- [4. lépés: Gombkattintások kezelése](#4-lépés-gombkattintások-kezelése)
+- [5. lépés: RPC küldése a szerverre](#5-lépés-rpc-küldése-a-szerverre)
+- [6. lépés: A szerver oldali válasz kezelése](#6-lépés-a-szerver-oldali-válasz-kezelése)
+- [7. lépés: A UI frissítése a kapott adatokkal](#7-lépés-a-ui-frissítése-a-kapott-adatokkal)
+- [8. lépés: A modul regisztrálása](#8-lépés-a-modul-regisztrálása)
+- [Teljes fájl referencia](#teljes-fájl-referencia)
+- [A teljes körút magyarázata](#a-teljes-körút-magyarázata)
+- [Hibaelhárítás](#hibaelhárítás)
+- [Következő lépések](#következő-lépések)
 
-### Mod Structure for This Tutorial
+---
 
-We will create these new files:
+## Mit építünk
+
+Egy **Admin Player Info** panelt készítünk, amely:
+
+1. Egy "Refresh" gombot mutat egy egyszerű UI panelben
+2. Amikor az admin a Refresh-re kattint, RPC-t küld a szerverre a játékosszám adatokat kérve
+3. A szerver fogadja a kérést, összegyűjti az információkat, és visszaküldi
+4. A kliens fogadja a választ és megjeleníti a játékosszámot és listát a UI-ban
+
+Ez bemutatja azt az alapvető mintát, amelyet minden hálózati admin eszköz, mod konfigurációs panel és többjátékos UI használ a DayZ-ben.
+
+---
+
+## Előfeltételek
+
+- Működő mod a [8.1. fejezetből](01-first-mod.md) vagy egy új mod a standard struktúrával
+- Az [5 rétegű szkript hierarchia](../02-mod-structure/01-five-layers.md) megértése (a `3_Game`, `4_World` és `5_Mission` rétegeket fogjuk használni)
+- Alapszintű kényelem az Enforce Script kód olvasásában
+
+### Mod struktúra ehhez az oktatóanyaghoz
+
+Ezeket az új fájlokat fogjuk létrehozni:
 
 ```
 AdminDemo/
@@ -69,62 +73,62 @@ AdminDemo/
 
 ---
 
-## Architecture Overview
+## Architektúra áttekintés
 
-Before writing code, understand the data flow:
+Kód írása előtt értsd meg az adatáramlást:
 
 ```
-CLIENT                              SERVER
+KLIENS                              SZERVER
 ------                              ------
 
-1. Admin clicks "Refresh"
-2. Client sends RPC ------>  3. Server receives RPC
-   (AdminDemo_RequestInfo)       Gathers player data
-                             4. Server sends RPC ------>  CLIENT
+1. Admin a "Refresh"-re kattint
+2. Kliens RPC-t küld ------>  3. Szerver fogadja az RPC-t
+   (AdminDemo_RequestInfo)       Összegyűjti a játékosadatokat
+                             4. Szerver RPC-t küld ------>  KLIENS
                                 (AdminDemo_ResponseInfo)
-                                                     5. Client receives RPC
-                                                        Updates UI text
+                                                     5. Kliens fogadja az RPC-t
+                                                        Frissíti a UI szöveget
 ```
 
-The RPC (Remote Procedure Call) system is how client and server communicate in DayZ. The engine provides `GetGame().RPCSingleParam()` and `GetGame().RPC()` methods to send data, and an `OnRPC()` override to receive it.
+Az RPC (Remote Procedure Call) rendszer az, ahogy a kliens és szerver kommunikál a DayZ-ben. A motor biztosítja a `GetGame().RPCSingleParam()` és `GetGame().RPC()` metódusokat az adatküldéshez, és az `OnRPC()` felülírást a fogadáshoz.
 
-**Key constraints:**
-- Clients cannot directly read server-side data (player list, server state)
-- All cross-boundary communication must go through RPC
-- RPC messages are identified by integer IDs
-- Data is sent as serialized parameters using `Param` classes
+**Kulcsfontosságú megkötések:**
+- A kliensek nem tudnak közvetlenül szerver oldali adatokat olvasni (játékoslista, szerver állapot)
+- Minden határ-átlépő kommunikációnak RPC-n keresztül kell mennie
+- Az RPC üzeneteket egész szám ID-k azonosítják
+- Az adatok `Param` osztályokkal szerializált paraméterekként kerülnek elküldésre
 
 ---
 
-## Step 1: Create the Module Class
+## 1. lépés: A modul osztály létrehozása
 
-First, define the RPC identifiers in `3_Game` (the earliest layer where game types are available). RPC IDs must be defined in `3_Game` because both `4_World` (server handler) and `5_Mission` (client handler) need to reference them.
+Először definiáld az RPC azonosítókat a `3_Game`-ben (a legkorábbi réteg, ahol a játéktípusok elérhetők). Az RPC ID-kat azért kell a `3_Game`-ben definiálni, mert mind a `4_World` (szerver kezelő), mind az `5_Mission` (kliens kezelő) hivatkozni akar rájuk.
 
-### Create `Scripts/3_Game/AdminDemo/AdminDemoRPC.c`
+### `Scripts/3_Game/AdminDemo/AdminDemoRPC.c` létrehozása
 
 ```c
 class AdminDemoRPC
 {
-    // RPC IDs -- pick unique numbers that do not collide with other mods
-    // Using high numbers reduces collision risk
+    // RPC ID-k -- válassz egyedi számokat, amelyek nem ütköznek más modokkal
+    // Magas számok használata csökkenti az ütközés kockázatát
     static const int REQUEST_PLAYER_INFO  = 78001;
     static const int RESPONSE_PLAYER_INFO = 78002;
 };
 ```
 
-These constants will be used by both the client (to send requests) and the server (to identify incoming requests and send responses).
+Ezeket a konstansokat mind a kliens (kérések küldéséhez), mind a szerver (bejövő kérések azonosításához és válaszok küldéséhez) használni fogja.
 
-### Why 3_Game?
+### Miért 3_Game?
 
-RPC IDs are pure data -- integers with no dependency on world entities or UI. Placing them in `3_Game` makes them visible to both `4_World` (where the server handler lives) and `5_Mission` (where the client UI lives).
+Az RPC ID-k tiszta adatok -- egész számok, amelyeknek nincs függősége világ entitásoktól vagy UI-tól. A `3_Game`-be helyezésük mindkettő számára láthatóvá teszi őket: a `4_World` (ahol a szerver kezelő van) és az `5_Mission` (ahol a kliens UI van).
 
 ---
 
-## Step 2: Create the Layout File
+## 2. lépés: A layout fájl létrehozása
 
-The layout file defines the visual structure of your panel. DayZ uses a custom text-based format (not XML) for `.layout` files.
+A layout fájl a panel vizuális struktúráját határozza meg. A DayZ egyedi szöveges formátumot használ (nem XML) a `.layout` fájlokhoz.
 
-### Create `GUI/layouts/admin_player_info.layout`
+### `GUI/layouts/admin_player_info.layout` létrehozása
 
 ```
 FrameWidgetClass AdminDemoPanel {
@@ -211,27 +215,27 @@ FrameWidgetClass AdminDemoPanel {
 }
 ```
 
-### Layout Breakdown
+### Layout részletezés
 
-| Widget | Cel |
-|--------|---------|
-| `AdminDemoPanel` | Root frame, 40% wide and 50% tall, centered on screen |
-| `Background` | Dark semi-transparent background filling the entire panel |
-| `Title` | "Player Info Panel" text at the top |
-| `RefreshButton` | Button the admin clicks to request data |
-| `PlayerCountText` | Displays the player count number |
-| `PlayerListText` | Displays the list of player names |
-| `CloseButton` | Closes the panel |
+| Widget | Cél |
+|--------|-----|
+| `AdminDemoPanel` | Gyökér keret, 40% széles és 50% magas, a képernyő közepén |
+| `Background` | Sötét félig átlátszó háttér, amely kitölti a teljes panelt |
+| `Title` | "Player Info Panel" szöveg felül |
+| `RefreshButton` | Gomb, amelyre az admin kattint az adatok lekéréséhez |
+| `PlayerCountText` | A játékosszámot jeleníti meg |
+| `PlayerListText` | A játékosnevek listáját jeleníti meg |
+| `CloseButton` | Bezárja a panelt |
 
-All sizes use proportional coordinates (0.0 to 1.0 relative to parent) because `hexactsize` and `vexactsize` are set to `0`.
+Minden méret arányos koordinátákat használ (0.0-tól 1.0-ig a szülőhöz képest), mert a `hexactsize` és `vexactsize` értéke `0`.
 
 ---
 
-## Step 3: Bind Widgets in OnActivated
+## 3. lépés: Widgetek kötése az OnActivated-ben
 
-Now create the client-side panel script that loads the layout and connects widgets to variables.
+Most hozd létre a kliens oldali panel szkriptet, amely betölti a layout-ot és összekapcsolja a widgeteket változókkal.
 
-### Create `Scripts/5_Mission/AdminDemo/AdminDemoPanel.c`
+### `Scripts/5_Mission/AdminDemo/AdminDemoPanel.c` létrehozása
 
 ```c
 class AdminDemoPanel extends ScriptedWidgetEventHandler
@@ -255,14 +259,14 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Open the panel: create widgets and bind references
+    // Panel megnyitása: widgetek létrehozása és hivatkozások kötése
     // -------------------------------------------------------
     void Open()
     {
         if (m_IsOpen)
             return;
 
-        // Load the layout file and get the root widget
+        // A layout fájl betöltése és a gyökér widget lekérése
         m_Root = GetGame().GetWorkspace().CreateWidgets("AdminDemo/GUI/layouts/admin_player_info.layout");
         if (!m_Root)
         {
@@ -270,13 +274,13 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
             return;
         }
 
-        // Bind widget references by name
+        // Widget hivatkozások kötése név alapján
         m_RefreshButton  = ButtonWidget.Cast(m_Root.FindAnyWidget("RefreshButton"));
         m_CloseButton    = ButtonWidget.Cast(m_Root.FindAnyWidget("CloseButton"));
         m_PlayerCountText = TextWidget.Cast(m_Root.FindAnyWidget("PlayerCountText"));
         m_PlayerListText  = TextWidget.Cast(m_Root.FindAnyWidget("PlayerListText"));
 
-        // Register this class as the event handler for our widgets
+        // Ez az osztály regisztrálása eseménykezelőként a widgetekhez
         if (m_RefreshButton)
             m_RefreshButton.SetHandler(this);
 
@@ -286,7 +290,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
         m_Root.Show(true);
         m_IsOpen = true;
 
-        // Show the mouse cursor so the admin can click buttons
+        // Egérkurzor megjelenítése, hogy az admin kattinthasson a gombokra
         GetGame().GetMission().PlayerControlDisable(INPUT_EXCLUDE_ALL);
         GetGame().GetUIManager().ShowUICursor(true);
 
@@ -294,7 +298,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Close the panel: destroy widgets and restore controls
+    // Panel bezárása: widgetek megsemmisítése és vezérlők visszaállítása
     // -------------------------------------------------------
     void Close()
     {
@@ -309,7 +313,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 
         m_IsOpen = false;
 
-        // Restore player controls and hide cursor
+        // Játékos vezérlők visszaállítása és kurzor elrejtése
         GetGame().GetMission().PlayerControlEnable(true);
         GetGame().GetUIManager().ShowUICursor(false);
 
@@ -322,7 +326,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Toggle open/close
+    // Nyitás/zárás váltása
     // -------------------------------------------------------
     void Toggle()
     {
@@ -333,7 +337,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Handle button click events
+    // Gombkattintás események kezelése
     // -------------------------------------------------------
     override bool OnClick(Widget w, int x, int y, int button)
     {
@@ -353,21 +357,21 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Called when admin clicks Refresh
+    // Meghívódik, amikor az admin a Refresh-re kattint
     // -------------------------------------------------------
     protected void OnRefreshClicked()
     {
         Print("[AdminDemo] Refresh clicked, sending RPC to server...");
 
-        // Update UI to show loading state
+        // UI frissítése betöltési állapotra
         if (m_PlayerCountText)
             m_PlayerCountText.SetText("Player Count: Loading...");
 
         if (m_PlayerListText)
             m_PlayerListText.SetText("Requesting data from server...");
 
-        // Send RPC to server
-        // Parameters: target object, RPC ID, data, recipient (null = server)
+        // RPC küldése a szerverre
+        // Paraméterek: cél objektum, RPC ID, adat, címzett (null = szerver)
         Man player = GetGame().GetPlayer();
         if (player)
         {
@@ -377,7 +381,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Called when server response arrives (from mission OnRPC)
+    // Meghívódik, amikor megérkezik a szerver válasz (a mission OnRPC-ből)
     // -------------------------------------------------------
     void OnPlayerInfoReceived(int playerCount, string playerNames)
     {
@@ -392,25 +396,25 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 };
 ```
 
-### Key Concepts
+### Kulcsfogalmak
 
-**`CreateWidgets()`** loads the `.layout` file and creates actual widget objects in memory. It returns the root widget.
+A **`CreateWidgets()`** betölti a `.layout` fájlt és valós widget objektumokat hoz létre a memóriában. A gyökér widgetet adja vissza.
 
-**`FindAnyWidget("name")`** searches the widget tree for a widget with the given name. The name must match the widget name in the layout file exactly.
+A **`FindAnyWidget("name")`** a widget fában keres egy adott nevű widgetet. A névnek pontosan meg kell egyeznie a layout fájlban szereplő widget névvel.
 
-**`Cast()`** converts the generic `Widget` reference to a specific type (like `ButtonWidget`). This is required because `FindAnyWidget` returns the base `Widget` type.
+A **`Cast()`** az általános `Widget` hivatkozást konvertálja egy specifikus típusra (mint `ButtonWidget`). Erre azért van szükség, mert a `FindAnyWidget` az alap `Widget` típust adja vissza.
 
-**`SetHandler(this)`** registers this class as the event handler for the widget. When the button is clicked, the engine calls `OnClick()` on this object.
+A **`SetHandler(this)`** regisztrálja ezt az osztályt eseménykezelőként a widgethez. Amikor a gombra kattintanak, a motor meghívja az `OnClick()` metódust ezen az objektumon.
 
-**`PlayerControlDisable` / `PlayerControlEnable`** disables/re-enables player movement and actions. Without this, the player would walk around while trying to click buttons.
+A **`PlayerControlDisable` / `PlayerControlEnable`** letiltja/újra engedélyezi a játékos mozgását és akcióit. E nélkül a játékos sétálna, miközben gombokra próbál kattintani.
 
 ---
 
-## Step 4: Handle Button Clicks
+## 4. lépés: Gombkattintások kezelése
 
-The button click handling is already implemented in Step 3's `OnClick()` method. Let us examine the pattern more closely.
+A gombkattintás kezelés már implementálva van a 3. lépés `OnClick()` metódusában. Vizsgáljuk meg közelebbről a mintát.
 
-### The OnClick Pattern
+### Az OnClick minta
 
 ```c
 override bool OnClick(Widget w, int x, int y, int button)
@@ -418,7 +422,7 @@ override bool OnClick(Widget w, int x, int y, int button)
     if (w == m_RefreshButton)
     {
         OnRefreshClicked();
-        return true;    // Event consumed -- stop propagation
+        return true;    // Esemény feldolgozva -- továbbítás leállítása
     }
 
     if (w == m_CloseButton)
@@ -427,30 +431,30 @@ override bool OnClick(Widget w, int x, int y, int button)
         return true;
     }
 
-    return false;        // Event not consumed -- let it propagate
+    return false;        // Esemény nem feldolgozva -- továbbítás engedélyezése
 }
 ```
 
-**Parameters:**
-- `w` -- The widget that was clicked
-- `x`, `y` -- Mouse coordinates at the time of the click
-- `button` -- Which mouse button (0 = left, 1 = right, 2 = middle)
+**Paraméterek:**
+- `w` -- A kattintott widget
+- `x`, `y` -- Az egér koordinátái a kattintás pillanatában
+- `button` -- Melyik egérgomb (0 = bal, 1 = jobb, 2 = középső)
 
-**Return value:**
-- `true` means you handled the event. It stops propagating to parent widgets.
-- `false` means you did not handle it. The engine passes it to the next handler.
+**Visszatérési érték:**
+- `true` azt jelenti, hogy kezelted az eseményt. Leállítja a szülő widgetekhez való továbbítást.
+- `false` azt jelenti, hogy nem kezelted. A motor átadja a következő kezelőnek.
 
-**Pattern:** Compare the clicked widget `w` against your known widget references. Call a handler method for each recognized button. Return `true` for handled clicks, `false` for everything else.
+**Minta:** Hasonlítsd össze a kattintott `w` widgetet az ismert widget hivatkozásaiddal. Hívj meg egy kezelő metódust minden felismert gombhoz. Adj vissza `true`-t a kezelt kattintásokra, `false`-ot minden másra.
 
 ---
 
-## Step 5: Send an RPC to the Server
+## 5. lépés: RPC küldése a szerverre
 
-When the admin clicks Refresh, we need to send a message from the client to the server. DayZ provides the RPC system for this.
+Amikor az admin a Refresh-re kattint, üzenetet kell küldenünk a kliensről a szerverre. A DayZ az RPC rendszert biztosítja ehhez.
 
-### RPC Sending (Client to Server)
+### RPC küldés (kliensről szerverre)
 
-The core send call from Step 3:
+Az alapvető küldési hívás a 3. lépésből:
 
 ```c
 Man player = GetGame().GetPlayer();
@@ -463,24 +467,24 @@ if (player)
 
 **`GetGame().RPCSingleParam(target, rpcID, params, guaranteed)`:**
 
-| Parameter | Jelentes |
-|-----------|---------|
-| `target` | The object this RPC is associated with. Using the player is standard. |
-| `rpcID` | Your unique integer identifier (defined in `AdminDemoRPC`). |
-| `params` | A `Param` object carrying the data payload. |
-| `guaranteed` | `true` = TCP-like reliable delivery. `false` = UDP-like fire-and-forget. Always use `true` for admin operations. |
+| Paraméter | Jelentés |
+|-----------|----------|
+| `target` | Az objektum, amelyhez ez az RPC társítva van. A játékos használata a standard. |
+| `rpcID` | Az egyedi egész szám azonosítód (az `AdminDemoRPC`-ben definiálva). |
+| `params` | Egy `Param` objektum, amely az adat payloadot hordozza. |
+| `guaranteed` | `true` = TCP-szerű megbízható kézbesítés. `false` = UDP-szerű tűz és felejtsd el. Admin műveletekhez mindig használj `true`-t. |
 
-### Param Classes
+### Param osztályok
 
-DayZ provides template `Param` classes for sending data:
+A DayZ sablon `Param` osztályokat biztosít az adatküldéshez:
 
-| Class | Usage |
-|-------|-------|
-| `Param1<T>` | One value |
-| `Param2<T1, T2>` | Two values |
-| `Param3<T1, T2, T3>` | Three values |
+| Osztály | Használat |
+|---------|-----------|
+| `Param1<T>` | Egy érték |
+| `Param2<T1, T2>` | Két érték |
+| `Param3<T1, T2, T3>` | Három érték |
 
-You can send strings, ints, floats, bools, and vectors. Example with multiple values:
+Küldhetsz stringeket, int-eket, float-okat, bool-okat és vektorokat. Példa több értékkel:
 
 ```c
 Param3<string, int, float> data = new Param3<string, int, float>("hello", 42, 3.14);
@@ -489,23 +493,23 @@ GetGame().RPCSingleParam(player, MY_RPC_ID, data, true);
 
 ---
 
-## Step 6: Handle the Server-Side Response
+## 6. lépés: A szerver oldali válasz kezelése
 
-The server receives the client's RPC, gathers data, and sends a response back.
+A szerver fogadja a kliens RPC-jét, összegyűjti az adatokat, és választ küld vissza.
 
-### Create `Scripts/4_World/AdminDemo/AdminDemoServer.c`
+### `Scripts/4_World/AdminDemo/AdminDemoServer.c` létrehozása
 
 ```c
 modded class PlayerBase
 {
     // -------------------------------------------------------
-    // Server-side RPC handler
+    // Szerver oldali RPC kezelő
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, rpc_type, ctx);
 
-        // Only handle on server
+        // Csak szerveren kezelendő
         if (!GetGame().IsServer())
             return;
 
@@ -518,7 +522,7 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Gather player data and send response
+    // Játékosadatok összegyűjtése és válasz küldése
     // -------------------------------------------------------
     protected void HandlePlayerInfoRequest(PlayerIdentity requestor)
     {
@@ -527,12 +531,12 @@ modded class PlayerBase
 
         Print("[AdminDemo] Server received player info request from: " + requestor.GetName());
 
-        // --- Permission check (optional but recommended) ---
-        // In a real mod, check if the requestor is an admin:
+        // --- Jogosultság ellenőrzés (opcionális de ajánlott) ---
+        // Éles modban ellenőrizd, hogy a kérelmező admin-e:
         // if (!IsAdmin(requestor))
         //     return;
 
-        // --- Gather player data ---
+        // --- Játékosadatok összegyűjtése ---
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
 
@@ -558,10 +562,10 @@ modded class PlayerBase
         if (playerNames == "")
             playerNames = "(No players connected)";
 
-        // --- Send response back to the requesting client ---
+        // --- Válasz visszaküldése a kérelmező kliensnek ---
         Param2<int, string> responseData = new Param2<int, string>(playerCount, playerNames);
 
-        // RPCSingleParam with the requestor's player object sends to that specific client
+        // RPCSingleParam a kérelmező játékos objektumával azt a specifikus kliensnek küldi
         Man requestorPlayer = null;
         for (int j = 0; j < players.Count(); j++)
         {
@@ -583,39 +587,39 @@ modded class PlayerBase
 };
 ```
 
-### How Server-Side RPC Reception Works
+### Hogyan működik a szerver oldali RPC fogadás
 
-1. **`OnRPC()` is called on the target object.** When the client sent the RPC with `target = player`, the server-side `PlayerBase.OnRPC()` fires.
+1. **Az `OnRPC()` a cél objektumon hívódik meg.** Amikor a kliens az RPC-t `target = player`-rel küldte, a szerver oldali `PlayerBase.OnRPC()` aktiválódik.
 
-2. **Always call `super.OnRPC()`.** Other mods and vanilla code may also handle RPCs on this object.
+2. **Mindig hívd meg a `super.OnRPC()`-t.** Más modok és vanilla kód is kezelhet RPC-ket ezen az objektumon.
 
-3. **Check `GetGame().IsServer()`.** This code is in `4_World`, which compiles on both client and server. The `IsServer()` check ensures we only process the request on the server.
+3. **Ellenőrizd a `GetGame().IsServer()`-t.** Ez a kód a `4_World`-ben van, amely mind kliens, mind szerveren kompilálódik. Az `IsServer()` ellenőrzés biztosítja, hogy csak a szerveren dolgozzuk fel a kérést.
 
-4. **Switch on `rpc_type`.** Match against your RPC ID constants.
+4. **Kapcsolj az `rpc_type`-on.** Egyeztesd az RPC ID konstansaiddal.
 
-5. **Send the response.** Use `RPCSingleParam` with the fifth parameter (`recipient`) set to the requesting player's identity. This sends the response only to that specific client.
+5. **Küldd el a választ.** Használd az `RPCSingleParam`-ot az ötödik paraméterrel (`recipient`) a kérelmező játékos identitására állítva. Ez a választ csak az adott kliensnek küldi.
 
-### RPCSingleParam Response Signature
+### RPCSingleParam válasz aláírás
 
 ```c
 GetGame().RPCSingleParam(
-    requestorPlayer,                        // Target object (the player)
+    requestorPlayer,                        // Cél objektum (a játékos)
     AdminDemoRPC.RESPONSE_PLAYER_INFO,      // RPC ID
-    responseData,                           // Data payload
-    true,                                   // Guaranteed delivery
-    requestor                               // Recipient identity (specific client)
+    responseData,                           // Adat payload
+    true,                                   // Garantált kézbesítés
+    requestor                               // Címzett identitás (specifikus kliens)
 );
 ```
 
-The fifth parameter `requestor` (a `PlayerIdentity`) is what makes this a targeted response. Without it, the RPC would go to all clients.
+Az ötödik paraméter `requestor` (egy `PlayerIdentity`) az, ami célzott választ csinál ebből. Enélkül az RPC minden klienshez menne.
 
 ---
 
-## Step 7: Update the UI with Received Data
+## 7. lépés: A UI frissítése a kapott adatokkal
 
-Back on the client side, we need to intercept the server's response RPC and route it to the panel.
+Visszatérve a kliens oldalra, el kell fogadnunk a szerver válasz RPC-jét és a panelhez kell irányítanunk.
 
-### Create `Scripts/5_Mission/AdminDemo/AdminDemoMission.c`
+### `Scripts/5_Mission/AdminDemo/AdminDemoMission.c` létrehozása
 
 ```c
 modded class MissionGameplay
@@ -623,7 +627,7 @@ modded class MissionGameplay
     protected ref AdminDemoPanel m_AdminDemoPanel;
 
     // -------------------------------------------------------
-    // Initialize the panel on mission start
+    // Panel inicializálása a misszió indításakor
     // -------------------------------------------------------
     override void OnInit()
     {
@@ -636,7 +640,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Clean up on mission end
+    // Takarítás a misszió végén
     // -------------------------------------------------------
     override void OnMissionFinish()
     {
@@ -650,13 +654,13 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Handle keyboard input to toggle the panel
+    // Billentyűzet bevitel kezelése a panel váltásához
     // -------------------------------------------------------
     override void OnKeyPress(int key)
     {
         super.OnKeyPress(key);
 
-        // F5 key toggles the admin panel
+        // F5 billentyű váltja az admin panelt
         if (key == KeyCode.KC_F5)
         {
             if (m_AdminDemoPanel)
@@ -665,7 +669,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Receive server RPCs on the client side
+    // Szerver RPC-k fogadása a kliens oldalon
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
@@ -680,7 +684,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Deserialize server response and update the panel
+    // Szerver válasz deszerializálása és a panel frissítése
     // -------------------------------------------------------
     protected void HandlePlayerInfoResponse(ParamsReadContext ctx)
     {
@@ -702,17 +706,17 @@ modded class MissionGameplay
 };
 ```
 
-### How Client-Side RPC Reception Works
+### Hogyan működik a kliens oldali RPC fogadás
 
-1. **`MissionGameplay.OnRPC()`** is a catch-all handler for RPCs received on the client. It fires for every incoming RPC.
+1. A **`MissionGameplay.OnRPC()`** egy átfogó kezelő a kliens oldalon fogadott RPC-khez. Minden bejövő RPC-re aktiválódik.
 
-2. **`ParamsReadContext ctx`** contains the serialized data sent by the server. You must deserialize it using `ctx.Read()` with a matching `Param` type.
+2. A **`ParamsReadContext ctx`** tartalmazza a szerver által küldött szerializált adatokat. A `ctx.Read()` használatával kell deszerializálnod, egyező `Param` típussal.
 
-3. **Matching Param types is critical.** The server sent `Param2<int, string>`. The client must read with `Param2<int, string>`. A mismatch causes `ctx.Read()` to return `false` and no data is retrieved.
+3. **Az egyező Param típusok kritikusak.** A szerver `Param2<int, string>`-et küldött. A kliensnek `Param2<int, string>`-gel kell olvasnia. Eltérés esetén a `ctx.Read()` `false`-t ad vissza és nem kerül adat lekérésre.
 
-4. **Route data to the panel.** After deserializing, call a method on the panel object to update the UI.
+4. **Irányítsd az adatokat a panelhoz.** A deszerializálás után hívj meg egy metódust a panel objektumon a UI frissítéséhez.
 
-### The OnKeyPress Handler
+### Az OnKeyPress kezelő
 
 ```c
 override void OnKeyPress(int key)
@@ -727,15 +731,15 @@ override void OnKeyPress(int key)
 }
 ```
 
-This hooks into the mission's keyboard input. When the admin presses F5, the panel opens or closes. `KeyCode.KC_F5` is a built-in constant for the F5 key.
+Ez a misszió billentyűzet bemenetébe kapcsolódik. Amikor az admin megnyomja az F5-öt, a panel megnyílik vagy bezárul. A `KeyCode.KC_F5` az F5 billentyű beépített konstansa.
 
 ---
 
-## Step 8: Register the Module
+## 8. lépés: A modul regisztrálása
 
-Finally, tie everything together in config.cpp.
+Végül, kösd össze mindent a config.cpp-ben.
 
-### Create `AdminDemo/mod.cpp`
+### `AdminDemo/mod.cpp` létrehozása
 
 ```cpp
 name = "Admin Demo";
@@ -744,7 +748,7 @@ version = "1.0";
 overview = "Tutorial admin panel demonstrating the full RPC roundtrip pattern.";
 ```
 
-### Create `AdminDemo/Scripts/config.cpp`
+### `AdminDemo/Scripts/config.cpp` létrehozása
 
 ```cpp
 class CfgPatches
@@ -795,19 +799,19 @@ class CfgMods
 };
 ```
 
-### Why Three Layers?
+### Miért három réteg?
 
-| Reteg | Contains | Ok |
-|-------|----------|--------|
-| `3_Game` | `AdminDemoRPC.c` | RPC ID constants need to be visible to both `4_World` and `5_Mission` |
-| `4_World` | `AdminDemoServer.c` | Server-side handler modding `PlayerBase` (a world entity) |
-| `5_Mission` | `AdminDemoPanel.c`, `AdminDemoMission.c` | Client UI and mission hooks |
+| Réteg | Tartalmazza | Ok |
+|-------|-------------|-----|
+| `3_Game` | `AdminDemoRPC.c` | Az RPC ID konstansoknak láthatónak kell lenniük mind a `4_World`, mind az `5_Mission` számára |
+| `4_World` | `AdminDemoServer.c` | Szerver oldali kezelő, amely a `PlayerBase`-t (egy világ entitást) moddolja |
+| `5_Mission` | `AdminDemoPanel.c`, `AdminDemoMission.c` | Kliens UI és mission hookok |
 
 ---
 
-## Complete File Reference
+## Teljes fájl referencia
 
-### Final Directory Structure
+### Végleges könyvtárstruktúra
 
 ```
 AdminDemo/
@@ -1121,88 +1125,119 @@ modded class MissionGameplay
 
 ---
 
-## The Full Roundtrip Explained
+## A teljes körút magyarázata
 
-Here is the exact sequence of events when the admin presses F5 and clicks Refresh:
+Íme az események pontos sorozata, amikor az admin megnyomja az F5-öt és a Refresh-re kattint:
 
 ```
-1. [CLIENT] Admin presses F5
-   --> MissionGameplay.OnKeyPress(KC_F5) fires
-   --> AdminDemoPanel.Toggle() is called
-   --> Panel opens, layout is created, cursor appears
+1. [KLIENS] Admin megnyomja az F5-öt
+   --> MissionGameplay.OnKeyPress(KC_F5) aktiválódik
+   --> AdminDemoPanel.Toggle() meghívva
+   --> Panel megnyílik, layout létrehozva, kurzor megjelenik
 
-2. [CLIENT] Admin clicks "Refresh" button
-   --> AdminDemoPanel.OnClick() fires with w == m_RefreshButton
-   --> OnRefreshClicked() is called
-   --> UI shows "Loading..."
-   --> RPCSingleParam sends REQUEST_PLAYER_INFO (78001) to server
+2. [KLIENS] Admin a "Refresh" gombra kattint
+   --> AdminDemoPanel.OnClick() aktiválódik w == m_RefreshButton-tel
+   --> OnRefreshClicked() meghívva
+   --> UI "Loading..."-et mutat
+   --> RPCSingleParam elküldi REQUEST_PLAYER_INFO-t (78001) a szerverre
 
-3. [NETWORK] RPC travels from client to server
+3. [HÁLÓZAT] RPC utazik a klienstől a szerverre
 
-4. [SERVER] PlayerBase.OnRPC() fires
-   --> rpc_type matches REQUEST_PLAYER_INFO
-   --> HandlePlayerInfoRequest(sender) is called
-   --> Server iterates all connected players
-   --> Builds player count and name list
-   --> RPCSingleParam sends RESPONSE_PLAYER_INFO (78002) back to client
+4. [SZERVER] PlayerBase.OnRPC() aktiválódik
+   --> rpc_type egyezik REQUEST_PLAYER_INFO-val
+   --> HandlePlayerInfoRequest(sender) meghívva
+   --> Szerver végigiterál az összes csatlakozott játékoson
+   --> Összeállítja a játékosszámot és névlistát
+   --> RPCSingleParam visszaküldi RESPONSE_PLAYER_INFO-t (78002) a kliensnek
 
-5. [NETWORK] RPC travels from server to client
+5. [HÁLÓZAT] RPC utazik a szervertől a klienshez
 
-6. [CLIENT] MissionGameplay.OnRPC() fires
-   --> rpc_type matches RESPONSE_PLAYER_INFO
-   --> HandlePlayerInfoResponse(ctx) is called
-   --> Data is deserialized from ParamsReadContext
-   --> AdminDemoPanel.OnPlayerInfoReceived() is called
-   --> UI updates with player count and names
+6. [KLIENS] MissionGameplay.OnRPC() aktiválódik
+   --> rpc_type egyezik RESPONSE_PLAYER_INFO-val
+   --> HandlePlayerInfoResponse(ctx) meghívva
+   --> Adatok deszerializálva a ParamsReadContext-ből
+   --> AdminDemoPanel.OnPlayerInfoReceived() meghívva
+   --> UI frissül játékosszámmal és nevekkel
 
-Total time: typically under 100ms on a local network.
+Teljes idő: jellemzően 100ms alatt helyi hálózaton.
 ```
 
 ---
 
-## Hibaelharitas
+## Hibaelhárítás
 
-### Panel Does Not Open When Pressing F5
+### A panel nem nyílik meg az F5 lenyomásakor
 
-- **Check OnKeyPress override:** Make sure `super.OnKeyPress(key)` is called first.
-- **Check key code:** `KeyCode.KC_F5` is the correct constant. If using a different key, find the right constant in the Enforce Script API.
-- **Check initialization:** Ensure `m_AdminDemoPanel` is created in `OnInit()`.
+- **Ellenőrizd az OnKeyPress felülírást:** Győződj meg róla, hogy először a `super.OnKeyPress(key)` hívódik meg.
+- **Ellenőrizd a billentyűkódot:** A `KeyCode.KC_F5` a helyes konstans. Ha más billentyűt használsz, keresd meg a megfelelő konstanst az Enforce Script API-ban.
+- **Ellenőrizd az inicializálást:** Győződj meg róla, hogy az `m_AdminDemoPanel` létre van hozva az `OnInit()`-ben.
 
-### Panel Opens But Buttons Do Not Work
+### A panel megnyílik, de a gombok nem működnek
 
-- **Check SetHandler:** Every button needs `button.SetHandler(this)` called on it.
-- **Check widget names:** `FindAnyWidget("RefreshButton")` is case-sensitive. The name must match the layout file exactly.
-- **Check OnClick return:** Make sure `OnClick` returns `true` for handled buttons.
+- **Ellenőrizd a SetHandler-t:** Minden gombnak szüksége van a `button.SetHandler(this)` hívásra.
+- **Ellenőrizd a widget neveket:** A `FindAnyWidget("RefreshButton")` kis-nagybetű érzékeny. A névnek pontosan egyeznie kell a layout fájllal.
+- **Ellenőrizd az OnClick visszatérési értéket:** Győződj meg róla, hogy az `OnClick` `true`-t ad vissza a kezelt gombokra.
 
-### RPC Never Reaches the Server
+### Az RPC soha nem éri el a szervert
 
-- **Check RPC ID uniqueness:** If another mod uses the same RPC ID number, there will be conflicts. Use high unique numbers.
-- **Check player reference:** `GetGame().GetPlayer()` returns `null` if called before the player is fully initialized. Ensure the panel only opens after the player spawns.
-- **Check server code compiles:** Look at the server script log for `SCRIPT (E)` errors in your `4_World` code.
+- **Ellenőrizd az RPC ID egyediségét:** Ha egy másik mod ugyanazt az RPC ID számot használja, ütközések lesznek. Használj magas egyedi számokat.
+- **Ellenőrizd a játékos hivatkozást:** A `GetGame().GetPlayer()` `null`-t ad vissza, ha a játékos teljes inicializálása előtt hívod meg. Győződj meg róla, hogy a panel csak a játékos spawnolása után nyílik meg.
+- **Ellenőrizd, hogy a szerver kód kompilálódik:** Keresd a szerver szkript naplóban a `SCRIPT (E)` hibákat a `4_World` kódodban.
 
-### Server Response Never Reaches the Client
+### A szerver válasz soha nem éri el a klienst
 
-- **Check the recipient parameter:** The fifth parameter of `RPCSingleParam` must be the `PlayerIdentity` of the target client.
-- **Check Param type matching:** Server sends `Param2<int, string>`, client reads `Param2<int, string>`. A type mismatch causes `ctx.Read()` to fail.
-- **Check MissionGameplay.OnRPC override:** Make sure you call `super.OnRPC()` and the method signature is correct.
+- **Ellenőrizd a címzett paramétert:** Az `RPCSingleParam` ötödik paraméterének a célkliens `PlayerIdentity`-jének kell lennie.
+- **Ellenőrizd a Param típus egyezést:** A szerver `Param2<int, string>`-et küld, a kliens `Param2<int, string>`-gel olvas. Típus eltérés esetén a `ctx.Read()` sikertelen.
+- **Ellenőrizd a MissionGameplay.OnRPC felülírást:** Győződj meg róla, hogy meghívod a `super.OnRPC()`-t és a metódus aláírás helyes.
 
-### UI Shows But Data Does Not Update
+### A UI megjelenik, de az adatok nem frissülnek
 
-- **Null widget references:** If `FindAnyWidget` returns `null` (widget name mismatch), `SetText()` calls silently fail.
-- **Check panel reference:** Make sure `m_AdminDemoPanel` in the mission class is the same object that was opened.
-- **Add Print statements:** Trace the data flow by adding `Print()` calls at each step.
-
----
-
-## Kovetkezo lepesek
-
-1. **[Chapter 8.4: Adding Chat parancsok](04-chat-commands.md)** -- Create server-side chat commands for admin operations.
-2. **Add permissions** -- Check if the requesting player is an admin before processing RPCs.
-3. **Add more features** -- Extend the panel with tabs for weather control, player teleport, item spawning.
-4. **Use a framework** -- Frameworks like MyFramework provide built-in RPC routing, config management, and admin panel infrastructure that eliminates much of this boilerplate.
-5. **Style the UI** -- Learn about widget styles, imagesets, and fonts in [Chapter 3: GUI System](../03-gui-system/01-widget-types.md).
+- **Null widget hivatkozások:** Ha a `FindAnyWidget` null-t ad vissza (widget név eltérés), a `SetText()` hívások csendben sikertelenek.
+- **Ellenőrizd a panel hivatkozást:** Győződj meg róla, hogy a mission osztályban lévő `m_AdminDemoPanel` ugyanaz az objektum, amelyet megnyitottak.
+- **Adj hozzá Print utasításokat:** Kövesd az adatáramlást `Print()` hívások hozzáadásával minden lépésnél.
 
 ---
 
-**Elozo:** [Chapter 8.2: Creating a Egyeni targy](02-custom-item.md)
-**Kovetkezo:** [Chapter 8.4: Adding Chat parancsok](04-chat-commands.md)
+## Következő lépések
+
+1. **[8.4. fejezet: Chat parancsok hozzáadása](04-chat-commands.md)** -- Szerver oldali chat parancsok létrehozása admin műveletekhez.
+2. **Jogosultságok hozzáadása** -- Ellenőrizd, hogy a kérelmező játékos admin-e, mielőtt feldolgoznád az RPC-ket.
+3. **További funkciók hozzáadása** -- Bővítsd a panelt fülekkel az időjárás vezérléshez, játékos teleportáláshoz, tárgy spawnoláshoz.
+4. **Keretrendszer használata** -- A MyMod Core-hoz hasonló keretrendszerek beépített RPC útválasztást, konfig kezelést és admin panel infrastruktúrát biztosítanak, amelyek kiküszöbölik ennek a sablonkódnak nagy részét.
+5. **UI stílusozása** -- Tanuld meg a widget stílusokat, imageset-eket és betűtípusokat a [3. fejezet: GUI rendszer](../03-gui-system/01-widget-types.md) részben.
+
+---
+
+## Legjobb gyakorlatok
+
+- **Validálj minden RPC adatot a szerveren a végrehajtás előtt.** Soha ne bízz a kliens adataiban -- mindig ellenőrizd a jogosultságokat, validáld a paramétereket, és védj a null értékek ellen bármely szerver művelet végrehajtása előtt.
+- **Gyorsítótárazd a widget hivatkozásokat tagváltozókban ahelyett, hogy minden képkockában meghívnád a `FindAnyWidget`-et.** A widget keresés nem ingyenes; ismételt hívása az `OnUpdate`-ban vagy `OnClick`-ben teljesítményt pazarol.
+- **Mindig hívd meg a `SetHandler(this)`-t az interaktív widgeteken.** Enélkül az `OnClick()` soha nem aktiválódik, és nincs hibaüzenet -- a gombok egyszerűen csendben nem csinálnak semmit.
+- **Használj magas, egyedi RPC ID számokat.** A vanilla DayZ alacsony ID-kat használ. Más modok gyakori tartományokat választanak. Használj 70000 feletti számokat, és adj hozzá mod prefixet a megjegyzésekhez, hogy az ütközések nyomon követhetők legyenek.
+- **Takaríts fel widgeteket az `OnMissionFinish`-ben.** A szivárgó widget gyökerek szerver váltások során halmozódnak, memóriát fogyasztva és szellem UI elemeket okozva.
+
+---
+
+## Elmélet vs gyakorlat
+
+| Fogalom | Elmélet | Valóság |
+|---------|---------|---------|
+| `RPCSingleParam` kézbesítés | A `guaranteed=true` beállítás azt jelenti, hogy az RPC mindig megérkezik | Az RPC-k még mindig elveszhetnek, ha a játékos lecsatlakozik menet közben, vagy a szerver összeomlik. Mindig kezeld a "nincs válasz" esetet a UI-ban (pl. időtúllépési üzenet). |
+| `OnClick` widget egyeztetés | Hasonlítsd össze: `w == m_Button` a kattintások azonosításához | Ha a `FindAnyWidget` NULL-t adott vissza (elírás a widget névben), az `m_Button` NULL és az összehasonlítás csendben sikertelen. Mindig naplózz figyelmeztetést, ha a widget kötés sikertelen az `Open()`-ban. |
+| Param típus egyezés | A kliens és szerver ugyanazt a `Param2<int, string>`-et használja | Ha a típusok vagy sorrend nem egyezik pontosan, a `ctx.Read()` false-t ad vissza és az adatok csendben elvesznek. Nincs típusellenőrzési hibaüzenet futásidőben. |
+| Listen szerver tesztelés | Elég jó a gyors iteráláshoz | A listen szerverek a klienst és szervert egy folyamatban futtatják, így az RPC-k azonnal megérkeznek és soha nem kelnek át a hálózaton. Időzítési hibák, csomagvesztés és autoritás problémák csak valódi dedikált szerveren jelennek meg. |
+
+---
+
+## Mit tanultál
+
+Ebben az oktatóanyagban megtanultad:
+- Hogyan hozz létre UI panelt layout fájlokkal és hogyan köss widgeteket szkriptben
+- Hogyan kezeld a gombkattintásokat az `OnClick()` és `SetHandler()` segítségével
+- Hogyan küldj RPC-ket kliensről szerverre és vissza az `RPCSingleParam` és `Param` osztályok használatával
+- A teljes kliens-szerver-kliens körút mintát, amelyet minden hálózati admin eszköz használ
+- Hogyan regisztráld a panelt a `MissionGameplay`-ben megfelelő életciklus kezeléssel
+
+**Következő:** [8.4. fejezet: Chat parancsok hozzáadása](04-chat-commands.md)
+
+---

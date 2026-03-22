@@ -1,49 +1,53 @@
-# Chapter 8.10: Creating a Custom Vehicle Mod
+# Kapitola 8.10: Vytvoření vlastního modu vozidla
 
-[Home](../../README.md) | [<< Previous: Professional Mod Template](09-professional-template.md) | **Creating a Custom Vehicle** | [Next: Creating Custom Clothing >>](11-clothing-mod.md)
+[Domů](../../README.md) | [<< Předchozí: Profesionální šablona modu](09-professional-template.md) | **Vytvoření vlastního vozidla** | [Další: Vytvoření vlastního oblečení >>](11-clothing-mod.md)
+
+---
+
+> **Shrnutí:** Tento tutoriál vás provede vytvořením vlastního modu vozidla pro DayZ. Rozšíříte vanilkový Offroad Hatchback (Nivu) s vlastními texturami, upraveným výkonem motoru a pozměněnými hodnotami zdraví poškozených zón. Naučíte se konfiguraci vozidla v config.cpp, skriptové chování, nastavení spawnování a testování ve hře.
 
 ---
 
 ## Obsah
 
-- [What We Are Building](#what-we-are-building)
-- [Predpoklady](#prerequisites)
-- [Step 1: Create the Config (config.cpp)](#step-1-create-the-config-configcpp)
-- [Step 2: Custom Textures](#step-2-custom-textures)
-- [Step 3: Script Behavior (CarScript)](#step-3-script-behavior-carscript)
-- [Step 4: types.xml Entry](#step-4-typesxml-entry)
-- [Step 5: Build and Test](#step-5-build-and-test)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Doporucene postupy](#best-practices)
-- [Teorie vs praxe](#theory-vs-practice)
-- [What You Learned](#what-you-learned)
-- [Caste chyby](#common-mistakes)
+- [Co budeme vytvářet](#co-budeme-vytvářet)
+- [Předpoklady](#předpoklady)
+- [Krok 1: Vytvoření konfigurace (config.cpp)](#krok-1-vytvoření-konfigurace-configcpp)
+- [Krok 2: Vlastní textury](#krok-2-vlastní-textury)
+- [Krok 3: Skriptové chování (CarScript)](#krok-3-skriptové-chování-carscript)
+- [Krok 4: Záznam v types.xml](#krok-4-záznam-v-typesxml)
+- [Krok 5: Sestavení a testování](#krok-5-sestavení-a-testování)
+- [Krok 6: Doladění](#krok-6-doladění)
+- [Kompletní referenční kód](#kompletní-referenční-kód)
+- [Doporučené postupy](#doporučené-postupy)
+- [Teorie vs praxe](#teorie-vs-praxe)
+- [Co jste se naučili](#co-jste-se-naučili)
+- [Časté chyby](#časté-chyby)
 
 ---
 
-## What We Are Building
+## Co budeme vytvářet
 
-We will create a vehicle called **MFM Rally Hatchback** -- a modified version of the vanilla Offroad Hatchback (the Niva) with:
+Vytvoříme vozidlo nazvané **MFM Rally Hatchback** -- upravenou verzi vanilkového Offroad Hatchback (Nivy) s:
 
-- Custom retextured body panels using hidden selections
-- Modified engine performance (faster top speed, higher fuel consumption)
-- Adjusted damage zone health values (tougher engine, weaker doors)
-- All standard vehicle behavior: opening doors, engine start/stop, fuel, lights, crew entry/exit
-- Spawn table entry with pre-attached wheels and parts
+- Vlastními přetexturovanými karosářskými panely pomocí skrytých výběrů
+- Upraveným výkonem motoru (vyšší maximální rychlost, vyšší spotřeba paliva)
+- Pozměněnými hodnotami zdraví zón poškození (odolnější motor, slabší dveře)
+- Veškerým standardním chováním vozidla: otevírání dveří, start/stop motoru, palivo, světla, nastupování/vystupování posádky
+- Záznamem ve spawn tabulce s předpřipojenými koly a díly
 
-We extend `OffroadHatchback` rather than building a vehicle from scratch. This is the standard workflow for vehicle mods because it inherits the model, animations, physics geometry, and all existing behavior. You only override what you want to change.
+Rozšiřujeme `OffroadHatchback` místo stavby vozidla od nuly. Toto je standardní pracovní postup pro mody vozidel, protože se dědí model, animace, fyzikální geometrie a veškeré stávající chování. Přepíšete pouze to, co chcete změnit.
 
 ---
 
-## Predpoklady
+## Předpoklady
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) and [Chapter 8.2](02-custom-item.md) first)
-- A text editor
-- DayZ Tools installed (for texture conversion, optional)
-- Basic familiarity with how config.cpp class inheritance works
+- Funkční struktura modu (nejprve dokončete [Kapitolu 8.1](01-first-mod.md) a [Kapitolu 8.2](02-custom-item.md))
+- Textový editor
+- Nainstalované DayZ Tools (pro konverzi textur, volitelné)
+- Základní znalost fungování dědičnosti tříd v config.cpp
 
-Your mod should have this starting structure:
+Váš mod by měl mít tuto výchozí strukturu:
 
 ```
 MyFirstMod/
@@ -56,13 +60,13 @@ MyFirstMod/
 
 ---
 
-## Step 1: Create the Config (config.cpp)
+## Krok 1: Vytvoření konfigurace (config.cpp)
 
-Vehicle definitions live in `CfgVehicles`, just like items. Despite the class name, `CfgVehicles` holds everything -- items, buildings, and actual vehicles alike. The key difference for vehicles is the parent class and the additional configuration for damage zones, attachments, and simulation parameters.
+Definice vozidel žijí v `CfgVehicles`, stejně jako předměty. Navzdory názvu třídy `CfgVehicles` obsahuje vše -- předměty, budovy i skutečná vozidla. Klíčový rozdíl u vozidel je rodičovská třída a dodatečná konfigurace pro zóny poškození, příslušenství a parametry simulace.
 
-### Update Your Data config.cpp
+### Aktualizace vašeho Data config.cpp
 
-Open `MyFirstMod/Data/config.cpp` and add the vehicle class. If you already have item definitions here from Chapter 8.2, add the vehicle class inside the existing `CfgVehicles` block.
+Otevřete `MyFirstMod/Data/config.cpp` a přidejte třídu vozidla. Pokud zde již máte definice předmětů z Kapitoly 8.2, přidejte třídu vozidla do stávajícího bloku `CfgVehicles`.
 
 ```cpp
 class CfgPatches
@@ -90,7 +94,7 @@ class CfgVehicles
         displayName = "Rally Hatchback";
         descriptionShort = "A modified offroad hatchback built for speed.";
 
-        // --- Hidden Selections for retexturing ---
+        // --- Skryté výběry pro přetexturování ---
         hiddenSelections[] =
         {
             "camoGround",
@@ -110,10 +114,10 @@ class CfgVehicles
             ""
         };
 
-        // --- Simulation (physics and engine) ---
+        // --- Simulace (fyzika a motor) ---
         class SimulationModule : SimulationModule
         {
-            // Drive type: 0 = RWD, 1 = FWD, 2 = AWD
+            // Typ pohonu: 0 = zadní, 1 = přední, 2 = pohon všech kol
             drive = 2;
 
             class Throttle
@@ -149,7 +153,7 @@ class CfgVehicles
             braking[] = { 0.0, 0.1, 0.8, 0.9, 0.95, 1.0 };
         };
 
-        // --- Damage Zones ---
+        // --- Zóny poškození ---
         class DamageSystem
         {
             class GlobalHealth
@@ -307,76 +311,76 @@ class CfgVehicles
 };
 ```
 
-### Key Poles Explained
+### Vysvětlení klíčových polí
 
-| Pole | Ucel |
-|-------|---------|
-| `scope = 2` | Makes the vehicle spawnable. Use `0` for base classes that should never spawn directly. |
-| `displayName` | Name shown in admin tools and in-game. You can use `$STR_` references for localization. |
-| `requiredAddons[]` | Must include `"DZ_Vehicles_Wheeled"` so the parent class `OffroadHatchback` is loaded before your class. |
-| `hiddenSelections[]` | Texture slots on the model you want to override. Must match the model's named selections. |
-| `SimulationModule` | Physics and engine configuration. Controls speed, torque, gearing, and braking. |
-| `DamageSystem` | Defines health pools for each part of the vehicle (engine, doors, windows, body). |
+| Pole | Účel |
+|------|------|
+| `scope = 2` | Zpřístupní vozidlo pro spawn. Použijte `0` pro základní třídy, které by nikdy neměly být spawnovány přímo. |
+| `displayName` | Název zobrazený v administrátorských nástrojích a ve hře. Můžete použít reference `$STR_` pro lokalizaci. |
+| `requiredAddons[]` | Musí obsahovat `"DZ_Vehicles_Wheeled"`, aby se rodičovská třída `OffroadHatchback` načetla před vaší třídou. |
+| `hiddenSelections[]` | Texturové sloty na modelu, které chcete přepsat. Musí odpovídat pojmenovaným výběrům modelu. |
+| `SimulationModule` | Konfigurace fyziky a motoru. Řídí rychlost, točivý moment, převodovku a brzdění. |
+| `DamageSystem` | Definuje zásoby zdraví pro každou část vozidla (motor, dveře, okna, karoserie). |
 
-### About the Parent Class
+### O rodičovské třídě
 
 ```cpp
 class OffroadHatchback;
 ```
 
-This forward declaration tells the config parser that `OffroadHatchback` exists in vanilla DayZ. Your vehicle then inherits from it, getting the complete Niva model, animations, physics geometry, attachment points, and proxy definitions. You only need to override what you want to change.
+Tato dopředná deklarace říká parseru konfigurace, že `OffroadHatchback` existuje ve vanilkovém DayZ. Vaše vozidlo pak z něj dědí a získává kompletní model Nivy, animace, fyzikální geometrii, body pro příslušenství a definice proxy. Potřebujete přepsat pouze to, co chcete změnit.
 
-Other vanilla vehicle parent classes you could extend:
+Další vanilkové rodičovské třídy vozidel, které můžete rozšířit:
 
-| Parent Class | Vehicle |
-|-------------|---------|
-| `OffroadHatchback` | Niva (4-seat hatchback) |
-| `CivilianSedan` | Olga (4-seat sedan) |
-| `Hatchback_02` | Golf/Gunter (4-seat hatchback) |
-| `Sedan_02` | Sarka 120 (4-seat sedan) |
-| `Offroad_02` | Humvee (4-seat offroad) |
-| `Truck_01_Base` | V3S (truck) |
+| Rodičovská třída | Vozidlo |
+|-----------------|---------|
+| `OffroadHatchback` | Niva (4-místný hatchback) |
+| `CivilianSedan` | Olga (4-místný sedan) |
+| `Hatchback_02` | Golf/Gunter (4-místný hatchback) |
+| `Sedan_02` | Sarka 120 (4-místný sedan) |
+| `Offroad_02` | Humvee (4-místný terénní vůz) |
+| `Truck_01_Base` | V3S (nákladní automobil) |
 
-### About SimulationModule
+### O SimulationModule
 
-The `SimulationModule` controls how the vehicle drives. Key parameters:
+`SimulationModule` řídí, jak vozidlo jezdí. Klíčové parametry:
 
-| Parametr | Effect |
-|-----------|--------|
-| `drive` | `0` = rear-wheel drive, `1` = front-wheel drive, `2` = all-wheel drive |
-| `torqueMax` | Peak engine torque in Nm. Higher = more acceleration. Vanilla Niva is ~114. |
-| `powerMax` | Peak horsepower. Higher = faster top speed. Vanilla Niva is ~68. |
-| `rpmRedline` | Engine redline RPM. Beyond this, the engine bounces off the rev limiter. |
-| `ratios[]` | Gear ratios. Lower numbers = taller gears = higher top speed but slower acceleration. |
-| `transmissionRatio` | Final drive ratio. Acts as a multiplier on all gears. |
+| Parametr | Efekt |
+|----------|-------|
+| `drive` | `0` = zadní pohon, `1` = přední pohon, `2` = pohon všech kol |
+| `torqueMax` | Špičkový točivý moment motoru v Nm. Vyšší = větší zrychlení. Vanilková Niva je ~114. |
+| `powerMax` | Špičkový výkon. Vyšší = vyšší maximální rychlost. Vanilková Niva je ~68. |
+| `rpmRedline` | Otáčky červené zóny motoru. Za nimi motor naráží na omezovač otáček. |
+| `ratios[]` | Převodové poměry. Nižší čísla = delší převody = vyšší maximální rychlost, ale pomalejší zrychlení. |
+| `transmissionRatio` | Koncový převodový poměr. Funguje jako násobič všech převodů. |
 
-### About DamageZones
+### O zónách poškození
 
-Each damage zone has its own health pool. When a zone's health reaches zero, that component is ruined:
+Každá zóna poškození má vlastní zásobu zdraví. Když zdraví zóny dosáhne nuly, tento komponent je zničen:
 
-| Zone | Effect When Ruined |
+| Zóna | Efekt při zničení |
 |------|-------------------|
-| `Engine` | Vehicle cannot start |
-| `FuelTank` | Fuel leaks out |
-| `Front` / `Rear` | Visual damage, reduced protection |
-| `Door_1_1` / `Door_2_1` | Door falls off |
-| `WindowFront` | Window shatters (affects sound insulation) |
+| `Engine` | Vozidlo nelze nastartovat |
+| `FuelTank` | Palivo uniká |
+| `Front` / `Rear` | Vizuální poškození, snížená ochrana |
+| `Door_1_1` / `Door_2_1` | Dveře odpadnou |
+| `WindowFront` | Okno se roztříští (ovlivňuje zvukovou izolaci) |
 
-The `transferToGlobalCoef` value determines how much damage transfers from this zone to the vehicle's global health. `1` means 100% transfer (engine damage hurts overall health), `0` means no transfer.
+Hodnota `transferToGlobalCoef` určuje, kolik poškození se přenáší z této zóny na celkové zdraví vozidla. `1` znamená 100% přenos (poškození motoru škodí celkovému zdraví), `0` znamená žádný přenos.
 
-The `componentNames[]` must match named components in the vehicle's geometry LOD. Since we inherit the Niva model, we use placeholder names here -- the parent class's geometry components are what actually matter for collision detection. If you are using the vanilla model without modification, the parent's component mapping applies automatically.
+`componentNames[]` musí odpovídat pojmenovaným komponentům v geometrickém LOD vozidla. Jelikož dědíme model Nivy, používáme zde zástupné názvy -- mapování komponentů rodičovské třídy je to, co skutečně záleží na detekci kolizí. Pokud používáte vanilkový model bez úprav, mapování geometrie rodiče se aplikuje automaticky.
 
 ---
 
-## Step 2: Custom Textures
+## Krok 2: Vlastní textury
 
-### How Vehicle Hidden Selections Work
+### Jak fungují skryté výběry vozidel
 
-Vehicle hidden selections work the same way as item textures, but vehicles typically have more selection slots. The Offroad Hatchback model uses selections for different body panels, allowing color variants (White, Blue) in vanilla.
+Skryté výběry vozidel fungují stejně jako textury předmětů, ale vozidla mají typicky více výběrových slotů. Model Offroad Hatchback používá výběry pro různé karosářské panely, což umožňuje barevné varianty (bílá, modrá) ve vanilce.
 
-### Using Vanilla Textures (Fastest Start)
+### Použití vanilkových textur (nejrychlejší start)
 
-For initial testing, point your hidden selections at existing vanilla textures. This confirms your config works before you create custom art:
+Pro počáteční testování nasměrujte vaše skryté výběry na existující vanilkové textury. Tím potvrdíte, že vaše konfigurace funguje, než vytvoříte vlastní grafiku:
 
 ```cpp
 hiddenSelectionsTextures[] =
@@ -390,46 +394,46 @@ hiddenSelectionsTextures[] =
 };
 ```
 
-Empty strings `""` mean "use the model's default texture for this selection."
+Prázdné řetězce `""` znamenají "použít výchozí texturu modelu pro tento výběr."
 
-### Creating a Custom Texture Set
+### Vytvoření vlastní sady textur
 
-To create a unique appearance:
+Pro vytvoření unikátního vzhledu:
 
-1. **Extract the vanilla texture** using DayZ Tools' Addon Builder or P: drive to find:
+1. **Extrahujte vanilkovou texturu** pomocí Addon Builderu z DayZ Tools nebo P: disku k nalezení:
    ```
    P:\DZ\vehicles\wheeled\offroadhatchback\data\niva_body_co.paa
    ```
 
-2. **Convert to editable format** using TexView2:
-   - Open the `.paa` file in TexView2
-   - Export as `.tga` or `.png`
+2. **Převeďte do editovatelného formátu** pomocí TexView2:
+   - Otevřete soubor `.paa` v TexView2
+   - Exportujte jako `.tga` nebo `.png`
 
-3. **Edit in your image editor** (GIMP, Photoshop, Paint.NET):
-   - Vehicle textures are typically **2048x2048** or **4096x4096**
-   - Modify colors, add decals, racing stripes, or rust effects
-   - Keep the UV layout intact -- only change colors and details
+3. **Upravte ve vašem grafickém editoru** (GIMP, Photoshop, Paint.NET):
+   - Textury vozidel mají typicky rozlišení **2048x2048** nebo **4096x4096**
+   - Upravte barvy, přidejte polepy, závodní pruhy nebo efekty rzi
+   - Zachovejte UV rozložení nedotčené -- měňte pouze barvy a detaily
 
-4. **Convert back to `.paa`**:
-   - Open your edited image in TexView2
-   - Save as `.paa` format
-   - Save to `MyFirstMod/Data/Textures/rally_body_co.paa`
+4. **Převeďte zpět na `.paa`**:
+   - Otevřete váš upravený obrázek v TexView2
+   - Uložte ve formátu `.paa`
+   - Uložte do `MyFirstMod/Data/Textures/rally_body_co.paa`
 
-### Texture Naming Conventions for Vehicles
+### Konvence pojmenování textur pro vozidla
 
-| Suffix | Typ | Ucel |
-|--------|------|---------|
-| `_co` | Color (Diffuse) | Main color and appearance |
-| `_nohq` | Normal Map | Surface bumps, panel lines, rivet detail |
-| `_smdi` | Specular | Metallic shine, paint reflections |
-| `_as` | Alpha/Surface | Transparency for windows |
-| `_de` | Destruct | Damage overlay textures |
+| Přípona | Typ | Účel |
+|---------|-----|------|
+| `_co` | Barva (Diffuse) | Hlavní barva a vzhled |
+| `_nohq` | Normálová mapa | Povrchové nerovnosti, panelové linie, detaily nýtů |
+| `_smdi` | Spekulární | Kovový lesk, odrazy laku |
+| `_as` | Alpha/Povrch | Průhlednost pro okna |
+| `_de` | Destrukce | Textury překryvu poškození |
 
-For a first vehicle mod, only the `_co` texture is required. The model uses its default normal and specular maps.
+Pro první mod vozidla je vyžadována pouze textura `_co`. Model používá své výchozí normálové a spekulární mapy.
 
-### Matching Materials (Optional)
+### Přiřazení materiálů (volitelné)
 
-For full material control, create an `.rvmat` file:
+Pro plnou kontrolu materiálu vytvořte soubor `.rvmat`:
 
 ```cpp
 hiddenSelectionsMaterials[] =
@@ -445,13 +449,13 @@ hiddenSelectionsMaterials[] =
 
 ---
 
-## Step 3: Script Behavior (CarScript)
+## Krok 3: Skriptové chování (CarScript)
 
-Vehicle script classes control engine sounds, door logic, crew entry/exit behavior, and seat animations. Since we extend `OffroadHatchback`, we inherit all vanilla behavior and only override what we want to customize.
+Skriptové třídy vozidel řídí zvuky motoru, logiku dveří, chování nastupování/vystupování posádky a animace sedadel. Jelikož rozšiřujeme `OffroadHatchback`, dědíme veškeré vanilkové chování a přepisujeme pouze to, co chceme přizpůsobit.
 
-### Create the Script File
+### Vytvoření souboru skriptu
 
-Create the folder structure and script file:
+Vytvořte strukturu adresářů a soubor skriptu:
 
 ```
 MyFirstMod/
@@ -462,9 +466,9 @@ MyFirstMod/
                 MFM_RallyHatchback.c
 ```
 
-### Update Scripts config.cpp
+### Aktualizace Scripts config.cpp
 
-Your `Scripts/config.cpp` must register the `4_World` layer so the engine loads your script:
+Váš `Scripts/config.cpp` musí registrovat vrstvu `4_World`, aby engine načetl váš skript:
 
 ```cpp
 class CfgPatches
@@ -505,16 +509,16 @@ class CfgMods
 };
 ```
 
-### Write the Vehicle Script
+### Napsání skriptu vozidla
 
-Create `4_World/MyFirstMod/MFM_RallyHatchback.c`:
+Vytvořte `4_World/MyFirstMod/MFM_RallyHatchback.c`:
 
 ```c
 class MFM_RallyHatchback extends OffroadHatchback
 {
     void MFM_RallyHatchback()
     {
-        // Override engine sounds (reuse vanilla Niva sounds)
+        // Přepsání zvuků motoru (opětovné použití vanilkových zvuků Nivy)
         m_EngineStartOK         = "offroad_engine_start_SoundSet";
         m_EngineStartBattery    = "offroad_engine_failed_start_battery_SoundSet";
         m_EngineStartPlug       = "offroad_engine_failed_start_sparkplugs_SoundSet";
@@ -530,30 +534,30 @@ class MFM_RallyHatchback extends OffroadHatchback
         m_CarHornShortSoundName = "Offroad_Horn_Short_SoundSet";
         m_CarHornLongSoundName  = "Offroad_Horn_SoundSet";
 
-        // Engine position in model space (x, y, z) -- used for
-        // temperature source, drowning detection, and particle effects
+        // Pozice motoru v prostoru modelu (x, y, z) -- používá se pro
+        // zdroj teploty, detekci topení a částicové efekty
         SetEnginePos("0 0.7 1.2");
     }
 
-    // --- Animation Instance ---
-    // Determines which player animation set is used when entering/exiting.
-    // Must match the vehicle skeleton. Since we use the Niva model, keep HATCHBACK.
+    // --- Instance animace ---
+    // Určuje, která sada animací hráče se použije při nastupování/vystupování.
+    // Musí odpovídat kostře vozidla. Jelikož používáme model Nivy, zachováme HATCHBACK.
     override int GetAnimInstance()
     {
         return VehicleAnimInstances.HATCHBACK;
     }
 
-    // --- Camera Distance ---
-    // How far the third-person camera sits behind the vehicle.
-    // Vanilla Niva is 3.5. Increase for a wider view.
+    // --- Vzdálenost kamery ---
+    // Jak daleko sedí kamera třetí osoby za vozidlem.
+    // Vanilková Niva je 3.5. Zvyšte pro širší pohled.
     override float GetTransportCameraDistance()
     {
         return 4.0;
     }
 
-    // --- Seat Animation Types ---
-    // Maps each seat index to a player animation type.
-    // 0 = driver, 1 = co-driver, 2 = rear left, 3 = rear right.
+    // --- Typy animací sedadel ---
+    // Mapuje každý index sedadla na typ animace hráče.
+    // 0 = řidič, 1 = spolujezdec, 2 = zadní levé, 3 = zadní pravé.
     override int GetSeatAnimationType(int posIdx)
     {
         switch (posIdx)
@@ -571,10 +575,10 @@ class MFM_RallyHatchback extends OffroadHatchback
         return 0;
     }
 
-    // --- Door State ---
-    // Returns whether a door is missing, open, or closed.
-    // Slot names (NivaDriverDoors, NivaCoDriverDoors, NivaHood, NivaTrunk)
-    // are defined by the model's inventory slot proxies.
+    // --- Stav dveří ---
+    // Vrací, zda dveře chybí, jsou otevřené nebo zavřené.
+    // Názvy slotů (NivaDriverDoors, NivaCoDriverDoors, NivaHood, NivaTrunk)
+    // jsou definovány proxy sloty inventáře modelu.
     override int GetCarDoorsState(string slotType)
     {
         CarDoor carDoor;
@@ -603,11 +607,11 @@ class MFM_RallyHatchback extends OffroadHatchback
         return CarDoorState.DOORS_MISSING;
     }
 
-    // --- Crew Entry/Exit ---
-    // Determines whether a player can get in or out of a specific seat.
-    // Checks door state and seat-fold animation phase.
-    // Front seats (0, 1) require the door to be open.
-    // Rear seats (2, 3) require the door open AND the front seat folded forward.
+    // --- Nastupování/vystupování posádky ---
+    // Určuje, zda hráč může nastoupit nebo vystoupit z konkrétního sedadla.
+    // Kontroluje stav dveří a fázi animace sklopení sedadla.
+    // Přední sedadla (0, 1) vyžadují otevřené dveře.
+    // Zadní sedadla (2, 3) vyžadují otevřené dveře A sklopené přední sedadlo dopředu.
     override bool CrewCanGetThrough(int posIdx)
     {
         switch (posIdx)
@@ -644,8 +648,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return false;
     }
 
-    // --- Hood Check for Attachments ---
-    // Prevents players from removing engine parts when the hood is closed.
+    // --- Kontrola kapoty pro příslušenství ---
+    // Zabraňuje hráčům odejmout díly motoru, když je kapota zavřená.
     override bool CanReleaseAttachment(EntityAI attachment)
     {
         if (!super.CanReleaseAttachment(attachment))
@@ -665,8 +669,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Cargo Access ---
-    // Trunk must be open to access vehicle cargo.
+    // --- Přístup k nákladu ---
+    // Kufr musí být otevřený pro přístup k nákladu vozidla.
     override bool CanDisplayCargo()
     {
         if (!super.CanDisplayCargo())
@@ -682,8 +686,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Engine Compartment Access ---
-    // Hood must be open to see engine attachment slots.
+    // --- Přístup k motorovému prostoru ---
+    // Kapota musí být otevřená pro zobrazení slotů příslušenství motoru.
     override bool CanDisplayAttachmentCategory(string category_name)
     {
         if (!super.CanDisplayAttachmentCategory(category_name))
@@ -703,9 +707,9 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Debug Spawn ---
-    // Called when spawning from debug menu. Spawns with all parts attached
-    // and fluids filled for immediate testing.
+    // --- Ladící spawn ---
+    // Voláno při spawnu z ladícího menu. Spawnuje se všemi připojenými díly
+    // a naplněnými kapalinami pro okamžité testování.
     override void OnDebugSpawn()
     {
         SpawnUniversalParts();
@@ -723,40 +727,40 @@ class MFM_RallyHatchback extends OffroadHatchback
         inventory.CreateInInventory("HatchbackHood");
         inventory.CreateInInventory("HatchbackTrunk");
 
-        // Spare wheels in cargo
+        // Náhradní kola v nákladu
         inventory.CreateInInventory("HatchbackWheel");
         inventory.CreateInInventory("HatchbackWheel");
     }
 };
 ```
 
-### Understanding Key Overrides
+### Pochopení klíčových overridů
 
-**GetAnimInstance** -- Vraci which animation set the player uses when sitting in the vehicle. The enum values are:
+**GetAnimInstance** -- Vrací, kterou sadu animací hráč použije při sezení ve vozidle. Hodnoty enumu jsou:
 
-| Hodnota | Konstanta | Vehicle Typ |
-|-------|----------|-------------|
-| 0 | `CIVVAN` | Van |
-| 1 | `V3S` | V3S Truck |
-| 2 | `SEDAN` | Olga Sedan |
-| 3 | `HATCHBACK` | Niva Hatchback |
+| Hodnota | Konstanta | Typ vozidla |
+|---------|-----------|-------------|
+| 0 | `CIVVAN` | Dodávka |
+| 1 | `V3S` | Nákladní automobil V3S |
+| 2 | `SEDAN` | Sedan Olga |
+| 3 | `HATCHBACK` | Hatchback Niva |
 | 5 | `S120` | Sarka 120 |
 | 7 | `GOLF` | Gunter 2 |
 | 8 | `HMMWV` | Humvee |
 
-If you change this to the wrong value, the player's animation will clip through the vehicle or look incorrect. Always match the model you are using.
+Pokud toto změníte na špatnou hodnotu, animace hráče bude prostupovat vozidlem nebo vypadat nesprávně. Vždy shodujte s modelem, který používáte.
 
-**CrewCanGetThrough** -- This is called every frame to determine if a player can enter or exit a seat. The Niva's rear seats (indices 2 and 3) work differently from the front seats: the front seatback must be folded forward (animation phase > 0.5) before rear passengers can get through. This matches the real-world behavior of a 2-door hatchback where rear passengers must tilt the front seat.
+**CrewCanGetThrough** -- Voláno každý snímek pro určení, zda hráč může nastoupit nebo vystoupit z sedadla. Zadní sedadla Nivy (indexy 2 a 3) fungují odlišně od předních: opěradlo předního sedadla musí být sklopeno dopředu (fáze animace > 0.5), než mohou zadní cestující projít. To odpovídá chování skutečného 2-dveřového hatchbacku, kde zadní cestující musí sklopit přední sedadlo.
 
-**OnDebugSpawn** -- Called when you use the debug spawn menu. `SpawnUniversalParts()` adds headlight bulbs and a car battery. `FillUpCarFluids()` fills fuel, coolant, oil, and brake fluid to maximum. We then create wheels, doors, hood, and trunk. This gives you an immediately drivable vehicle for testing.
+**OnDebugSpawn** -- Voláno při použití ladícího spawn menu. `SpawnUniversalParts()` přidá žárovky světlometů a autobaterii. `FillUpCarFluids()` naplní palivo, chladicí kapalinu, olej a brzdovou kapalinu na maximum. Poté vytvoříme kola, dveře, kapotu a kufr. To vám dá okamžitě řiditelné vozidlo pro testování.
 
 ---
 
-## Step 4: types.xml Entry
+## Krok 4: Záznam v types.xml
 
-### Vehicle Spawn Configuration
+### Konfigurace spawnu vozidla
 
-Vehicles in `types.xml` use the same format as items, but with some important differences. Add this to your server's `types.xml`:
+Vozidla v `types.xml` používají stejný formát jako předměty, ale s některými důležitými rozdíly. Přidejte toto do `types.xml` vašeho serveru:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -778,18 +782,18 @@ Vehicles in `types.xml` use the same format as items, but with some important di
 </type>
 ```
 
-### Vehicle vs Item Differences in types.xml
+### Rozdíly mezi vozidly a předměty v types.xml
 
-| Setting | Items | Vehicles |
-|---------|-------|----------|
-| `nominal` | 10-50+ | 1-5 (vehicles are rare) |
-| `lifetime` | 3600-14400 | 3888000 (45 days -- vehicles persist a long time) |
-| `restock` | 1800 | 0 (vehicles do not restock automatically; they respawn only after the previous one is destroyed and despawned) |
-| `category` | `tools`, `weapons`, etc. | `vehicles` |
+| Nastavení | Předměty | Vozidla |
+|-----------|----------|---------|
+| `nominal` | 10-50+ | 1-5 (vozidla jsou vzácná) |
+| `lifetime` | 3600-14400 | 3888000 (45 dní -- vozidla přetrvávají dlouho) |
+| `restock` | 1800 | 0 (vozidla se nedoplňují automaticky; respawnují se až poté, co je předchozí zničeno a despawnováno) |
+| `category` | `tools`, `weapons` atd. | `vehicles` |
 
-### Pre-Attached Parts with cfgspawnabletypes.xml
+### Předpřipojené díly s cfgspawnabletypes.xml
 
-Vehicles spawn as empty shells by default -- no wheels, doors, or engine parts. To make them spawn with parts pre-attached, add entries to `cfgspawnabletypes.xml` in the server mission folder:
+Vozidla se ve výchozím stavu spawnují jako prázdné skořápky -- bez kol, dveří nebo dílů motoru. Aby se spawnovala s předpřipojenými díly, přidejte záznamy do `cfgspawnabletypes.xml` ve složce mise serveru:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -821,47 +825,47 @@ Vehicles spawn as empty shells by default -- no wheels, doors, or engine parts. 
 </type>
 ```
 
-### How cfgspawnabletypes Works
+### Jak cfgspawnabletypes funguje
 
-Each `<attachments>` block is evaluated independently:
-- The outer `chance` determines if this group of attachments is considered at all
-- Each `<item>` within has its own `chance` of being placed
-- Items are placed into the first available matching slot on the vehicle
+Každý blok `<attachments>` se vyhodnocuje nezávisle:
+- Vnější `chance` určuje, zda se tato skupina příslušenství vůbec zvažuje
+- Každý `<item>` uvnitř má vlastní `chance` umístění
+- Předměty se umisťují do prvního dostupného odpovídajícího slotu na vozidle
 
-This means a vehicle might spawn with 3 wheels and no doors, or with all wheels and a battery but no spark plug. This creates the scavenging gameplay loop -- players must find the missing parts.
+To znamená, že vozidlo se může spawnovat se 3 koly a žádnými dveřmi, nebo se všemi koly a baterií, ale bez zapalovací svíčky. To vytváří herní smyčku sběru -- hráči musí najít chybějící díly.
 
 ---
 
-## Step 5: Build and Test
+## Krok 5: Sestavení a testování
 
-### Pack the PBOs
+### Zabalení PBO
 
-You need two PBOs for this mod:
+Pro tento mod potřebujete dvě PBO:
 
 ```
 @MyFirstMod/
     mod.cpp
     Addons/
-        Scripts.pbo          <-- Contains Scripts/config.cpp and 4_World/
-        Data.pbo             <-- Contains Data/config.cpp and Textures/
+        Scripts.pbo          <-- Obsahuje Scripts/config.cpp a 4_World/
+        Data.pbo             <-- Obsahuje Data/config.cpp a Textures/
 ```
 
-Use Addon Builder from DayZ Tools:
+Použijte Addon Builder z DayZ Tools:
 1. **Scripts PBO:** Source = `MyFirstMod/Scripts/`, Prefix = `MyFirstMod/Scripts`
 2. **Data PBO:** Source = `MyFirstMod/Data/`, Prefix = `MyFirstMod/Data`
 
-Or use file patching during development:
+Nebo použijte file patching během vývoje:
 
 ```
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 ```
 
-### Spawn the Vehicle Using the Script Console
+### Spawn vozidla pomocí skriptové konzole
 
-1. Launch DayZ with your mod loaded
-2. Join your server or start offline mode
-3. Open the script console
-4. To spawn a fully equipped vehicle near your character:
+1. Spusťte DayZ s načteným vaším modem
+2. Připojte se k serveru nebo spusťte offline režim
+3. Otevřete skriptovou konzoli
+4. Pro spawn plně vybaveného vozidla poblíž vaší postavy:
 
 ```c
 EntityAI vehicle;
@@ -870,13 +874,13 @@ pos[2] = pos[2] + 5;
 vehicle = EntityAI.Cast(GetGame().CreateObject("MFM_RallyHatchback", pos, false, false, true));
 ```
 
-5. Press **Execute**
+5. Stiskněte **Execute**
 
-The vehicle should appear 5 meters in front of you.
+Vozidlo by se mělo objevit 5 metrů před vámi.
 
-### Spawn a Ready-to-Drive Vehicle
+### Spawn vozidla připraveného k jízdě
 
-For faster testing, spawn the vehicle and use the debug spawn method that attaches all parts:
+Pro rychlejší testování spawnujte vozidlo a použijte metodu debug spawnu, která připojí všechny díly:
 
 ```c
 vector pos = GetGame().GetPlayer().GetPosition();
@@ -889,46 +893,46 @@ if (car)
 }
 ```
 
-This calls your `OnDebugSpawn()` override, which fills fluids and attaches wheels, doors, hood, and trunk.
+To zavolá váš override `OnDebugSpawn()`, který naplní kapaliny a připojí kola, dveře, kapotu a kufr.
 
-### What to Test
+### Co testovat
 
-| Check | What to Look For |
-|-------|-----------------|
-| **Vehicle spawns** | Appears in the world without errors in the script log |
-| **Textures applied** | Custom body color is visible (if using custom textures) |
-| **Engine starts** | Get in, hold the engine start key. Listen for start sound. |
-| **Driving** | Acceleration, top speed, handling feel different from vanilla |
-| **Doors** | Can open/close driver and co-driver doors |
-| **Hood/Trunk** | Can open hood to access engine parts. Can open trunk for cargo. |
-| **Rear seats** | Fold front seat, then enter rear seat |
-| **Fuel consumption** | Drive and watch the fuel gauge |
-| **Damage** | Shoot the vehicle. Parts should take damage and eventually break. |
-| **Lights** | Headlights and rear lights work at night |
+| Kontrola | Na co se dívat |
+|----------|----------------|
+| **Vozidlo se spawnuje** | Objeví se ve světě bez chyb v logu skriptů |
+| **Textury aplikovány** | Vlastní barva karoserie je viditelná (při použití vlastních textur) |
+| **Motor startuje** | Nasedněte, podržte klávesu startu motoru. Poslouchejte zvuk startu. |
+| **Jízda** | Zrychlení, maximální rychlost, chování řízení se liší od vanilky |
+| **Dveře** | Lze otevírat/zavírat dveře řidiče a spolujezdce |
+| **Kapota/kufr** | Lze otevřít kapotu pro přístup k dílům motoru. Lze otevřít kufr pro náklad. |
+| **Zadní sedadla** | Sklopte přední sedadlo, pak nastupte na zadní sedadlo |
+| **Spotřeba paliva** | Jeďte a sledujte ukazatel paliva |
+| **Poškození** | Střelte do vozidla. Díly by měly přijímat poškození a nakonec se rozbít. |
+| **Světla** | Přední a zadní světla fungují v noci |
 
-### Reading the Script Log
+### Čtení logu skriptů
 
-If the vehicle does not spawn or behaves incorrectly, check the script log at:
+Pokud se vozidlo nespawnuje nebo se chová nesprávně, zkontrolujte log skriptů na:
 
 ```
-%localappdata%\DayZ\<YourProfile>\script.log
+%localappdata%\DayZ\<VášProfil>\script.log
 ```
 
-Common errors:
+Běžné chyby:
 
-| Log Zprava | Pricina |
-|-------------|-------|
-| `Cannot create object type MFM_RallyHatchback` | config.cpp class name mismatch or Data PBO not loaded |
-| `Undefined variable 'OffroadHatchback'` | `requiredAddons` missing `"DZ_Vehicles_Wheeled"` |
-| `Member not found` on method call | Typo in override method name |
+| Zpráva v logu | Příčina |
+|---------------|---------|
+| `Cannot create object type MFM_RallyHatchback` | Nesoulad názvu třídy v config.cpp nebo Data PBO není načteno |
+| `Undefined variable 'OffroadHatchback'` | V `requiredAddons` chybí `"DZ_Vehicles_Wheeled"` |
+| `Member not found` u volání metody | Překlep v názvu override metody |
 
 ---
 
-## Step 6: Polish
+## Krok 6: Doladění
 
-### Custom Horn Sound
+### Vlastní zvuk klaksonu
 
-To give your vehicle a unique horn, define custom sound sets in your Data config.cpp:
+Pro udělení unikátního klaksonu vašemu vozidlu definujte vlastní sound sety ve vašem Data config.cpp:
 
 ```cpp
 class CfgSoundShaders
@@ -968,31 +972,31 @@ class CfgSoundSets
 };
 ```
 
-Then reference them in your script constructor:
+Poté na ně odkažte v konstruktoru vašeho skriptu:
 
 ```c
 m_CarHornShortSoundName = "MFM_RallyHornShort_SoundSet";
 m_CarHornLongSoundName  = "MFM_RallyHorn_SoundSet";
 ```
 
-Sound files must be `.ogg` format. The path in `samples[]` does NOT include the file extension.
+Zvukové soubory musí být ve formátu `.ogg`. Cesta v `samples[]` NEobsahuje příponu souboru.
 
-### Custom Headlights
+### Vlastní světlomety
 
-You can create a custom light class to change headlight brightness, color, or range:
+Můžete vytvořit vlastní třídu světel pro změnu jasu, barvy nebo dosahu světlometů:
 
 ```c
 class MFM_RallyFrontLight extends CarLightBase
 {
     void MFM_RallyFrontLight()
     {
-        // Low beam (segregated)
+        // Potkávací světla (segregované)
         m_SegregatedBrightness = 7;
         m_SegregatedRadius = 65;
         m_SegregatedAngle = 110;
         m_SegregatedColorRGB = Vector(0.9, 0.9, 1.0);
 
-        // High beam (aggregated)
+        // Dálková světla (agregované)
         m_AggregatedBrightness = 14;
         m_AggregatedRadius = 90;
         m_AggregatedAngle = 120;
@@ -1006,7 +1010,7 @@ class MFM_RallyFrontLight extends CarLightBase
 };
 ```
 
-Override in your vehicle class:
+Override ve vaší třídě vozidla:
 
 ```c
 override CarLightBase CreateFrontLight()
@@ -1015,9 +1019,9 @@ override CarLightBase CreateFrontLight()
 }
 ```
 
-### Sound Insulation (OnSound)
+### Zvuková izolace (OnSound)
 
-The `OnSound` override controls how much the cabin muffles engine noise based on door and window state:
+Override `OnSound` řídí, jak moc kabina tlumí hluk motoru na základě stavu dveří a oken:
 
 ```c
 override float OnSound(CarSoundCtrl ctrl, float oldValue)
@@ -1057,13 +1061,13 @@ override float OnSound(CarSoundCtrl ctrl, float oldValue)
 }
 ```
 
-A value of `1.0` means full insulation (quiet cabin), `0.0` means no insulation (open-air feeling).
+Hodnota `1.0` znamená plnou izolaci (tichá kabina), `0.0` znamená žádnou izolaci (pocit otevřeného prostoru).
 
 ---
 
-## Complete Code Reference
+## Kompletní referenční kód
 
-### Final Directory Structure
+### Finální adresářová struktura
 
 ```
 MyFirstMod/
@@ -1078,8 +1082,8 @@ MyFirstMod/
         Textures/
             rally_body_co.paa
         Sounds/
-            rally_horn.ogg           (optional)
-            rally_horn_short.ogg     (optional)
+            rally_horn.ogg           (volitelné)
+            rally_horn_short.ogg     (volitelné)
 ```
 
 ### MyFirstMod/mod.cpp
@@ -1132,7 +1136,7 @@ class CfgMods
 };
 ```
 
-### Server Mission types.xml Entry
+### Záznam types.xml mise serveru
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1154,7 +1158,7 @@ class CfgMods
 </type>
 ```
 
-### Server Mission cfgspawnabletypes.xml Entry
+### Záznam cfgspawnabletypes.xml mise serveru
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1188,15 +1192,15 @@ class CfgMods
 
 ---
 
-## Doporucene postupy
+## Doporučené postupy
 
-- **Always extend an existing vehicle class.** Creating a vehicle from scratch requires a custom 3D model with correct geometry LODs, proxies, memory points, and a physics simulation config. Extending a vanilla vehicle gives you all of this for free.
-- **Test with `OnDebugSpawn()` first.** Before setting up types.xml and cfgspawnabletypes.xml, verify the vehicle works by spawning it fully equipped via the debug menu or script console.
-- **Keep the same `GetAnimInstance()` as the parent.** If you change this without a matching animation set, players will T-pose or clip through the vehicle.
-- **Do not change door slot names.** The Niva uses `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. These are tied to the model's proxy names and inventory slot definitions. Changing them without changing the model will break door functionality.
-- **Use `scope = 0` for internal base classes.** If you create an abstract base vehicle that other variants extend, set `scope = 0` so it never spawns directly.
-- **Set `requiredAddons` correctly.** Your Data config.cpp must list `"DZ_Vehicles_Wheeled"` so the parent `OffroadHatchback` class loads before yours.
-- **Test door logic thoroughly.** Enter/exit every seat, open/close every door, try accessing the engine bay with the hood closed. CrewCanGetThrough bugs are the most common vehicle mod issue.
+- **Vždy rozšiřujte existující třídu vozidla.** Vytvoření vozidla od nuly vyžaduje vlastní 3D model se správnými geometrickými LOD, proxy, paměťovými body a konfigurací fyzikální simulace. Rozšíření vanilkového vozidla vám toto vše dá zdarma.
+- **Testujte nejprve s `OnDebugSpawn()`.** Než nastavíte types.xml a cfgspawnabletypes.xml, ověřte, že vozidlo funguje spawnem plně vybaveného vozidla přes ladící menu nebo skriptovou konzoli.
+- **Zachovejte stejný `GetAnimInstance()` jako rodič.** Pokud toto změníte bez odpovídající sady animací, hráči budou v T-póze nebo budou prostupovat vozidlem.
+- **Neměňte názvy slotů dveří.** Niva používá `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. Ty jsou vázány na proxy názvy modelu a definice slotů inventáře. Jejich změna bez změny modelu rozbije funkčnost dveří.
+- **Použijte `scope = 0` pro interní základní třídy.** Pokud vytváříte abstraktní základní vozidlo, ze kterého dědí další varianty, nastavte `scope = 0`, aby se nikdy nespawnilo přímo.
+- **Nastavte `requiredAddons` správně.** Váš Data config.cpp musí uvádět `"DZ_Vehicles_Wheeled"`, aby se rodičovská třída `OffroadHatchback` načetla před vaší.
+- **Důkladně testujte logiku dveří.** Nastupte/vystupte z každého sedadla, otevřete/zavřete každé dveře, zkuste přistoupit k motorovému prostoru se zavřenou kapotou. Chyby v CrewCanGetThrough jsou nejčastějším problémem modů vozidel.
 
 ---
 
@@ -1204,64 +1208,64 @@ class CfgMods
 
 | Koncept | Teorie | Realita |
 |---------|--------|---------|
-| `SimulationModule` in config.cpp | Full control over vehicle physics | Not all parameters override cleanly when extending a parent class. If your speed/torque changes seem to have no effect, try adjusting `transmissionRatio` and gear `ratios[]` instead of just `torqueMax`. |
-| Damage zones with `componentNames[]` | Each zone maps to a geometry component | When extending a vanilla vehicle, the parent model's component names are already set. Your `componentNames[]` values in config only matter if you provide a custom model. The parent's geometry LOD determines actual hit detection. |
-| Custom textures via hidden selections | Swap any texture freely | Only selections the model author marked as "hidden" can be overridden. If you need to retexture a part not in `hiddenSelections[]`, you must create a new model or modify the existing one in Object Builder. |
-| Pre-attached parts in `cfgspawnabletypes.xml` | Items attach to matching slots | If a wheel class is incompatible with the vehicle (wrong attachment slot), it silently fails. Always use parts that the parent vehicle accepts -- for the Niva, that means `HatchbackWheel`, not `CivSedanWheel`. |
-| Engine sounds | Set any SoundSet name | Sound sets must be defined in `CfgSoundSets` somewhere in the loaded configs. If you reference a sound set that does not exist, the engine silently falls back to no sound -- no error in the log. |
+| `SimulationModule` v config.cpp | Plná kontrola nad fyzikou vozidla | Ne všechny parametry se čistě přepisují při rozšiřování rodičovské třídy. Pokud se zdá, že vaše změny rychlosti/točivého momentu nemají efekt, zkuste upravit `transmissionRatio` a `ratios[]` převodovky místo pouhého `torqueMax`. |
+| Zóny poškození s `componentNames[]` | Každá zóna mapuje na geometrický komponent | Při rozšiřování vanilkového vozidla jsou názvy komponentů rodičovského modelu již nastaveny. Vaše hodnoty `componentNames[]` v konfiguraci záleží pouze tehdy, pokud poskytnete vlastní model. Geometrický LOD rodiče určuje skutečnou detekci zásahů. |
+| Vlastní textury přes skryté výběry | Libovolná výměna textur | Přepsat lze pouze výběry, které autor modelu označil jako "skryté". Pokud potřebujete přetexturovat část, která není v `hiddenSelections[]`, musíte vytvořit nový model nebo upravit stávající v Object Builderu. |
+| Předpřipojené díly v `cfgspawnabletypes.xml` | Předměty se připojí k odpovídajícím slotům | Pokud je třída kola nekompatibilní s vozidlem (špatný slot příslušenství), tiše selže. Vždy používejte díly, které rodičovské vozidlo přijímá -- pro Nivu to znamená `HatchbackWheel`, nikoliv `CivSedanWheel`. |
+| Zvuky motoru | Nastavte libovolný název SoundSet | Sound sety musí být definovány v `CfgSoundSets` někde v načtených konfiguracích. Pokud odkážete na sound set, který neexistuje, engine tiše přepne na žádný zvuk -- v logu se neobjeví žádná chyba. |
 
 ---
 
-## What You Learned
+## Co jste se naučili
 
-In this tutorial you learned:
+V tomto tutoriálu jste se naučili:
 
-- How to define a custom vehicle class by extending an existing vanilla vehicle in config.cpp
-- How damage zones work and how to configure health values for each vehicle component
-- How vehicle hidden selections allow retexturing the body without a custom 3D model
-- How to write a vehicle script with door state logic, crew entry checks, and engine behavior
-- How `types.xml` and `cfgspawnabletypes.xml` work together for vehicle spawning with randomized pre-attached parts
-- How to test vehicles in-game using the script console and the `OnDebugSpawn()` method
-- How to add custom sounds for horns and custom light classes for headlights
+- Jak definovat vlastní třídu vozidla rozšířením existujícího vanilkového vozidla v config.cpp
+- Jak fungují zóny poškození a jak konfigurovat hodnoty zdraví pro každý komponent vozidla
+- Jak skryté výběry vozidel umožňují přetexturování karoserie bez vlastního 3D modelu
+- Jak napsat skript vozidla s logikou stavu dveří, kontrolami nastupování posádky a chováním motoru
+- Jak `types.xml` a `cfgspawnabletypes.xml` spolupracují při spawnování vozidel s náhodně předpřipojenými díly
+- Jak testovat vozidla ve hře pomocí skriptové konzole a metody `OnDebugSpawn()`
+- Jak přidat vlastní zvuky pro klaksony a vlastní třídy světel pro světlomety
 
-**Dalsi:** Expand your vehicle mod with custom door models, interior textures, or even a completely new vehicle body using Blender and Object Builder.
-
----
-
-## Caste chyby
-
-### Vehicle Spawns But Immediately Falls Through the Ground
-
-The physics geometry is not loading. This usually means `requiredAddons[]` is missing `"DZ_Vehicles_Wheeled"`, so the parent class physics config is not inherited.
-
-### Vehicle Spawns But Cannot Be Entered
-
-Check that `GetAnimInstance()` returns the correct enum value for your model. If you extend `OffroadHatchback` but return `VehicleAnimInstances.SEDAN`, the entry animation targets the wrong door positions and the player cannot get in.
-
-### Doors Do Not Open or Close
-
-Verify that `GetCarDoorsState()` uses the correct slot names. The Niva uses `"NivaDriverDoors"`, `"NivaCoDriverDoors"`, `"NivaHood"`, and `"NivaTrunk"`. These must match exactly, including capitalization.
-
-### Engine Starts But Vehicle Does Not Move
-
-Check your `SimulationModule` gear ratios. If `ratios[]` is empty or has zero values, the vehicle has no forward gears. Also verify the wheels are attached -- a vehicle with no wheels will rev but not move.
-
-### Vehicle Has No Sound
-
-Engine sounds are assigned in the constructor. If you misspell a SoundSet name (for example `"offroad_engine_Start_SoundSet"` instead of `"offroad_engine_start_SoundSet"`), the engine silently uses no sound. Sound set names are case-sensitive.
-
-### Custom Texture Not Showing
-
-Verify three things in order: (1) the hidden selection name matches the model exactly, (2) the texture path uses backslashes in config.cpp, and (3) the `.paa` file is inside the packed PBO. If using file patching during development, ensure the path starts from the mod root, not an absolute path.
-
-### Rear Seat Passengers Cannot Enter
-
-The Niva rear seats require the front seat to be folded forward. If your `CrewCanGetThrough()` override for seat indices 2 and 3 does not check `GetAnimationPhase("SeatDriver")` and `GetAnimationPhase("SeatCoDriver")`, rear passengers will be permanently locked out.
-
-### Vehicle Spawns Without Parts in Multiplayer
-
-`OnDebugSpawn()` is only for debug/testing. In a real server, parts come from `cfgspawnabletypes.xml`. If your vehicle spawns as a bare shell, add the `cfgspawnabletypes.xml` entry described in Step 4.
+**Další:** Rozšiřte svůj mod vozidla o vlastní modely dveří, interiérové textury nebo dokonce zcela novou karoserii vozidla pomocí Blenderu a Object Builderu.
 
 ---
 
-**Predchozi:** [Chapter 8.9: Professional Mod Template](09-professional-template.md)
+## Časté chyby
+
+### Vozidlo se spawnuje, ale okamžitě propadne zemí
+
+Fyzikální geometrie se nenačítá. To obvykle znamená, že v `requiredAddons[]` chybí `"DZ_Vehicles_Wheeled"`, takže konfigurace fyziky rodičovské třídy není zděděna.
+
+### Vozidlo se spawnuje, ale nelze do něj nastoupit
+
+Zkontrolujte, že `GetAnimInstance()` vrací správnou hodnotu enumu pro váš model. Pokud rozšiřujete `OffroadHatchback`, ale vracíte `VehicleAnimInstances.SEDAN`, animace nastupování cílí na špatné pozice dveří a hráč nemůže nastoupit.
+
+### Dveře se neotevírají ani nezavírají
+
+Ověřte, že `GetCarDoorsState()` používá správné názvy slotů. Niva používá `"NivaDriverDoors"`, `"NivaCoDriverDoors"`, `"NivaHood"` a `"NivaTrunk"`. Ty musí odpovídat přesně, včetně velkých a malých písmen.
+
+### Motor startuje, ale vozidlo se nepohybuje
+
+Zkontrolujte převodové poměry ve vašem `SimulationModule`. Pokud je `ratios[]` prázdné nebo má nulové hodnoty, vozidlo nemá žádné dopředné převody. Také ověřte, že jsou připojena kola -- vozidlo bez kol bude točit motorem, ale nepohne se.
+
+### Vozidlo nemá žádný zvuk
+
+Zvuky motoru se přiřazují v konstruktoru. Pokud překlepete název SoundSet (například `"offroad_engine_Start_SoundSet"` místo `"offroad_engine_start_SoundSet"`), engine tiše použije žádný zvuk. Názvy sound setů rozlišují velká a malá písmena.
+
+### Vlastní textura se nezobrazuje
+
+Ověřte tři věci v pořadí: (1) název skrytého výběru přesně odpovídá modelu, (2) cesta k textuře používá zpětná lomítka v config.cpp a (3) soubor `.paa` je uvnitř zabaleného PBO. Pokud používáte file patching během vývoje, ujistěte se, že cesta začíná od kořene modu, nikoliv jako absolutní cesta.
+
+### Cestující na zadních sedadlech nemohou nastoupit
+
+Zadní sedadla Nivy vyžadují sklopení předního sedadla dopředu. Pokud váš override `CrewCanGetThrough()` pro indexy sedadel 2 a 3 nekontroluje `GetAnimationPhase("SeatDriver")` a `GetAnimationPhase("SeatCoDriver")`, zadní cestující budou trvale uzamčeni.
+
+### Vozidlo se spawnuje bez dílů v multiplayeru
+
+`OnDebugSpawn()` je pouze pro ladění/testování. Na skutečném serveru díly pocházejí z `cfgspawnabletypes.xml`. Pokud se vaše vozidlo spawnuje jako holá skořápka, přidejte záznam `cfgspawnabletypes.xml` popsaný v kroku 4.
+
+---
+
+**Předchozí:** [Kapitola 8.9: Profesionální šablona modu](09-professional-template.md)

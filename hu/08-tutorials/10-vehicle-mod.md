@@ -1,49 +1,53 @@
-# Chapter 8.10: Creating a Custom Vehicle Mod
+# 8.10. fejezet: Egyéni jármű mod készítése
 
-[Home](../../README.md) | [<< Previous: Professional Mod Template](09-professional-template.md) | **Creating a Custom Vehicle** | [Next: Creating Custom Clothing >>](11-clothing-mod.md)
-
----
-
-## Tartalomjegyzek
-
-- [What We Are Building](#what-we-are-building)
-- [Elofeletelek](#prerequisites)
-- [Step 1: Create the Config (config.cpp)](#step-1-create-the-config-configcpp)
-- [Step 2: Custom Textures](#step-2-custom-textures)
-- [Step 3: Script Behavior (CarScript)](#step-3-script-behavior-carscript)
-- [Step 4: types.xml Entry](#step-4-typesxml-entry)
-- [Step 5: Build and Test](#step-5-build-and-test)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Legjobb gyakorlatok](#best-practices)
-- [Elmelet vs gyakorlat](#theory-vs-practice)
-- [What You Learned](#what-you-learned)
-- [Gyakori hibak](#common-mistakes)
+[Főoldal](../../README.md) | [<< Előző: Professzionális mod sablon](09-professional-template.md) | **Egyéni jármű készítése** | [Következő: Egyéni ruházat készítése >>](11-clothing-mod.md)
 
 ---
 
-## What We Are Building
-
-We will create a vehicle called **MFM Rally Hatchback** -- a modified version of the vanilla Offroad Hatchback (the Niva) with:
-
-- Custom retextured body panels using hidden selections
-- Modified engine performance (faster top speed, higher fuel consumption)
-- Adjusted damage zone health values (tougher engine, weaker doors)
-- All standard vehicle behavior: opening doors, engine start/stop, fuel, lights, crew entry/exit
-- Spawn table entry with pre-attached wheels and parts
-
-We extend `OffroadHatchback` rather than building a vehicle from scratch. This is the standard workflow for vehicle mods because it inherits the model, animations, physics geometry, and all existing behavior. You only override what you want to change.
+> **Összefoglaló:** Ez a bemutató végigvezet egy egyéni járművariáns létrehozásán a DayZ-ben egy meglévő vanilla jármű kiterjesztésével. A járművet a config.cpp-ben definiálod, testreszabod a statisztikáit és textúráit, szkript viselkedést írsz az ajtókhoz és a motorhoz, hozzáadod a szerver spawn táblához előre csatolt alkatrészekkel, és teszteled játékon belül. A végére egy teljesen vezethető egyéni Offroad Hatchback variánsod lesz módosított teljesítménnyel és megjelenéssel.
 
 ---
 
-## Elofeletelek
+## Tartalomjegyzék
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) and [Chapter 8.2](02-custom-item.md) first)
-- A text editor
-- DayZ Tools installed (for texture conversion, optional)
-- Basic familiarity with how config.cpp class inheritance works
+- [Mit építünk](#mit-építünk)
+- [Előfeltételek](#előfeltételek)
+- [1. lépés: A config létrehozása (config.cpp)](#1-lépés-a-config-létrehozása-configcpp)
+- [2. lépés: Egyéni textúrák](#2-lépés-egyéni-textúrák)
+- [3. lépés: Szkript viselkedés (CarScript)](#3-lépés-szkript-viselkedés-carscript)
+- [4. lépés: types.xml bejegyzés](#4-lépés-typesxml-bejegyzés)
+- [5. lépés: Összeállítás és tesztelés](#5-lépés-összeállítás-és-tesztelés)
+- [6. lépés: Finomhangolás](#6-lépés-finomhangolás)
+- [Teljes kód referencia](#teljes-kód-referencia)
+- [Legjobb gyakorlatok](#legjobb-gyakorlatok)
+- [Elmélet vs gyakorlat](#elmélet-vs-gyakorlat)
+- [Amit tanultál](#amit-tanultál)
+- [Gyakori hibák](#gyakori-hibák)
 
-Your mod should have this starting structure:
+---
+
+## Mit építünk
+
+Egy **MFM Rally Hatchback** nevű járművet hozunk létre -- a vanilla Offroad Hatchback (a Niva) módosított változatát a következőkkel:
+
+- Egyéni újratextúrázott karosszéria panelek rejtett szelekciókat használva
+- Módosított motor teljesítmény (gyorsabb végsebesség, magasabb üzemanyag-fogyasztás)
+- Módosított sérülési zóna életerő értékek (ellenállóbb motor, gyengébb ajtók)
+- Minden szabványos jármű viselkedés: ajtók nyitása, motor indítás/leállítás, üzemanyag, fények, legénység be/kiszállás
+- Spawn tábla bejegyzés előre csatolt kerekekkel és alkatrészekkel
+
+Az `OffroadHatchback` osztályt terjesztjük ki ahelyett, hogy nulláról építenénk járművet. Ez a szokásos munkafolyamat jármű modoknál, mert örökli a modellt, animációkat, fizikai geometriát és az összes meglévő viselkedést. Csak azt kell felülírnod, amit változtatni szeretnél.
+
+---
+
+## Előfeltételek
+
+- Működő mod struktúra (először végezd el a [8.1. fejezetet](01-first-mod.md) és a [8.2. fejezetet](02-custom-item.md))
+- Egy szövegszerkesztő
+- DayZ Tools telepítve (textúra konverzióhoz, opcionális)
+- Alapvető ismeretek a config.cpp osztályöröklés működéséről
+
+A modod kiinduló struktúrája legyen ilyen:
 
 ```
 MyFirstMod/
@@ -56,13 +60,13 @@ MyFirstMod/
 
 ---
 
-## Step 1: Create the Config (config.cpp)
+## 1. lépés: A config létrehozása (config.cpp)
 
-Vehicle definitions live in `CfgVehicles`, just like items. Despite the class name, `CfgVehicles` holds everything -- items, buildings, and actual vehicles alike. The key difference for vehicles is the parent class and the additional configuration for damage zones, attachments, and simulation parameters.
+A jármű definíciók a `CfgVehicles`-ben élnek, akárcsak a tárgyak. Az osztálynév ellenére a `CfgVehicles` mindent tartalmaz -- tárgyakat, épületeket és valódi járműveket egyaránt. A járművek esetében a kulcskülönbség a szülőosztály és a sérülési zónák, csatolmányok és szimulációs paraméterek kiegészítő konfigurációja.
 
-### Update Your Data config.cpp
+### A Data config.cpp frissítése
 
-Open `MyFirstMod/Data/config.cpp` and add the vehicle class. If you already have item definitions here from Chapter 8.2, add the vehicle class inside the existing `CfgVehicles` block.
+Nyisd meg a `MyFirstMod/Data/config.cpp` fájlt és add hozzá a jármű osztályt. Ha már vannak tárgy definícióid a 8.2. fejezetből, add hozzá a jármű osztályt a meglévő `CfgVehicles` blokkba.
 
 ```cpp
 class CfgPatches
@@ -90,7 +94,7 @@ class CfgVehicles
         displayName = "Rally Hatchback";
         descriptionShort = "A modified offroad hatchback built for speed.";
 
-        // --- Hidden Selections for retexturing ---
+        // --- Rejtett szekciók az újratextúrázáshoz ---
         hiddenSelections[] =
         {
             "camoGround",
@@ -110,10 +114,10 @@ class CfgVehicles
             ""
         };
 
-        // --- Simulation (physics and engine) ---
+        // --- Szimuláció (fizika és motor) ---
         class SimulationModule : SimulationModule
         {
-            // Drive type: 0 = RWD, 1 = FWD, 2 = AWD
+            // Meghajtás típusa: 0 = hátsókerék, 1 = elsőkerék, 2 = összkerék
             drive = 2;
 
             class Throttle
@@ -149,7 +153,7 @@ class CfgVehicles
             braking[] = { 0.0, 0.1, 0.8, 0.9, 0.95, 1.0 };
         };
 
-        // --- Damage Zones ---
+        // --- Sérülési zónák ---
         class DamageSystem
         {
             class GlobalHealth
@@ -307,76 +311,76 @@ class CfgVehicles
 };
 ```
 
-### Key Mezos Explained
+### Kulcsmezők magyarázata
 
-| Mezo | Cel |
+| Mező | Cél |
 |-------|---------|
-| `scope = 2` | Makes the vehicle spawnable. Use `0` for base classes that should never spawn directly. |
-| `displayName` | Name shown in admin tools and in-game. You can use `$STR_` references for localization. |
-| `requiredAddons[]` | Must include `"DZ_Vehicles_Wheeled"` so the parent class `OffroadHatchback` is loaded before your class. |
-| `hiddenSelections[]` | Texture slots on the model you want to override. Must match the model's named selections. |
-| `SimulationModule` | Physics and engine configuration. Controls speed, torque, gearing, and braking. |
-| `DamageSystem` | Defines health pools for each part of the vehicle (engine, doors, windows, body). |
+| `scope = 2` | Spawnolhatóvá teszi a járművet. Használj `0`-t olyan alaposztályokhoz, amelyek soha nem spawnolhatnak közvetlenül. |
+| `displayName` | Az admin eszközökben és játékon belül megjelenő név. Használhatsz `$STR_` hivatkozásokat lokalizációhoz. |
+| `requiredAddons[]` | Tartalmaznia kell a `"DZ_Vehicles_Wheeled"` értéket, hogy az `OffroadHatchback` szülőosztály a te osztályod előtt töltődjön be. |
+| `hiddenSelections[]` | Textúra slotok a modellen, amelyeket felül szeretnél írni. Meg kell egyezniük a modell nevesített szelekcióival. |
+| `SimulationModule` | Fizika és motor konfiguráció. Szabályozza a sebességet, nyomatékot, áttételt és fékezést. |
+| `DamageSystem` | Meghatározza az életerő készleteket a jármű minden egyes alkatrészéhez (motor, ajtók, ablakok, karosszéria). |
 
-### About the Parent Class
+### A szülőosztályról
 
 ```cpp
 class OffroadHatchback;
 ```
 
-This forward declaration tells the config parser that `OffroadHatchback` exists in vanilla DayZ. Your vehicle then inherits from it, getting the complete Niva model, animations, physics geometry, attachment points, and proxy definitions. You only need to override what you want to change.
+Ez az előzetes deklaráció közli a config feldolgozóval, hogy az `OffroadHatchback` létezik a vanilla DayZ-ben. A járműved ezután ebből öröklődik, megkapva a teljes Niva modellt, animációkat, fizikai geometriát, csatolási pontokat és proxy definíciókat. Csak azt kell felülírnod, amit változtatni akarsz.
 
-Other vanilla vehicle parent classes you could extend:
+Más vanilla jármű szülőosztályok, amelyeket kiterjeszthetsz:
 
-| Parent Class | Vehicle |
+| Szülőosztály | Jármű |
 |-------------|---------|
-| `OffroadHatchback` | Niva (4-seat hatchback) |
-| `CivilianSedan` | Olga (4-seat sedan) |
-| `Hatchback_02` | Golf/Gunter (4-seat hatchback) |
-| `Sedan_02` | Sarka 120 (4-seat sedan) |
-| `Offroad_02` | Humvee (4-seat offroad) |
-| `Truck_01_Base` | V3S (truck) |
+| `OffroadHatchback` | Niva (4 üléses ferdehátú) |
+| `CivilianSedan` | Olga (4 üléses szedán) |
+| `Hatchback_02` | Golf/Gunter (4 üléses ferdehátú) |
+| `Sedan_02` | Sarka 120 (4 üléses szedán) |
+| `Offroad_02` | Humvee (4 üléses terepjáró) |
+| `Truck_01_Base` | V3S (teherautó) |
 
-### About SimulationModule
+### A SimulationModule-ról
 
-The `SimulationModule` controls how the vehicle drives. Key parameters:
+A `SimulationModule` szabályozza, hogyan vezethető a jármű. Kulcsparaméterek:
 
-| Parameter | Effect |
+| Paraméter | Hatás |
 |-----------|--------|
-| `drive` | `0` = rear-wheel drive, `1` = front-wheel drive, `2` = all-wheel drive |
-| `torqueMax` | Peak engine torque in Nm. Higher = more acceleration. Vanilla Niva is ~114. |
-| `powerMax` | Peak horsepower. Higher = faster top speed. Vanilla Niva is ~68. |
-| `rpmRedline` | Engine redline RPM. Beyond this, the engine bounces off the rev limiter. |
-| `ratios[]` | Gear ratios. Lower numbers = taller gears = higher top speed but slower acceleration. |
-| `transmissionRatio` | Final drive ratio. Acts as a multiplier on all gears. |
+| `drive` | `0` = hátsókerék-hajtás, `1` = elsőkerék-hajtás, `2` = összkerék-hajtás |
+| `torqueMax` | Csúcsnyomaték Nm-ben. Magasabb = több gyorsulás. A vanilla Niva ~114. |
+| `powerMax` | Csúcs lóerő. Magasabb = gyorsabb végsebesség. A vanilla Niva ~68. |
+| `rpmRedline` | Motor piros zóna fordulatszám. Ezen túl a motor a fordulatszám-korlátozóhoz ér. |
+| `ratios[]` | Áttételi arányok. Alacsonyabb számok = hosszabb fokozatok = magasabb végsebesség, de lassabb gyorsulás. |
+| `transmissionRatio` | Végáttétel arány. Szorzóként hat az összes fokozatra. |
 
-### About DamageZones
+### A sérülési zónákról
 
-Each damage zone has its own health pool. When a zone's health reaches zero, that component is ruined:
+Minden sérülési zónának saját életerő készlete van. Amikor egy zóna életereje eléri a nullát, az adott alkatrész tönkremegy:
 
-| Zone | Effect When Ruined |
+| Zóna | Hatás tönkremenéskor |
 |------|-------------------|
-| `Engine` | Vehicle cannot start |
-| `FuelTank` | Fuel leaks out |
-| `Front` / `Rear` | Visual damage, reduced protection |
-| `Door_1_1` / `Door_2_1` | Door falls off |
-| `WindowFront` | Window shatters (affects sound insulation) |
+| `Engine` | A jármű nem indítható |
+| `FuelTank` | Üzemanyag szivárog |
+| `Front` / `Rear` | Vizuális sérülés, csökkentett védelem |
+| `Door_1_1` / `Door_2_1` | Az ajtó leesik |
+| `WindowFront` | Az ablak betörik (hangszigetelés csökken) |
 
-The `transferToGlobalCoef` value determines how much damage transfers from this zone to the vehicle's global health. `1` means 100% transfer (engine damage hurts overall health), `0` means no transfer.
+A `transferToGlobalCoef` érték meghatározza, mennyi sérülés kerül át erről a zónáról a jármű globális életerejére. `1` azt jelenti 100% átvitel (a motor sérülése az összállapotot rontja), `0` azt jelenti nincs átvitel.
 
-The `componentNames[]` must match named components in the vehicle's geometry LOD. Since we inherit the Niva model, we use placeholder names here -- the parent class's geometry components are what actually matter for collision detection. If you are using the vanilla model without modification, the parent's component mapping applies automatically.
+A `componentNames[]` értékeknek egyezniük kell a jármű geometria LOD-jában található nevesített komponensekkel. Mivel a Niva modellt örököljük, itt helyőrző neveket használunk -- a szülőosztály geometria komponensei számítanak az ütközésérzékeléshez. Ha a vanilla modellt módosítás nélkül használod, a szülő komponens-hozzárendelése automatikusan érvényes.
 
 ---
 
-## Step 2: Custom Textures
+## 2. lépés: Egyéni textúrák
 
-### How Vehicle Hidden Selections Work
+### Hogyan működnek a jármű rejtett szekciók
 
-Vehicle hidden selections work the same way as item textures, but vehicles typically have more selection slots. The Offroad Hatchback model uses selections for different body panels, allowing color variants (White, Blue) in vanilla.
+A jármű rejtett szekciók ugyanúgy működnek, mint a tárgy textúrák, de a járműveknek jellemzően több szekció slotjuk van. Az Offroad Hatchback modell szekciókat használ különböző karosszéria panelekhez, lehetővé téve a szín variánsokat (Fehér, Kék) a vanillában.
 
-### Using Vanilla Textures (Fastest Start)
+### Vanilla textúrák használata (leggyorsabb kezdés)
 
-For initial testing, point your hidden selections at existing vanilla textures. This confirms your config works before you create custom art:
+Kezdeti teszteléshez irányítsd a rejtett szelekcióidat meglévő vanilla textúrákra. Ez megerősíti, hogy a configod működik, mielőtt egyéni grafikát hoznál létre:
 
 ```cpp
 hiddenSelectionsTextures[] =
@@ -390,46 +394,46 @@ hiddenSelectionsTextures[] =
 };
 ```
 
-Empty strings `""` mean "use the model's default texture for this selection."
+Az üres sztringek `""` azt jelentik, hogy "használd a modell alapértelmezett textúráját ehhez a szelekcióhoz."
 
-### Creating a Custom Texture Set
+### Egyéni textúra készlet létrehozása
 
-To create a unique appearance:
+Egyedi megjelenés létrehozásához:
 
-1. **Extract the vanilla texture** using DayZ Tools' Addon Builder or P: drive to find:
+1. **Csomagold ki a vanilla textúrát** a DayZ Tools Addon Builder-ével vagy a P: meghajtóval, keresve:
    ```
    P:\DZ\vehicles\wheeled\offroadhatchback\data\niva_body_co.paa
    ```
 
-2. **Convert to editable format** using TexView2:
-   - Open the `.paa` file in TexView2
-   - Export as `.tga` or `.png`
+2. **Konvertáld szerkeszthető formátumba** a TexView2 segítségével:
+   - Nyisd meg a `.paa` fájlt a TexView2-ben
+   - Exportáld `.tga` vagy `.png` formátumba
 
-3. **Edit in your image editor** (GIMP, Photoshop, Paint.NET):
-   - Vehicle textures are typically **2048x2048** or **4096x4096**
-   - Modify colors, add decals, racing stripes, or rust effects
-   - Keep the UV layout intact -- only change colors and details
+3. **Szerkeszd a képszerkesztődben** (GIMP, Photoshop, Paint.NET):
+   - A jármű textúrák jellemzően **2048x2048** vagy **4096x4096** méretűek
+   - Módosítsd a színeket, adj hozzá matricákat, versenycsíkokat vagy rozsda effekteket
+   - Tartsd meg az UV elrendezést -- csak a színeket és részleteket változtasd
 
-4. **Convert back to `.paa`**:
-   - Open your edited image in TexView2
-   - Save as `.paa` format
-   - Save to `MyFirstMod/Data/Textures/rally_body_co.paa`
+4. **Konvertáld vissza `.paa` formátumba**:
+   - Nyisd meg a szerkesztett képet a TexView2-ben
+   - Mentsd `.paa` formátumban
+   - Mentsd ide: `MyFirstMod/Data/Textures/rally_body_co.paa`
 
-### Texture Naming Conventions for Vehicles
+### Textúra elnevezési konvenciók járművekhez
 
-| Suffix | Tipus | Cel |
+| Utótag | Típus | Cél |
 |--------|------|---------|
-| `_co` | Color (Diffuse) | Main color and appearance |
-| `_nohq` | Normal Map | Surface bumps, panel lines, rivet detail |
-| `_smdi` | Specular | Metallic shine, paint reflections |
-| `_as` | Alpha/Surface | Transparency for windows |
-| `_de` | Destruct | Damage overlay textures |
+| `_co` | Szín (Diffuse) | Fő szín és megjelenés |
+| `_nohq` | Normal Map | Felületi egyenetlenségek, panel vonalak, szegecs részletek |
+| `_smdi` | Specular | Fémes csillogás, festék visszaverődések |
+| `_as` | Alpha/Surface | Átlátszóság ablakokhoz |
+| `_de` | Destruct | Sérülés overlay textúrák |
 
-For a first vehicle mod, only the `_co` texture is required. The model uses its default normal and specular maps.
+Első jármű modhoz csak a `_co` textúra szükséges. A modell az alapértelmezett normal és specular térképeit használja.
 
-### Matching Materials (Optional)
+### Anyagok egyeztetése (opcionális)
 
-For full material control, create an `.rvmat` file:
+Teljes anyagvezérléshez hozz létre egy `.rvmat` fájlt:
 
 ```cpp
 hiddenSelectionsMaterials[] =
@@ -445,13 +449,13 @@ hiddenSelectionsMaterials[] =
 
 ---
 
-## Step 3: Script Behavior (CarScript)
+## 3. lépés: Szkript viselkedés (CarScript)
 
-Vehicle script classes control engine sounds, door logic, crew entry/exit behavior, and seat animations. Since we extend `OffroadHatchback`, we inherit all vanilla behavior and only override what we want to customize.
+A jármű szkript osztályok vezérlik a motor hangokat, ajtó logikát, legénység be/kiszállási viselkedést és ülés animációkat. Mivel az `OffroadHatchback`-et terjesztjük ki, örököljük az összes vanilla viselkedést és csak azt írjuk felül, amit testreszabni akarunk.
 
-### Create the Script File
+### A szkript fájl létrehozása
 
-Create the folder structure and script file:
+Hozd létre a mappastruktúrát és a szkript fájlt:
 
 ```
 MyFirstMod/
@@ -462,9 +466,9 @@ MyFirstMod/
                 MFM_RallyHatchback.c
 ```
 
-### Update Scripts config.cpp
+### A Scripts config.cpp frissítése
 
-Your `Scripts/config.cpp` must register the `4_World` layer so the engine loads your script:
+A `Scripts/config.cpp` fájlnak regisztrálnia kell a `4_World` réteget, hogy a motor betöltse a szkriptedet:
 
 ```cpp
 class CfgPatches
@@ -505,16 +509,16 @@ class CfgMods
 };
 ```
 
-### Write the Vehicle Script
+### A jármű szkript megírása
 
-Create `4_World/MyFirstMod/MFM_RallyHatchback.c`:
+Hozd létre a `4_World/MyFirstMod/MFM_RallyHatchback.c` fájlt:
 
 ```c
 class MFM_RallyHatchback extends OffroadHatchback
 {
     void MFM_RallyHatchback()
     {
-        // Override engine sounds (reuse vanilla Niva sounds)
+        // Motor hangok felülírása (vanilla Niva hangok újrafelhasználása)
         m_EngineStartOK         = "offroad_engine_start_SoundSet";
         m_EngineStartBattery    = "offroad_engine_failed_start_battery_SoundSet";
         m_EngineStartPlug       = "offroad_engine_failed_start_sparkplugs_SoundSet";
@@ -530,30 +534,30 @@ class MFM_RallyHatchback extends OffroadHatchback
         m_CarHornShortSoundName = "Offroad_Horn_Short_SoundSet";
         m_CarHornLongSoundName  = "Offroad_Horn_SoundSet";
 
-        // Engine position in model space (x, y, z) -- used for
-        // temperature source, drowning detection, and particle effects
+        // Motor pozíció a modell térben (x, y, z) -- hőmérséklet
+        // forráshoz, vízbemerülés érzékeléshez és részecskehatásokhoz
         SetEnginePos("0 0.7 1.2");
     }
 
-    // --- Animation Instance ---
-    // Determines which player animation set is used when entering/exiting.
-    // Must match the vehicle skeleton. Since we use the Niva model, keep HATCHBACK.
+    // --- Animáció példány ---
+    // Meghatározza, melyik játékos animáció készlet használatos be/kiszálláskor.
+    // Egyeznie kell a jármű csontvázával. Mivel a Niva modellt használjuk, HATCHBACK marad.
     override int GetAnimInstance()
     {
         return VehicleAnimInstances.HATCHBACK;
     }
 
-    // --- Camera Distance ---
-    // How far the third-person camera sits behind the vehicle.
-    // Vanilla Niva is 3.5. Increase for a wider view.
+    // --- Kamera távolság ---
+    // Milyen messze van a harmadik személyű kamera a jármű mögött.
+    // A vanilla Niva 3.5. Növeld a szélesebb nézethez.
     override float GetTransportCameraDistance()
     {
         return 4.0;
     }
 
-    // --- Seat Animation Types ---
-    // Maps each seat index to a player animation type.
-    // 0 = driver, 1 = co-driver, 2 = rear left, 3 = rear right.
+    // --- Ülés animáció típusok ---
+    // Minden ülésindexet hozzárendel egy játékos animáció típushoz.
+    // 0 = vezető, 1 = utastárs, 2 = hátsó bal, 3 = hátsó jobb.
     override int GetSeatAnimationType(int posIdx)
     {
         switch (posIdx)
@@ -571,10 +575,10 @@ class MFM_RallyHatchback extends OffroadHatchback
         return 0;
     }
 
-    // --- Door State ---
-    // Returns whether a door is missing, open, or closed.
-    // Slot names (NivaDriverDoors, NivaCoDriverDoors, NivaHood, NivaTrunk)
-    // are defined by the model's inventory slot proxies.
+    // --- Ajtó állapot ---
+    // Visszaadja, hogy egy ajtó hiányzik, nyitva vagy csukva van.
+    // A slot nevek (NivaDriverDoors, NivaCoDriverDoors, NivaHood, NivaTrunk)
+    // a modell inventory slot proxy-jai által vannak definiálva.
     override int GetCarDoorsState(string slotType)
     {
         CarDoor carDoor;
@@ -603,11 +607,12 @@ class MFM_RallyHatchback extends OffroadHatchback
         return CarDoorState.DOORS_MISSING;
     }
 
-    // --- Crew Entry/Exit ---
-    // Determines whether a player can get in or out of a specific seat.
-    // Checks door state and seat-fold animation phase.
-    // Front seats (0, 1) require the door to be open.
-    // Rear seats (2, 3) require the door open AND the front seat folded forward.
+    // --- Legénység be/kiszállás ---
+    // Meghatározza, hogy egy játékos be tud-e szállni egy adott ülésbe,
+    // illetve ki tud-e szállni belőle.
+    // Ellenőrzi az ajtó állapotot és az ülés-hajtogatás animáció fázisát.
+    // Az első ülések (0, 1) megkövetelik, hogy az ajtó nyitva legyen.
+    // A hátsó ülések (2, 3) megkövetelik, hogy az ajtó nyitva legyen ÉS az első ülés előre legyen hajtva.
     override bool CrewCanGetThrough(int posIdx)
     {
         switch (posIdx)
@@ -644,8 +649,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return false;
     }
 
-    // --- Hood Check for Attachments ---
-    // Prevents players from removing engine parts when the hood is closed.
+    // --- Motorháztető ellenőrzés csatolmányokhoz ---
+    // Megakadályozza, hogy a játékosok eltávolítsák a motor alkatrészeket csukott motorháznál.
     override bool CanReleaseAttachment(EntityAI attachment)
     {
         if (!super.CanReleaseAttachment(attachment))
@@ -665,8 +670,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Cargo Access ---
-    // Trunk must be open to access vehicle cargo.
+    // --- Rakodótér hozzáférés ---
+    // A csomagtartónak nyitva kell lennie a jármű rakodóteréhez való hozzáféréshez.
     override bool CanDisplayCargo()
     {
         if (!super.CanDisplayCargo())
@@ -682,8 +687,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Engine Compartment Access ---
-    // Hood must be open to see engine attachment slots.
+    // --- Motortér hozzáférés ---
+    // A motorháznak nyitva kell lennie a motor csatolmány slotok megjelenítéséhez.
     override bool CanDisplayAttachmentCategory(string category_name)
     {
         if (!super.CanDisplayAttachmentCategory(category_name))
@@ -703,9 +708,9 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Debug Spawn ---
-    // Called when spawning from debug menu. Spawns with all parts attached
-    // and fluids filled for immediate testing.
+    // --- Debug spawn ---
+    // Meghívásra kerül a debug menüből történő spawnoláskor. Minden alkatrésszel
+    // és feltöltött folyadékokkal spawnol az azonnali teszteléshez.
     override void OnDebugSpawn()
     {
         SpawnUniversalParts();
@@ -723,40 +728,40 @@ class MFM_RallyHatchback extends OffroadHatchback
         inventory.CreateInInventory("HatchbackHood");
         inventory.CreateInInventory("HatchbackTrunk");
 
-        // Spare wheels in cargo
+        // Pótkerekek a rakodótérben
         inventory.CreateInInventory("HatchbackWheel");
         inventory.CreateInInventory("HatchbackWheel");
     }
 };
 ```
 
-### Understanding Key Overrides
+### Kulcs felülírások megértése
 
-**GetAnimInstance** -- Visszaad which animation set the player uses when sitting in the vehicle. The enum values are:
+**GetAnimInstance** -- Visszaadja, melyik animáció készletet használja a játékos a járműben ülve. Az enum értékek:
 
-| Ertek | Konstans | Vehicle Tipus |
+| Érték | Konstans | Jármű típus |
 |-------|----------|-------------|
-| 0 | `CIVVAN` | Van |
-| 1 | `V3S` | V3S Truck |
-| 2 | `SEDAN` | Olga Sedan |
-| 3 | `HATCHBACK` | Niva Hatchback |
+| 0 | `CIVVAN` | Furgon |
+| 1 | `V3S` | V3S teherautó |
+| 2 | `SEDAN` | Olga szedán |
+| 3 | `HATCHBACK` | Niva ferdehátú |
 | 5 | `S120` | Sarka 120 |
 | 7 | `GOLF` | Gunter 2 |
 | 8 | `HMMWV` | Humvee |
 
-If you change this to the wrong value, the player's animation will clip through the vehicle or look incorrect. Always match the model you are using.
+Ha ezt rossz értékre állítod, a játékos animációja átlóg a járművön vagy helytelenül jelenik meg. Mindig egyeztesd a használt modellel.
 
-**CrewCanGetThrough** -- This is called every frame to determine if a player can enter or exit a seat. The Niva's rear seats (indices 2 and 3) work differently from the front seats: the front seatback must be folded forward (animation phase > 0.5) before rear passengers can get through. This matches the real-world behavior of a 2-door hatchback where rear passengers must tilt the front seat.
+**CrewCanGetThrough** -- Minden frame-ben meghívásra kerül annak meghatározására, hogy egy játékos be tud-e szállni vagy ki tud-e szállni egy ülésből. A Niva hátsó ülései (2-es és 3-as index) másként működnek, mint az első ülések: az első ülés háttámláját előre kell hajtani (animáció fázis > 0.5), mielőtt a hátsó utasok átjuthatnának. Ez megegyezik a 2 ajtós ferdehátú valós viselkedésével, ahol a hátsó utasoknak meg kell dönteniük az első ülést.
 
-**OnDebugSpawn** -- Called when you use the debug spawn menu. `SpawnUniversalParts()` adds headlight bulbs and a car battery. `FillUpCarFluids()` fills fuel, coolant, oil, and brake fluid to maximum. We then create wheels, doors, hood, and trunk. This gives you an immediately drivable vehicle for testing.
+**OnDebugSpawn** -- A debug spawn menü használatakor hívódik meg. A `SpawnUniversalParts()` hozzáad fényszóró izzókat és akkumulátort. A `FillUpCarFluids()` feltölti az üzemanyagot, hűtőfolyadékot, olajat és fékfolyadékot maximumra. Ezután kerekeket, ajtókat, motorházat és csomagtartót hozunk létre. Így azonnal vezethető járművet kapsz teszteléshez.
 
 ---
 
-## Step 4: types.xml Entry
+## 4. lépés: types.xml bejegyzés
 
-### Vehicle Spawn Configuration
+### Jármű spawn konfiguráció
 
-Vehicles in `types.xml` use the same format as items, but with some important differences. Add this to your server's `types.xml`:
+A járművek a `types.xml`-ben ugyanazt a formátumot használják, mint a tárgyak, de néhány fontos különbséggel. Add hozzá ezt a szervered `types.xml` fájljához:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -778,18 +783,18 @@ Vehicles in `types.xml` use the same format as items, but with some important di
 </type>
 ```
 
-### Vehicle vs Item Differences in types.xml
+### Jármű vs tárgy különbségek a types.xml-ben
 
-| Setting | Items | Vehicles |
+| Beállítás | Tárgyak | Járművek |
 |---------|-------|----------|
-| `nominal` | 10-50+ | 1-5 (vehicles are rare) |
-| `lifetime` | 3600-14400 | 3888000 (45 days -- vehicles persist a long time) |
-| `restock` | 1800 | 0 (vehicles do not restock automatically; they respawn only after the previous one is destroyed and despawned) |
-| `category` | `tools`, `weapons`, etc. | `vehicles` |
+| `nominal` | 10-50+ | 1-5 (a járművek ritkák) |
+| `lifetime` | 3600-14400 | 3888000 (45 nap -- a járművek sokáig megmaradnak) |
+| `restock` | 1800 | 0 (a járművek nem töltődnek automatikusan újra; csak az előző megsemmisülése és eltűnése után spawnolnak újra) |
+| `category` | `tools`, `weapons`, stb. | `vehicles` |
 
-### Pre-Attached Parts with cfgspawnabletypes.xml
+### Előre csatolt alkatrészek a cfgspawnabletypes.xml-lel
 
-Vehicles spawn as empty shells by default -- no wheels, doors, or engine parts. To make them spawn with parts pre-attached, add entries to `cfgspawnabletypes.xml` in the server mission folder:
+A járművek alapértelmezetten üres vázként spawnolnak -- kerekek, ajtók vagy motor alkatrészek nélkül. Ahhoz, hogy előre csatolt alkatrészekkel spawnoljanak, adj hozzá bejegyzéseket a `cfgspawnabletypes.xml` fájlhoz a szerver mission mappában:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -821,47 +826,47 @@ Vehicles spawn as empty shells by default -- no wheels, doors, or engine parts. 
 </type>
 ```
 
-### How cfgspawnabletypes Works
+### Hogyan működik a cfgspawnabletypes
 
-Each `<attachments>` block is evaluated independently:
-- The outer `chance` determines if this group of attachments is considered at all
-- Each `<item>` within has its own `chance` of being placed
-- Items are placed into the first available matching slot on the vehicle
+Minden `<attachments>` blokk függetlenül kerül kiértékelésre:
+- A külső `chance` határozza meg, hogy ez a csatolmánycsoport egyáltalán figyelembe vételre kerül-e
+- Minden egyes `<item>` elemnek saját `chance` értéke van az elhelyezésre
+- Az elemek a jármű első elérhető, megfelelő slotjába kerülnek
 
-This means a vehicle might spawn with 3 wheels and no doors, or with all wheels and a battery but no spark plug. This creates the scavenging gameplay loop -- players must find the missing parts.
+Ez azt jelenti, hogy egy jármű spawnolhat 3 kerékkel és ajtók nélkül, vagy minden kerékkel és akkumulátorral, de gyertya nélkül. Ez hozza létre az alkatrész-kereső játékmenetet -- a játékosoknak meg kell találniuk a hiányzó alkatrészeket.
 
 ---
 
-## Step 5: Build and Test
+## 5. lépés: Összeállítás és tesztelés
 
-### Pack the PBOs
+### PBO-k csomagolása
 
-You need two PBOs for this mod:
+Két PBO-ra van szükséged ehhez a modhoz:
 
 ```
 @MyFirstMod/
     mod.cpp
     Addons/
-        Scripts.pbo          <-- Contains Scripts/config.cpp and 4_World/
-        Data.pbo             <-- Contains Data/config.cpp and Textures/
+        Scripts.pbo          <-- A Scripts/config.cpp és 4_World/ tartalmazza
+        Data.pbo             <-- A Data/config.cpp és Textures/ tartalmazza
 ```
 
-Use Addon Builder from DayZ Tools:
-1. **Scripts PBO:** Source = `MyFirstMod/Scripts/`, Prefix = `MyFirstMod/Scripts`
-2. **Data PBO:** Source = `MyFirstMod/Data/`, Prefix = `MyFirstMod/Data`
+Használd a DayZ Tools Addon Builder-ét:
+1. **Scripts PBO:** Forrás = `MyFirstMod/Scripts/`, Prefix = `MyFirstMod/Scripts`
+2. **Data PBO:** Forrás = `MyFirstMod/Data/`, Prefix = `MyFirstMod/Data`
 
-Or use file patching during development:
+Vagy használj fájl javítást fejlesztés közben:
 
 ```
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 ```
 
-### Spawn the Vehicle Using the Script Console
+### A jármű spawnolása a szkript konzolon
 
-1. Launch DayZ with your mod loaded
-2. Join your server or start offline mode
-3. Open the script console
-4. To spawn a fully equipped vehicle near your character:
+1. Indítsd el a DayZ-t a betöltött moddal
+2. Csatlakozz a szerveredhez vagy indíts offline módot
+3. Nyisd meg a szkript konzolt
+4. Teljesen felszerelt jármű spawnolásához a karaktered közelében:
 
 ```c
 EntityAI vehicle;
@@ -870,13 +875,13 @@ pos[2] = pos[2] + 5;
 vehicle = EntityAI.Cast(GetGame().CreateObject("MFM_RallyHatchback", pos, false, false, true));
 ```
 
-5. Press **Execute**
+5. Nyomd meg az **Execute** gombot
 
-The vehicle should appear 5 meters in front of you.
+A járműnek 5 méterrel előtted kell megjelennie.
 
-### Spawn a Ready-to-Drive Vehicle
+### Azonnal vezethető jármű spawnolása
 
-For faster testing, spawn the vehicle and use the debug spawn method that attaches all parts:
+Gyorsabb teszteléshez spawnold a járművet és használd a debug spawn metódust, ami csatolja az összes alkatrészt:
 
 ```c
 vector pos = GetGame().GetPlayer().GetPosition();
@@ -889,46 +894,46 @@ if (car)
 }
 ```
 
-This calls your `OnDebugSpawn()` override, which fills fluids and attaches wheels, doors, hood, and trunk.
+Ez meghívja az `OnDebugSpawn()` felülírásodat, ami feltölti a folyadékokat és csatolja a kerekeket, ajtókat, motorházat és csomagtartót.
 
-### What to Test
+### Mit tesztelj
 
-| Check | What to Look For |
+| Ellenőrzés | Mire figyelj |
 |-------|-----------------|
-| **Vehicle spawns** | Appears in the world without errors in the script log |
-| **Textures applied** | Custom body color is visible (if using custom textures) |
-| **Engine starts** | Get in, hold the engine start key. Listen for start sound. |
-| **Driving** | Acceleration, top speed, handling feel different from vanilla |
-| **Doors** | Can open/close driver and co-driver doors |
-| **Hood/Trunk** | Can open hood to access engine parts. Can open trunk for cargo. |
-| **Rear seats** | Fold front seat, then enter rear seat |
-| **Fuel consumption** | Drive and watch the fuel gauge |
-| **Damage** | Shoot the vehicle. Parts should take damage and eventually break. |
-| **Lights** | Headlights and rear lights work at night |
+| **Jármű spawnol** | Megjelenik a világban a szkript naplóban hibák nélkül |
+| **Textúrák alkalmazva** | Az egyéni karosszéria szín látható (egyéni textúrák használata esetén) |
+| **Motor indul** | Szállj be, tartsd a motor indítás gombot. Hallgasd az indítás hangját. |
+| **Vezetés** | A gyorsulás, végsebesség, kezelhetőség érezhetően eltér a vanillától |
+| **Ajtók** | Nyitható/csukható a vezető és utastárs ajtaja |
+| **Motorház/Csomagtartó** | Nyitható a motorház a motor alkatrészek eléréséhez. Nyitható a csomagtartó a rakodótérért. |
+| **Hátsó ülések** | Hajtsd előre az első ülést, majd szállj be a hátsó ülésbe |
+| **Üzemanyag-fogyasztás** | Vezess és figyeld az üzemanyag mérőt |
+| **Sérülés** | Lődd meg a járművet. Az alkatrészeknek sérülniük és végül tönkremenniük kell. |
+| **Fények** | A fényszórók és hátsó lámpák működnek éjszaka |
 
-### Reading the Script Log
+### A szkript napló olvasása
 
-If the vehicle does not spawn or behaves incorrectly, check the script log at:
+Ha a jármű nem spawnol vagy helytelenül viselkedik, ellenőrizd a szkript naplót itt:
 
 ```
 %localappdata%\DayZ\<YourProfile>\script.log
 ```
 
-Common errors:
+Gyakori hibák:
 
-| Log Uzenet | Ok |
+| Napló üzenet | Ok |
 |-------------|-------|
-| `Cannot create object type MFM_RallyHatchback` | config.cpp class name mismatch or Data PBO not loaded |
-| `Undefined variable 'OffroadHatchback'` | `requiredAddons` missing `"DZ_Vehicles_Wheeled"` |
-| `Member not found` on method call | Typo in override method name |
+| `Cannot create object type MFM_RallyHatchback` | config.cpp osztálynév eltérés vagy a Data PBO nincs betöltve |
+| `Undefined variable 'OffroadHatchback'` | A `requiredAddons`-ból hiányzik a `"DZ_Vehicles_Wheeled"` |
+| `Member not found` metódus hívásnál | Elgépelés a felülírt metódus nevében |
 
 ---
 
-## Step 6: Polish
+## 6. lépés: Finomhangolás
 
-### Custom Horn Sound
+### Egyéni kürt hang
 
-To give your vehicle a unique horn, define custom sound sets in your Data config.cpp:
+Egyedi kürt adásához a járművednek definiálj egyéni hangkészleteket a Data config.cpp fájlodban:
 
 ```cpp
 class CfgSoundShaders
@@ -968,31 +973,31 @@ class CfgSoundSets
 };
 ```
 
-Then reference them in your script constructor:
+Ezután hivatkozd meg a szkript konstruktorodban:
 
 ```c
 m_CarHornShortSoundName = "MFM_RallyHornShort_SoundSet";
 m_CarHornLongSoundName  = "MFM_RallyHorn_SoundSet";
 ```
 
-Sound files must be `.ogg` format. The path in `samples[]` does NOT include the file extension.
+A hangfájloknak `.ogg` formátumúaknak kell lenniük. A `samples[]`-ban lévő útvonal NEM tartalmazza a fájl kiterjesztést.
 
-### Custom Headlights
+### Egyéni fényszórók
 
-You can create a custom light class to change headlight brightness, color, or range:
+Létrehozhatsz egyéni fény osztályt a fényszóró fényerő, szín vagy hatótáv módosításához:
 
 ```c
 class MFM_RallyFrontLight extends CarLightBase
 {
     void MFM_RallyFrontLight()
     {
-        // Low beam (segregated)
+        // Tompított fény (szegregált)
         m_SegregatedBrightness = 7;
         m_SegregatedRadius = 65;
         m_SegregatedAngle = 110;
         m_SegregatedColorRGB = Vector(0.9, 0.9, 1.0);
 
-        // High beam (aggregated)
+        // Távolsági fény (aggregált)
         m_AggregatedBrightness = 14;
         m_AggregatedRadius = 90;
         m_AggregatedAngle = 120;
@@ -1006,7 +1011,7 @@ class MFM_RallyFrontLight extends CarLightBase
 };
 ```
 
-Override in your vehicle class:
+Felülírás a jármű osztályodban:
 
 ```c
 override CarLightBase CreateFrontLight()
@@ -1015,9 +1020,9 @@ override CarLightBase CreateFrontLight()
 }
 ```
 
-### Sound Insulation (OnSound)
+### Hangszigetelés (OnSound)
 
-The `OnSound` override controls how much the cabin muffles engine noise based on door and window state:
+Az `OnSound` felülírás szabályozza, mennyire tompítja a kabin a motor zaját az ajtó és ablak állapot alapján:
 
 ```c
 override float OnSound(CarSoundCtrl ctrl, float oldValue)
@@ -1057,13 +1062,13 @@ override float OnSound(CarSoundCtrl ctrl, float oldValue)
 }
 ```
 
-A value of `1.0` means full insulation (quiet cabin), `0.0` means no insulation (open-air feeling).
+Az `1.0` érték teljes szigetelést jelent (csendes kabin), a `0.0` nincs szigetelést (szabad levegős érzés).
 
 ---
 
-## Complete Code Reference
+## Teljes kód referencia
 
-### Final Directory Structure
+### Végleges könyvtárstruktúra
 
 ```
 MyFirstMod/
@@ -1078,8 +1083,8 @@ MyFirstMod/
         Textures/
             rally_body_co.paa
         Sounds/
-            rally_horn.ogg           (optional)
-            rally_horn_short.ogg     (optional)
+            rally_horn.ogg           (opcionális)
+            rally_horn_short.ogg     (opcionális)
 ```
 
 ### MyFirstMod/mod.cpp
@@ -1132,7 +1137,7 @@ class CfgMods
 };
 ```
 
-### Server Mission types.xml Entry
+### Szerver mission types.xml bejegyzés
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1154,7 +1159,7 @@ class CfgMods
 </type>
 ```
 
-### Server Mission cfgspawnabletypes.xml Entry
+### Szerver mission cfgspawnabletypes.xml bejegyzés
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1190,78 +1195,78 @@ class CfgMods
 
 ## Legjobb gyakorlatok
 
-- **Always extend an existing vehicle class.** Creating a vehicle from scratch requires a custom 3D model with correct geometry LODs, proxies, memory points, and a physics simulation config. Extending a vanilla vehicle gives you all of this for free.
-- **Test with `OnDebugSpawn()` first.** Before setting up types.xml and cfgspawnabletypes.xml, verify the vehicle works by spawning it fully equipped via the debug menu or script console.
-- **Keep the same `GetAnimInstance()` as the parent.** If you change this without a matching animation set, players will T-pose or clip through the vehicle.
-- **Do not change door slot names.** The Niva uses `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. These are tied to the model's proxy names and inventory slot definitions. Changing them without changing the model will break door functionality.
-- **Use `scope = 0` for internal base classes.** If you create an abstract base vehicle that other variants extend, set `scope = 0` so it never spawns directly.
-- **Set `requiredAddons` correctly.** Your Data config.cpp must list `"DZ_Vehicles_Wheeled"` so the parent `OffroadHatchback` class loads before yours.
-- **Test door logic thoroughly.** Enter/exit every seat, open/close every door, try accessing the engine bay with the hood closed. CrewCanGetThrough bugs are the most common vehicle mod issue.
+- **Mindig terjessz ki meglévő jármű osztályt.** Egy jármű létrehozása nulláról egyéni 3D modellt igényel megfelelő geometria LOD-okkal, proxy-kkal, memóriapontokkal és fizikai szimuláció konfigurációval. Egy vanilla jármű kiterjesztése mindezt ingyen adja.
+- **Először tesztelj `OnDebugSpawn()`-nal.** A types.xml és cfgspawnabletypes.xml beállítása előtt ellenőrizd, hogy a jármű működik a debug menü vagy szkript konzol segítségével, teljesen felszerelten spawnolva.
+- **Tartsd meg ugyanazt a `GetAnimInstance()` értéket, mint a szülő.** Ha ezt megfelelő animáció készlet nélkül változtatod meg, a játékosok T-pózt vesznek fel vagy átlógnak a járművön.
+- **Ne változtasd meg az ajtó slot neveket.** A Niva ezeket használja: `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. Ezek a modell proxy neveihez és inventory slot definícióihoz vannak kötve. A modell módosítása nélkül való megváltoztatásuk elrontja az ajtó funkcionalitást.
+- **Használj `scope = 0`-t belső alaposztályokhoz.** Ha létrehozol egy absztrakt alap járművet, amelyet más variánsok terjesztenek ki, állítsd be `scope = 0`-ra, hogy soha ne spawnoljon közvetlenül.
+- **Állítsd be helyesen a `requiredAddons`-t.** A Data config.cpp fájlodnak tartalmaznia kell a `"DZ_Vehicles_Wheeled"` értéket, hogy az `OffroadHatchback` szülőosztály a tiéd előtt töltődjön be.
+- **Alaposan teszteld az ajtó logikát.** Szállj be/ki minden ülésből, nyisd/csukd meg minden ajtót, próbáld meg elérni a motorteret csukott motorháztetővel. A CrewCanGetThrough hibák a leggyakoribb jármű mod problémák.
 
 ---
 
-## Elmelet vs gyakorlat
+## Elmélet vs gyakorlat
 
-| Fogalom | Elmelet | Valosag |
+| Koncepció | Elmélet | Valóság |
 |---------|--------|---------|
-| `SimulationModule` in config.cpp | Full control over vehicle physics | Not all parameters override cleanly when extending a parent class. If your speed/torque changes seem to have no effect, try adjusting `transmissionRatio` and gear `ratios[]` instead of just `torqueMax`. |
-| Damage zones with `componentNames[]` | Each zone maps to a geometry component | When extending a vanilla vehicle, the parent model's component names are already set. Your `componentNames[]` values in config only matter if you provide a custom model. The parent's geometry LOD determines actual hit detection. |
-| Custom textures via hidden selections | Swap any texture freely | Only selections the model author marked as "hidden" can be overridden. If you need to retexture a part not in `hiddenSelections[]`, you must create a new model or modify the existing one in Object Builder. |
-| Pre-attached parts in `cfgspawnabletypes.xml` | Items attach to matching slots | If a wheel class is incompatible with the vehicle (wrong attachment slot), it silently fails. Always use parts that the parent vehicle accepts -- for the Niva, that means `HatchbackWheel`, not `CivSedanWheel`. |
-| Engine sounds | Set any SoundSet name | Sound sets must be defined in `CfgSoundSets` somewhere in the loaded configs. If you reference a sound set that does not exist, the engine silently falls back to no sound -- no error in the log. |
+| `SimulationModule` a config.cpp-ben | Teljes kontroll a jármű fizika felett | Nem minden paraméter íródik felül tisztán egy szülőosztály kiterjesztésekor. Ha a sebesség/nyomaték változtatásaid hatástalannak tűnnek, próbáld inkább a `transmissionRatio` és a fokozat `ratios[]` beállítását a `torqueMax` helyett. |
+| Sérülési zónák `componentNames[]`-szel | Minden zóna egy geometria komponenshez van társítva | Vanilla jármű kiterjesztésekor a szülő modell komponensnevei már be vannak állítva. A te `componentNames[]` értékeid a configban csak akkor számítanak, ha egyéni modellt biztosítasz. A szülő geometria LOD-ja határozza meg a tényleges találat érzékelést. |
+| Egyéni textúrák rejtett szelekciókkal | Bármely textúra szabadon cserélhető | Csak azok a szekciók írhatók felül, amelyeket a modell szerzője "rejtettnek" jelölt. Ha olyan részt kell újratextúráznod, ami nincs a `hiddenSelections[]`-ben, új modellt kell létrehoznod vagy módosítanod a meglévőt az Object Builder-ben. |
+| Előre csatolt alkatrészek a `cfgspawnabletypes.xml`-ben | Az elemek a megfelelő slotokhoz csatolódnak | Ha egy kerék osztály inkompatibilis a járművel (rossz csatolási slot), csendben meghiúsul. Mindig a szülő jármű által elfogadott alkatrészeket használd -- a Niva esetében ez `HatchbackWheel`, nem `CivSedanWheel`. |
+| Motor hangok | Bármilyen SoundSet név beállítható | A hangkészleteket `CfgSoundSets`-ben kell definiálni valahol a betöltött konfigurációkban. Ha nem létező hangkészletre hivatkozol, a motor csendben visszaáll hang nélkülire -- nincs hiba a naplóban. |
 
 ---
 
-## What You Learned
+## Amit tanultál
 
-In this tutorial you learned:
+Ebben a bemutatóban megtanultad:
 
-- How to define a custom vehicle class by extending an existing vanilla vehicle in config.cpp
-- How damage zones work and how to configure health values for each vehicle component
-- How vehicle hidden selections allow retexturing the body without a custom 3D model
-- How to write a vehicle script with door state logic, crew entry checks, and engine behavior
-- How `types.xml` and `cfgspawnabletypes.xml` work together for vehicle spawning with randomized pre-attached parts
-- How to test vehicles in-game using the script console and the `OnDebugSpawn()` method
-- How to add custom sounds for horns and custom light classes for headlights
+- Hogyan definiálj egyéni jármű osztályt egy meglévő vanilla jármű kiterjesztésével a config.cpp-ben
+- Hogyan működnek a sérülési zónák és hogyan konfiguráld az életerő értékeket a jármű minden egyes alkatrészéhez
+- Hogyan teszik lehetővé a jármű rejtett szekciók a karosszéria újratextúrázását egyéni 3D modell nélkül
+- Hogyan írj jármű szkriptet ajtó állapot logikával, legénység belépési ellenőrzésekkel és motor viselkedéssel
+- Hogyan működik együtt a `types.xml` és a `cfgspawnabletypes.xml` a jármű spawnoláshoz véletlenszerűen előre csatolt alkatrészekkel
+- Hogyan tesztelj járműveket játékon belül a szkript konzol és az `OnDebugSpawn()` metódus segítségével
+- Hogyan adj hozzá egyéni hangokat kürtökhöz és egyéni fényosztályokat fényszórókhoz
 
-**Kovetkezo:** Expand your vehicle mod with custom door models, interior textures, or even a completely new vehicle body using Blender and Object Builder.
-
----
-
-## Gyakori hibak
-
-### Vehicle Spawns But Immediately Falls Through the Ground
-
-The physics geometry is not loading. This usually means `requiredAddons[]` is missing `"DZ_Vehicles_Wheeled"`, so the parent class physics config is not inherited.
-
-### Vehicle Spawns But Cannot Be Entered
-
-Check that `GetAnimInstance()` returns the correct enum value for your model. If you extend `OffroadHatchback` but return `VehicleAnimInstances.SEDAN`, the entry animation targets the wrong door positions and the player cannot get in.
-
-### Doors Do Not Open or Close
-
-Verify that `GetCarDoorsState()` uses the correct slot names. The Niva uses `"NivaDriverDoors"`, `"NivaCoDriverDoors"`, `"NivaHood"`, and `"NivaTrunk"`. These must match exactly, including capitalization.
-
-### Engine Starts But Vehicle Does Not Move
-
-Check your `SimulationModule` gear ratios. If `ratios[]` is empty or has zero values, the vehicle has no forward gears. Also verify the wheels are attached -- a vehicle with no wheels will rev but not move.
-
-### Vehicle Has No Sound
-
-Engine sounds are assigned in the constructor. If you misspell a SoundSet name (for example `"offroad_engine_Start_SoundSet"` instead of `"offroad_engine_start_SoundSet"`), the engine silently uses no sound. Sound set names are case-sensitive.
-
-### Custom Texture Not Showing
-
-Verify three things in order: (1) the hidden selection name matches the model exactly, (2) the texture path uses backslashes in config.cpp, and (3) the `.paa` file is inside the packed PBO. If using file patching during development, ensure the path starts from the mod root, not an absolute path.
-
-### Rear Seat Passengers Cannot Enter
-
-The Niva rear seats require the front seat to be folded forward. If your `CrewCanGetThrough()` override for seat indices 2 and 3 does not check `GetAnimationPhase("SeatDriver")` and `GetAnimationPhase("SeatCoDriver")`, rear passengers will be permanently locked out.
-
-### Vehicle Spawns Without Parts in Multiplayer
-
-`OnDebugSpawn()` is only for debug/testing. In a real server, parts come from `cfgspawnabletypes.xml`. If your vehicle spawns as a bare shell, add the `cfgspawnabletypes.xml` entry described in Step 4.
+**Következő:** Bővítsd a jármű mododat egyéni ajtó modellekkel, belső textúrákkal, vagy akár teljesen új jármű karosszériával a Blender és az Object Builder használatával.
 
 ---
 
-**Elozo:** [Chapter 8.9: Professional Mod Template](09-professional-template.md)
+## Gyakori hibák
+
+### A jármű spawnol, de azonnal átesik a talajon
+
+A fizikai geometria nem töltődik be. Ez általában azt jelenti, hogy a `requiredAddons[]`-ból hiányzik a `"DZ_Vehicles_Wheeled"`, így a szülőosztály fizikai konfigurációja nem öröklődik.
+
+### A jármű spawnol, de nem lehet beszállni
+
+Ellenőrizd, hogy a `GetAnimInstance()` a modellhez megfelelő enum értéket adja vissza. Ha az `OffroadHatchback`-et terjeszted ki, de `VehicleAnimInstances.SEDAN`-t adsz vissza, a belépési animáció rossz ajtópozíciókat céloz meg és a játékos nem tud beszállni.
+
+### Az ajtók nem nyílnak és nem csukódnak
+
+Ellenőrizd, hogy a `GetCarDoorsState()` a helyes slot neveket használja. A Niva ezeket használja: `"NivaDriverDoors"`, `"NivaCoDriverDoors"`, `"NivaHood"` és `"NivaTrunk"`. Ezeknek pontosan egyezniük kell, beleértve a kis- és nagybetűket is.
+
+### A motor indul, de a jármű nem mozdul
+
+Ellenőrizd a `SimulationModule` áttételi arányait. Ha a `ratios[]` üres vagy nulla értékeket tartalmaz, a járműnek nincsenek előremenetei. Szintén ellenőrizd, hogy a kerekek csatolva vannak -- kerekek nélküli jármű pörög, de nem mozog.
+
+### A járműnek nincs hangja
+
+A motor hangok a konstruktorban vannak hozzárendelve. Ha elgépelsz egy SoundSet nevet (például `"offroad_engine_Start_SoundSet"` helyett `"offroad_engine_start_SoundSet"`), a motor csendben hang nélkül működik. A hangkészlet nevek kis- és nagybetű-érzékenyek.
+
+### Az egyéni textúra nem jelenik meg
+
+Ellenőrizd sorrendben három dolgot: (1) a rejtett szekció neve pontosan egyezik a modellel, (2) a textúra útvonal backslash-eket használ a config.cpp-ben, és (3) a `.paa` fájl a csomagolt PBO-ban van. Ha fájl javítást használsz fejlesztés közben, győződj meg róla, hogy az útvonal a mod gyökerétől indul, nem abszolút útvonalról.
+
+### A hátsó ülés utasok nem tudnak beszállni
+
+A Niva hátsó ülések megkövetelik, hogy az első ülés előre legyen hajtva. Ha a `CrewCanGetThrough()` felülírásod a 2-es és 3-as ülésindexekhez nem ellenőrzi a `GetAnimationPhase("SeatDriver")` és `GetAnimationPhase("SeatCoDriver")` értékeket, a hátsó utasok véglegesen ki lesznek zárva.
+
+### A jármű alkatrészek nélkül spawnol többjátékos módban
+
+Az `OnDebugSpawn()` csak debug/tesztelési célokra való. Valódi szerveren az alkatrészek a `cfgspawnabletypes.xml`-ből jönnek. Ha a járműved csupasz vázként spawnol, add hozzá a 4. lépésben leírt `cfgspawnabletypes.xml` bejegyzést.
+
+---
+
+**Előző:** [8.9. fejezet: Professzionális mod sablon](09-professional-template.md)

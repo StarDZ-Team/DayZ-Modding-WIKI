@@ -1,134 +1,138 @@
-# Chapter 8.9: Professional Mod Template
+# 第 8.9 章：专业模组模板
 
-[Home](../../README.md) | [<< Previous: Building a HUD Overlay](08-hud-overlay.md) | **Professional Mod Template** | [Next: Creating a Custom Vehicle >>](10-vehicle-mod.md)
+[首页](../../README.md) | [<< 上一章：构建 HUD 覆盖层](08-hud-overlay.md) | **专业模组模板** | [下一章：创建自定义载具 >>](10-vehicle-mod.md)
+
+---
+
+> **摘要：** 本章提供了一个完整的、可用于生产环境的模组模板，包含专业 DayZ 模组所需的每个文件。与介绍 InclementDab 入门骨架的[第 8.5 章](05-mod-template.md)不同，这是一个功能完整的模板，包含配置系统、单例管理器、客户端-服务器 RPC、UI 面板、快捷键绑定、本地化和构建自动化。每个文件都可以直接复制粘贴使用，并附有详细注释来解释**每一行存在的原因**。
 
 ---
 
 ## 目录
 
-- [Overview](#overview)
-- [Complete Directory Structure](#complete-directory-structure)
+- [概述](#overview)
+- [完整目录结构](#complete-directory-structure)
 - [mod.cpp](#modcpp)
 - [config.cpp](#configcpp)
-- [Constants File (3_Game)](#constants-file-3_game)
-- [Config Data Class (3_Game)](#config-data-class-3_game)
-- [RPC Definitions (3_Game)](#rpc-definitions-3_game)
-- [Manager Singleton (4_World)](#manager-singleton-4_world)
-- [Player Event Handler (4_World)](#player-event-handler-4_world)
-- [Mission Hook: Server (5_Mission)](#mission-hook-server-5_mission)
-- [Mission Hook: Client (5_Mission)](#mission-hook-client-5_mission)
-- [UI Panel Script (5_Mission)](#ui-panel-script-5_mission)
-- [Layout File](#layout-file)
+- [常量文件（3_Game）](#constants-file-3_game)
+- [配置数据类（3_Game）](#config-data-class-3_game)
+- [RPC 定义（3_Game）](#rpc-definitions-3_game)
+- [管理器单例（4_World）](#manager-singleton-4_world)
+- [玩家事件处理器（4_World）](#player-event-handler-4_world)
+- [任务钩子：服务器（5_Mission）](#mission-hook-server-5_mission)
+- [任务钩子：客户端（5_Mission）](#mission-hook-client-5_mission)
+- [UI 面板脚本（5_Mission）](#ui-panel-script-5_mission)
+- [布局文件](#layout-file)
 - [stringtable.csv](#stringtablecsv)
 - [Inputs.xml](#inputsxml)
-- [Build Script](#build-script)
-- [Customization Guide](#customization-guide)
-- [Feature Expansion Guide](#feature-expansion-guide)
-- [Next Steps](#next-steps)
+- [构建脚本](#build-script)
+- [自定义指南](#customization-guide)
+- [功能扩展指南](#feature-expansion-guide)
+- [下一步](#next-steps)
 
 ---
 
 ## 概述
 
-A "Hello World" mod proves the toolchain works. A professional mod needs much more:
+"Hello World" 模组证明了工具链能正常工作。但专业模组需要更多：
 
-| Concern | Hello World | Professional Template |
+| 关注点 | Hello World | 专业模板 |
 |---------|-------------|----------------------|
-| Configuration | Hardcoded values | JSON config with load/save/defaults |
-| Communication | Print statements | String-routed RPC (client to server and back) |
-| Architecture | One file, one function | Singleton manager, layered scripts, clean lifecycle |
-| User interface | None | Layout-driven UI panel with open/close |
-| Input binding | None | Custom keybind in Options > Controls |
-| Localization | None | stringtable.csv with 13 languages |
-| Build pipeline | Manual Addon Builder | One-click batch script |
-| Cleanup | None | Proper shutdown on mission end, no leaks |
+| 配置 | 硬编码值 | 带有加载/保存/默认值的 JSON 配置 |
+| 通信 | Print 语句 | 字符串路由的 RPC（客户端到服务器及返回） |
+| 架构 | 一个文件，一个函数 | 单例管理器、分层脚本、干净的生命周期 |
+| 用户界面 | 无 | 布局驱动的 UI 面板，支持打开/关闭 |
+| 输入绑定 | 无 | 在选项 > 控制中显示的自定义快捷键 |
+| 本地化 | 无 | 支持 13 种语言的 stringtable.csv |
+| 构建流水线 | 手动 Addon Builder | 一键批处理脚本 |
+| 清理 | 无 | 任务结束时正确关闭，无泄漏 |
 
-This template gives you all of these out of the box. You rename the identifiers, delete the systems you do not need, and start building your actual feature on a solid foundation.
+此模板为你提供了开箱即用的所有这些。你只需重命名标识符，删除不需要的系统，然后在坚实的基础上开始构建你的实际功能。
 
 ---
 
-## Complete Directory Structure
+## 完整目录结构
 
-This is the full source layout. Every file listed below is provided as a complete template in this chapter.
+这是完整的源代码布局。下面列出的每个文件都作为完整模板在本章中提供。
 
 ```
-MyProfessionalMod/                          <-- Source root (lives on P: drive)
-    mod.cpp                                 <-- Launcher metadata
+MyProfessionalMod/                          <-- 源代码根目录（位于 P: 盘）
+    mod.cpp                                 <-- 启动器元数据
     Scripts/
-        config.cpp                          <-- Engine registration (CfgPatches + CfgMods)
-        Inputs.xml                          <-- Keybind definitions
-        stringtable.csv                     <-- Localized strings (13 languages)
+        config.cpp                          <-- 引擎注册（CfgPatches + CfgMods）
+        Inputs.xml                          <-- 快捷键定义
+        stringtable.csv                     <-- 本地化字符串（13 种语言）
         3_Game/
             MyMod/
-                MyModConstants.c            <-- Enums, version string, shared constants
-                MyModConfig.c               <-- JSON-serializable config with defaults
-                MyModRPC.c                  <-- RPC route names and registration
+                MyModConstants.c            <-- 枚举、版本字符串、共享常量
+                MyModConfig.c               <-- 可 JSON 序列化的配置（带默认值）
+                MyModRPC.c                  <-- RPC 路由名称和注册
         4_World/
             MyMod/
-                MyModManager.c              <-- Singleton manager (lifecycle, config, state)
-                MyModPlayerHandler.c        <-- Player connect/disconnect hooks
+                MyModManager.c              <-- 单例管理器（生命周期、配置、状态）
+                MyModPlayerHandler.c        <-- 玩家连接/断开钩子
         5_Mission/
             MyMod/
-                MyModMissionServer.c        <-- modded MissionServer (server init/shutdown)
-                MyModMissionClient.c        <-- modded MissionGameplay (client init/shutdown)
-                MyModUI.c                   <-- UI panel script (open/close/populate)
+                MyModMissionServer.c        <-- modded MissionServer（服务器初始化/关闭）
+                MyModMissionClient.c        <-- modded MissionGameplay（客户端初始化/关闭）
+                MyModUI.c                   <-- UI 面板脚本（打开/关闭/填充）
         GUI/
             layouts/
-                MyModPanel.layout           <-- UI layout definition
-    build.bat                               <-- PBO packing automation
+                MyModPanel.layout           <-- UI 布局定义
+    build.bat                               <-- PBO 打包自动化
 
-After building, the distributable mod folder looks like this:
+构建后，可分发的模组文件夹如下所示：
 
-@MyProfessionalMod/                         <-- What goes on the server / Workshop
+@MyProfessionalMod/                         <-- 放在服务器 / 创意工坊上的内容
     mod.cpp
     addons/
-        MyProfessionalMod_Scripts.pbo       <-- Packed from Scripts/
+        MyProfessionalMod_Scripts.pbo       <-- 从 Scripts/ 打包
     keys/
-        MyMod.bikey                         <-- Key for signed servers
-    meta.cpp                                <-- Workshop metadata (auto-generated)
+        MyMod.bikey                         <-- 签名服务器的密钥
+    meta.cpp                                <-- 创意工坊元数据（自动生成）
 ```
 
 ---
 
 ## mod.cpp
 
-This file controls what players see in the DayZ launcher. It is placed at the mod root, **not** inside `Scripts/`.
+此文件控制玩家在 DayZ 启动器中看到的内容。它放在模组根目录，**不在** `Scripts/` 内部。
 
 ```cpp
 // ==========================================================================
-// mod.cpp - Mod identity for the DayZ launcher
-// This file is read by the launcher to display mod info in the mod list.
-// It is NOT compiled by the script engine -- it is pure metadata.
+// mod.cpp - DayZ 启动器的模组身份
+// 此文件由启动器读取以在模组列表中显示模组信息。
+// 它不会被脚本引擎编译——它是纯元数据。
 // ==========================================================================
 
-// Display name shown in the launcher mod list and in-game mod screen.
+// 在启动器模组列表和游戏内模组界面中显示的名称。
 name         = "My Professional Mod";
 
-// Your name or team name. Shows in the "Author" column.
+// 你的名字或团队名称。显示在"作者"列中。
 author       = "YourName";
 
-// Semantic version string. Update this with every release.
-// The launcher displays this so players know which version they have.
+// 语义化版本字符串。每次发布时更新。
+// 启动器显示此信息以便玩家知道他们拥有哪个版本。
 version      = "1.0.0";
 
-// Short description shown when hovering over the mod in the launcher.
-// Keep it under 200 characters for readability.
+// 在启动器中悬停在模组上时显示的简短描述。
+// 保持在 200 个字符以内以保持可读性。
 overview     = "A professional mod template with config, RPC, UI, and keybinds.";
 
-// Tooltip shown on hover. Usually matches the mod name.
+// 悬停时显示的工具提示。通常与模组名称匹配。
 tooltipOwned = "My Professional Mod";
 
-// Optional: path to a preview image (relative to mod root).
-// Recommended size: 256x256 or 512x512, PAA or EDDS format.
-// Leave empty if you have no image yet.
+// 可选：预览图像的路径（相对于模组根目录）。
+// 推荐尺寸：256x256 或 512x512，PAA 或 EDDS 格式。
+// 如果还没有图像，留空。
 picture      = "";
 
-// Optional: logo displayed in the mod details panel.
+// 可选：在模组详情面板中显示的 logo。
 logo         = "";
 logoSmall    = "";
 logoOver     = "";
 
-// Optional: URL opened when the player clicks "Website" in the launcher.
+// 可选：玩家在启动器中点击"网站"时打开的 URL。
 action       = "";
 actionURL    = "";
 ```
@@ -137,41 +141,41 @@ actionURL    = "";
 
 ## config.cpp
 
-This is the most critical file. It registers your mod with 引擎, declares dependencies, wires up script layers, and optionally sets preprocessor defines and image sets.
+这是最关键的文件。它向引擎注册你的模组、声明依赖关系、连接脚本层级，并可选地设置预处理器定义和图像集。
 
-Place this at `Scripts/config.cpp`.
+放在 `Scripts/config.cpp`。
 
 ```cpp
 // ==========================================================================
-// config.cpp - Engine registration
-// The DayZ engine reads this to know what your mod provides.
-// Two sections matter: CfgPatches (dependency graph) and CfgMods (script loading).
+// config.cpp - 引擎注册
+// DayZ 引擎读取此文件以了解你的模组提供了什么。
+// 有两个部分重要：CfgPatches（依赖关系图）和 CfgMods（脚本加载）。
 // ==========================================================================
 
 // --------------------------------------------------------------------------
-// CfgPatches - Dependency Declaration
-// The engine uses this to determine load order. If your mod depends on
-// another mod, list that mod's CfgPatches class in requiredAddons[].
+// CfgPatches - 依赖声明
+// 引擎使用此来确定加载顺序。如果你的模组依赖于
+// 另一个模组，在 requiredAddons[] 中列出该模组的 CfgPatches 类。
 // --------------------------------------------------------------------------
 class CfgPatches
 {
-    // Class name MUST be globally unique across all mods.
-    // Convention: ModName_Scripts (matches the PBO name).
+    // 类名在所有模组中必须全局唯一。
+    // 命名约定：ModName_Scripts（与 PBO 名称匹配）。
     class MyMod_Scripts
     {
-        // units[] and weapons[] declare config classes defined by this addon.
-        // For script-only mods, leave these empty. They are used by mods
-        // that define new items, weapons, or vehicles in config.cpp.
+        // units[] 和 weapons[] 声明此插件定义的配置类。
+        // 对于纯脚本模组，留空。它们由在 config.cpp 中
+        // 定义新物品、武器或载具的模组使用。
         units[] = {};
         weapons[] = {};
 
-        // Minimum engine version. 0.1 works for all current DayZ versions.
+        // 最低引擎版本。0.1 适用于所有当前的 DayZ 版本。
         requiredVersion = 0.1;
 
-        // Dependencies: list CfgPatches class names from other mods.
-        // "DZ_Data" is the base game -- every mod should depend on it.
-        // Add "CF_Scripts" if you use Community Framework.
-        // Add other mod patches if you extend them.
+        // 依赖项：列出其他模组的 CfgPatches 类名。
+        // "DZ_Data" 是基础游戏——每个模组都应该依赖它。
+        // 如果使用 Community Framework，添加 "CF_Scripts"。
+        // 如果扩展其他模组，添加它们的补丁。
         requiredAddons[] =
         {
             "DZ_Data"
@@ -180,58 +184,58 @@ class CfgPatches
 };
 
 // --------------------------------------------------------------------------
-// CfgMods - Script Module Registration
-// Tells the engine where each script layer lives and what defines to set.
+// CfgMods - 脚本模块注册
+// 告诉引擎每个脚本层级的位置以及要设置的定义。
 // --------------------------------------------------------------------------
 class CfgMods
 {
-    // Class name here is your mod's internal identifier.
-    // It does NOT need to match CfgPatches -- but keeping them related
-    // makes the codebase easier to navigate.
+    // 这里的类名是你的模组的内部标识符。
+    // 它不需要与 CfgPatches 匹配——但保持相关性
+    // 使代码库更容易导航。
     class MyMod
     {
-        // dir: the folder name on the P: drive (or in the PBO).
-        // Must match your actual root folder name exactly.
+        // dir：P: 盘上（或 PBO 中）的文件夹名称。
+        // 必须与你的实际根文件夹名称完全匹配。
         dir = "MyProfessionalMod";
 
-        // Display name (shown in Workbench and some engine logs).
+        // 显示名称（在 Workbench 和一些引擎日志中显示）。
         name = "My Professional Mod";
 
-        // Author and description for engine metadata.
+        // 引擎元数据的作者和描述。
         author = "YourName";
         overview = "Professional mod template";
 
-        // Mod type. Always "mod" for script mods.
+        // 模组类型。脚本模组始终为 "mod"。
         type = "mod";
 
-        // credits: optional path to a Credits.json file.
+        // credits：可选的 Credits.json 文件路径。
         // creditsJson = "MyProfessionalMod/Scripts/Credits.json";
 
-        // inputs: path to your Inputs.xml for custom keybinds.
-        // This MUST be set here for the engine to load your keybinds.
+        // inputs：自定义快捷键的 Inputs.xml 路径。
+        // 必须在这里设置，引擎才会加载你的快捷键。
         inputs = "MyProfessionalMod/Scripts/Inputs.xml";
 
-        // defines: preprocessor symbols set when your mod is loaded.
-        // Other mods can use #ifdef MYMOD to detect your mod's presence
-        // and conditionally compile integration code.
+        // defines：加载模组时设置的预处理器符号。
+        // 其他模组可以使用 #ifdef MYMOD 来检测你的模组是否存在
+        // 并有条件地编译集成代码。
         defines[] = { "MYMOD" };
 
-        // dependencies: which vanilla script modules your mod hooks into.
-        // "Game" = 3_Game, "World" = 4_World, "Mission" = 5_Mission.
-        // Most mods need all three. Add "Core" only if you use 1_Core.
+        // dependencies：你的模组挂接到哪些原版脚本模块。
+        // "Game" = 3_Game，"World" = 4_World，"Mission" = 5_Mission。
+        // 大多数模组需要全部三个。只有使用 1_Core 时才添加 "Core"。
         dependencies[] =
         {
             "Game", "World", "Mission"
         };
 
-        // defs: maps each script module to its folder on disk.
-        // The engine compiles all .c files found recursively in these paths.
-        // There is no #include in Enforce Script -- this is how files are loaded.
+        // defs：将每个脚本模块映射到其磁盘上的文件夹。
+        // 引擎递归编译在这些路径中找到的所有 .c 文件。
+        // Enforce Script 中没有 #include——这就是文件加载的方式。
         class defs
         {
-            // imageSets: register .imageset files for use in layouts.
-            // Only needed if you have custom icons/textures for UI.
-            // Uncomment and update paths if you add an imageset.
+            // imageSets：注册 .imageset 文件以在布局中使用。
+            // 仅在你有自定义图标/贴图用于 UI 时才需要。
+            // 如果添加了图像集，取消注释并更新路径。
             //
             // class imageSets
             // {
@@ -241,27 +245,27 @@ class CfgMods
             //     };
             // };
 
-            // Game layer (3_Game): loads first.
-            // Place enums, constants, config classes, RPC definitions here.
-            // CANNOT reference types from 4_World or 5_Mission.
+            // Game 层（3_Game）：最先加载。
+            // 在这里放置枚举、常量、配置类、RPC 定义。
+            // 不能引用 4_World 或 5_Mission 的类型。
             class gameScriptModule
             {
                 value = "";
                 files[] = { "MyProfessionalMod/Scripts/3_Game" };
             };
 
-            // World layer (4_World): loads second.
-            // Place managers, entity modifications, world interactions here.
-            // CAN reference 3_Game types. CANNOT reference 5_Mission types.
+            // World 层（4_World）：第二个加载。
+            // 在这里放置管理器、实体修改、世界交互。
+            // 可以引用 3_Game 类型。不能引用 5_Mission 类型。
             class worldScriptModule
             {
                 value = "";
                 files[] = { "MyProfessionalMod/Scripts/4_World" };
             };
 
-            // Mission layer (5_Mission): loads last.
-            // Place mission hooks, UI panels, startup/shutdown logic here.
-            // CAN reference types from all lower layers.
+            // Mission 层（5_Mission）：最后加载。
+            // 在这里放置任务钩子、UI 面板、启动/关闭逻辑。
+            // 可以引用所有更低层级的类型。
             class missionScriptModule
             {
                 value = "";
@@ -274,54 +278,54 @@ class CfgMods
 
 ---
 
-## Constants File (3_Game)
+## 常量文件（3_Game）
 
-Place at `Scripts/3_Game/MyMod/MyModConstants.c`.
+放在 `Scripts/3_Game/MyMod/MyModConstants.c`。
 
-This file defines all shared constants, enums, and the version string. It lives in `3_Game` so every higher layer can access these values.
+此文件定义所有共享常量、枚举和版本字符串。它位于 `3_Game` 中，以便每个更高层级都能访问这些值。
 
 ```c
 // ==========================================================================
-// MyModConstants.c - Shared constants and enums
-// 3_Game layer: available to all higher layers (4_World, 5_Mission).
+// MyModConstants.c - 共享常量和枚举
+// 3_Game 层：对所有更高层级（4_World、5_Mission）可用。
 //
-// WHY this file exists:
-//   Centralizing constants prevents magic numbers scattered across files.
-//   Enums give compile-time safety instead of raw int comparisons.
-//   The version string is defined once and used in logs and UI.
+// 为什么此文件存在：
+//   集中常量可以防止魔术数字分散在各个文件中。
+//   枚举提供编译时安全性，而不是原始 int 比较。
+//   版本字符串只定义一次，在日志和 UI 中使用。
 // ==========================================================================
 
 // ---------------------------------------------------------------------------
-// Version - update this with every release
+// 版本 - 每次发布时更新
 // ---------------------------------------------------------------------------
 const string MYMOD_VERSION = "1.0.0";
 
 // ---------------------------------------------------------------------------
-// Log tag - prefix for all Print/log messages from this mod
-// Using a consistent tag makes it easy to filter the script log.
+// 日志标签 - 此模组所有 Print/日志消息的前缀
+// 使用一致的标签使过滤脚本日志变得容易。
 // ---------------------------------------------------------------------------
 const string MYMOD_TAG = "[MyMod]";
 
 // ---------------------------------------------------------------------------
-// File paths - centralized so typos are caught in one place
-// $profile: resolves to the server's profile directory at runtime.
+// 文件路径 - 集中管理以便在一个地方捕获拼写错误
+// $profile: 在运行时解析为服务器的配置文件目录。
 // ---------------------------------------------------------------------------
 const string MYMOD_CONFIG_DIR  = "$profile:MyMod";
 const string MYMOD_CONFIG_PATH = "$profile:MyMod/config.json";
 
 // ---------------------------------------------------------------------------
-// Enum: Feature modes
-// Use enums instead of raw ints for readability and compile-time checks.
+// 枚举：功能模式
+// 使用枚举而不是原始 int 以提高可读性和编译时检查。
 // ---------------------------------------------------------------------------
 enum MyModMode
 {
-    DISABLED = 0,    // Feature is off
-    PASSIVE  = 1,    // Feature runs but does not interfere
-    ACTIVE   = 2     // Feature is fully enabled
+    DISABLED = 0,    // 功能关闭
+    PASSIVE  = 1,    // 功能运行但不干预
+    ACTIVE   = 2     // 功能完全启用
 };
 
 // ---------------------------------------------------------------------------
-// Enum: Notification types (used by UI to pick icon/color)
+// 枚举：通知类型（UI 用来选择图标/颜色）
 // ---------------------------------------------------------------------------
 enum MyModNotifyType
 {
@@ -334,82 +338,82 @@ enum MyModNotifyType
 
 ---
 
-## Config Data Class (3_Game)
+## 配置数据类（3_Game）
 
-Place at `Scripts/3_Game/MyMod/MyModConfig.c`.
+放在 `Scripts/3_Game/MyMod/MyModConfig.c`。
 
-This is a JSON-serializable settings class. The server loads it on startup. If no file exists, defaults are used and a fresh config is saved to disk.
+这是一个可 JSON 序列化的设置类。服务器在启动时加载它。如果文件不存在，使用默认值并将新配置保存到磁盘。
 
 ```c
 // ==========================================================================
-// MyModConfig.c - JSON configuration with defaults
-// 3_Game layer so both 4_World managers and 5_Mission hooks can read it.
+// MyModConfig.c - 带默认值的 JSON 配置
+// 3_Game 层，以便 4_World 管理器和 5_Mission 钩子都能读取。
 //
-// HOW IT WORKS:
-//   JsonFileLoader<MyModConfig> uses Enforce Script's built-in JSON
-//   serializer. Every field with a default value is written to / read from
-//   the JSON file. Adding a new field is safe -- old config files simply
-//   get the default value for any missing fields.
+// 工作原理：
+//   JsonFileLoader<MyModConfig> 使用 Enforce Script 的内置 JSON
+//   序列化器。每个带默认值的字段都会写入/读取 JSON 文件。
+//   添加新字段是安全的——旧配置文件对于缺失的字段
+//   会简单地获取默认值。
 //
-// ENFORCE SCRIPT GOTCHA:
-//   JsonFileLoader<T>.JsonLoadFile(path, obj) returns VOID.
-//   You CANNOT do: if (JsonFileLoader<T>.JsonLoadFile(...)) -- it will not compile.
-//   Always pass a pre-created object by reference.
+// ENFORCE SCRIPT 注意事项：
+//   JsonFileLoader<T>.JsonLoadFile(path, obj) 返回 VOID。
+//   你不能这样做：if (JsonFileLoader<T>.JsonLoadFile(...))——它不会编译。
+//   始终通过引用传递一个预创建的对象。
 // ==========================================================================
 
 class MyModConfig
 {
-    // --- General Settings ---
+    // --- 常规设置 ---
 
-    // Master switch: if false, the entire mod is disabled.
+    // 主开关：如果为 false，整个模组被禁用。
     bool Enabled = true;
 
-    // How often (in seconds) the manager runs its update tick.
-    // Lower values = more responsive but higher CPU cost.
+    // 管理器运行其更新周期的频率（秒）。
+    // 更低的值 = 更灵敏但 CPU 成本更高。
     float UpdateInterval = 5.0;
 
-    // Maximum number of items/entities this mod manages simultaneously.
+    // 此模组同时管理的最大物品/实体数量。
     int MaxItems = 100;
 
-    // Mode: 0 = DISABLED, 1 = PASSIVE, 2 = ACTIVE (see MyModMode enum).
+    // 模式：0 = DISABLED，1 = PASSIVE，2 = ACTIVE（见 MyModMode 枚举）。
     int Mode = 2;
 
-    // --- Messages ---
+    // --- 消息 ---
 
-    // Welcome message shown to players when they connect.
-    // Empty string = no message.
+    // 玩家连接时显示的欢迎消息。
+    // 空字符串 = 不显示消息。
     string WelcomeMessage = "Welcome to the server!";
 
-    // Whether to show the welcome message as a notification or chat message.
+    // 是否将欢迎消息显示为通知或聊天消息。
     bool WelcomeAsNotification = true;
 
-    // --- Logging ---
+    // --- 日志 ---
 
-    // Enable verbose debug logging. Turn off for production servers.
+    // 启用详细调试日志。生产服务器请关闭。
     bool DebugLogging = false;
 
     // -----------------------------------------------------------------------
-    // Load - reads config from disk, returns instance with defaults if missing
+    // Load - 从磁盘读取配置，如果缺失则返回带默认值的实例
     // -----------------------------------------------------------------------
     static MyModConfig Load()
     {
-        // Always create a fresh instance first. This ensures all defaults
-        // are set even if the JSON file is missing fields (e.g., after
-        // an update that added new settings).
+        // 始终先创建一个新实例。这确保即使 JSON 文件
+        // 缺少字段（例如，更新后添加了新设置），
+        // 所有默认值都已设置。
         MyModConfig cfg = new MyModConfig();
 
-        // Check if the config file exists before trying to load.
-        // On first run, it will not exist -- we use defaults and save.
+        // 在尝试加载之前检查配置文件是否存在。
+        // 首次运行时，它不会存在——我们使用默认值并保存。
         if (FileExist(MYMOD_CONFIG_PATH))
         {
-            // JsonLoadFile populates the existing object. It does NOT return
-            // a new object. Fields present in the JSON overwrite defaults;
-            // fields missing from the JSON keep their default values.
+            // JsonLoadFile 填充现有对象。它不会返回
+            // 新对象。JSON 中存在的字段覆盖默认值；
+            // JSON 中缺失的字段保留其默认值。
             JsonFileLoader<MyModConfig>.JsonLoadFile(MYMOD_CONFIG_PATH, cfg);
         }
         else
         {
-            // First run: save defaults so the admin has a file to edit.
+            // 首次运行：保存默认值，以便管理员有一个可编辑的文件。
             cfg.Save();
             Print(MYMOD_TAG + " No config found, created default at: " + MYMOD_CONFIG_PATH);
         }
@@ -418,25 +422,25 @@ class MyModConfig
     }
 
     // -----------------------------------------------------------------------
-    // Save - writes current values to disk as formatted JSON
+    // Save - 将当前值作为格式化的 JSON 写入磁盘
     // -----------------------------------------------------------------------
     void Save()
     {
-        // Ensure the directory exists. MakeDirectory is safe to call
-        // even if the directory already exists.
+        // 确保目录存在。即使目录已经存在，
+        // MakeDirectory 也可以安全调用。
         if (!FileExist(MYMOD_CONFIG_DIR))
         {
             MakeDirectory(MYMOD_CONFIG_DIR);
         }
 
-        // JsonSaveFile writes all fields as a JSON object.
-        // The file is overwritten entirely -- there is no merge.
+        // JsonSaveFile 将所有字段写为 JSON 对象。
+        // 文件被完全覆盖——不存在合并。
         JsonFileLoader<MyModConfig>.JsonSaveFile(MYMOD_CONFIG_PATH, this);
     }
 };
 ```
 
-The resulting `config.json` on disk looks like this:
+磁盘上生成的 `config.json` 如下所示：
 
 ```json
 {
@@ -450,48 +454,48 @@ The resulting `config.json` on disk looks like this:
 }
 ```
 
-Admins edit this file, restart the server, and the new values take effect.
+管理员编辑此文件，重启服务器，新值即生效。
 
 ---
 
-## RPC Definitions (3_Game)
+## RPC 定义（3_Game）
 
-Place at `Scripts/3_Game/MyMod/MyModRPC.c`.
+放在 `Scripts/3_Game/MyMod/MyModRPC.c`。
 
-RPC (Remote Procedure Call) is how the client and server communicate in DayZ. This file defines route names and provides helper methods for registration.
+RPC（远程过程调用）是 DayZ 中客户端和服务器通信的方式。此文件定义路由名称并提供注册辅助方法。
 
 ```c
 // ==========================================================================
-// MyModRPC.c - RPC route definitions and helpers
-// 3_Game layer: route name constants must be available everywhere.
+// MyModRPC.c - RPC 路由定义和辅助方法
+// 3_Game 层：路由名称常量必须在任何地方都可用。
 //
-// HOW RPC WORKS IN DAYZ:
-//   The engine provides ScriptRPC and OnRPC for sending/receiving data.
-//   You call GetGame().RPCSingleParam() or create a ScriptRPC, write
-//   data into it, and send it. The receiver reads data in the same order.
+// DayZ 中 RPC 的工作原理：
+//   引擎提供 ScriptRPC 和 OnRPC 用于发送/接收数据。
+//   你调用 GetGame().RPCSingleParam() 或创建 ScriptRPC，将
+//   数据写入其中，然后发送。接收方按相同顺序读取数据。
 //
-//   DayZ uses integer RPC IDs. To avoid collisions between mods, each
-//   mod should pick a unique ID range or use a string-routing system.
-//   This template uses a single unique int ID with a string prefix
-//   to identify which handler should process each message.
+//   DayZ 使用整数 RPC ID。为避免模组间冲突，每个
+//   模组应选择唯一的 ID 范围或使用字符串路由系统。
+//   此模板使用单个唯一整数 ID 加字符串前缀
+//   来标识哪个处理器应处理每条消息。
 //
-// PATTERN:
-//   1. Client wants data -> sends request RPC to server
-//   2. Server processes  -> sends response RPC back to client
-//   3. Client receives   -> updates UI or state
+// 模式：
+//   1. 客户端需要数据 -> 发送请求 RPC 到服务器
+//   2. 服务器处理 -> 发送响应 RPC 回客户端
+//   3. 客户端接收 -> 更新 UI 或状态
 // ==========================================================================
 
 // ---------------------------------------------------------------------------
-// RPC ID - pick a unique number unlikely to collide with other mods.
-// Check the DayZ community wiki for commonly used ranges.
-// Engine built-in RPCs use low numbers (0-1000).
-// Convention: use a 5-digit number based on your mod name's hash.
+// RPC ID - 选择一个不太可能与其他模组冲突的唯一数字。
+// 查看 DayZ 社区 wiki 了解常用范围。
+// 引擎内置 RPC 使用低数字（0-1000）。
+// 命名约定：使用基于你模组名称哈希的 5 位数字。
 // ---------------------------------------------------------------------------
 const int MYMOD_RPC_ID = 74291;
 
 // ---------------------------------------------------------------------------
-// RPC Route Names - string identifiers for each RPC endpoint.
-// Using constants prevents typos and enables IDE search.
+// RPC 路由名称 - 每个 RPC 端点的字符串标识符。
+// 使用常量可以防止拼写错误并启用 IDE 搜索。
 // ---------------------------------------------------------------------------
 const string MYMOD_RPC_CONFIG_SYNC     = "MyMod:ConfigSync";
 const string MYMOD_RPC_WELCOME         = "MyMod:Welcome";
@@ -500,43 +504,42 @@ const string MYMOD_RPC_UI_REQUEST      = "MyMod:UIRequest";
 const string MYMOD_RPC_UI_RESPONSE     = "MyMod:UIResponse";
 
 // ---------------------------------------------------------------------------
-// MyModRPCHelper - static utility class for sending RPCs
-// Wraps the boilerplate of creating a ScriptRPC, writing the route
-// string, writing payload, and calling Send().
+// MyModRPCHelper - 用于发送 RPC 的静态工具类
+// 封装了创建 ScriptRPC、写入路由字符串、写入负载和调用 Send() 的样板代码。
 // ---------------------------------------------------------------------------
 class MyModRPCHelper
 {
-    // Send a string message from server to a specific client.
-    // identity: the target player. null = broadcast to all.
-    // routeName: which handler should process this (e.g., MYMOD_RPC_WELCOME).
-    // message: the string payload.
+    // 从服务器向特定客户端发送字符串消息。
+    // identity：目标玩家。null = 广播给所有人。
+    // routeName：哪个处理器应处理此消息（例如 MYMOD_RPC_WELCOME）。
+    // message：字符串负载。
     static void SendStringToClient(PlayerIdentity identity, string routeName, string message)
     {
-        // Create the RPC object. This is the envelope.
+        // 创建 RPC 对象。这是信封。
         ScriptRPC rpc = new ScriptRPC();
 
-        // Write the route name first. The receiver reads this to decide
-        // which handler to call. Always write/read in the same order.
+        // 先写入路由名称。接收方读取此来决定
+        // 调用哪个处理器。始终以相同顺序写入/读取。
         rpc.Write(routeName);
 
-        // Write the payload data.
+        // 写入负载数据。
         rpc.Write(message);
 
-        // Send to the client. Parameters:
-        //   null    = no target object (player entity not needed for custom RPCs)
-        //   MYMOD_RPC_ID = our unique RPC channel
-        //   true    = guaranteed delivery (TCP-like). Use false for frequent updates.
-        //   identity = target client. null would broadcast to ALL clients.
+        // 发送到客户端。参数：
+        //   null    = 无目标对象（自定义 RPC 不需要玩家实体）
+        //   MYMOD_RPC_ID = 我们的唯一 RPC 通道
+        //   true    = 保证传递（类似 TCP）。频繁更新使用 false。
+        //   identity = 目标客户端。null 将广播给所有客户端。
         rpc.Send(null, MYMOD_RPC_ID, true, identity);
     }
 
-    // Send a request from client to server (no payload, just the route).
+    // 从客户端向服务器发送请求（无负载，仅路由）。
     static void SendRequestToServer(string routeName)
     {
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(routeName);
-        // When sending TO the server, identity is null (server has no PlayerIdentity).
-        // guaranteed = true ensures the message arrives.
+        // 发送到服务器时，identity 为 null（服务器没有 PlayerIdentity）。
+        // guaranteed = true 确保消息到达。
         rpc.Send(null, MYMOD_RPC_ID, true, null);
     }
 };
@@ -544,49 +547,48 @@ class MyModRPCHelper
 
 ---
 
-## Manager Singleton (4_World)
+## 管理器单例（4_World）
 
-Place at `Scripts/4_World/MyMod/MyModManager.c`.
+放在 `Scripts/4_World/MyMod/MyModManager.c`。
 
-This is the central brain of your mod on the server side. It owns the config, processes RPC, and runs periodic updates.
+这是你的模组在服务器端的中央大脑。它拥有配置、处理 RPC 并运行周期性更新。
 
 ```c
 // ==========================================================================
-// MyModManager.c - Server-side singleton manager
-// 4_World layer: can reference 3_Game types (config, constants, RPC).
+// MyModManager.c - 服务器端单例管理器
+// 4_World 层：可以引用 3_Game 类型（配置、常量、RPC）。
 //
-// WHY a singleton:
-//   The manager needs exactly one instance that persists for the entire
-//   mission. Multiple instances would cause duplicate processing and
-//   conflicting state. The singleton pattern guarantees one instance
-//   and provides global access via GetInstance().
+// 为什么使用单例：
+//   管理器需要在整个任务期间恰好存在一个实例。
+//   多个实例会导致重复处理和状态冲突。
+//   单例模式保证一个实例并通过 GetInstance() 提供全局访问。
 //
-// LIFECYCLE:
-//   1. MissionServer.OnInit() calls MyModManager.GetInstance().Init()
-//   2. Manager loads config, registers RPCs, starts timers
-//   3. Manager processes events during gameplay
-//   4. MissionServer.OnMissionFinish() calls MyModManager.Cleanup()
-//   5. Singleton is destroyed, all references are released
+// 生命周期：
+//   1. MissionServer.OnInit() 调用 MyModManager.GetInstance().Init()
+//   2. 管理器加载配置、注册 RPC、启动计时器
+//   3. 管理器在游戏过程中处理事件
+//   4. MissionServer.OnMissionFinish() 调用 MyModManager.Cleanup()
+//   5. 单例被销毁，所有引用被释放
 // ==========================================================================
 
 class MyModManager
 {
-    // The single instance. 'ref' means this class OWNS the object.
-    // When s_Instance is set to null, the object is destroyed.
+    // 单个实例。'ref' 表示此类拥有对象。
+    // 当 s_Instance 设置为 null 时，对象被销毁。
     private static ref MyModManager s_Instance;
 
-    // Configuration loaded from disk.
-    // 'ref' because the manager owns the config object's lifetime.
+    // 从磁盘加载的配置。
+    // 'ref' 因为管理器拥有配置对象的生命周期。
     protected ref MyModConfig m_Config;
 
-    // Accumulated time since last update tick (seconds).
+    // 自上次更新周期以来的累积时间（秒）。
     protected float m_TimeSinceUpdate;
 
-    // Tracks whether Init() has been called successfully.
+    // 跟踪 Init() 是否已成功调用。
     protected bool m_Initialized;
 
     // -----------------------------------------------------------------------
-    // Singleton access
+    // 单例访问
     // -----------------------------------------------------------------------
 
     static MyModManager GetInstance()
@@ -598,23 +600,23 @@ class MyModManager
         return s_Instance;
     }
 
-    // Call this on mission end to destroy the singleton and free memory.
-    // Setting s_Instance to null triggers the destructor.
+    // 在任务结束时调用以销毁单例并释放内存。
+    // 将 s_Instance 设置为 null 会触发析构函数。
     static void Cleanup()
     {
         s_Instance = null;
     }
 
     // -----------------------------------------------------------------------
-    // Lifecycle
+    // 生命周期
     // -----------------------------------------------------------------------
 
-    // Called once from MissionServer.OnInit().
+    // 从 MissionServer.OnInit() 调用一次。
     void Init()
     {
         if (m_Initialized) return;
 
-        // Load config from disk (or create defaults on first run).
+        // 从磁盘加载配置（首次运行时创建默认值）。
         m_Config = MyModConfig.Load();
 
         if (!m_Config.Enabled)
@@ -623,7 +625,7 @@ class MyModManager
             return;
         }
 
-        // Reset the update timer.
+        // 重置更新计时器。
         m_TimeSinceUpdate = 0;
 
         m_Initialized = true;
@@ -638,46 +640,46 @@ class MyModManager
         }
     }
 
-    // Called every frame from MissionServer.OnUpdate().
-    // timeslice is the seconds elapsed since the last frame.
+    // 每帧从 MissionServer.OnUpdate() 调用。
+    // timeslice 是自上一帧以来经过的秒数。
     void OnUpdate(float timeslice)
     {
         if (!m_Initialized || !m_Config.Enabled) return;
 
-        // Accumulate time and only process at the configured interval.
-        // This prevents running expensive logic every single frame.
+        // 累积时间并仅在配置的间隔处理。
+        // 这防止了每帧都运行昂贵的逻辑。
         m_TimeSinceUpdate += timeslice;
         if (m_TimeSinceUpdate < m_Config.UpdateInterval) return;
         m_TimeSinceUpdate = 0;
 
-        // --- Periodic update logic goes here ---
-        // Example: iterate tracked entities, check conditions, etc.
+        // --- 周期性更新逻辑在这里 ---
+        // 示例：遍历追踪的实体、检查条件等。
         if (m_Config.DebugLogging)
         {
             Print(MYMOD_TAG + " Periodic update tick");
         }
     }
 
-    // Called when the mission ends (server shutdown or restart).
+    // 当任务结束（服务器关闭或重启）时调用。
     void Shutdown()
     {
         if (!m_Initialized) return;
 
         Print(MYMOD_TAG + " Manager shutting down");
 
-        // Save any runtime state if needed.
+        // 如果需要，保存运行时状态。
         // m_Config.Save();
 
         m_Initialized = false;
     }
 
     // -----------------------------------------------------------------------
-    // RPC Handlers
+    // RPC 处理器
     // -----------------------------------------------------------------------
 
-    // Called when a client requests UI data.
-    // sender: the player who sent the request.
-    // ctx: the data stream (already past the route name).
+    // 当客户端请求 UI 数据时调用。
+    // sender：发送请求的玩家。
+    // ctx：数据流（已跳过路由名称）。
     void OnUIRequest(PlayerIdentity sender, ParamsReadContext ctx)
     {
         if (!sender) return;
@@ -687,19 +689,19 @@ class MyModManager
             Print(MYMOD_TAG + " UI data requested by: " + sender.GetName());
         }
 
-        // Build response data and send it back.
-        // In a real mod, you would gather actual data here.
+        // 构建响应数据并发送回。
+        // 在实际模组中，你会在这里收集实际数据。
         string responseData = "Items: " + m_Config.MaxItems.ToString();
         MyModRPCHelper.SendStringToClient(sender, MYMOD_RPC_UI_RESPONSE, responseData);
     }
 
-    // Called when a player connects. Sends welcome message if configured.
+    // 当玩家连接时调用。如果已配置，发送欢迎消息。
     void OnPlayerConnected(PlayerIdentity identity)
     {
         if (!m_Initialized || !m_Config.Enabled) return;
         if (!identity) return;
 
-        // Send welcome message if configured.
+        // 如果已配置，发送欢迎消息。
         if (m_Config.WelcomeMessage != "")
         {
             MyModRPCHelper.SendStringToClient(identity, MYMOD_RPC_WELCOME, m_Config.WelcomeMessage);
@@ -712,7 +714,7 @@ class MyModManager
     }
 
     // -----------------------------------------------------------------------
-    // Accessors
+    // 访问器
     // -----------------------------------------------------------------------
 
     MyModConfig GetConfig()
@@ -729,58 +731,57 @@ class MyModManager
 
 ---
 
-## Player Event Handler (4_World)
+## 玩家事件处理器（4_World）
 
-Place at `Scripts/4_World/MyMod/MyModPlayerHandler.c`.
+放在 `Scripts/4_World/MyMod/MyModPlayerHandler.c`。
 
-This uses the `modded class` pattern to hook into the vanilla `PlayerBase` entity and detect connect/disconnect events.
+这使用 `modded class` 模式挂接到原版 `PlayerBase` 实体并检测连接/断开事件。
 
 ```c
 // ==========================================================================
-// MyModPlayerHandler.c - Player lifecycle hooks
-// 4_World layer: modded PlayerBase to intercept connect/disconnect.
+// MyModPlayerHandler.c - 玩家生命周期钩子
+// 4_World 层：modded PlayerBase 以拦截连接/断开。
 //
-// WHY modded class:
-//   DayZ does not have a "player connected" event callback. The standard
-//   pattern is to override methods on MissionServer (for new connections)
-//   or hook into PlayerBase (for entity-level events like death).
-//   We use modded PlayerBase here to demonstrate entity-level hooks.
+// 为什么使用 modded class：
+//   DayZ 没有 "玩家已连接" 事件回调。标准模式是
+//   覆盖 MissionServer 上的方法（用于新连接）或挂接到
+//   PlayerBase（用于实体级事件如死亡）。
+//   我们在这里使用 modded PlayerBase 来演示实体级钩子。
 //
-// IMPORTANT:
-//   Always call super.MethodName() first in overrides. Failing to do so
-//   breaks the vanilla behavior chain and other mods that also override
-//   the same method.
+// 重要：
+//   在覆盖中始终首先调用 super.MethodName()。不这样做会
+//   破坏原版行为链以及同样覆盖该方法的其他模组。
 // ==========================================================================
 
 modded class PlayerBase
 {
-    // Track whether we have sent the init event for this player.
-    // This prevents duplicate processing if Init() is called multiple times.
+    // 跟踪我们是否已为此玩家发送了初始化事件。
+    // 这防止了 Init() 被多次调用时的重复处理。
     protected bool m_MyModPlayerReady;
 
     // -----------------------------------------------------------------------
-    // Called after the player entity is fully created and replicated.
-    // On the server, this is where the player is "ready" to receive RPCs.
+    // 在玩家实体完全创建和复制后调用。
+    // 在服务器上，这是玩家"准备好"接收 RPC 的地方。
     // -----------------------------------------------------------------------
     override void Init()
     {
         super.Init();
 
-        // Only run on the server. GetGame().IsServer() returns true on
-        // dedicated servers and on the host of a listen server.
+        // 仅在服务器上运行。GetGame().IsServer() 在
+        // 专用服务器和监听服务器的主机上返回 true。
         if (!GetGame().IsServer()) return;
 
-        // Guard against double-init.
+        // 防止重复初始化。
         if (m_MyModPlayerReady) return;
         m_MyModPlayerReady = true;
 
-        // Get the player's network identity.
-        // On the server, GetIdentity() returns the PlayerIdentity object
-        // containing the player's name, Steam ID (PlainId), and UID.
+        // 获取玩家的网络身份。
+        // 在服务器上，GetIdentity() 返回包含玩家
+        // 名称、Steam ID（PlainId）和 UID 的 PlayerIdentity 对象。
         PlayerIdentity identity = GetIdentity();
         if (!identity) return;
 
-        // Notify the manager that a player has connected.
+        // 通知管理器玩家已连接。
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
@@ -792,58 +793,58 @@ modded class PlayerBase
 
 ---
 
-## Mission Hook: Server (5_Mission)
+## 任务钩子：服务器（5_Mission）
 
-Place at `Scripts/5_Mission/MyMod/MyModMissionServer.c`.
+放在 `Scripts/5_Mission/MyMod/MyModMissionServer.c`。
 
-This hooks into `MissionServer` to initialize and shut down the mod on the server side.
+这挂接到 `MissionServer` 以在服务器端初始化和关闭模组。
 
 ```c
 // ==========================================================================
-// MyModMissionServer.c - Server-side mission hooks
-// 5_Mission layer: last to load, can reference all lower layers.
+// MyModMissionServer.c - 服务器端任务钩子
+// 5_Mission 层：最后加载，可以引用所有更低层级。
 //
-// WHY modded MissionServer:
-//   MissionServer is the entry point for server-side logic. Its OnInit()
-//   runs once when the mission starts (server boot). OnMissionFinish()
-//   runs when the server shuts down or restarts. These are the correct
-//   places to set up and tear down your mod's systems.
+// 为什么使用 modded MissionServer：
+//   MissionServer 是服务器端逻辑的入口点。它的 OnInit()
+//   在任务开始（服务器启动）时运行一次。OnMissionFinish()
+//   在服务器关闭或重启时运行。这些是设置和拆卸
+//   你的模组系统的正确位置。
 //
-// LIFECYCLE ORDER:
-//   1. Engine loads all script layers (3_Game -> 4_World -> 5_Mission)
-//   2. Engine creates MissionServer instance
-//   3. OnInit() is called -> initialize your systems here
-//   4. OnMissionStart() is called -> world is ready, players can join
-//   5. OnUpdate() is called every frame
-//   6. OnMissionFinish() is called -> server is shutting down
+// 生命周期顺序：
+//   1. 引擎加载所有脚本层级（3_Game -> 4_World -> 5_Mission）
+//   2. 引擎创建 MissionServer 实例
+//   3. OnInit() 被调用 -> 在这里初始化你的系统
+//   4. OnMissionStart() 被调用 -> 世界准备就绪，玩家可以加入
+//   5. OnUpdate() 每帧调用
+//   6. OnMissionFinish() 被调用 -> 服务器正在关闭
 // ==========================================================================
 
 modded class MissionServer
 {
     // -----------------------------------------------------------------------
-    // Initialization
+    // 初始化
     // -----------------------------------------------------------------------
     override void OnInit()
     {
-        // ALWAYS call super first. Other mods in the chain depend on this.
+        // 始终首先调用 super。链中的其他模组依赖于此。
         super.OnInit();
 
-        // Initialize the manager singleton. This loads config from disk,
-        // registers RPC handlers, and prepares the mod for operation.
+        // 初始化管理器单例。这从磁盘加载配置，
+        // 注册 RPC 处理器，并准备模组运行。
         MyModManager.GetInstance().Init();
 
         Print(MYMOD_TAG + " Server mission initialized");
     }
 
     // -----------------------------------------------------------------------
-    // Per-frame update
+    // 每帧更新
     // -----------------------------------------------------------------------
     override void OnUpdate(float timeslice)
     {
         super.OnUpdate(timeslice);
 
-        // Delegate to the manager. The manager handles its own rate
-        // limiting (UpdateInterval from config) so this is cheap.
+        // 委托给管理器。管理器处理自己的速率
+        // 限制（来自配置的 UpdateInterval），所以这是低成本的。
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
@@ -852,21 +853,21 @@ modded class MissionServer
     }
 
     // -----------------------------------------------------------------------
-    // Player connection - server RPC dispatch
-    // Called by the engine when a client sends an RPC to the server.
+    // 玩家连接 - 服务器 RPC 分发
+    // 当客户端向服务器发送 RPC 时由引擎调用。
     // -----------------------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, target, rpc_type, ctx);
 
-        // Only handle our RPC ID. All other RPCs pass through.
+        // 仅处理我们的 RPC ID。所有其他 RPC 通过。
         if (rpc_type != MYMOD_RPC_ID) return;
 
-        // Read the route name (first string written by the sender).
+        // 读取路由名称（发送者写入的第一个字符串）。
         string routeName;
         if (!ctx.Read(routeName)) return;
 
-        // Dispatch to the correct handler based on route name.
+        // 根据路由名称分发到正确的处理器。
         MyModManager mgr = MyModManager.GetInstance();
         if (!mgr) return;
 
@@ -874,7 +875,7 @@ modded class MissionServer
         {
             mgr.OnUIRequest(sender, ctx);
         }
-        // Add more routes here as your mod grows:
+        // 随着模组增长，在这里添加更多路由：
         // else if (routeName == MYMOD_RPC_SOME_OTHER)
         // {
         //     mgr.OnSomeOther(sender, ctx);
@@ -882,21 +883,21 @@ modded class MissionServer
     }
 
     // -----------------------------------------------------------------------
-    // Shutdown
+    // 关闭
     // -----------------------------------------------------------------------
     override void OnMissionFinish()
     {
-        // Shut down the manager before calling super.
-        // This ensures our cleanup runs before the engine tears down
-        // the mission infrastructure.
+        // 在调用 super 之前关闭管理器。
+        // 这确保我们的清理在引擎拆除
+        // 任务基础设施之前运行。
         MyModManager mgr = MyModManager.GetInstance();
         if (mgr)
         {
             mgr.Shutdown();
         }
 
-        // Destroy the singleton to free memory and prevent stale state
-        // if the mission restarts (e.g., server restart without process exit).
+        // 销毁单例以释放内存并防止过时状态
+        // 如果任务重启（例如，服务器重启而进程不退出）。
         MyModManager.Cleanup();
 
         Print(MYMOD_TAG + " Server mission finished");
@@ -908,39 +909,39 @@ modded class MissionServer
 
 ---
 
-## Mission Hook: Client (5_Mission)
+## 任务钩子：客户端（5_Mission）
 
-Place at `Scripts/5_Mission/MyMod/MyModMissionClient.c`.
+放在 `Scripts/5_Mission/MyMod/MyModMissionClient.c`。
 
-This hooks into `MissionGameplay` for client-side initialization, input handling, and RPC receiving.
+这挂接到 `MissionGameplay` 用于客户端初始化、输入处理和 RPC 接收。
 
 ```c
 // ==========================================================================
-// MyModMissionClient.c - Client-side mission hooks
-// 5_Mission layer.
+// MyModMissionClient.c - 客户端任务钩子
+// 5_Mission 层。
 //
-// WHY MissionGameplay:
-//   On the client, MissionGameplay is the active mission class during
-//   gameplay. It receives OnUpdate() every frame (for input polling)
-//   and OnRPC() for incoming server messages.
+// 为什么使用 MissionGameplay：
+//   在客户端，MissionGameplay 是游戏过程中活跃的任务类。
+//   它每帧接收 OnUpdate()（用于输入轮询）
+//   和 OnRPC() 用于接收服务器消息。
 //
-// NOTE ON LISTEN SERVERS:
-//   On a listen server (host + play), BOTH MissionServer and
-//   MissionGameplay are active. Your client code will run alongside
-//   server code. Guard with GetGame().IsClient() or GetGame().IsServer()
-//   if you need side-specific logic.
+// 关于监听服务器的注意事项：
+//   在监听服务器（主机 + 游玩）上，MissionServer 和
+//   MissionGameplay 都是活跃的。你的客户端代码将与
+//   服务器代码一起运行。如果需要特定端的逻辑，
+//   使用 GetGame().IsClient() 或 GetGame().IsServer() 进行守卫。
 // ==========================================================================
 
 modded class MissionGameplay
 {
-    // Reference to the UI panel. null when closed.
+    // UI 面板的引用。关闭时为 null。
     protected ref MyModUI m_MyModPanel;
 
-    // Track initialization state.
+    // 跟踪初始化状态。
     protected bool m_MyModInitialized;
 
     // -----------------------------------------------------------------------
-    // Initialization
+    // 初始化
     // -----------------------------------------------------------------------
     override void OnInit()
     {
@@ -952,7 +953,7 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // Per-frame update: input polling and UI management
+    // 每帧更新：输入轮询和 UI 管理
     // -----------------------------------------------------------------------
     override void OnUpdate(float timeslice)
     {
@@ -960,10 +961,10 @@ modded class MissionGameplay
 
         if (!m_MyModInitialized) return;
 
-        // Poll for the keybind defined in Inputs.xml.
-        // GetUApi() returns the UserActions API.
-        // GetInputByName() looks up the action by the name in Inputs.xml.
-        // LocalPress() returns true on the frame the key is pressed down.
+        // 轮询 Inputs.xml 中定义的快捷键。
+        // GetUApi() 返回 UserActions API。
+        // GetInputByName() 按 Inputs.xml 中的名称查找操作。
+        // LocalPress() 在按键按下的那一帧返回 true。
         UAInput panelInput = GetUApi().GetInputByName("UAMyModPanel");
         if (panelInput && panelInput.LocalPress())
         {
@@ -972,28 +973,28 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // RPC receiver: handles messages from the server
+    // RPC 接收器：处理来自服务器的消息
     // -----------------------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, target, rpc_type, ctx);
 
-        // Only handle our RPC ID.
+        // 仅处理我们的 RPC ID。
         if (rpc_type != MYMOD_RPC_ID) return;
 
-        // Read the route name.
+        // 读取路由名称。
         string routeName;
         if (!ctx.Read(routeName)) return;
 
-        // Dispatch based on route.
+        // 根据路由分发。
         if (routeName == MYMOD_RPC_WELCOME)
         {
             string welcomeMsg;
             if (ctx.Read(welcomeMsg))
             {
-                // Display the welcome message to the player.
-                // GetGame().GetMission().OnEvent() can show notifications,
-                // or you can use a custom UI. For simplicity, we use chat.
+                // 向玩家显示欢迎消息。
+                // GetGame().GetMission().OnEvent() 可以显示通知，
+                // 或者你可以使用自定义 UI。为简单起见，我们使用聊天。
                 GetGame().Chat(welcomeMsg, "");
                 Print(MYMOD_TAG + " Welcome message: " + welcomeMsg);
             }
@@ -1003,7 +1004,7 @@ modded class MissionGameplay
             string responseData;
             if (ctx.Read(responseData))
             {
-                // Update the UI panel with received data.
+                // 用接收到的数据更新 UI 面板。
                 if (m_MyModPanel)
                 {
                     m_MyModPanel.SetData(responseData);
@@ -1013,7 +1014,7 @@ modded class MissionGameplay
     }
 
     // -----------------------------------------------------------------------
-    // UI Panel toggle
+    // UI 面板切换
     // -----------------------------------------------------------------------
     protected void TogglePanel()
     {
@@ -1024,7 +1025,7 @@ modded class MissionGameplay
         }
         else
         {
-            // Only open if the player is alive and no other menu is showing.
+            // 仅在玩家活着且没有其他菜单显示时打开。
             PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
             if (!player || !player.IsAlive()) return;
 
@@ -1034,17 +1035,17 @@ modded class MissionGameplay
             m_MyModPanel = new MyModUI();
             m_MyModPanel.Open();
 
-            // Request fresh data from the server.
+            // 从服务器请求新数据。
             MyModRPCHelper.SendRequestToServer(MYMOD_RPC_UI_REQUEST);
         }
     }
 
     // -----------------------------------------------------------------------
-    // Shutdown
+    // 关闭
     // -----------------------------------------------------------------------
     override void OnMissionFinish()
     {
-        // Close and destroy the UI panel if open.
+        // 如果打开则关闭并销毁 UI 面板。
         if (m_MyModPanel)
         {
             m_MyModPanel.Close();
@@ -1062,68 +1063,68 @@ modded class MissionGameplay
 
 ---
 
-## UI Panel Script (5_Mission)
+## UI 面板脚本（5_Mission）
 
-Place at `Scripts/5_Mission/MyMod/MyModUI.c`.
+放在 `Scripts/5_Mission/MyMod/MyModUI.c`。
 
-This script drives the UI panel defined in the `.layout` file. It finds widget references, populates them with data, and handles open/close.
+此脚本驱动 `.layout` 文件中定义的 UI 面板。它查找控件引用、用数据填充它们，并处理打开/关闭。
 
 ```c
 // ==========================================================================
-// MyModUI.c - UI panel controller
-// 5_Mission layer: can reference all lower layers.
+// MyModUI.c - UI 面板控制器
+// 5_Mission 层：可以引用所有更低层级。
 //
-// HOW DayZ UI WORKS:
-//   1. A .layout file defines the widget hierarchy (like HTML).
-//   2. A script class loads the layout, finds widgets by name, and
-//      manipulates them (set text, show/hide, respond to clicks).
-//   3. The script shows/hides the root widget and manages input focus.
+// DayZ UI 的工作原理：
+//   1. .layout 文件定义控件层次结构（类似 HTML）。
+//   2. 脚本类加载布局、按名称查找控件，并操作它们
+//      （设置文本、显示/隐藏、响应点击）。
+//   3. 脚本显示/隐藏根控件并管理输入焦点。
 //
-// WIDGET LIFECYCLE:
-//   GetGame().GetWorkspace().CreateWidgets() loads the layout file and
-//   returns the root widget. You then use FindAnyWidget() to get
-//   references to named child widgets. When done, call widget.Unlink()
-//   to destroy the entire widget tree.
+// 控件生命周期：
+//   GetGame().GetWorkspace().CreateWidgets() 加载布局文件并
+//   返回根控件。然后你使用 FindAnyWidget() 获取
+//   命名子控件的引用。完成后，调用 widget.Unlink()
+//   销毁整个控件树。
 // ==========================================================================
 
 class MyModUI
 {
-    // Root widget of the panel (loaded from .layout).
+    // 面板的根控件（从 .layout 加载）。
     protected ref Widget m_Root;
 
-    // Named child widgets.
+    // 命名的子控件。
     protected TextWidget m_TitleText;
     protected TextWidget m_DataText;
     protected TextWidget m_VersionText;
     protected ButtonWidget m_CloseButton;
 
-    // State tracking.
+    // 状态跟踪。
     protected bool m_IsOpen;
 
     // -----------------------------------------------------------------------
-    // Constructor: load the layout and find widget references
+    // 构造函数：加载布局并查找控件引用
     // -----------------------------------------------------------------------
     void MyModUI()
     {
-        // CreateWidgets loads the .layout file and instantiates all widgets.
-        // The path is relative to the mod root (same as config.cpp paths).
+        // CreateWidgets 加载 .layout 文件并实例化所有控件。
+        // 路径相对于模组根目录（与 config.cpp 路径相同）。
         m_Root = GetGame().GetWorkspace().CreateWidgets(
             "MyProfessionalMod/Scripts/GUI/layouts/MyModPanel.layout"
         );
 
-        // Initially hidden until Open() is called.
+        // 在调用 Open() 之前初始隐藏。
         if (m_Root)
         {
             m_Root.Show(false);
 
-            // Find named widgets. These names MUST match the widget names
-            // in the .layout file exactly (case-sensitive).
+            // 查找命名控件。这些名称必须与 .layout 文件中的
+            // 控件名称完全匹配（区分大小写）。
             m_TitleText   = TextWidget.Cast(m_Root.FindAnyWidget("TitleText"));
             m_DataText    = TextWidget.Cast(m_Root.FindAnyWidget("DataText"));
             m_VersionText = TextWidget.Cast(m_Root.FindAnyWidget("VersionText"));
             m_CloseButton = ButtonWidget.Cast(m_Root.FindAnyWidget("CloseButton"));
 
-            // Set static content.
+            // 设置静态内容。
             if (m_TitleText)
                 m_TitleText.SetText("My Professional Mod");
 
@@ -1133,7 +1134,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Open: show the panel and capture input
+    // 打开：显示面板并捕获输入
     // -----------------------------------------------------------------------
     void Open()
     {
@@ -1142,8 +1143,8 @@ class MyModUI
         m_Root.Show(true);
         m_IsOpen = true;
 
-        // Lock player controls so WASD does not move the character
-        // while the panel is open. This shows a cursor.
+        // 锁定玩家控制，这样 WASD 不会在面板打开时
+        // 移动角色。这会显示光标。
         GetGame().GetMission().PlayerControlDisable(INPUT_EXCLUDE_ALL);
         GetGame().GetUIManager().ShowUICursor(true);
 
@@ -1151,7 +1152,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Close: hide the panel and release input
+    // 关闭：隐藏面板并释放输入
     // -----------------------------------------------------------------------
     void Close()
     {
@@ -1160,7 +1161,7 @@ class MyModUI
         m_Root.Show(false);
         m_IsOpen = false;
 
-        // Re-enable player controls.
+        // 重新启用玩家控制。
         GetGame().GetMission().PlayerControlEnable(true);
         GetGame().GetUIManager().ShowUICursor(false);
 
@@ -1168,7 +1169,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Data update: called when the server sends UI data
+    // 数据更新：当服务器发送 UI 数据时调用
     // -----------------------------------------------------------------------
     void SetData(string data)
     {
@@ -1179,7 +1180,7 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // State query
+    // 状态查询
     // -----------------------------------------------------------------------
     bool IsOpen()
     {
@@ -1187,12 +1188,12 @@ class MyModUI
     }
 
     // -----------------------------------------------------------------------
-    // Destructor: clean up the widget tree
+    // 析构函数：清理控件树
     // -----------------------------------------------------------------------
     void ~MyModUI()
     {
-        // Unlink destroys the root widget and all its children.
-        // This frees the memory used by the widget tree.
+        // Unlink 销毁根控件及其所有子控件。
+        // 这释放了控件树使用的内存。
         if (m_Root)
         {
             m_Root.Unlink();
@@ -1203,32 +1204,32 @@ class MyModUI
 
 ---
 
-## Layout File
+## 布局文件
 
-Place at `Scripts/GUI/layouts/MyModPanel.layout`.
+放在 `Scripts/GUI/layouts/MyModPanel.layout`。
 
-This defines the visual structure of the UI panel. DayZ layouts use a custom text format (not XML).
+这定义了 UI 面板的视觉结构。DayZ 布局使用自定义文本格式（不是 XML）。
 
 ```
 // ==========================================================================
-// MyModPanel.layout - UI panel structure
+// MyModPanel.layout - UI 面板结构
 //
-// SIZING RULES:
-//   hexactsize 1 + vexactsize 1 = size is in pixels (e.g., size 400 300)
-//   hexactsize 0 + vexactsize 0 = size is proportional (0.0 to 1.0)
-//   halign/valign control anchor point:
-//     left_ref/top_ref     = anchored to parent's left/top edge
-//     center_ref           = centered in parent
-//     right_ref/bottom_ref = anchored to parent's right/bottom edge
+// 尺寸规则：
+//   hexactsize 1 + vexactsize 1 = 尺寸以像素为单位（例如 size 400 300）
+//   hexactsize 0 + vexactsize 0 = 尺寸为比例值（0.0 到 1.0）
+//   halign/valign 控制锚点：
+//     left_ref/top_ref     = 锚定到父级的左/上边缘
+//     center_ref           = 在父级中居中
+//     right_ref/bottom_ref = 锚定到父级的右/下边缘
 //
-// IMPORTANT:
-//   - Never use negative sizes. Use alignment and position instead.
-//   - Widget names must match FindAnyWidget() calls in the script exactly.
-//   - 'ignorepointer 1' means the widget does not receive mouse clicks.
-//   - 'scriptclass' links a widget to a script class for event handling.
+// 重要：
+//   - 永远不要使用负尺寸。改用对齐和位置。
+//   - 控件名称必须与脚本中的 FindAnyWidget() 调用完全匹配。
+//   - 'ignorepointer 1' 表示控件不接收鼠标点击。
+//   - 'scriptclass' 将控件链接到脚本类用于事件处理。
 // ==========================================================================
 
-// Root panel: centered on screen, 400x300 pixels, semi-transparent background.
+// 根面板：屏幕居中，400x300 像素，半透明背景。
 PanelWidgetClass MyModPanelRoot {
  position 0 0
  size 400 300
@@ -1241,7 +1242,7 @@ PanelWidgetClass MyModPanelRoot {
  color 0.1 0.1 0.12 0.92
  priority 100
  {
-  // Title bar: full width, 36px tall, at the top.
+  // 标题栏：全宽，36px 高，在顶部。
   PanelWidgetClass TitleBar {
    position 0 0
    size 1 36
@@ -1251,7 +1252,7 @@ PanelWidgetClass MyModPanelRoot {
    vexactsize 1
    color 0.15 0.15 0.18 1
    {
-    // Title text: left-aligned with padding.
+    // 标题文本：带内边距的左对齐。
     TextWidgetClass TitleText {
      position 12 0
      size 300 36
@@ -1266,7 +1267,7 @@ PanelWidgetClass MyModPanelRoot {
      "exact size" 16
      color 1 1 1 0.9
     }
-    // Version text: right side of title bar.
+    // 版本文本：标题栏右侧。
     TextWidgetClass VersionText {
      position 0 0
      size 80 36
@@ -1284,7 +1285,7 @@ PanelWidgetClass MyModPanelRoot {
     }
    }
   }
-  // Content area: below title bar, fills remaining space.
+  // 内容区域：标题栏下方，填充剩余空间。
   PanelWidgetClass ContentArea {
    position 0 40
    size 380 200
@@ -1295,7 +1296,7 @@ PanelWidgetClass MyModPanelRoot {
    vexactsize 1
    color 0 0 0 0
    {
-    // Data text: where server data is displayed.
+    // 数据文本：显示服务器数据的地方。
     TextWidgetClass DataText {
      position 12 12
      size 356 160
@@ -1311,7 +1312,7 @@ PanelWidgetClass MyModPanelRoot {
     }
    }
   }
-  // Close button: bottom-right corner.
+  // 关闭按钮：右下角。
   ButtonWidgetClass CloseButton {
    position 0 0
    size 100 32
@@ -1333,11 +1334,11 @@ PanelWidgetClass MyModPanelRoot {
 
 ## stringtable.csv
 
-Place at `Scripts/stringtable.csv`.
+放在 `Scripts/stringtable.csv`。
 
-This provides localization for all player-facing text. The engine reads the column matching the player's game language. The `original` column is the fallback.
+这为所有面向玩家的文本提供本地化。引擎读取与玩家游戏语言匹配的列。`original` 列是回退。
 
-DayZ supports 13 language columns. Every row must have all 13 columns (use the English text as placeholder for languages you do not translate).
+DayZ 支持 13 个语言列。每行必须有全部 13 列（对于你不翻译的语言，使用英文文本作为占位符）。
 
 ```csv
 "Language","original","english","czech","german","russian","polish","hungarian","italian","spanish","french","chinese","japanese","portuguese","chinesesimp",
@@ -1348,61 +1349,61 @@ DayZ supports 13 language columns. Every row must have all 13 columns (use the E
 "STR_MYMOD_WELCOME","Welcome!","Welcome!","Vitejte!","Willkommen!","Dobro pozhalovat!","Witaj!","Udvozoljuk!","Benvenuto!","Bienvenido!","Bienvenue!","Welcome!","Welcome!","Bem-vindo!","Welcome!",
 ```
 
-**Important:** Each line must end with a trailing comma after the last language column. This is a requirement of DayZ's CSV parser.
+**重要：** 每行必须在最后一个语言列后以尾随逗号结束。这是 DayZ 的 CSV 解析器的要求。
 
 ---
 
 ## Inputs.xml
 
-Place at `Scripts/Inputs.xml`.
+放在 `Scripts/Inputs.xml`。
 
-This defines custom keybinds that appear in the game's Options > Controls menu. The `inputs` field in `config.cpp` CfgMods must point to this file.
+这定义了出现在游戏的选项 > 控制菜单中的自定义快捷键。`config.cpp` CfgMods 中的 `inputs` 字段必须指向此文件。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <!--
-    Inputs.xml - Custom keybind definitions
+    Inputs.xml - 自定义快捷键定义
 
-    STRUCTURE:
-    - <actions>:  declares input action names and their display strings
-    - <sorting>:  groups actions under a category in the Controls menu
-    - <preset>:   sets the default key binding
+    结构：
+    - <actions>：声明输入操作名称及其显示字符串
+    - <sorting>：在控制菜单中将操作分组到一个类别下
+    - <preset>：设置默认键绑定
 
-    NAMING CONVENTION:
-    - Action names start with "UA" (User Action) followed by your mod prefix.
-    - The "loc" attribute references a string key from stringtable.csv.
+    命名约定：
+    - 操作名称以 "UA"（User Action）开头，后跟你的模组前缀。
+    - "loc" 属性引用 stringtable.csv 中的字符串键。
 
-    KEY NAMES:
-    - Keyboard: kA through kZ, k0-k9, kInsert, kHome, kEnd, kDelete,
-      kNumpad0-kNumpad9, kF1-kF12, kLControl, kRControl, kLShift, kRShift,
-      kLAlt, kRAlt, kSpace, kReturn, kBack, kTab, kEscape
-    - Mouse: mouse1 (left), mouse2 (right), mouse3 (middle)
-    - Combo keys: use <combo> element with multiple <btn> children
+    按键名称：
+    - 键盘：kA 到 kZ，k0-k9，kInsert，kHome，kEnd，kDelete，
+      kNumpad0-kNumpad9，kF1-kF12，kLControl，kRControl，kLShift，kRShift，
+      kLAlt，kRAlt，kSpace，kReturn，kBack，kTab，kEscape
+    - 鼠标：mouse1（左键），mouse2（右键），mouse3（中键）
+    - 组合键：使用 <combo> 元素和多个 <btn> 子元素
 -->
 <modded_inputs>
     <inputs>
-        <!-- Declare the input action. -->
+        <!-- 声明输入操作。 -->
         <actions>
             <input name="UAMyModPanel" loc="STR_MYMOD_INPUT_PANEL" />
         </actions>
 
-        <!-- Group under a category in Options > Controls. -->
-        <!-- The "name" is an internal ID; "loc" is the display name from stringtable. -->
+        <!-- 在选项 > 控制中分组到一个类别下。 -->
+        <!-- "name" 是内部 ID；"loc" 是来自 stringtable 的显示名称。 -->
         <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
             <input name="UAMyModPanel"/>
         </sorting>
     </inputs>
 
-    <!-- Default key preset. Players can rebind in Options > Controls. -->
+    <!-- 默认按键预设。玩家可以在选项 > 控制中重新绑定。 -->
     <preset>
-        <!-- Bind to the Home key by default. -->
+        <!-- 默认绑定到 Home 键。 -->
         <input name="UAMyModPanel">
             <btn name="kHome"/>
         </input>
 
         <!--
-        COMBO KEY EXAMPLE (uncomment to use):
-        This would bind to Ctrl+H instead of a single key.
+        组合键示例（取消注释以使用）：
+        这将绑定到 Ctrl+H 而不是单个键。
         <input name="UAMyModPanel">
             <combo>
                 <btn name="kLControl"/>
@@ -1416,61 +1417,61 @@ This defines custom keybinds that appear in the game's Options > Controls menu. 
 
 ---
 
-## Build Script
+## 构建脚本
 
-Place at `build.bat` in the mod root.
+放在模组根目录的 `build.bat`。
 
-This batch file automates PBO packing using Addon Builder from DayZ Tools.
+此批处理文件使用 DayZ Tools 中的 Addon Builder 自动化 PBO 打包。
 
 ```batch
 @echo off
 REM ==========================================================================
-REM build.bat - Automated PBO packing for MyProfessionalMod
+REM build.bat - MyProfessionalMod 的自动 PBO 打包
 REM
-REM WHAT THIS DOES:
-REM   1. Packs the Scripts/ folder into a PBO file
-REM   2. Places the PBO in the distributable @mod folder
-REM   3. Copies mod.cpp to the distributable folder
+REM 此脚本的功能：
+REM   1. 将 Scripts/ 文件夹打包为 PBO 文件
+REM   2. 将 PBO 放在可分发的 @mod 文件夹中
+REM   3. 将 mod.cpp 复制到可分发文件夹
 REM
-REM PREREQUISITES:
-REM   - DayZ Tools installed via Steam
-REM   - Mod source at P:\MyProfessionalMod\
+REM 前提条件：
+REM   - 通过 Steam 安装了 DayZ Tools
+REM   - 模组源代码位于 P:\MyProfessionalMod\
 REM
-REM USAGE:
-REM   Double-click this file or run from command line: build.bat
+REM 用法：
+REM   双击此文件或从命令行运行：build.bat
 REM ==========================================================================
 
-REM --- Configuration: update these paths to match your setup ---
+REM --- 配置：更新这些路径以匹配你的设置 ---
 
-REM Path to DayZ Tools (check your Steam library path).
+REM DayZ Tools 的路径（检查你的 Steam 库路径）。
 set DAYZ_TOOLS=C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools
 
-REM Source folder: the Scripts directory that gets packed into the PBO.
+REM 源文件夹：打包到 PBO 中的 Scripts 目录。
 set SOURCE=P:\MyProfessionalMod\Scripts
 
-REM Output folder: where the packed PBO goes.
+REM 输出文件夹：打包后的 PBO 存放位置。
 set OUTPUT=P:\@MyProfessionalMod\addons
 
-REM Prefix: the virtual path inside the PBO. Must match the paths
-REM in config.cpp (e.g., "MyProfessionalMod/Scripts/3_Game" must resolve).
+REM 前缀：PBO 内的虚拟路径。必须与 config.cpp 中的路径匹配
+REM（例如 "MyProfessionalMod/Scripts/3_Game" 必须能解析）。
 set PREFIX=MyProfessionalMod\Scripts
 
-REM --- Build Steps ---
+REM --- 构建步骤 ---
 
 echo ============================================
 echo  Building MyProfessionalMod
 echo ============================================
 
-REM Create output directory if it does not exist.
+REM 如果输出目录不存在则创建。
 if not exist "%OUTPUT%" mkdir "%OUTPUT%"
 
-REM Run Addon Builder.
-REM   -clear  = remove old PBO before packing
-REM   -prefix = set the PBO prefix (required for script paths to resolve)
+REM 运行 Addon Builder。
+REM   -clear  = 打包前删除旧的 PBO
+REM   -prefix = 设置 PBO 前缀（脚本路径解析所必需）
 echo Packing PBO...
 "%DAYZ_TOOLS%\Bin\AddonBuilder\AddonBuilder.exe" "%SOURCE%" "%OUTPUT%" -prefix=%PREFIX% -clear
 
-REM Check if Addon Builder succeeded.
+REM 检查 Addon Builder 是否成功。
 if %ERRORLEVEL% NEQ 0 (
     echo.
     echo ERROR: PBO packing failed! Check the output above for details.
@@ -1482,7 +1483,7 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
-REM Copy mod.cpp to the distributable folder.
+REM 将 mod.cpp 复制到可分发文件夹。
 echo Copying mod.cpp...
 copy /Y "P:\MyProfessionalMod\mod.cpp" "P:\@MyProfessionalMod\mod.cpp" >nul
 
@@ -1503,29 +1504,29 @@ pause
 
 ---
 
-## Customization Guide
+## 自定义指南
 
-When you use this template for your own mod, you need to rename every occurrence of the placeholder names. Here is a complete checklist.
+当你使用此模板用于自己的模组时，需要重命名每个占位符名称。以下是完整的清单。
 
-### Step 1: Choose Your Names
+### 步骤 1：选择你的名称
 
-Decide on these identifiers before making any edits:
+在进行任何编辑之前，确定这些标识符：
 
-| Identifier | 示例 | Rules |
+| 标识符 | 示例 | 规则 |
 |------------|---------|-------|
-| **Mod folder name** | `MyBountySystem` | No spaces, PascalCase or underscores |
-| **Display name** | `"My Bounty System"` | Human-readable, for mod.cpp and config.cpp |
-| **CfgPatches class** | `MyBountySystem_Scripts` | Must be globally unique across all mods |
-| **CfgMods class** | `MyBountySystem` | Internal engine identifier |
-| **Script prefix** | `MyBounty` | Short prefix for classes: `MyBountyManager`, `MyBountyConfig` |
-| **Tag constant** | `MYBOUNTY_TAG` | For log messages: `"[MyBounty]"` |
-| **Preprocessor define** | `MYBOUNTYSYSTEM` | For `#ifdef` cross-mod detection |
-| **RPC ID** | `58432` | Unique 5-digit number, not used by other mods |
-| **Input action name** | `UAMyBountyPanel` | Starts with `UA`, unique |
+| **模组文件夹名** | `MyBountySystem` | 无空格，PascalCase 或下划线 |
+| **显示名称** | `"My Bounty System"` | 人类可读，用于 mod.cpp 和 config.cpp |
+| **CfgPatches 类** | `MyBountySystem_Scripts` | 在所有模组中必须全局唯一 |
+| **CfgMods 类** | `MyBountySystem` | 内部引擎标识符 |
+| **脚本前缀** | `MyBounty` | 类的短前缀：`MyBountyManager`、`MyBountyConfig` |
+| **标签常量** | `MYBOUNTY_TAG` | 用于日志消息：`"[MyBounty]"` |
+| **预处理器定义** | `MYBOUNTYSYSTEM` | 用于 `#ifdef` 跨模组检测 |
+| **RPC ID** | `58432` | 唯一的 5 位数字，不被其他模组使用 |
+| **输入操作名** | `UAMyBountyPanel` | 以 `UA` 开头，唯一 |
 
-### Step 2: Rename Files and Folders
+### 步骤 2：重命名文件和文件夹
 
-Rename every file and folder that contains "MyMod" or "MyProfessionalMod":
+重命名包含 "MyMod" 或 "MyProfessionalMod" 的每个文件和文件夹：
 
 ```
 MyProfessionalMod/           -> MyBountySystem/
@@ -1544,75 +1545,75 @@ MyProfessionalMod/           -> MyBountySystem/
     MyModPanel.layout          -> MyBountyPanel.layout
 ```
 
-### Step 3: Find-and-Replace in Every File
+### 步骤 3：在每个文件中查找替换
 
-Perform these replacements **in order** (longest strings first to avoid partial matches):
+**按顺序**执行这些替换（最长的字符串优先以避免部分匹配）：
 
-| Find | Replace | Files Affected |
+| 查找 | 替换 | 影响的文件 |
 |------|---------|----------------|
-| `MyProfessionalMod` | `MyBountySystem` | config.cpp, mod.cpp, build.bat, UI script |
-| `MyModManager` | `MyBountyManager` | Manager, mission hooks, player handler |
-| `MyModConfig` | `MyBountyConfig` | Config class, manager |
-| `MyModConstants` | `MyBountyConstants` | (filename only) |
-| `MyModRPCHelper` | `MyBountyRPCHelper` | RPC helper, mission hooks |
-| `MyModUI` | `MyBountyUI` | UI script, client mission hook |
-| `MyModPanel` | `MyBountyPanel` | Layout file, UI script |
+| `MyProfessionalMod` | `MyBountySystem` | config.cpp、mod.cpp、build.bat、UI 脚本 |
+| `MyModManager` | `MyBountyManager` | 管理器、任务钩子、玩家处理器 |
+| `MyModConfig` | `MyBountyConfig` | 配置类、管理器 |
+| `MyModConstants` | `MyBountyConstants` | （仅文件名） |
+| `MyModRPCHelper` | `MyBountyRPCHelper` | RPC 辅助、任务钩子 |
+| `MyModUI` | `MyBountyUI` | UI 脚本、客户端任务钩子 |
+| `MyModPanel` | `MyBountyPanel` | 布局文件、UI 脚本 |
 | `MyMod_Scripts` | `MyBountySystem_Scripts` | config.cpp CfgPatches |
-| `MYMOD_RPC_ID` | `MYBOUNTY_RPC_ID` | Constants, RPC, mission hooks |
-| `MYMOD_RPC_` | `MYBOUNTY_RPC_` | All RPC route constants |
-| `MYMOD_TAG` | `MYBOUNTY_TAG` | Constants, all files using the log tag |
-| `MYMOD_CONFIG` | `MYBOUNTY_CONFIG` | Constants, config class |
-| `MYMOD_VERSION` | `MYBOUNTY_VERSION` | Constants, UI script |
+| `MYMOD_RPC_ID` | `MYBOUNTY_RPC_ID` | 常量、RPC、任务钩子 |
+| `MYMOD_RPC_` | `MYBOUNTY_RPC_` | 所有 RPC 路由常量 |
+| `MYMOD_TAG` | `MYBOUNTY_TAG` | 常量、所有使用日志标签的文件 |
+| `MYMOD_CONFIG` | `MYBOUNTY_CONFIG` | 常量、配置类 |
+| `MYMOD_VERSION` | `MYBOUNTY_VERSION` | 常量、UI 脚本 |
 | `MYMOD` | `MYBOUNTYSYSTEM` | config.cpp defines[] |
-| `MyMod` | `MyBounty` | config.cpp CfgMods class, RPC route strings |
-| `My Mod` | `My Bounty System` | Strings in layouts, stringtable |
-| `mymod` | `mybounty` | Inputs.xml sorting name |
-| `STR_MYMOD_` | `STR_MYBOUNTY_` | stringtable.csv, Inputs.xml |
-| `UAMyMod` | `UAMyBounty` | Inputs.xml, client mission hook |
-| `m_MyMod` | `m_MyBounty` | Client mission hook member variables |
-| `74291` | `58432` | RPC ID (your chosen unique number) |
+| `MyMod` | `MyBounty` | config.cpp CfgMods 类、RPC 路由字符串 |
+| `My Mod` | `My Bounty System` | 布局中的字符串、stringtable |
+| `mymod` | `mybounty` | Inputs.xml 排序名称 |
+| `STR_MYMOD_` | `STR_MYBOUNTY_` | stringtable.csv、Inputs.xml |
+| `UAMyMod` | `UAMyBounty` | Inputs.xml、客户端任务钩子 |
+| `m_MyMod` | `m_MyBounty` | 客户端任务钩子成员变量 |
+| `74291` | `58432` | RPC ID（你选择的唯一数字） |
 
-### Step 4: Verify
+### 步骤 4：验证
 
-After renaming, do a project-wide search for "MyMod" and "MyProfessionalMod" to catch anything you missed. Then build and test:
+重命名后，对 "MyMod" 和 "MyProfessionalMod" 进行全项目搜索以捕获遗漏。然后构建并测试：
 
 ```batch
 DayZDiag_x64.exe -mod=P:\MyBountySystem -filePatching
 ```
 
-Check the script log for your tag (e.g., `[MyBounty]`) to confirm everything loaded.
+在脚本日志中检查你的标签（例如 `[MyBounty]`）以确认所有内容都已加载。
 
 ---
 
-## Feature Expansion Guide
+## 功能扩展指南
 
-Once your mod is running, here is how to add common features.
+一旦你的模组运行起来，以下是如何添加常见功能。
 
-### Adding a New RPC Endpoint
+### 添加新的 RPC 端点
 
-**1. Define the route constant** in `MyModRPC.c` (3_Game):
+**1. 定义路由常量**，在 `MyModRPC.c`（3_Game）中：
 
 ```c
 const string MYMOD_RPC_BOUNTY_SET = "MyMod:BountySet";
 ```
 
-**2. Add the server handler** in `MyModManager.c` (4_World):
+**2. 添加服务器处理器**，在 `MyModManager.c`（4_World）中：
 
 ```c
 void OnBountySet(PlayerIdentity sender, ParamsReadContext ctx)
 {
-    // Read parameters written by the client.
+    // 读取客户端写入的参数。
     string targetName;
     int bountyAmount;
     if (!ctx.Read(targetName)) return;
     if (!ctx.Read(bountyAmount)) return;
 
     Print(MYMOD_TAG + " Bounty set on " + targetName + ": " + bountyAmount.ToString());
-    // ... your logic here ...
+    // ... 你的逻辑在这里 ...
 }
 ```
 
-**3. Add the dispatch case** in `MyModMissionServer.c` (5_Mission), inside `OnRPC()`:
+**3. 添加分发分支**，在 `MyModMissionServer.c`（5_Mission）的 `OnRPC()` 中：
 
 ```c
 else if (routeName == MYMOD_RPC_BOUNTY_SET)
@@ -1621,7 +1622,7 @@ else if (routeName == MYMOD_RPC_BOUNTY_SET)
 }
 ```
 
-**4. Send from the client** (wherever the action is triggered):
+**4. 从客户端发送**（在触发操作的任何地方）：
 
 ```c
 ScriptRPC rpc = new ScriptRPC();
@@ -1631,30 +1632,30 @@ rpc.Write(5000);
 rpc.Send(null, MYMOD_RPC_ID, true, null);
 ```
 
-### Adding a New Config Field
+### 添加新的配置字段
 
-**1. Add the field** in `MyModConfig.c` with a default value:
+**1. 添加字段**，在 `MyModConfig.c` 中设置默认值：
 
 ```c
-// Minimum bounty amount players can set.
+// 玩家可以设置的最低赏金金额。
 int MinBountyAmount = 100;
 ```
 
-That is all. The JSON serializer picks up public fields automatically. Existing config files on disk will use the default value for the new field until the admin edits and saves.
+就这样。JSON 序列化器会自动获取公共字段。磁盘上的现有配置文件将对新字段使用默认值，直到管理员编辑并保存。
 
-**2. Reference it** from the manager:
+**2. 引用它**，从管理器中：
 
 ```c
 if (bountyAmount < m_Config.MinBountyAmount)
 {
-    // Reject: too low.
+    // 拒绝：太低。
     return;
 }
 ```
 
-### Adding a New UI Panel
+### 添加新的 UI 面板
 
-**1. Create the layout** at `Scripts/GUI/layouts/MyModBountyList.layout`:
+**1. 创建布局**，在 `Scripts/GUI/layouts/MyModBountyList.layout`：
 
 ```
 PanelWidgetClass BountyListRoot {
@@ -1684,7 +1685,7 @@ PanelWidgetClass BountyListRoot {
 }
 ```
 
-**2. Create the script** at `Scripts/5_Mission/MyMod/MyModBountyListUI.c`:
+**2. 创建脚本**，在 `Scripts/5_Mission/MyMod/MyModBountyListUI.c`：
 
 ```c
 class MyModBountyListUI
@@ -1712,9 +1713,9 @@ class MyModBountyListUI
 };
 ```
 
-### Adding a New Keybind
+### 添加新的快捷键
 
-**1. Add the action** in `Inputs.xml`:
+**1. 添加操作**，在 `Inputs.xml` 中：
 
 ```xml
 <actions>
@@ -1728,7 +1729,7 @@ class MyModBountyListUI
 </sorting>
 ```
 
-**2. Add the default binding** in the `<preset>` section:
+**2. 添加默认绑定**，在 `<preset>` 部分：
 
 ```xml
 <input name="UAMyModBountyList">
@@ -1736,13 +1737,13 @@ class MyModBountyListUI
 </input>
 ```
 
-**3. Add the localization** in `stringtable.csv`:
+**3. 添加本地化**，在 `stringtable.csv` 中：
 
 ```csv
 "STR_MYMOD_INPUT_BOUNTYLIST","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List","Bounty List",
 ```
 
-**4. Poll for the input** in `MyModMissionClient.c`:
+**4. 轮询输入**，在 `MyModMissionClient.c` 中：
 
 ```c
 UAInput bountyInput = GetUApi().GetInputByName("UAMyModBountyList");
@@ -1752,24 +1753,24 @@ if (bountyInput && bountyInput.LocalPress())
 }
 ```
 
-### Adding a New stringtable Entry
+### 添加新的 stringtable 条目
 
-**1. Add the row** in `stringtable.csv`. Every row needs all 13 language columns plus a trailing comma:
+**1. 添加行**，在 `stringtable.csv` 中。每行需要全部 13 个语言列加尾随逗号：
 
 ```csv
 "STR_MYMOD_BOUNTY_PLACED","Bounty placed!","Bounty placed!","Odměna vypsána!","Kopfgeld gesetzt!","Награда назначена!","Nagroda wyznaczona!","Fejpénz kiírva!","Taglia piazzata!","Recompensa puesta!","Prime placée!","Bounty placed!","Bounty placed!","Recompensa colocada!","Bounty placed!",
 ```
 
-**2. Use it** in script code:
+**2. 在脚本代码中使用：**
 
 ```c
-// Widget.SetText() does NOT auto-resolve stringtable keys.
-// You must use Widget.SetText() with the resolved string:
+// Widget.SetText() 不会自动解析 stringtable 键。
+// 你必须使用 Widget.SetText() 和已解析的字符串：
 string localizedText = Widget.TranslateString("#STR_MYMOD_BOUNTY_PLACED");
 myTextWidget.SetText(localizedText);
 ```
 
-Or in a `.layout` file, 引擎 resolves `#STR_` keys automatically:
+或者在 `.layout` 文件中，引擎会自动解析 `#STR_` 键：
 
 ```
 text "#STR_MYMOD_BOUNTY_PLACED"
@@ -1779,15 +1780,15 @@ text "#STR_MYMOD_BOUNTY_PLACED"
 
 ## 下一步
 
-With this professional template running, you can:
+有了这个运行中的专业模板，你可以：
 
-1. **Study production mods** -- Read [DayZ Expansion](https://github.com/salutesh/DayZ-Expansion-Scripts) and the `StarDZ_Core` source for real-world patterns at scale.
-2. **Add custom items** -- Follow [Chapter 8.2: Creating a Custom Item](02-custom-item.md) and integrate them with your manager.
-3. **Build an admin panel** -- Follow [Chapter 8.3: Building an Admin Panel](03-admin-panel.md) using your config system.
-4. **Add a HUD overlay** -- Follow [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) for always-visible UI elements.
-5. **Publish to the Workshop** -- Follow [Chapter 8.7: Publishing to Workshop](07-publishing-workshop.md) when your mod is ready.
-6. **Learn debugging** -- Read [Chapter 8.6: Debugging & Testing](06-debugging-testing.md) for log analysis and troubleshooting.
+1. **研究生产级模组** -- 阅读 [DayZ Expansion](https://github.com/salutesh/DayZ-Expansion-Scripts) 和 `StarDZ_Core` 源代码了解大规模的真实世界模式。
+2. **添加自定义物品** -- 按照[第 8.2 章：创建自定义物品](02-custom-item.md)操作并与你的管理器集成。
+3. **构建管理员面板** -- 按照[第 8.3 章：构建管理员面板](03-admin-panel.md)使用你的配置系统。
+4. **添加 HUD 覆盖层** -- 按照[第 8.8 章：构建 HUD 覆盖层](08-hud-overlay.md)实现始终可见的 UI 元素。
+5. **发布到创意工坊** -- 当你的模组准备就绪时，按照[第 8.7 章：发布到创意工坊](07-publishing-workshop.md)操作。
+6. **学习调试** -- 阅读[第 8.6 章：调试和测试](06-debugging-testing.md)了解日志分析和故障排除。
 
 ---
 
-**Previous:** [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) | [Home](../../README.md)
+**上一章：** [第 8.8 章：构建 HUD 覆盖层](08-hud-overlay.md) | [首页](../../README.md)

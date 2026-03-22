@@ -1,115 +1,119 @@
-# Chapter 8.13: The Diagnostic Menu (Diag Menu)
+# Kapitola 8.13: Diagnostické menu (Diag Menu)
 
-[Home](../../README.md) | [<< Previous: Building a Trading System](12-trading-system.md) | **The Diagnostic Menu**
+[Domů](../../README.md) | [<< Předchozí: Vytváření obchodního systému](12-trading-system.md) | **Diagnostické menu**
+
+---
+
+> **Shrnutí:** Diag Menu je vestavěný diagnostický nástroj DayZ, dostupný pouze prostřednictvím spustitelného souboru DayZDiag. Poskytuje počítadla FPS, profilování skriptů, ladění rendereru, volnou kameru, vizualizaci fyziky, ovládání počasí, nástroje Central Economy, ladění navigace AI a diagnostiku zvuků. Tato kapitola dokumentuje každou kategorii menu, volbu a klávesovou zkratku na základě oficiální dokumentace Bohemia Interactive.
 
 ---
 
 ## Obsah
 
-- [What is the Diag Menu?](#what-is-the-diag-menu)
-- [How to Access](#how-to-access)
-- [Navigace Controls](#navigation-controls)
-- [Quick-Access Keyboard Zkratkas](#quick-access-keyboard-shortcuts)
-- [Menu Categories Prehled](#menu-categories-overview)
-- [Statistics](#statistics)
+- [Co je Diag Menu?](#what-is-the-diag-menu)
+- [Jak získat přístup](#how-to-access)
+- [Ovládání navigace](#navigation-controls)
+- [Rychlé klávesové zkratky](#quick-access-keyboard-shortcuts)
+- [Přehled kategorií menu](#menu-categories-overview)
+- [Statistiky](#statistics)
 - [Enfusion Renderer](#enfusion-renderer)
-- [Enfusion World (Physics)](#enfusion-world-physics)
+- [Enfusion World (Fyzika)](#enfusion-world-physics)
 - [DayZ Render](#dayz-render)
 - [Game](#game)
 - [AI](#ai)
-- [Sounds](#sounds)
-- [Useful Funkces for Modders](#useful-features-for-modders)
-- [Kdy pouzit the Diag Menu](#when-to-use-the-diag-menu)
-- [Caste chyby](#common-mistakes)
-- [Dalsi kroky](#next-steps)
+- [Zvuky](#sounds)
+- [Užitečné funkce pro moddery](#useful-features-for-modders)
+- [Kdy používat Diag Menu](#when-to-use-the-diag-menu)
+- [Časté chyby](#common-mistakes)
+- [Další kroky](#next-steps)
 
 ---
 
-## What is the Diag Menu?
+## Co je Diag Menu?
 
-The Diag Menu is a hierarchical debug menu built into the DayZ diagnostic executable. It lists options used to debug game scripting and assets across seven major categories: Statistics, Enfusion Renderer, Enfusion World, DayZ Render, Game, AI, and Sounds.
+Diag Menu je hierarchické ladící menu zabudované v diagnostickém spustitelném souboru DayZ. Obsahuje volby používané k ladění herních skriptů a assetů v sedmi hlavních kategoriích: Statistics, Enfusion Renderer, Enfusion World, DayZ Render, Game, AI a Sounds.
 
-The Diag Menu is **not available** in the retail DayZ executable (`DayZ_x64.exe`). You must use `DayZDiag_x64.exe` -- the diagnostic build that ships alongside the retail version in your DayZ installation or DayZ Server directories.
+Diag Menu **není dostupné** v retailové verzi DayZ (`DayZ_x64.exe`). Musíte použít `DayZDiag_x64.exe` -- diagnostický build, který je dodáván společně s retailovou verzí v instalační složce DayZ nebo ve složkách DayZ Serveru.
 
 ---
 
-## How to Access
+## Jak získat přístup
 
-### Requirements
+### Požadavky
 
-- **DayZDiag_x64.exe** -- The diagnostic executable. Found in your DayZ installation folder alongside the regular `DayZ_x64.exe`.
-- You must be running the game (not sitting in a loading screen). The menu is available in any 3D viewport.
+- **DayZDiag_x64.exe** -- Diagnostický spustitelný soubor. Nachází se ve vaší instalační složce DayZ vedle běžného `DayZ_x64.exe`.
+- Musíte běžet ve hře (ne na načítací obrazovce). Menu je dostupné v jakémkoli 3D zobrazení.
 
-### Opening the Menu
+### Otevření menu
 
-Press **Win + Alt** to open the Diag Menu.
+Stiskněte **Win + Alt** pro otevření Diag Menu.
 
-An alternative shortcut is **Ctrl + Win**, but this conflicts with a Windows 11 system shortcut and is not recommended on that platform.
+Alternativní zkratka je **Ctrl + Win**, ale ta koliduje se systémovou zkratkou Windows 11 a na této platformě se nedoporučuje.
 
-### Enabling Mouse Cursor
+### Povolení kurzoru myši
 
-Some Diag Menu options require you to interact with the screen using your mouse. The mouse cursor can be toggled by pressing:
+Některé volby Diag Menu vyžadují interakci s obrazovkou pomocí myši. Kurzor myši lze přepínat stisknutím:
 
 **LCtrl + Numpad 9**
 
-This key binding is registered through script (`PluginKeyBinding`).
+Tato klávesová zkratka je registrována prostřednictvím skriptu (`PluginKeyBinding`).
 
 ---
 
-## Navigace Controls
+## Ovládání navigace
 
-Once the Diag Menu is open:
+Jakmile je Diag Menu otevřeno:
 
-| Key | Akce |
+| Klávesa | Akce |
 |-----|--------|
-| **Up / Down arrow** | Navigate between menu items |
-| **Right arrow** | Enter a sub-menu, or cycle through option values |
-| **Left arrow** | Cycle option values in reverse direction |
-| **Backspace** | Leave the current sub-menu (go back one level) |
+| **Šipka nahoru/dolů** | Navigace mezi položkami menu |
+| **Šipka doprava** | Vstup do podmenu nebo cyklování mezi hodnotami voleb |
+| **Šipka doleva** | Cyklování hodnot voleb v opačném směru |
+| **Backspace** | Opuštění aktuálního podmenu (návrat o jednu úroveň) |
 
-When options show multiple values, they are listed in the order they appear in the menu. The first option is typically the default.
+Když volby zobrazují více hodnot, jsou uvedeny v pořadí, v jakém se objevují v menu. První volba je typicky výchozí.
 
 ---
 
-## Quick-Access Keyboard Zkratkas
+## Rychlé klávesové zkratky
 
-These shortcuts work at any time while running DayZDiag, without needing to open the menu:
+Tyto zkratky fungují kdykoli během běhu DayZDiag, bez nutnosti otevírat menu:
 
-| Zkratka | Function |
+| Zkratka | Funkce |
 |----------|----------|
-| **LCtrl + Numpad 1** | Toggle FPS counter |
-| **LCtrl + Numpad 9** | Toggle mouse cursor on screen |
-| **RCtrl + RAlt + W** | Cycle render debug mode |
-| **LCtrl + LAlt + P** | Toggle postprocess effects |
-| **LAlt + Numpad 6** | Toggle physics body visualization |
-| **Page Up** | Free Camera: toggle player movement |
-| **Page Down** | Free Camera: freeze/unfreeze camera |
-| **Insert** | Teleport player to cursor position (while in free camera) |
-| **Domu** | Toggle free camera / disable and teleport player to cursor |
-| **Numpad /** | Toggle free camera (without teleport) |
-| **End** | Disable free camera (return to player camera) |
+| **LCtrl + Numpad 1** | Přepnutí počítadla FPS |
+| **LCtrl + Numpad 9** | Přepnutí kurzoru myši na obrazovce |
+| **RCtrl + RAlt + W** | Cyklování režimu ladění renderování |
+| **LCtrl + LAlt + P** | Přepnutí postprocess efektů |
+| **LAlt + Numpad 6** | Přepnutí vizualizace fyzikálních těles |
+| **Page Up** | Volná kamera: přepnutí pohybu hráče |
+| **Page Down** | Volná kamera: zmrazení/rozmrazení kamery |
+| **Insert** | Teleportace hráče na pozici kurzoru (ve volné kameře) |
+| **Home** | Přepnutí volné kamery / vypnutí a teleportace hráče na kurzor |
+| **Numpad /** | Přepnutí volné kamery (bez teleportace) |
+| **End** | Vypnutí volné kamery (návrat ke kameře hráče) |
 
-> **Poznamka:** Any mention of "Cheat Inputs" in the official documentation refers to inputs hardcoded on the C++ side, not accessible through script.
-
----
-
-## Menu Categories Prehled
-
-The Diag Menu contains seven top-level categories:
-
-1. **Statistics** -- FPS counter and script profiler
-2. **Enfusion Renderer** -- Lighting, shadows, materials, occlusion, postprocess, terrain, widgets
-3. **Enfusion World** -- Physics engine (Bullet) visualization and debug
-4. **DayZ Render** -- Sky rendering, geometry diagnostics
-5. **Game** -- Weather, free camera, vehicles, combat, Central Economy, surface sounds
-6. **AI** -- Navigace mesh, pathfinding, AI agent behavior
-7. **Sounds** -- Playing samples debug, sound system info
+> **Poznámka:** Jakákoli zmínka o "Cheat Inputs" v oficiální dokumentaci odkazuje na vstupy pevně zakódované na straně C++, nepřístupné prostřednictvím skriptu.
 
 ---
 
-## Statistics
+## Přehled kategorií menu
 
-### Menu Structure
+Diag Menu obsahuje sedm hlavních kategorií:
+
+1. **Statistics** -- Počítadlo FPS a profilování skriptů
+2. **Enfusion Renderer** -- Osvětlení, stíny, materiály, okluze, postprocess, terén, widgety
+3. **Enfusion World** -- Vizualizace a ladění fyzikálního enginu (Bullet)
+4. **DayZ Render** -- Renderování oblohy, diagnostika geometrie
+5. **Game** -- Počasí, volná kamera, vozidla, boj, Central Economy, povrchové zvuky
+6. **AI** -- Navigační mesh, hledání cest, chování AI agentů
+7. **Sounds** -- Ladění přehrávaných vzorků, informace o zvukovém systému
+
+---
+
+## Statistiky
+
+### Struktura menu
 
 ```
 Statistics
@@ -127,78 +131,78 @@ Statistics
 
 ### FPS
 
-Enables the FPS counter in the top-left corner of the screen.
+Povolí počítadlo FPS v levém horním rohu obrazovky.
 
-The FPS value is calculated from the time between the last 10 frames, so it reflects a short rolling average rather than an instantaneous reading.
+Hodnota FPS se počítá z času mezi posledními 10 snímky, takže odráží krátký klouzavý průměr spíše než okamžité čtení.
 
 ### Script Profiler UI
 
-Turns on the on-screen Script Profiler, which displays real-time performance data for script execution.
+Zapne skriptový profiler zobrazovaný na obrazovce, který ukazuje výkonnostní data skriptů v reálném čase.
 
-The profiler shows six data sections:
+Profiler zobrazuje šest datových sekcí:
 
-| Section | What It Shows |
+| Sekce | Co zobrazuje |
 |---------|---------------|
-| **Time per class** | Total time of all function calls belonging to a class (top 20) |
-| **Time per function** | Total time of all calls to a specific function (top 20) |
-| **Class allocations** | Number of allocations of a class (top 20) |
-| **Count per function** | Number of times a function was called (top 20) |
-| **Class count** | Number of live instances of a class (top 40) |
-| **Stats and settings** | Current profiler configuration and frame counters |
+| **Time per class** | Celkový čas všech volání funkcí patřících třídě (top 20) |
+| **Time per function** | Celkový čas všech volání konkrétní funkce (top 20) |
+| **Class allocations** | Počet alokací třídy (top 20) |
+| **Count per function** | Počet volání funkce (top 20) |
+| **Class count** | Počet živých instancí třídy (top 40) |
+| **Stats and settings** | Aktuální konfigurace profileru a počítadla snímků |
 
-The Stats and settings panel shows:
+Panel Stats and settings zobrazuje:
 
-| Pole | Vyznam |
+| Pole | Význam |
 |-------|---------|
-| UI enabled (DIAG) | Whether the script profiler UI is active |
-| Profiling enabled (SCRP) | Whether profiling runs even when UI is not active |
-| Profiling enabled (SCRC) | Whether profiling is actually occurring |
-| Priznaks | Current data gathering flags |
-| Module | Currently profiled module |
-| Interval | Current update interval |
-| Time Resolution | Current time resolution |
-| Average | Whether values displayed are averages |
-| Game Frame | Total frames passed |
-| Session Frame | Total frames in this profiling session |
-| Total Frames | Total frames across all profiling sessions |
-| Profiled Sess Frms | Frames profiled in this session |
-| Profiled Frames | Frames profiled across all sessions |
+| UI enabled (DIAG) | Zda je UI skriptového profileru aktivní |
+| Profiling enabled (SCRP) | Zda profilování běží i když UI není aktivní |
+| Profiling enabled (SCRC) | Zda profilování skutečně probíhá |
+| Flags | Aktuální příznaky sběru dat |
+| Module | Aktuálně profilovaný modul |
+| Interval | Aktuální interval aktualizace |
+| Time Resolution | Aktuální časové rozlišení |
+| Average | Zda zobrazované hodnoty jsou průměry |
+| Game Frame | Celkový počet proběhlých snímků |
+| Session Frame | Celkový počet snímků v této profilovací relaci |
+| Total Frames | Celkový počet snímků ve všech profilovacích relacích |
+| Profiled Sess Frms | Profilované snímky v této relaci |
+| Profiled Frames | Profilované snímky ve všech relacích |
 
-> **Dulezite:** The Script Profiler only profiles script code. Proto (engine-bound) methods are not measured as separate entries, but their execution time is included in the total time of the script method that calls them.
+> **Důležité:** Skriptový profiler profiluje pouze skriptový kód. Proto (engine-bound) metody nejsou měřeny jako samostatné záznamy, ale jejich doba provádění je zahrnuta v celkovém čase skriptové metody, která je volá.
 
-> **Dulezite:** The EnProfiler API and the script profiler itself are only available on the diagnostic executable.
+> **Důležité:** API EnProfiler a samotný skriptový profiler jsou dostupné pouze na diagnostickém spustitelném souboru.
 
-### Script Profiler Settings
+### Nastavení skriptového profileru
 
-These settings control how profiling data is gathered. They can also be adjusted programmatically through the `EnProfiler` API (documented in `EnProfiler.c`).
+Tato nastavení řídí, jak jsou sbírána profilová data. Lze je také upravovat programově prostřednictvím API `EnProfiler` (dokumentováno v `EnProfiler.c`).
 
 #### Always Enabled
 
-Profiling data gathering is not enabled by default. This toggle shows whether it is currently active.
+Sběr profilových dat není ve výchozím nastavení povolen. Tento přepínač ukazuje, zda je aktuálně aktivní.
 
-To enable profiling at startup, use the launch parameter `-profile`.
+Pro povolení profilování při startu použijte spouštěcí parametr `-profile`.
 
-The Script Profiler UI ignores this setting -- it always forces profiling while the UI is visible. When the UI is turned off, profiling stops again (unless "Always enabled" is set to true).
+UI skriptového profileru toto nastavení ignoruje -- vždy vynucuje profilování, když je UI viditelné. Když je UI vypnuto, profilování se opět zastaví (pokud není "Always enabled" nastaveno na true).
 
-#### Priznaks
+#### Příznaky (Flags)
 
-Controls how data is gathered. Four combinations are available:
+Řídí způsob sběru dat. K dispozici jsou čtyři kombinace:
 
-| Priznak Combination | Scope | Data Lifetime |
+| Kombinace příznaků | Rozsah | Životnost dat |
 |-----------------|-------|---------------|
-| `SPF_RESET \| SPF_RECURSIVE` | Selected module + children | Per frame (reset each frame) |
-| `SPF_RECURSIVE` | Selected module + children | Accumulated across frames |
-| `SPF_RESET` | Selected module only | Per frame (reset each frame) |
-| `SPF_NONE` | Selected module only | Accumulated across frames |
+| `SPF_RESET \| SPF_RECURSIVE` | Vybraný modul + potomci | Jeden snímek (reset každý snímek) |
+| `SPF_RECURSIVE` | Vybraný modul + potomci | Kumulováno napříč snímky |
+| `SPF_RESET` | Pouze vybraný modul | Jeden snímek (reset každý snímek) |
+| `SPF_NONE` | Pouze vybraný modul | Kumulováno napříč snímky |
 
-- **SPF_RECURSIVE**: Enables profiling of child modules (recursively)
-- **SPF_RESET**: Clears data at the end of each frame
+- **SPF_RECURSIVE**: Povoluje profilování potomkovských modulů (rekurzivně)
+- **SPF_RESET**: Vymaže data na konci každého snímku
 
 #### Module
 
-Selects which script module to profile:
+Vybírá, který skriptový modul profilovat:
 
-| Option | Script Layer |
+| Volba | Skriptová vrstva |
 |--------|-------------|
 | CORE | 1_Core |
 | GAMELIB | 2_GameLib |
@@ -209,43 +213,43 @@ Selects which script module to profile:
 
 #### Update Interval
 
-The number of frames to wait before updating the sorted data display. This also delays the reset caused by `SPF_RESET`.
+Počet snímků, které je třeba počkat před aktualizací zobrazení seřazených dat. Také zpožďuje reset způsobený `SPF_RESET`.
 
-Available values: 0, 5, 10, 20, 30, 50, 60, 120, 144
+Dostupné hodnoty: 0, 5, 10, 20, 30, 50, 60, 120, 144
 
 #### Average
 
-Enable or disable the displaying of average values.
+Povolení nebo zakázání zobrazování průměrných hodnot.
 
-- With `SPF_RESET` and no interval: values are the raw per-frame value
-- Without `SPF_RESET`: divides accumulated value by session frame count
-- With an interval set: divides by the interval
+- S `SPF_RESET` a bez intervalu: hodnoty jsou surové hodnoty za snímek
+- Bez `SPF_RESET`: dělí kumulovanou hodnotu počtem snímků relace
+- S nastaveným intervalem: dělí intervalem
 
-Class count is never averaged -- it always shows the current instance count. Allocations will show the average number of times an instance was created.
+Počet tříd se nikdy neprůměruje -- vždy ukazuje aktuální počet instancí. Alokace zobrazí průměrný počet vytvoření instance.
 
 #### Time Resolution
 
-Sets the time unit for display. The value represents the denominator (nth of a second):
+Nastavuje časovou jednotku pro zobrazení. Hodnota představuje jmenovatel (n-tina sekundy):
 
-| Hodnota | Unit |
+| Hodnota | Jednotka |
 |-------|------|
-| 1 | Seconds |
-| 1000 | Milliseconds |
-| 1000000 | Microseconds |
+| 1 | Sekundy |
+| 1000 | Milisekundy |
+| 1000000 | Mikrosekundy |
 
-Available values: 1, 10, 100, 1000, 10000, 100000, 1000000
+Dostupné hodnoty: 1, 10, 100, 1000, 10000, 100000, 1000000
 
 #### (UI) Scale
 
-Adjusts the visual scale of the on-screen profiler display for different screen sizes and resolutions.
+Upravuje vizuální měřítko zobrazení profileru na obrazovce pro různé velikosti obrazovek a rozlišení.
 
-Range: 0.5 to 1.5 (default: 1.0, step: 0.05)
+Rozsah: 0.5 až 1.5 (výchozí: 1.0, krok: 0.05)
 
 ---
 
 ## Enfusion Renderer
 
-### Menu Structure
+### Struktura menu
 
 ```
 Enfusion Renderer
@@ -279,43 +283,43 @@ Enfusion Renderer
 
 ### Lights
 
-Toggles actual light sources (such as `PersonalLight` or in-game items like flashlights). This does not affect environment lighting -- use the Lighting sub-menu for that.
+Přepíná skutečné zdroje světla (jako `PersonalLight` nebo herní předměty jako baterky). Neovlivňuje osvětlení prostředí -- k tomu použijte podmenu Lighting.
 
-### Lighting Sub-Menu
+### Podmenu Lighting
 
-Each toggle controls a specific lighting component:
+Každý přepínač ovládá specifickou složku osvětlení:
 
-| Option | Effect When Disabled |
+| Volba | Efekt při vypnutí |
 |--------|---------------------|
-| **Ambient lighting** | Removes the general ambient light in the scene |
-| **Ground lighting** | Removes light reflected from the ground (visible on roofs, character underarms) |
-| **Directional lighting** | Removes main directional (sun/moon) light. Also disables bidirectional lighting |
-| **Bidirectional lighting** | Removes bidirectional light component |
-| **Specular lighting** | Removes specular highlights (visible on shiny surfaces like cupboards, cars) |
-| **Reflection** | Removes reflection lighting (visible on metallic/glossy surfaces) |
-| **Emission lighting** | Removes emission (self-illumination) from materials |
+| **Ambient lighting** | Odstraní obecné ambientní světlo ve scéně |
+| **Ground lighting** | Odstraní světlo odražené od země (viditelné na střechách, pod pažemi postavy) |
+| **Directional lighting** | Odstraní hlavní směrové (slunce/měsíc) světlo. Také zakáže obousměrné osvětlení |
+| **Bidirectional lighting** | Odstraní komponentu obousměrného osvětlení |
+| **Specular lighting** | Odstraní spekulární odlesky (viditelné na lesklých površích jako skříňky, auta) |
+| **Reflection** | Odstraní reflexní osvětlení (viditelné na kovových/lesklých površích) |
+| **Emission lighting** | Odstraní emisi (samo-podsvícení) z materiálů |
 
-These toggles are useful for isolating specific lighting contributions when debugging visual issues in custom models or scenes.
+Tyto přepínače jsou užitečné pro izolaci konkrétních příspěvků osvětlení při ladění vizuálních problémů ve vlastních modelech nebo scénách.
 
 ### Shadows
 
-Enables or disables shadow rendering. Disabling also removes the culling of rain inside objects (rain will fall through roofs).
+Povoluje nebo zakazuje renderování stínů. Vypnutí také odstraní culling deště uvnitř objektů (déšť bude propadat střechami).
 
 ### Terrain Shadows
 
-Controls how terrain shadows are generated.
+Řídí způsob generování stínů terénu.
 
-Options: `on (slice)`, `on (full)`, `no update`, `disabled`
+Volby: `on (slice)`, `on (full)`, `no update`, `disabled`
 
 ### Render Debug Mode
 
-Switches between render visualization modes to inspect mesh geometry in-game.
+Přepíná mezi režimy vizualizace renderování pro kontrolu geometrie meshe přímo ve hře.
 
-Options: `normal`, `wire`, `wire only`, `overdraw`, `overdrawZ`
+Volby: `normal`, `wire`, `wire only`, `overdraw`, `overdrawZ`
 
-Different materials display in different wireframe colors:
+Různé materiály se zobrazují v různých barvách drátového modelu:
 
-| Material | Color (RGB) |
+| Materiál | Barva (RGB) |
 |----------|-------------|
 | TreeTrunk | 179, 126, 55 |
 | TreeCrown | 143, 227, 94 |
@@ -332,42 +336,42 @@ Different materials display in different wireframe colors:
 
 ### Occluders
 
-A set of toggles for the occlusion culling system:
+Sada přepínačů pro systém okluzního cullingu:
 
-| Option | Effect |
+| Volba | Efekt |
 |--------|--------|
-| **Occluders** | Enable/disable object occlusion |
-| **Occlude entities** | Enable/disable entity occlusion |
-| **Occlude proxies** | Enable/disable proxy occlusion |
-| **Show occluder volumes** | Takes a snapshot and draws debug shapes visualizing occlusion volumes |
-| **Show active occluders** | Shows currently active occluders with debug shapes |
-| **Show occluded** | Visualizes occluded objects with debug shapes |
+| **Occluders** | Povolení/zakázání okluze objektů |
+| **Occlude entities** | Povolení/zakázání okluze entit |
+| **Occlude proxies** | Povolení/zakázání okluze proxy objektů |
+| **Show occluder volumes** | Pořídí snímek a vykreslí ladicí tvary vizualizující okluzní objemy |
+| **Show active occluders** | Zobrazí aktuálně aktivní okluzory s ladicími tvary |
+| **Show occluded** | Vizualizuje okluzované objekty ladicími tvary |
 
 ### Widgets
 
-Enable or disable the rendering of all UI widgets. Useful for taking clean screenshots or isolating rendering issues.
+Povolení nebo zakázání renderování všech UI widgetů. Užitečné pro pořizování čistých screenshotů nebo izolaci renderovacích problémů.
 
 ### Postprocess
 
-Enable or disable post-processing effects (bloom, color correction, vignette, etc.).
+Povolení nebo zakázání post-processing efektů (bloom, korekce barev, viněta atd.).
 
 ### Terrain
 
-Enable or disable terrain rendering entirely.
+Povolení nebo zakázání renderování terénu.
 
-### Materials Sub-Menu
+### Podmenu Materials
 
-Toggle the rendering of specific material types. Most are self-explanatory. Notable entries:
+Přepínání renderování specifických typů materiálů. Většina je samovysvětlující. Pozoruhodné položky:
 
-- **Super** -- An overarching toggle that covers every material related to the "super" shader
-- **Old Terrain** -- Covers both Terrain and Terrain Simple materials
-- **Water** -- Covers every material related to water (ocean, shore, rivers)
+- **Super** -- Zastřešující přepínač pokrývající každý materiál související se "super" shaderem
+- **Old Terrain** -- Pokrývá jak Terrain, tak Terrain Simple materiály
+- **Water** -- Pokrývá každý materiál související s vodou (oceán, břehy, řeky)
 
 ---
 
-## Enfusion World (Physics)
+## Enfusion World (Fyzika)
 
-### Menu Structure
+### Struktura menu
 
 ```
 Enfusion World
@@ -386,38 +390,38 @@ Enfusion World
   Show bodies                      [LAlt + Numpad 6]
 ```
 
-> **Poznamka:** "Bullet" here refers to the Bullet physics engine, not ammunition.
+> **Poznámka:** "Bullet" zde odkazuje na fyzikální engine Bullet, ne na munici.
 
 ### Show Bullet
 
-Turns on the debug visualization for the Bullet physics engine.
+Zapne ladicí vizualizaci fyzikálního enginu Bullet.
 
-### Bullet Sub-Menu
+### Podmenu Bullet
 
-| Option | Popis |
+| Volba | Popis |
 |--------|-------------|
-| **Draw Char Ctrl** | Visualize the player character controller. Depends on "Draw Bullet shape" |
-| **Draw Simple Char Ctrl** | Visualize the AI character controller. Depends on "Draw Bullet shape" |
-| **Max. Collider Distance** | Maximum distance from player to visualize colliders (values: 0, 1, 2, 5, 10, 20, 50, 100, 200, 500). Vychozi is 0 |
-| **Draw Bullet shape** | Visualize physics collider shapes |
-| **Draw Bullet wireframe** | Show colliders as wireframe only. Depends on "Draw Bullet shape" |
-| **Draw Bullet shape AABB** | Show axis-aligned bounding boxes of colliders |
-| **Draw obj center of mass** | Show object centers of mass |
-| **Draw Bullet contacts** | Visualize colliders making contact |
-| **Force sleep Bullet** | Force all physics bodies to sleep |
-| **Show stats** | Show debug stats (options: disabled, basic, all). Stats remain visible for 10 seconds after disabling |
+| **Draw Char Ctrl** | Vizualizace kontroleru hráčské postavy. Závisí na "Draw Bullet shape" |
+| **Draw Simple Char Ctrl** | Vizualizace kontroleru AI postavy. Závisí na "Draw Bullet shape" |
+| **Max. Collider Distance** | Maximální vzdálenost od hráče pro vizualizaci kolizních objektů (hodnoty: 0, 1, 2, 5, 10, 20, 50, 100, 200, 500). Výchozí je 0 |
+| **Draw Bullet shape** | Vizualizace tvarů fyzikálních kolizních objektů |
+| **Draw Bullet wireframe** | Zobrazení kolizních objektů pouze drátovým modelem. Závisí na "Draw Bullet shape" |
+| **Draw Bullet shape AABB** | Zobrazení osově zarovnaných ohraničujících boxů kolizních objektů |
+| **Draw obj center of mass** | Zobrazení těžišť objektů |
+| **Draw Bullet contacts** | Vizualizace kolizních objektů v kontaktu |
+| **Force sleep Bullet** | Vynucení spánku všech fyzikálních těles |
+| **Show stats** | Zobrazení ladicích statistik (volby: disabled, basic, all). Statistiky zůstávají viditelné 10 sekund po zakázání |
 
-> **Varovani:** Max. Collider Distance is 0 by default because this visualization is expensive. Setting it to a large distance will cause significant performance degradation.
+> **Varování:** Max. Collider Distance je ve výchozím nastavení 0, protože tato vizualizace je náročná. Nastavení na velkou vzdálenost způsobí výrazné snížení výkonu.
 
 ### Show Bodies
 
-Visualize Bullet physics bodies. Options: `disabled`, `only`, `all`
+Vizualizace fyzikálních těles Bullet. Volby: `disabled`, `only`, `all`
 
 ---
 
 ## DayZ Render
 
-### Menu Structure
+### Struktura menu
 
 ```
 DayZ Render
@@ -439,38 +443,38 @@ DayZ Render
       diagnostic mode
 ```
 
-### Sky Sub-Menu
+### Podmenu Sky
 
-Toggle individual sky rendering components:
+Přepínání jednotlivých složek renderování oblohy:
 
-| Option | What It Controls |
+| Volba | Co ovládá |
 |--------|-----------------|
-| **Space** | The background texture behind the stars |
-| **Stars** | Star rendering |
-| **Sun** | Sun and its halo effect (not god rays) |
-| **Moon** | Moon and its halo effect (not god rays) |
-| **Atmosphere** | The atmosphere texture in the sky |
-| **Far (Clouds)** | Upper/distant clouds. These do not affect light shafts (less dense) |
-| **Near (Clouds)** | Lower/closer clouds. These are denser and act as occlusion for light shafts |
-| **Physical (Clouds)** | Deprecated object-based clouds. Removed from Chernarus and Livonia in DayZ 1.23 |
-| **Horizon** | Horizon rendering. The horizon will prevent light shafts |
-| **God Rays** | Light shaft post-process effect |
+| **Space** | Textura pozadí za hvězdami |
+| **Stars** | Renderování hvězd |
+| **Sun** | Slunce a jeho halo efekt (ne god rays) |
+| **Moon** | Měsíc a jeho halo efekt (ne god rays) |
+| **Atmosphere** | Textura atmosféry na obloze |
+| **Far (Clouds)** | Horní/vzdálené mraky. Neovlivňují paprsky světla (méně husté) |
+| **Near (Clouds)** | Nižší/bližší mraky. Hustší a slouží jako okluze pro paprsky světla |
+| **Physical (Clouds)** | Zastaralé objektové mraky. Odstraněny z Chernarus a Livonia v DayZ 1.23 |
+| **Horizon** | Renderování horizontu. Horizont bude bránit paprskům světla |
+| **God Rays** | Post-process efekt světelných paprsků |
 
-### Geometry Diagnostic
+### Diagnostika geometrie
 
-Enables debug shape drawing to visualize how an object's geometry looks in-game.
+Povoluje kreslení ladicích tvarů pro vizualizaci, jak vypadá geometrie objektu přímo ve hře.
 
-Geometry types: `normal`, `roadway`, `geometry`, `viewGeometry`, `fireGeometry`, `paths`, `memory`, `wreck`
+Typy geometrie: `normal`, `roadway`, `geometry`, `viewGeometry`, `fireGeometry`, `paths`, `memory`, `wreck`
 
-Drawing modes: `solid+wire`, `Zsolid+wire`, `wire`, `ZWire`, `geom only`
+Režimy kreslení: `solid+wire`, `Zsolid+wire`, `wire`, `ZWire`, `geom only`
 
-This is extremely useful for modders creating custom models -- you can verify that your fire geometry, view geometry, and memory points are correctly configured without leaving the game.
+Toto je extrémně užitečné pro moddery vytvářející vlastní modely -- můžete ověřit, že vaše fire geometry, view geometry a memory pointy jsou správně nakonfigurovány bez opuštění hry.
 
 ---
 
 ## Game
 
-### Menu Structure
+### Struktura menu
 
 ```
 Game
@@ -545,217 +549,217 @@ Game
 
 ### Weather & Environment
 
-Debug functionality for the weather system.
+Ladicí funkcionalita pro systém počasí.
 
 #### Display
 
-Enables the weather debug visualization. This shows an on-screen debug of fog/view distance and opens a separate real-time window with detailed weather data.
+Povoluje ladicí vizualizaci počasí. Zobrazuje na obrazovce ladicí informace o mlze/dohlednosti a otevírá samostatné okno s detailními daty počasí v reálném čase.
 
-To enable the separate window while running as a server, use the launch parameter `-debugweather`.
+Pro povolení samostatného okna při běhu jako server použijte spouštěcí parametr `-debugweather`.
 
-Window settings are stored in profiles as `weather_client_imgui.ini` / `weather_client_imgui.bin` (or `weather_server_*` for servers).
+Nastavení okna jsou uložena v profilech jako `weather_client_imgui.ini` / `weather_client_imgui.bin` (nebo `weather_server_*` pro servery).
 
 #### Force Fog at Camera
 
-Forces the fog height to match the player camera height. Has priority over the Height bias setting.
+Vynucuje výšku mlhy na shodnou s výškou kamery hráče. Má prioritu nad nastavením Height bias.
 
 #### Override Fog
 
-Enables overriding fog values with manual settings:
+Povoluje přepsání hodnot mlhy ručním nastavením:
 
-| Parametr | Range | Step |
+| Parametr | Rozsah | Krok |
 |-----------|-------|------|
 | Distance density | 0 -- 1 | 0.01 |
 | Height density | 0 -- 1 | 0.01 |
 | Distance offset | 0 -- 1 | 0.01 |
 | Height bias | -500 -- 500 | 5 |
 
-### Free Camera
+### Volná kamera
 
-The free camera detaches the view from the player character and allows flying through the world. This is one of the most useful debug tools for modders.
+Volná kamera odpojí pohled od postavy hráče a umožňuje létat světem. Toto je jeden z nejužitečnějších ladicích nástrojů pro moddery.
 
-#### Free Camera Controls
+#### Ovládání volné kamery
 
-| Key | Origin | Function |
+| Klávesa | Původ | Funkce |
 |-----|--------|----------|
-| **W / A / S / D** | Inputs (xml) | Move forward / left / backward / right |
-| **Q** | Inputs (xml) | Move up |
-| **Z** | Inputs (xml) | Move down |
-| **Mouse** | Inputs (xml) | Look around |
-| **Mouse wheel up** | Inputs (C++) | Increase speed |
-| **Mouse wheel down** | Inputs (C++) | Decrease speed |
-| **Spacebar** | Cheat Inputs (C++) | Toggle on-screen debug of targeted object |
-| **Ctrl / Shift** | Cheat Inputs (C++) | Current speed x 10 |
-| **Alt** | Cheat Inputs (C++) | Current speed / 10 |
-| **End** | Cheat Inputs (C++) | Disable free camera (return to player) |
-| **Enter** | Cheat Inputs (C++) | Link camera to target object |
-| **Page Up** | Cheat Inputs (C++) | Toggle player movement while in free camera |
-| **Page Down** | Cheat Inputs (C++) | Freeze/unfreeze camera position |
-| **Insert** | PluginKeyBinding (Script) | Teleport player to cursor position |
-| **Domu** | PluginKeyBinding (Script) | Toggle free camera / disable and teleport to cursor |
-| **Numpad /** | PluginKeyBinding (Script) | Toggle free camera (no teleport) |
+| **W / A / S / D** | Inputs (xml) | Pohyb vpřed / vlevo / vzad / vpravo |
+| **Q** | Inputs (xml) | Pohyb nahoru |
+| **Z** | Inputs (xml) | Pohyb dolů |
+| **Myš** | Inputs (xml) | Rozhlížení |
+| **Kolečko myši nahoru** | Inputs (C++) | Zvýšení rychlosti |
+| **Kolečko myši dolů** | Inputs (C++) | Snížení rychlosti |
+| **Mezerník** | Cheat Inputs (C++) | Přepnutí ladicího zobrazení cílového objektu na obrazovce |
+| **Ctrl / Shift** | Cheat Inputs (C++) | Aktuální rychlost x 10 |
+| **Alt** | Cheat Inputs (C++) | Aktuální rychlost / 10 |
+| **End** | Cheat Inputs (C++) | Vypnutí volné kamery (návrat k hráči) |
+| **Enter** | Cheat Inputs (C++) | Propojení kamery s cílovým objektem |
+| **Page Up** | Cheat Inputs (C++) | Přepnutí pohybu hráče ve volné kameře |
+| **Page Down** | Cheat Inputs (C++) | Zmrazení/rozmrazení pozice kamery |
+| **Insert** | PluginKeyBinding (Script) | Teleportace hráče na pozici kurzoru |
+| **Home** | PluginKeyBinding (Script) | Přepnutí volné kamery / vypnutí a teleportace na kurzor |
+| **Numpad /** | PluginKeyBinding (Script) | Přepnutí volné kamery (bez teleportace) |
 
-#### Free Camera Options
+#### Volby volné kamery
 
-| Option | Popis |
+| Volba | Popis |
 |--------|-------------|
-| **FrCam Player Move** | Enable/disable player inputs (WASD) moving the player while in free camera |
-| **FrCam NoClip** | Enable/disable the camera passing through terrain |
-| **FrCam Freeze** | Enable/disable inputs moving the camera |
+| **FrCam Player Move** | Povolení/zakázání vstupů hráče (WASD) pohybujících hráčem ve volné kameře |
+| **FrCam NoClip** | Povolení/zakázání průchodu kamery terénem |
+| **FrCam Freeze** | Povolení/zakázání vstupů pohybujících kamerou |
 
 ### Vehicles
 
-Extended debug functionality for vehicles. These only work while the player is inside a vehicle.
+Rozšířená ladicí funkcionalita pro vozidla. Funguje pouze když je hráč uvnitř vozidla.
 
-- **Audio** -- Opens a separate window to tweak sound settings in real time. Includes visualization of audio controllers.
-- **Simulation** -- Opens a separate window with car simulation debug: tweaking physics parameters and visualization.
+- **Audio** -- Otevře samostatné okno pro úpravu nastavení zvuku v reálném čase. Zahrnuje vizualizaci audio kontrolerů.
+- **Simulation** -- Otevře samostatné okno s laděním simulace auta: úprava fyzikálních parametrů a vizualizace.
 
 ### Combat
 
-Debug tools for combat, shooting, and hitpoints:
+Ladicí nástroje pro boj, střelbu a hitpointy:
 
-| Option | Popis |
+| Volba | Popis |
 |--------|-------------|
-| **DECombat** | Shows on-screen text with distances to cars, AI, and players |
-| **DEShots** | Projectile debug sub-menu (see below) |
-| **DEHitpoints** | Displays the DamageSystem of the player and the object they are looking at |
-| **DEExplosions** | Shows explosion penetration data. Numbers show slowdown values. Red cross = stopped. Green cross = penetrated |
+| **DECombat** | Zobrazuje na obrazovce text se vzdálenostmi k autům, AI a hráčům |
+| **DEShots** | Podmenu ladění projektilů (viz níže) |
+| **DEHitpoints** | Zobrazuje DamageSystem hráče a objektu, na který se dívá |
+| **DEExplosions** | Zobrazuje data penetrace exploze. Čísla ukazují hodnoty zpomalení. Červený kříž = zastaveno. Zelený kříž = proniklo |
 
-**DEShots sub-menu:**
+**Podmenu DEShots:**
 
-| Option | Popis |
+| Volba | Popis |
 |--------|-------------|
-| Clear vis. | Clear any existing shot visualization |
-| Vis. trajectory | Trace the path of a shot, showing exit points and stop point |
-| Always Deflect | Forces all client-fired shots to deflect |
+| Clear vis. | Vymazání existující vizualizace střel |
+| Vis. trajectory | Trasování dráhy střely, zobrazení výstupních a koncových bodů |
+| Always Deflect | Vynucení odrazu všech klientem vystřelených střel |
 
 ### Legacy/Obsolete
 
-- **DEAmbient** -- Displays variables influencing ambient sounds
-- **DELight** -- Displays stats regarding the current lighting environment
+- **DEAmbient** -- Zobrazuje proměnné ovlivňující ambientní zvuky
+- **DELight** -- Zobrazuje statistiky aktuálního osvětlení prostředí
 
 ### DESurfaceSound
 
-Displays the surface type the player is standing on and the attenuation type.
+Zobrazuje typ povrchu, na kterém hráč stojí, a typ útlumu.
 
 ### Central Economy
 
-A comprehensive set of debugging tools for the Central Economy (CE) system.
+Kompletní sada ladicích nástrojů pro systém Central Economy (CE).
 
-> **Dulezite:** Most CE debug options only work in single-player client with CE enabled. Only "Building Stats" works in a multiplayer environment or when CE is turned off.
+> **Důležité:** Většina ladicích voleb CE funguje pouze v single-player klientovi s povoleným CE. Pouze "Building Stats" funguje v multiplayerovém prostředí nebo když je CE vypnuto.
 
-> **Poznamka:** Many of these functions are also available through the `CEApi` in script (`CentralEconomy.c`).
+> **Poznámka:** Mnohé z těchto funkcí jsou také dostupné prostřednictvím `CEApi` ve skriptu (`CentralEconomy.c`).
 
 #### Loot Spawn Edit
 
-Tools for creating and editing loot spawn points on objects. Free camera must be enabled to use the Edit Volume tool.
+Nástroje pro vytváření a úpravu loot spawn bodů na objektech. Pro použití nástroje Edit Volume musí být povolena volná kamera.
 
-| Option | Popis | Script Equivalent |
+| Volba | Popis | Ekvivalent ve skriptu |
 |--------|-------------|-------------------|
-| **Spawn Volume Vis** | Visualize loot spawn points. Options: Off, Adaptive, Volume, Occupied | `GetCEApi().LootSetSpawnVolumeVisualisation()` |
-| **Setup Vis** | Show CE setup properties on screen with color-coded containers | `GetCEApi().LootToggleSpawnSetup()` |
-| **Edit Volume** | Interactive loot point editor (requires free camera) | `GetCEApi().LootToggleVolumeEditing()` |
-| **Re-Trace Group Points** | Re-trace loot points to fix hovering issues | `GetCEApi().LootRetraceGroupPoints()` |
-| **Spawn Candy** | Spawn loot in all spawn points of selected group | -- |
-| **Spawn Rotation Test** | Test rotation flags at cursor position | -- |
-| **Placement Test** | Visualize placement with sphere cylinder | -- |
-| **Export Group** | Export selected group to `storage/export/mapGroup_CLASSNAME.xml` | `GetCEApi().LootExportGroup()` |
-| **Export All Groups** | Export all groups to `storage/export/mapgroupproto.xml` | `GetCEApi().LootExportAllGroups()` |
-| **Export Map** | Generate `storage/export/mapgrouppos.xml` | `GetCEApi().LootExportMap()` |
-| **Export Clusters** | Generate `storage/export/mapgroupcluster.xml` | `GetCEApi().ExportClusterData()` |
-| **Export Economy [csv]** | Export economy to `storage/log/economy.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.Economy)` |
-| **Export Respawn Queue [csv]** | Export respawn queue to `storage/log/respawn_queue.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.RespawnQueue)` |
+| **Spawn Volume Vis** | Vizualizace loot spawn bodů. Volby: Off, Adaptive, Volume, Occupied | `GetCEApi().LootSetSpawnVolumeVisualisation()` |
+| **Setup Vis** | Zobrazení vlastností CE nastavení na obrazovce s barevně odlišenými kontejnery | `GetCEApi().LootToggleSpawnSetup()` |
+| **Edit Volume** | Interaktivní editor loot bodů (vyžaduje volnou kameru) | `GetCEApi().LootToggleVolumeEditing()` |
+| **Re-Trace Group Points** | Přetrasování loot bodů pro opravu problémů se vznášením | `GetCEApi().LootRetraceGroupPoints()` |
+| **Spawn Candy** | Spawn lootu ve všech spawn bodech vybrané skupiny | -- |
+| **Spawn Rotation Test** | Testování rotačních příznaků na pozici kurzoru | -- |
+| **Placement Test** | Vizualizace umístění válcovou koulí | -- |
+| **Export Group** | Export vybrané skupiny do `storage/export/mapGroup_CLASSNAME.xml` | `GetCEApi().LootExportGroup()` |
+| **Export All Groups** | Export všech skupin do `storage/export/mapgroupproto.xml` | `GetCEApi().LootExportAllGroups()` |
+| **Export Map** | Generování `storage/export/mapgrouppos.xml` | `GetCEApi().LootExportMap()` |
+| **Export Clusters** | Generování `storage/export/mapgroupcluster.xml` | `GetCEApi().ExportClusterData()` |
+| **Export Economy [csv]** | Export ekonomiky do `storage/log/economy.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.Economy)` |
+| **Export Respawn Queue [csv]** | Export fronty respawnu do `storage/log/respawn_queue.csv` | `GetCEApi().EconomyLog(EconomyLogCategories.RespawnQueue)` |
 
-**Edit Volume key bindings:**
+**Klávesové zkratky Edit Volume:**
 
-| Key | Function |
+| Klávesa | Funkce |
 |-----|----------|
-| **[** | Iterate backwards through containers |
-| **]** | Iterate forwards through containers |
-| **LMB** | Insert new point |
-| **RMB** | Delete point |
-| **;** | Increase point size |
-| **'** | Decrease point size |
-| **Insert** | Spawn loot at point |
+| **[** | Iterace kontejnery zpět |
+| **]** | Iterace kontejnery vpřed |
+| **LMB** | Vložení nového bodu |
+| **RMB** | Smazání bodu |
+| **;** | Zvětšení velikosti bodu |
+| **'** | Zmenšení velikosti bodu |
+| **Insert** | Spawn lootu v bodě |
 | **M** | Spawn 48 "AmmoBox_762x54_20Rnd" |
-| **Backspace** | Mark nearby loot for cleanup (depletes lifetime, not instant) |
+| **Backspace** | Označení blízkého lootu k úklidu (vyčerpá životnost, ne okamžitý) |
 
 #### Loot Tool
 
-| Option | Popis | Script Equivalent |
+| Volba | Popis | Ekvivalent ve skriptu |
 |--------|-------------|-------------------|
-| **Deplete Lifetime** | Depletes lifetime to 3 seconds (scheduled for cleanup) | `GetCEApi().LootDepleteLifetime()` |
-| **Set Damage = 1.0** | Sets health to 0 | `GetCEApi().LootSetDamageToOne()` |
-| **Damage + Deplete** | Performs both of the above | `GetCEApi().LootDepleteAndDamage()` |
-| **Invert Avoidance** | Toggles player avoidance (detection of nearby players) | -- |
-| **Project Target Loot** | Emulates spawning of targeted item, generates images and logs. Requires "Loot Vis" enabled | `GetCEApi().SpawnAnalyze()` and `GetCEApi().EconomyMap()` |
+| **Deplete Lifetime** | Vyčerpá životnost na 3 sekundy (naplánováno k úklidu) | `GetCEApi().LootDepleteLifetime()` |
+| **Set Damage = 1.0** | Nastaví zdraví na 0 | `GetCEApi().LootSetDamageToOne()` |
+| **Damage + Deplete** | Provede obojí výše uvedené | `GetCEApi().LootDepleteAndDamage()` |
+| **Invert Avoidance** | Přepíná vyhýbání hráčům (detekce blízkých hráčů) | -- |
+| **Project Target Loot** | Emuluje spawning cílového předmětu, generuje obrázky a logy. Vyžaduje povolené "Loot Vis" | `GetCEApi().SpawnAnalyze()` a `GetCEApi().EconomyMap()` |
 
 #### Infected
 
-| Option | Popis | Script Equivalent |
+| Volba | Popis | Ekvivalent ve skriptu |
 |--------|-------------|-------------------|
-| **Infected Vis** | Visualize zombie zones, locations, alive/dead status | `GetCEApi().InfectedToggleVisualisation()` |
-| **Infected Zone Info** | On-screen debug when camera is inside an infected zone | `GetCEApi().InfectedToggleZoneInfo()` |
-| **Infected Spawn** | Spawn infected in selected zone (or "InfectedArmy" at cursor) | `GetCEApi().InfectedSpawn()` |
-| **Reset Cleanup** | Sets cleanup timer to 3 seconds | `GetCEApi().InfectedResetCleanup()` |
+| **Infected Vis** | Vizualizace zón zombie, lokací, stavu živý/mrtvý | `GetCEApi().InfectedToggleVisualisation()` |
+| **Infected Zone Info** | Ladicí informace na obrazovce, když je kamera uvnitř zóny nakažených | `GetCEApi().InfectedToggleZoneInfo()` |
+| **Infected Spawn** | Spawn nakažených ve vybrané zóně (nebo "InfectedArmy" na kurzoru) | `GetCEApi().InfectedSpawn()` |
+| **Reset Cleanup** | Nastaví časovač úklidu na 3 sekundy | `GetCEApi().InfectedResetCleanup()` |
 
 #### Animal
 
-| Option | Popis | Script Equivalent |
+| Volba | Popis | Ekvivalent ve skriptu |
 |--------|-------------|-------------------|
-| **Animal Vis** | Visualize animal zones, locations, alive/dead status | `GetCEApi().AnimalToggleVisualisation()` |
-| **Animal Spawn** | Spawn animal in selected zone (or "AnimalGoat" at cursor) | `GetCEApi().AnimalSpawn()` |
-| **Ambient Spawn** | Spawn "AmbientHen" at cursor target | `GetCEApi().AnimalAmbientSpawn()` |
+| **Animal Vis** | Vizualizace zón zvířat, lokací, stavu živý/mrtvý | `GetCEApi().AnimalToggleVisualisation()` |
+| **Animal Spawn** | Spawn zvířete ve vybrané zóně (nebo "AnimalGoat" na kurzoru) | `GetCEApi().AnimalSpawn()` |
+| **Ambient Spawn** | Spawn "AmbientHen" na cíli kurzoru | `GetCEApi().AnimalAmbientSpawn()` |
 
 #### Building
 
-**Building Stats** shows on-screen debug about building door states:
+**Building Stats** zobrazuje ladicí informace na obrazovce o stavu dveří budov:
 
-- Left side: whether each door is open/closed and free/locked
-- Middle: stats regarding `buildings.bin` (building persistence)
+- Levá strana: zda jsou jednotlivé dveře otevřené/zavřené a volné/zamčené
+- Střed: statistiky ohledně `buildings.bin` (persistence budov)
 
-Door randomization uses the `initOpened` config value. When `rand < initOpened`, the door spawns opened (so `initOpened=0` means doors never spawn open).
+Randomizace dveří používá konfigurační hodnotu `initOpened`. Když `rand < initOpened`, dveře se spawnují otevřené (takže `initOpened=0` znamená, že dveře se nikdy nespawnují otevřené).
 
-Common `<building/>` setups in economy.xml:
+Běžná nastavení `<building/>` v economy.xml:
 
-| Setup | Behavior |
+| Nastavení | Chování |
 |-------|----------|
-| `init="0" load="0" respawn="0" save="0"` | No persistence, no randomization, default state after restart |
-| `init="1" load="0" respawn="0" save="0"` | No persistence, doors randomized by initOpened |
-| `init="1" load="1" respawn="0" save="1"` | Saves only locked doors, doors randomized by initOpened |
-| `init="0" load="1" respawn="0" save="1"` | Full persistence, saves exact door state, no randomization |
+| `init="0" load="0" respawn="0" save="0"` | Žádná persistence, žádná randomizace, výchozí stav po restartu |
+| `init="1" load="0" respawn="0" save="0"` | Žádná persistence, dveře randomizovány podle initOpened |
+| `init="1" load="1" respawn="0" save="1"` | Ukládá pouze zamčené dveře, dveře randomizovány podle initOpened |
+| `init="0" load="1" respawn="0" save="1"` | Plná persistence, ukládá přesný stav dveří, žádná randomizace |
 
-#### Other Central Economy Tools
+#### Další nástroje Central Economy
 
-| Option | Popis | Script Equivalent |
+| Volba | Popis | Ekvivalent ve skriptu |
 |--------|-------------|-------------------|
-| **Vehicle&Wreck Vis** | Visualize objects registered to "Vehicle" avoidance. Yellow = Car, Pink = Wrecks (Building), Blue = InventoryItem | `GetCEApi().ToggleVehicleAndWreckVisualisation()` |
-| **Loot Vis** | On-screen Economy Data for anything you look at (loot, infected, dynamic events) | `GetCEApi().ToggleLootVisualisation()` |
-| **Cluster Vis** | On-screen Trajectory DE stats | `GetCEApi().ToggleClusterVisualisation()` |
-| **Dynamic Events Status** | On-screen DE statistics | `GetCEApi().ToggleDynamicEventStatus()` |
-| **Dynamic Events Vis** | Visualize and edit DE spawn points | `GetCEApi().ToggleDynamicEventVisualisation()` |
-| **Dynamic Events Spawn** | Spawn a dynamic event at nearest point or "StaticChristmasTree" as fallback | `GetCEApi().DynamicEventSpawn()` |
-| **Export Dyn Event** | Export DE points to `storage/export/eventSpawn_CLASSNAME.xml` | `GetCEApi().DynamicEventExport()` |
-| **Overall Stats** | On-screen CE statistics | `GetCEApi().ToggleOverallStats()` |
-| **Updaters State** | Shows what the CE is currently processing | -- |
-| **Idle Mode** | Puts CE to sleep (stops processing) | -- |
-| **Force Save** | Forces saving of the entire `storage/data` folder (excludes player database) | -- |
+| **Vehicle&Wreck Vis** | Vizualizace objektů registrovaných jako "Vehicle" avoidance. Žlutá = Auto, Růžová = Vraky (Building), Modrá = InventoryItem | `GetCEApi().ToggleVehicleAndWreckVisualisation()` |
+| **Loot Vis** | Economy Data na obrazovce pro cokoli, na co se díváte (loot, nakažení, dynamické události) | `GetCEApi().ToggleLootVisualisation()` |
+| **Cluster Vis** | Trajectory DE statistiky na obrazovce | `GetCEApi().ToggleClusterVisualisation()` |
+| **Dynamic Events Status** | DE statistiky na obrazovce | `GetCEApi().ToggleDynamicEventStatus()` |
+| **Dynamic Events Vis** | Vizualizace a úprava DE spawn bodů | `GetCEApi().ToggleDynamicEventVisualisation()` |
+| **Dynamic Events Spawn** | Spawn dynamické události na nejbližším bodě nebo "StaticChristmasTree" jako záloha | `GetCEApi().DynamicEventSpawn()` |
+| **Export Dyn Event** | Export DE bodů do `storage/export/eventSpawn_CLASSNAME.xml` | `GetCEApi().DynamicEventExport()` |
+| **Overall Stats** | CE statistiky na obrazovce | `GetCEApi().ToggleOverallStats()` |
+| **Updaters State** | Zobrazuje, co CE aktuálně zpracovává | -- |
+| **Idle Mode** | Uspí CE (zastaví zpracování) | -- |
+| **Force Save** | Vynucuje uložení celé složky `storage/data` (vylučuje databázi hráčů) | -- |
 
-**Dynamic Events Vis key bindings:**
+**Klávesové zkratky Dynamic Events Vis:**
 
-| Key | Function |
+| Klávesa | Funkce |
 |-----|----------|
-| **[** | Iterate backwards through available DE |
-| **]** | Iterate forwards through available DE |
-| **LMB** | Insert new point for selected DE |
-| **RMB** | Delete point nearest to cursor |
-| **MMB** | Hold or click to rotate angle |
+| **[** | Iterace dostupnými DE zpět |
+| **]** | Iterace dostupnými DE vpřed |
+| **LMB** | Vložení nového bodu pro vybrané DE |
+| **RMB** | Smazání bodu nejbližšího kurzoru |
+| **MMB** | Podržení nebo klik pro otáčení úhlu |
 
 ---
 
 ## AI
 
-### Menu Structure
+### Struktura menu
 
 ```
 AI
@@ -765,40 +769,40 @@ AI
   Debug AI Agent
 ```
 
-> **Dulezite:** AI debugging currently does not work in a multiplayer environment.
+> **Důležité:** Ladění AI v současnosti nefunguje v multiplayerovém prostředí.
 
 ### Show NavMesh
 
-Draws debug shapes to visualize the navigation mesh. Shows an on-screen debug with stats.
+Vykresluje ladicí tvary pro vizualizaci navigačního meshe. Zobrazuje ladicí informace se statistikami na obrazovce.
 
-| Key | Function |
+| Klávesa | Funkce |
 |-----|----------|
-| **Numpad 0** | Register "Test start" at camera position |
-| **Numpad 1** | Regenerate tile at camera position |
-| **Numpad 2** | Regenerate tiles around camera position |
-| **Numpad 3** | Iterate forwards through visualization types |
-| **LAlt + Numpad 3** | Iterate backwards through visualization types |
-| **Numpad 4** | Register "Test end" at camera position. Draws spheres and a line between start and end. Green = path found, Red = no path |
-| **Numpad 5** | NavMesh nearest position test (SamplePosition). Blue sphere = query, pink sphere = result |
-| **Numpad 6** | NavMesh raycast test. Blue sphere = query, pink sphere = result |
+| **Numpad 0** | Registrace "Test start" na pozici kamery |
+| **Numpad 1** | Regenerace dlaždice na pozici kamery |
+| **Numpad 2** | Regenerace dlaždic kolem pozice kamery |
+| **Numpad 3** | Iterace typy vizualizace vpřed |
+| **LAlt + Numpad 3** | Iterace typy vizualizace zpět |
+| **Numpad 4** | Registrace "Test end" na pozici kamery. Kreslí koule a čáru mezi startem a koncem. Zelená = cesta nalezena, Červená = žádná cesta |
+| **Numpad 5** | Test nejbližší pozice na NavMesh (SamplePosition). Modrá koule = dotaz, růžová koule = výsledek |
+| **Numpad 6** | Test raycaatu NavMesh. Modrá koule = dotaz, růžová koule = výsledek |
 
 ### Debug Pathgraph World
 
-On-screen debug showing how many path job requests have been completed and how many are currently pending.
+Ladicí informace na obrazovce ukazující, kolik požadavků na cestu bylo dokončeno a kolik jich aktuálně čeká.
 
 ### Debug Path Agent
 
-On-screen debug and debug shapes for an AI's pathing. Target an AI entity to select it for tracking. Use this when you are specifically interested in how an AI finds its path.
+Ladicí informace na obrazovce a ladicí tvary pro hledání cesty AI. Zamiřte na AI entitu pro výběr k sledování. Použijte toto, když se konkrétně zajímáte o to, jak AI nachází svou cestu.
 
 ### Debug AI Agent
 
-On-screen debug and debug shapes for an AI's alertness and behavior. Target an AI entity to select it for tracking. Use this when you want to understand an AI's decision-making and awareness state.
+Ladicí informace na obrazovce a ladicí tvary pro bdělost a chování AI. Zamiřte na AI entitu pro výběr k sledování. Použijte toto, když chcete porozumět rozhodování AI a stavu povědomí.
 
 ---
 
-## Sounds
+## Zvuky
 
-### Menu Structure
+### Struktura menu
 
 ```
 Sounds
@@ -808,100 +812,100 @@ Sounds
 
 ### Show Playing Samples
 
-Debug visualization for currently playing sounds.
+Ladicí vizualizace pro aktuálně přehrávané zvuky.
 
-| Option | Popis |
+| Volba | Popis |
 |--------|-------------|
-| **none** | Vychozi, no debug |
-| **ImGui** | Separate window (newest iteration). Supports filtering, full category coverage. Settings saved as `playing_sounds_imgui.ini` / `.bin` in profiles |
-| **DbgUI** | Legacy. Has category filtering, more readable, but goes off-screen and lacks vehicle category |
-| **Engine** | Legacy. Shows real-time color-coded data with stats, but goes off-screen and has no color legend |
+| **none** | Výchozí, žádné ladění |
+| **ImGui** | Samostatné okno (nejnovější iterace). Podporuje filtrování, plné pokrytí kategorií. Nastavení uloženo jako `playing_sounds_imgui.ini` / `.bin` v profilech |
+| **DbgUI** | Starší verze. Má filtrování kategorií, čitelnější, ale přesahuje obrazovku a chybí kategorie vozidel |
+| **Engine** | Starší verze. Zobrazuje barevně kódovaná data v reálném čase se statistikami, ale přesahuje obrazovku a chybí legenda barev |
 
 ### Show System Info
 
-On-screen debug stats of the sound system (buffer counts, active sources, etc.).
+Ladicí statistiky zvukového systému na obrazovce (počty bufferů, aktivní zdroje atd.).
 
 ---
 
-## Useful Funkces for Modders
+## Užitečné funkce pro moddery
 
-While every option has its use, these are the ones modders reach for most frequently:
+I když má každá volba své využití, tyto jsou ty, po kterých moddeři sahají nejčastěji:
 
-### Performance Analysis
+### Analýza výkonu
 
-1. **FPS counter** (LCtrl + Numpad 1) -- Quick check that your mod is not destroying frame rate
-2. **Script Profiler** -- Find which of your classes or functions consume the most CPU time. Set module to WORLD or MISSION to focus on your mod's script layer
+1. **Počítadlo FPS** (LCtrl + Numpad 1) -- Rychlá kontrola, že váš mod neničí snímkovou frekvenci
+2. **Skriptový profiler** -- Zjistěte, které z vašich tříd nebo funkcí spotřebovávají nejvíce CPU času. Nastavte modul na WORLD nebo MISSION pro zaměření na skriptovou vrstvu vašeho modu
 
-### Visual Debugging
+### Vizuální ladění
 
-1. **Free Camera** -- Fly around to inspect spawned objects, verify positions, check AI behavior from a distance
-2. **Geometry Diagnostic** -- Verify your custom model's fire geometry, view geometry, roadway LOD, and memory points without leaving the game
-3. **Render Debug Mode** (RCtrl + RAlt + W) -- See wireframe overlays to check mesh density and material assignments
+1. **Volná kamera** -- Létejte kolem pro kontrolu spawnovaných objektů, ověřování pozic, kontrolu chování AI z dálky
+2. **Diagnostika geometrie** -- Ověřte fire geometry, view geometry, roadway LOD a memory pointy vašeho vlastního modelu bez opuštění hry
+3. **Render Debug Mode** (RCtrl + RAlt + W) -- Zobrazte drátové překryvy pro kontrolu hustoty meshe a přiřazení materiálů
 
-### Gameplay Testing
+### Testování hratelnosti
 
-1. **Free Camera + Insert** -- Teleport your player anywhere on the map instantly
-2. **Weather Override** -- Force specific fog conditions to test visibility-dependent features
-3. **Central Economy tools** -- Spawn infected, animals, loot, and dynamic events on demand
-4. **Combat debug** -- Trace shot trajectories, inspect hitpoint damage systems, test explosion penetration
+1. **Volná kamera + Insert** -- Teleportujte hráče kamkoli na mapě okamžitě
+2. **Přepsání počasí** -- Vynuťte specifické podmínky mlhy pro testování funkcí závislých na viditelnosti
+3. **Nástroje Central Economy** -- Spawnujte nakažené, zvířata, loot a dynamické události na vyžádání
+4. **Ladění boje** -- Trasujte dráhy střel, kontrolujte systémy poškození hitpointů, testujte penetraci explozí
 
-### AI Development
+### Vývoj AI
 
-1. **Show NavMesh** -- Verify that AI can actually navigate to where you expect
-2. **Debug AI Agent** -- See what an infected or animal is thinking, what alert level it is at
-3. **Debug Path Agent** -- See the actual path an AI is taking and whether pathfinding succeeds
-
----
-
-## Kdy pouzit the Diag Menu
-
-### During Development
-
-- **Script Profiler** when optimizing per-frame code (OnUpdate, EOnFrame)
-- **Free Camera** for positioning objects, verifying spawn locations, inspecting model placement
-- **Geometry Diagnostic** immediately after importing a new model to verify LODs and geometry types
-- **FPS counter** as a baseline before and after adding new features
-
-### During Testing
-
-- **Combat debug** to verify weapon damage, projectile behavior, explosion effects
-- **CE tools** to test loot distribution, spawn points, dynamic events
-- **AI debug** to verify infected/animal behavior responds correctly to player presence
-- **Weather debug** to test your mod under different weather conditions
-
-### During Bug Investigation
-
-- **FPS counter + Script Profiler** when players report performance issues
-- **Free Camera + Spacebar** (object debug) to inspect objects that are not behaving correctly
-- **Render Debug Mode** to diagnose visual artifacts or material issues
-- **Show Bullet** to debug physics collision problems
+1. **Show NavMesh** -- Ověřte, že AI skutečně může navigovat tam, kam očekáváte
+2. **Debug AI Agent** -- Podívejte se, co nakažený nebo zvíře "přemýšlí", na jaké úrovni bdělosti je
+3. **Debug Path Agent** -- Podívejte se na skutečnou cestu, kterou AI používá, a zda hledání cesty uspěje
 
 ---
 
-## Caste chyby
+## Kdy používat Diag Menu
 
-**Using retail executable.** The Diag Menu is only available in `DayZDiag_x64.exe`. If you press Win+Alt and nothing happens, you are running the retail build.
+### Během vývoje
 
-**Forgetting Max. Collider Distance is 0.** The physics visualization (Draw Bullet shape) will show nothing if Max. Collider Distance is still at its default of 0. Set it to at least 10-20 to see colliders around you.
+- **Skriptový profiler** při optimalizaci kódu na každý snímek (OnUpdate, EOnFrame)
+- **Volná kamera** pro umisťování objektů, ověřování spawn lokací, kontrolu umístění modelů
+- **Diagnostika geometrie** ihned po importu nového modelu pro ověření LOD a typů geometrie
+- **Počítadlo FPS** jako základ před a po přidání nových funkcí
 
-**CE tools in multiplayer.** Most Central Economy debug options only work in single-player with CE enabled. Do not expect them to function on a dedicated server.
+### Během testování
 
-**AI debug in multiplayer.** AI debugging currently does not work in a multiplayer environment. Test AI behavior in single-player.
+- **Ladění boje** pro ověření poškození zbraní, chování projektilů, efektů explozí
+- **Nástroje CE** pro testování distribuce lootu, spawn bodů, dynamických událostí
+- **Ladění AI** pro ověření, že chování nakažených/zvířat správně reaguje na přítomnost hráče
+- **Ladění počasí** pro testování vašeho modu za různých povětrnostních podmínek
 
-**Confusing "Bullet" with ammunition.** The "Enfusion World" category's "Bullet" options refer to the Bullet physics engine, not weapon ammunition. Combat-related debugging is under Game > Combat.
+### Při vyšetřování chyb
 
-**Leaving profiler on.** The Script Profiler has measurable overhead. Turn it off when you are done profiling to get accurate FPS readings.
-
-**Large collider distance values.** Setting Max. Collider Distance to 200 or 500 will tank your frame rate. Use the smallest value that covers your area of interest.
-
-**Not enabling prerequisites.** Several options depend on others being enabled first:
-- "Draw Char Ctrl" and "Draw Bullet wireframe" depend on "Draw Bullet shape"
-- "Edit Volume" requires free camera
-- "Project Target Loot" requires "Loot Vis" to be enabled
+- **Počítadlo FPS + Skriptový profiler** když hráči hlásí problémy s výkonem
+- **Volná kamera + Mezerník** (ladění objektu) pro kontrolu objektů, které se nechovají správně
+- **Render Debug Mode** pro diagnostiku vizuálních artefaktů nebo problémů s materiály
+- **Show Bullet** pro ladění problémů s fyzikálními kolizemi
 
 ---
 
-## Dalsi kroky
+## Časté chyby
 
-- **Chapter 8.6: [Debugging & Testing](06-debugging-testing.md)** -- Script logs, Print debugging, file patching, and Workbench
-- **Chapter 8.7: [Publishing to Workshop](07-publishing-workshop.md)** -- Package and publish your tested mod
+**Používání retailového spustitelného souboru.** Diag Menu je dostupné pouze v `DayZDiag_x64.exe`. Pokud stisknete Win+Alt a nic se nestane, používáte retailový build.
+
+**Zapomenutí, že Max. Collider Distance je 0.** Vizualizace fyziky (Draw Bullet shape) nic nezobrazí, pokud Max. Collider Distance je stále na výchozí hodnotě 0. Nastavte alespoň na 10-20 pro zobrazení kolizních objektů kolem vás.
+
+**Nástroje CE v multiplayeru.** Většina ladicích voleb Central Economy funguje pouze v single-playeru s povoleným CE. Neočekávejte, že budou fungovat na dedikovaném serveru.
+
+**Ladění AI v multiplayeru.** Ladění AI v současnosti nefunguje v multiplayerovém prostředí. Testujte chování AI v single-playeru.
+
+**Záměna "Bullet" s municí.** Volby "Bullet" v kategorii "Enfusion World" odkazují na fyzikální engine Bullet, ne na munici do zbraní. Ladění boje je pod Game > Combat.
+
+**Ponechání profileru zapnutého.** Skriptový profiler má měřitelnou režii. Vypněte ho, když dokončíte profilování, abyste získali přesné hodnoty FPS.
+
+**Velké hodnoty vzdálenosti kolizních objektů.** Nastavení Max. Collider Distance na 200 nebo 500 zničí vaši snímkovou frekvenci. Použijte nejmenší hodnotu pokrývající vaši oblast zájmu.
+
+**Nepovolení předpokladů.** Některé volby závisí na povolení jiných:
+- "Draw Char Ctrl" a "Draw Bullet wireframe" závisí na "Draw Bullet shape"
+- "Edit Volume" vyžaduje volnou kameru
+- "Project Target Loot" vyžaduje povolené "Loot Vis"
+
+---
+
+## Další kroky
+
+- **Kapitola 8.6: [Ladění a testování](06-debugging-testing.md)** -- Skriptové logy, Print ladění, file patching a Workbench
+- **Kapitola 8.7: [Publikování na Workshop](07-publishing-workshop.md)** -- Zabalení a publikování vašeho otestovaného modu
