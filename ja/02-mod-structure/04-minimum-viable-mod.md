@@ -1,47 +1,51 @@
-# Chapter 2.4: Your First Mod -- Minimum Viable
+# 第2.4章: はじめてのMod -- 最小構成
 
-[Home](../../README.md) | [<< Previous: mod.cpp & Workshop](03-mod-cpp.md) | **Minimum Viable Mod** | [Next: File Organization >>](05-file-organization.md)
+[ホーム](../../README.md) | [<< 前へ: mod.cppとWorkshop](03-mod-cpp.md) | **最小構成Mod** | [次へ: ファイル構成 >>](05-file-organization.md)
+
+---
+
+> **概要:** この章では、最小限のDayZ Modをゼロから作成する手順を解説します。最終的に、ゲーム起動時にスクリプトログにメッセージを出力する動作するModが完成します。ファイル3つ、依存関係なし、5分以内で完了します。
 
 ---
 
 ## 目次
 
-- [What You Need](#what-you-need)
-- [The Goal](#the-goal)
-- [Step 1: Create the Directory Structure](#step-1-create-the-directory-structure)
-- [Step 2: Create mod.cpp](#step-2-create-modcpp)
-- [Step 3: Create config.cpp](#step-3-create-configcpp)
-- [Step 4: Create Your First Script](#step-4-create-your-first-script)
-- [Step 5: Pack and Test](#step-5-pack-and-test)
-- [Step 6: Verify It Works](#step-6-verify-it-works)
-- [Understanding What Happened](#understanding-what-happened)
-- [Next Steps](#next-steps)
-- [Troubleshooting](#troubleshooting)
+- [必要なもの](#必要なもの)
+- [目標](#目標)
+- [ステップ1: ディレクトリ構造の作成](#ステップ1-ディレクトリ構造の作成)
+- [ステップ2: mod.cppの作成](#ステップ2-modcppの作成)
+- [ステップ3: config.cppの作成](#ステップ3-configcppの作成)
+- [ステップ4: 最初のスクリプトの作成](#ステップ4-最初のスクリプトの作成)
+- [ステップ5: パックとテスト](#ステップ5-パックとテスト)
+- [ステップ6: 動作確認](#ステップ6-動作確認)
+- [何が起きたかを理解する](#何が起きたかを理解する)
+- [次のステップ](#次のステップ)
+- [トラブルシューティング](#トラブルシューティング)
 
 ---
 
 ## 必要なもの
 
-- DayZ game installed (retail or DayZ Tools/Diag)
-- A text editor (VS Code, Notepad++, or any plain text editor)
-- DayZ Tools installed (for PBO packing) -- OR you can test without packing (see Step 5)
+- DayZがインストールされていること（リテール版またはDayZ Tools/Diag）
+- テキストエディタ（VS Code、Notepad++、その他のプレーンテキストエディタ）
+- DayZ Toolsがインストールされていること（PBOパッキング用）-- またはパッキングなしでテスト可能です（ステップ5参照）
 
 ---
 
 ## 目標
 
-We will create a mod called **HelloMod** that:
-1. Loads into DayZ without errors
-2. Prints `"[HelloMod] Mission started!"` to the script log
-3. Uses the correct standard structure
+**HelloMod** というModを作成します。このModは：
+1. エラーなくDayZに読み込まれます
+2. スクリプトログに `"[HelloMod] Mission started!"` と出力します
+3. 正しい標準構造を使用します
 
-This is the DayZ equivalent of "Hello World."
+これはDayZ版の「Hello World」です。
 
 ---
 
-## Step 1: Create the Directory Structure
+## ステップ1: ディレクトリ構造の作成
 
-Create the following folders and files. You need exactly **3 files**:
+以下のフォルダとファイルを作成します。必要なのは正確に**3ファイル**です：
 
 ```
 HelloMod/
@@ -53,13 +57,13 @@ HelloMod/
         HelloMission.c
 ```
 
-That is the complete structure. 各ファイルを作成しましょう。
+これが完全な構造です。各ファイルを作成していきましょう。
 
 ---
 
-## Step 2: Create mod.cpp
+## ステップ2: mod.cppの作成
 
-Create `HelloMod/mod.cpp` with this content:
+以下の内容で `HelloMod/mod.cpp` を作成します：
 
 ```cpp
 name = "Hello Mod";
@@ -68,13 +72,13 @@ version = "1.0";
 overview = "My first DayZ mod - prints a message on mission start.";
 ```
 
-This is the minimum metadata. The DayZ launcher will show "Hello Mod" in the mod list.
+これは最小限のメタデータです。DayZランチャーのMod一覧に「Hello Mod」と表示されます。
 
 ---
 
-## Step 3: Create config.cpp
+## ステップ3: config.cppの作成
 
-Create `HelloMod/Scripts/config.cpp` with this content:
+以下の内容で `HelloMod/Scripts/config.cpp` を作成します：
 
 ```cpp
 class CfgPatches
@@ -114,17 +118,17 @@ class CfgMods
 };
 ```
 
-Let us break down what each part does:
+各部分の役割を説明します：
 
-- **CfgPatches** declares the mod to the engine. `requiredAddons` says we depend on `DZ_Data` (vanilla DayZ data), which ensures we load after the base game.
-- **CfgMods** tells the engine where our scripts live. We only use `5_Mission` because that is where mission lifecycle hooks are available.
-- **dependencies** lists `"Mission"` because our code hooks into the mission script module.
+- **CfgPatches** はModをエンジンに宣言します。`requiredAddons` で `DZ_Data`（バニラDayZデータ）に依存していることを示し、ベースゲームの後に読み込まれることを保証します。
+- **CfgMods** はスクリプトの場所をエンジンに伝えます。ミッションライフサイクルフックが利用可能な `5_Mission` のみ使用しています。
+- **dependencies** はコードがミッションスクリプトモジュールにフックするため、`"Mission"` を記載します。
 
 ---
 
-## Step 4: Create Your First Script
+## ステップ4: 最初のスクリプトの作成
 
-Create `HelloMod/Scripts/5_Mission/HelloMod/HelloMission.c` with this content:
+以下の内容で `HelloMod/Scripts/5_Mission/HelloMod/HelloMission.c` を作成します：
 
 ```c
 modded class MissionServer
@@ -148,47 +152,47 @@ modded class MissionGameplay
 
 このコードの動作：
 
-- `modded class MissionServer` extends the vanilla server mission class. When the server starts a mission, `OnInit()` fires and our message prints.
-- `modded class MissionGameplay` does the same for the client side.
-- `super.OnInit()` calls the original (vanilla) implementation first -- this is critical. Never skip it.
-- `Print()` writes to the DayZ script log file.
+- `modded class MissionServer` はバニラのサーバーミッションクラスを拡張します。サーバーがミッションを開始すると `OnInit()` が呼び出され、メッセージが出力されます。
+- `modded class MissionGameplay` はクライアント側で同じことを行います。
+- `super.OnInit()` は元の（バニラの）実装を最初に呼び出します -- これは非常に重要です。決してスキップしないでください。
+- `Print()` はDayZのスクリプトログファイルに書き込みます。
 
 ---
 
-## Step 5: Pack and Test
+## ステップ5: パックとテスト
 
-You have two options for testing:
+テストには2つの方法があります：
 
-### Option A: File Patching (No PBO Required -- Development Only)
+### オプションA: ファイルパッチング（PBO不要 -- 開発専用）
 
-DayZ supports loading unpacked mods during development. This is the fastest way to iterate.
+DayZは開発中にアンパックされたModの読み込みをサポートしています。これが最も速い反復方法です。
 
-1. Place your `HelloMod/` folder inside your DayZ installation directory (or use the P: drive with workbench)
-2. Launch DayZ with the `-filePatching` parameter and load your mod:
+1. `HelloMod/` フォルダをDayZのインストールディレクトリ内に配置します（またはWorkbenchでP:ドライブを使用します）
+2. `-filePatching` パラメータを付けてDayZを起動し、Modを読み込みます：
 
 ```
 DayZDiag_x64.exe -mod=HelloMod -filePatching
 ```
 
-This loads scripts directly from the folder without PBO packing.
+これによりPBOパッキングなしでフォルダから直接スクリプトが読み込まれます。
 
-### Option B: PBO Packing (Required for Distribution)
+### オプションB: PBOパッキング（配布に必要）
 
-For Workshop publishing or server deployment, you need to pack into a PBO:
+Workshopへの公開やサーバーデプロイには、PBOにパックする必要があります：
 
-1. Open **DayZ Tools** (from Steam)
-2. Open **Addon Builder**
-3. Set the source directory to `HelloMod/Scripts/`
-4. Set the output to `@HelloMod/Addons/HelloMod_Scripts.pbo`
-5. Click **Pack**
+1. **DayZ Tools**（Steamから）を開きます
+2. **Addon Builder** を開きます
+3. ソースディレクトリを `HelloMod/Scripts/` に設定します
+4. 出力先を `@HelloMod/Addons/HelloMod_Scripts.pbo` に設定します
+5. **Pack** をクリックします
 
-Or use a command-line packer like `PBOConsole`:
+または `PBOConsole` などのコマンドラインパッカーを使用します：
 
 ```
 PBOConsole.exe -pack HelloMod/Scripts @HelloMod/Addons/HelloMod_Scripts.pbo
 ```
 
-Place the `mod.cpp` next to the `Addons/` folder:
+`mod.cpp` を `Addons/` フォルダの横に配置します：
 
 ```
 @HelloMod/
@@ -197,7 +201,7 @@ Place the `mod.cpp` next to the `Addons/` folder:
     HelloMod_Scripts.pbo
 ```
 
-Then launch DayZ:
+その後DayZを起動します：
 
 ```
 DayZDiag_x64.exe -mod=@HelloMod
@@ -205,92 +209,92 @@ DayZDiag_x64.exe -mod=@HelloMod
 
 ---
 
-## Step 6: Verify It Works
+## ステップ6: 動作確認
 
-### Finding the Script Log
+### スクリプトログの場所
 
-DayZ writes script output to log files in your profile directory:
+DayZはプロファイルディレクトリのログファイルにスクリプト出力を書き込みます：
 
 ```
 Windows: C:\Users\YourName\AppData\Local\DayZ\
 ```
 
-Look for the most recent `.RPT` or `.log` file. The script log is typically named:
+最新の `.RPT` または `.log` ファイルを探してください。スクリプトログの名前は通常以下のようになります：
 
 ```
 script_<date>_<time>.log
 ```
 
-### What to Look For
+### 確認すべき内容
 
-Open the log file and search for `[HelloMod]`. You should see:
+ログファイルを開いて `[HelloMod]` を検索します。以下のように表示されるはずです：
 
 ```
 [HelloMod] Mission started! Server is running.
 ```
 
-or (if you joined as a client):
+または（クライアントとして参加した場合）：
 
 ```
 [HelloMod] Mission started! Client is running.
 ```
 
-このメッセージが表示されれば、 congratulations -- Modが動作しています。
+このメッセージが表示されていれば、おめでとうございます -- Modは正常に動作しています。
 
-### If You See Errors
+### エラーが表示された場合
 
-If the log contains lines starting with `SCRIPT (E):`, something went wrong. See the [Troubleshooting](#troubleshooting) section below.
+ログに `SCRIPT (E):` で始まる行が含まれている場合、何かが問題です。以下の[トラブルシューティング](#トラブルシューティング)セクションを参照してください。
 
 ---
 
-## 何が起こったかの理解
+## 何が起きたかを理解する
 
-Here is the sequence of events when DayZ loaded your mod:
+DayZがModを読み込んだ際のイベントの順序は以下の通りです：
 
 ```
-1. Engine starts, reads config.cpp files from all PBOs
-2. CfgPatches "HelloMod_Scripts" is registered
-   --> requiredAddons ensures it loads after DZ_Data
-3. CfgMods "HelloMod" is registered
-   --> Engine knows about the missionScriptModule path
-4. Engine compiles all mods' 5_Mission scripts
-   --> HelloMission.c is compiled
-   --> "modded class MissionServer" patches the vanilla class
-5. Server starts a mission
-   --> MissionServer.OnInit() is called
-   --> Your override runs, calling super.OnInit() first
-   --> Print() writes to the script log
-6. Client connects and loads
-   --> MissionGameplay.OnInit() is called
-   --> Your override runs
-   --> Print() writes to the client log
+1. エンジンが起動し、すべてのPBOからconfig.cppファイルを読み取る
+2. CfgPatches "HelloMod_Scripts" が登録される
+   --> requiredAddonsにより、DZ_Dataの後に読み込まれることが保証される
+3. CfgMods "HelloMod" が登録される
+   --> エンジンがmissionScriptModuleのパスを認識する
+4. エンジンがすべてのModの5_Missionスクリプトをコンパイルする
+   --> HelloMission.cがコンパイルされる
+   --> "modded class MissionServer"がバニラクラスにパッチされる
+5. サーバーがミッションを開始する
+   --> MissionServer.OnInit()が呼び出される
+   --> オーバーライドが実行され、最初にsuper.OnInit()が呼び出される
+   --> Print()がスクリプトログに書き込む
+6. クライアントが接続して読み込む
+   --> MissionGameplay.OnInit()が呼び出される
+   --> オーバーライドが実行される
+   --> Print()がクライアントログに書き込む
 ```
 
-`modded` キーワードが重要なメカニズムです。 これはエンジンに "take the existing class and add my changes on top." This is how every DayZ mod integrates with vanilla code.
+`modded` キーワードが重要なメカニズムです。これはエンジンに「既存のクラスを取得し、その上に変更を追加する」ことを伝えます。これがすべてのDayZ Modがバニラコードと統合する方法です。
 
 ---
 
 ## 次のステップ
 
-Modが動作するようになったので、次のステップを紹介します：
+動作するModができたので、ここからの自然な発展方向を紹介します：
 
-### Add a 3_Game Layer
+### 3_Gameレイヤーの追加
 
-Add configuration data or constants that do not depend on world entities:
+ワールドエンティティに依存しない設定データや定数を追加します：
 
 ```
 HelloMod/
   Scripts/
-    config.cpp              <-- Add gameScriptModule entry
+    config.cpp              <-- gameScriptModuleエントリを追加
     3_Game/
       HelloMod/
-        HelloConfig.c       <-- Configuration class
+        HelloConfig.c       <-- 設定クラス
     5_Mission/
       HelloMod/
-        HelloMission.c      <-- Existing file
+        HelloMission.c      <-- 既存のファイル
 ```
 
-Update `config.cpp` to include the new layer:
+`config.cpp` を更新して新しいレイヤーを含めます：
 
 ```cpp
 dependencies[] = { "Game", "Mission" };
@@ -310,62 +314,62 @@ class defs
 };
 ```
 
-### Add a 4_World Layer
+### 4_Worldレイヤーの追加
 
-Create custom items, extend players, or add world managers:
+カスタムアイテムの作成、プレイヤーの拡張、ワールドマネージャーの追加：
 
 ```
 HelloMod/
   Scripts/
-    config.cpp              <-- Add worldScriptModule entry
+    config.cpp              <-- worldScriptModuleエントリを追加
     3_Game/
       HelloMod/
         HelloConfig.c
     4_World/
       HelloMod/
-        HelloManager.c      <-- World-aware logic
+        HelloManager.c      <-- ワールド対応ロジック
     5_Mission/
       HelloMod/
         HelloMission.c
 ```
 
-### Add UI
+### UIの追加
 
-Create a simple in-game panel (covered in Part 3 of this guide):
+シンプルなゲーム内パネルの作成（このガイドのパート3で詳しく説明します）：
 
 ```
 HelloMod/
   GUI/
     layouts/
-      hello_panel.layout    <-- UI layout file
+      hello_panel.layout    <-- UIレイアウトファイル
   Scripts/
     5_Mission/
       HelloMod/
-        HelloPanel.c        <-- UI script
+        HelloPanel.c        <-- UIスクリプト
 ```
 
-### Add a Custom Item
+### カスタムアイテムの追加
 
-Define an item in `Data/config.cpp` and create its script behavior in `4_World`:
+`Data/config.cpp` でアイテムを定義し、`4_World` でスクリプト動作を作成します：
 
 ```
 HelloMod/
   Data/
-    config.cpp              <-- CfgVehicles with item definition
+    config.cpp              <-- アイテム定義を含むCfgVehicles
     Models/
-      hello_item.p3d        <-- 3D model
+      hello_item.p3d        <-- 3Dモデル
   Scripts/
     4_World/
       HelloMod/
-        HelloItem.c         <-- Item behavior script
+        HelloItem.c         <-- アイテム動作スクリプト
 ```
 
-### Depend on a Framework
+### フレームワークへの依存
 
-If you want to use Community Framework (CF) features, add the dependency:
+Community Framework（CF）の機能を使用したい場合は、依存関係を追加します：
 
 ```cpp
-// In config.cpp
+// config.cpp内
 requiredAddons[] = { "DZ_Data", "JM_CF_Scripts" };
 ```
 
@@ -375,46 +379,68 @@ requiredAddons[] = { "DZ_Data", "JM_CF_Scripts" };
 
 ### "Addon HelloMod_Scripts requires addon DZ_Data which is not loaded"
 
-Your `requiredAddons` references an addon that is not present. Make sure `DZ_Data` is spelled correctly and DayZ base game is loaded.
+`requiredAddons` が存在しないアドオンを参照しています。`DZ_Data` のスペルが正しいこと、DayZベースゲームが読み込まれていることを確認してください。
 
-### No Log Output (Mod Seems to Not Load)
+### ログ出力がない（Modが読み込まれていないように見える）
 
-以下を順番にチェックしてください：
+以下の順番で確認してください：
 
-1. **Is the mod in the launch parameter?** Verify `-mod=HelloMod` or `-mod=@HelloMod` is in your launch command.
-2. **Is config.cpp in the right place?** It must be at the root of the PBO (or the root of the `Scripts/` folder when file-patching).
-3. **Are the script paths correct?** The `files[]` paths in `config.cpp` must match the actual directory structure. `"HelloMod/Scripts/5_Mission"` means the engine looks for that exact path.
-4. **Is there a CfgPatches class?** Without it, the PBO is ignored.
+1. **起動パラメータにModが含まれていますか？** 起動コマンドに `-mod=HelloMod` または `-mod=@HelloMod` があることを確認してください。
+2. **config.cppは正しい場所にありますか？** PBOのルート（またはファイルパッチング時の `Scripts/` フォルダのルート）に存在する必要があります。
+3. **スクリプトパスは正しいですか？** `config.cpp` の `files[]` パスが実際のディレクトリ構造と一致している必要があります。`"HelloMod/Scripts/5_Mission"` はエンジンがその正確なパスを探すことを意味します。
+4. **CfgPatchesクラスはありますか？** これがないとPBOは無視されます。
 
 ### SCRIPT (E): Undefined variable / Undefined type
 
-Your code references something that does not exist at that layer. Common causes:
+コードがそのレイヤーに存在しないものを参照しています。一般的な原因：
 
-- Referencing `PlayerBase` from `3_Game` (it is defined in `4_World`)
-- Typo in a class or variable name
-- Missing `super.OnInit()` call (causes cascade failures)
+- `3_Game` から `PlayerBase` を参照している（`4_World` で定義されている）
+- クラス名や変数名のタイプミス
+- `super.OnInit()` の呼び出し忘れ（連鎖的な失敗を引き起こす）
 
 ### SCRIPT (E): Member not found
 
-The method or property you are calling does not exist on that class. Double-check the vanilla API. Common mistake: calling methods from a newer DayZ version when running an older one.
+呼び出しているメソッドやプロパティがそのクラスに存在しません。バニラAPIを再確認してください。よくある間違い：古いDayZバージョンを実行しているのに、新しいバージョンのメソッドを呼び出している場合です。
 
-### Mod Loads But Script Does Not Run
+### Modは読み込まれるがスクリプトが実行されない
 
-- Check that your `.c` file is inside the directory listed in `files[]`
-- Ensure the file has a `.c` extension (not `.txt` or `.cs`)
-- Verify the `modded class` name matches the vanilla class exactly (case-sensitive)
+- `.c` ファイルが `files[]` に記載されたディレクトリ内にあることを確認してください
+- ファイルの拡張子が `.c` であることを確認してください（`.txt` や `.cs` ではなく）
+- `modded class` の名前がバニラクラスと完全に一致していることを確認してください（大文字小文字を区別します）
 
-### PBO Packing Errors
+### PBOパッキングエラー
 
-- Ensure `config.cpp` is at the root level inside the PBO
-- File paths inside PBOs use forward slashes (`/`), not backslashes
-- Make sure there are no binary files in the Scripts folder (only `.c` and `.cpp`)
+- `config.cpp` がPBO内のルートレベルにあることを確認してください
+- PBO内のファイルパスはフォワードスラッシュ（`/`）を使用します。バックスラッシュではありません
+- Scriptsフォルダにバイナリファイルがないことを確認してください（`.c` と `.cpp` のみ）
 
 ---
 
-## 全ファイル一覧
+## ベストプラクティス
 
-For reference, here are all three files in their entirety:
+- moddedミッションクラスでは常にカスタムコードの前に `super.OnInit()` を呼び出してください -- スキップすると他のModの初期化が壊れます。
+- `Print()` メッセージにはユニークなプレフィックス（例：`[HelloMod]`）を使用して、ログファイルを素早くgrepできるようにしてください。
+- まず `5_Mission` のみから始めてください。Modが成長するにつれて `3_Game` と `4_World` レイヤーを段階的に追加してください。
+- 開発中は `-filePatching` を使用して、変更のたびにPBOを再パックする必要を避けてください。
+- 最初のModは動作するまで3ファイル以下に抑えてください。最小構成のデバッグははるかに簡単です。
+
+---
+
+## 理論 vs 実践
+
+| 概念 | 理論 | 現実 |
+|---------|--------|---------|
+| `Print()` はログに出力する | メッセージがスクリプトログに表示される | 出力は別のスクリプトログではなく `.RPT` ファイルに書き込まれます。専用サーバーでは、プロファイルフォルダのサーバーRPTを確認してください |
+| `-filePatching` はルーズファイルを読み込む | アンパックされたModが即座に動作する | 一部のアセット（モデル、テクスチャ）にはPBOパッキングが必要です。スクリプトはルーズで動作しますが、`.layout` ファイルはすべてのセットアップでアンパックフォルダから読み込めない場合があります |
+| `modded class` はバニラをパッチする | オーバーライドが元のものを置き換える | 複数のModが同じクラスを `modded class` できます。ロード順に連鎖します。1つが `super.OnInit()` をスキップすると、後続のすべてのModが壊れます |
+| `DZ_Data` が唯一必要な依存関係 | 最小限の `requiredAddons` | 純粋なスクリプトModには有効ですが、バニラの武器/アイテムクラスを参照する場合は `DZ_Scripts` または特定のバニラPBOも必要です |
+| 3ファイルで十分 | mod.cpp + config.cpp + 1つの.cファイルでModが読み込まれる | スクリプトのみのModには当てはまりますが、アイテムやUIを追加するには追加のPBO（Data、GUI）が必要です |
+
+---
+
+## 完全なファイル一覧
+
+参考として、3つのファイルすべての全内容を記載します：
 
 ### HelloMod/mod.cpp
 
@@ -489,5 +515,5 @@ modded class MissionGameplay
 
 ---
 
-**前：** [Chapter 2.3: mod.cpp & Workshop](03-mod-cpp.md)
-**次：** [Chapter 2.5: File Organization Best Practices](05-file-organization.md)
+**前へ:** [第2.3章: mod.cppとWorkshop](03-mod-cpp.md)
+**次へ:** [第2.5章: ファイル構成のベストプラクティス](05-file-organization.md)
