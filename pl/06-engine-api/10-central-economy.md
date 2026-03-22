@@ -42,6 +42,23 @@ All CE files live in the mission folder (e.g., `dayzOffline.chernarusplus/`).
 
 ## types.xml
 
+```mermaid
+flowchart TD
+    A[CE Startup] --> B[Load types.xml]
+    B --> C[For each item type]
+    C --> D{Current count < nominal?}
+    D -->|Yes| E{Restock timer elapsed?}
+    E -->|Yes| F[Spawn item at valid position]
+    E -->|No| G[Wait for restock interval]
+    D -->|No| H{Current count > nominal?}
+    H -->|Yes| I[Mark excess for cleanup]
+    H -->|No| J[Item count balanced]
+    F --> K{Lifetime expired?}
+    K -->|Yes| L[Delete item]
+    K -->|No| M[Item persists]
+    L --> C
+```
+
 The most critical CE file. Every item that can exist in the world must have an entry here.
 
 ### Structure

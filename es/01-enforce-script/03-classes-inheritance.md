@@ -769,6 +769,61 @@ Class                          // Raiz de todos los tipos de referencia
 
 ### 1. Olvidar `ref` para Objetos Propios
 
+```mermaid
+classDiagram
+    class Object {
+        +GetPosition() vector
+        +SetPosition(vector)
+        +GetType() string
+        +IsKindOf(string) bool
+    }
+
+    class Entity {
+        +GetOrientation() vector
+        +SetOrientation(vector)
+    }
+
+    class EntityAI {
+        +GetHealth(string, string) float
+        +SetHealth(string, string, float)
+        +IsAlive() bool
+        +GetInventory() GameInventory
+    }
+
+    class ItemBase {
+        +GetQuantity() float
+        +SetQuantity(float)
+        +OnDebugSpawn()
+    }
+
+    class PlayerBase {
+        +GetIdentity() PlayerIdentity
+        +GetBleeding() bool
+        +IsRestrained() bool
+    }
+
+    class Building {
+        +GetDoorIndex(int) int
+    }
+
+    class CarScript {
+        +EngineStart()
+        +EngineStop()
+        +Fill(CarFluid, float)
+    }
+
+    Object <|-- Entity
+    Entity <|-- EntityAI
+    EntityAI <|-- ItemBase
+    EntityAI <|-- ManBase
+    EntityAI <|-- Building
+    EntityAI <|-- DayZInfected
+    ManBase <|-- PlayerBase
+    ItemBase <|-- Weapon_Base
+    ItemBase <|-- ClothingBase
+    EntityAI <|-- CarScript
+```
+
 Cuando una clase posee otro objeto (lo crea, es responsable de su tiempo de vida), declara el campo como `ref`. Sin `ref`, el objeto puede ser recolectado por el garbage collector inesperadamente.
 
 ```c

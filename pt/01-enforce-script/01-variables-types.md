@@ -28,6 +28,38 @@ Enforce Script tem um conjunto pequeno e fixo de tipos primitivos. Você não po
 
 ### Constantes de Tipo
 
+```mermaid
+graph TD
+    subgraph "Value Types (passed by copy)"
+        INT[int<br/>32-bit signed]
+        FLOAT[float<br/>32-bit IEEE 754]
+        BOOL[bool<br/>true / false]
+        STRING[string<br/>immutable text]
+        VECTOR[vector<br/>3x float xyz]
+    end
+
+    subgraph "Reference Types (passed by reference)"
+        CLASS[Class<br/>root of all ref types]
+        MANAGED[Managed<br/>no engine ref-counting]
+        TYPENAME[typename<br/>type reflection]
+    end
+
+    CLASS --> MANAGED
+    CLASS --> ENTITYAI[EntityAI]
+    ENTITYAI --> ITEMBASE[ItemBase]
+    ENTITYAI --> MANBASE[ManBase / PlayerBase]
+    MANAGED --> SCRIPTHANDLER[ScriptedWidgetEventHandler]
+    MANAGED --> CUSTOMCLASS[Your Custom Classes]
+
+    style INT fill:#4A90D9,color:#fff
+    style FLOAT fill:#4A90D9,color:#fff
+    style BOOL fill:#4A90D9,color:#fff
+    style STRING fill:#4A90D9,color:#fff
+    style VECTOR fill:#4A90D9,color:#fff
+    style CLASS fill:#D94A4A,color:#fff
+    style MANAGED fill:#D97A4A,color:#fff
+```
+
 Vários tipos expõem constantes úteis:
 
 ```c

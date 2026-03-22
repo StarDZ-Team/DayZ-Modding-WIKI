@@ -126,6 +126,23 @@ A single handler instance can be registered on multiple widgets. Inside the even
 
 ### OnClick
 
+```mermaid
+sequenceDiagram
+    participant User as User Input
+    participant Widget as ButtonWidget
+    participant Handler as ScriptedWidgetEventHandler
+    participant Logic as Your Module
+
+    User->>Widget: Mouse Click
+    Widget->>Handler: OnClick(widget, x, y, button)
+    Handler->>Logic: Process button action
+
+    alt Return true
+        Logic-->>Handler: Event consumed (stops propagation)
+    else Return false
+        Handler-->>Widget: Event passed to parent widget
+    end
+```
 ```c
 bool OnClick(Widget w, int x, int y, int button)
 ```

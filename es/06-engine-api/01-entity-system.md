@@ -54,6 +54,40 @@ La entidad nativa del motor. Todos los metodos son proto native --- no puedes ve
 
 ### Transformacion
 
+```mermaid
+classDiagram
+    IEntity <|-- Object
+    Object <|-- ObjectTyped
+    ObjectTyped <|-- Entity
+    Entity <|-- EntityAI
+    EntityAI <|-- ItemBase
+    EntityAI <|-- ManBase
+    EntityAI <|-- Building
+    EntityAI <|-- DayZInfected
+    EntityAI <|-- DayZAnimal
+    EntityAI <|-- Transport
+    ManBase <|-- PlayerBase
+    ItemBase <|-- Weapon_Base
+    ItemBase <|-- Magazine_Base
+    ItemBase <|-- Clothing_Base
+    Transport <|-- CarScript
+    Transport <|-- BoatScript
+    Weapon_Base <|-- Rifle_Base
+    Weapon_Base <|-- Pistol_Base
+
+    class EntityAI {
+        +GetHealth()
+        +SetHealth()
+        +IsAlive()
+        +Delete()
+    }
+    class PlayerBase {
+        +GetIdentity()
+        +GetBleeding()
+        +IsRestrained()
+    }
+```
+
 | Metodo | Firma | Descripcion |
 |--------|-----------|-------------|
 | `GetOrigin` | `proto native vector GetOrigin()` | Posicion mundial de la entidad |

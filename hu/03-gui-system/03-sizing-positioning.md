@@ -145,6 +145,24 @@ A `center_ref` használatával a `0 0` pozíció azt jelenti: "a szülőben köz
 
 ### Jobbra igazított elemek
 
+```mermaid
+graph TD
+    subgraph "Parent Widget"
+        TL["halign left_ref<br/>valign top_ref<br/>↘ position from here"]
+        TC["halign center_ref<br/>valign top_ref"]
+        TR["halign right_ref<br/>valign top_ref<br/>↙ position from here"]
+        ML["halign left_ref<br/>valign center_ref"]
+        MC["halign center_ref<br/>valign center_ref<br/>↔ position from center"]
+        MR["halign right_ref<br/>valign center_ref"]
+        BL["halign left_ref<br/>valign bottom_ref<br/>↗ position from here"]
+        BC["halign center_ref<br/>valign bottom_ref"]
+        BR["halign right_ref<br/>valign bottom_ref<br/>↖ position from here"]
+    end
+
+    style MC fill:#4A90D9,color:#fff
+    style TL fill:#2D8A4E,color:#fff
+    style BR fill:#D94A4A,color:#fff
+```
 ```
 // Ikon a jobb szélhez rögzítve, 5px-re a széltől
 ImageWidgetClass StatusIcon {

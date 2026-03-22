@@ -84,6 +84,27 @@ class WeatherUI
 
 ### How Insert/Remove Work
 
+```mermaid
+graph TB
+    PUB["Publisher<br/>(e.g., ConfigManager)"]
+
+    PUB -->|"Invoke()"| INV["ScriptInvoker<br/>OnConfigChanged"]
+
+    INV -->|"callback"| SUB1["Subscriber A<br/>AdminPanel.OnConfigChanged()"]
+    INV -->|"callback"| SUB2["Subscriber B<br/>HUD.OnConfigChanged()"]
+    INV -->|"callback"| SUB3["Subscriber C<br/>Logger.OnConfigChanged()"]
+
+    SUB1 -.->|"Insert()"| INV
+    SUB2 -.->|"Insert()"| INV
+    SUB3 -.->|"Insert()"| INV
+
+    style PUB fill:#D94A4A,color:#fff
+    style INV fill:#FFD700,color:#000
+    style SUB1 fill:#4A90D9,color:#fff
+    style SUB2 fill:#4A90D9,color:#fff
+    style SUB3 fill:#4A90D9,color:#fff
+```
+
 `Insert` adds a function reference to an internal list. `Remove` searches the list and removes the matching entry. If you call `Insert` twice with the same function, it will be called twice on every `Invoke`. If you call `Remove` once, it removes one entry.
 
 ```c

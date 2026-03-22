@@ -309,6 +309,21 @@ class CfgPatches
 
 ### SERVERの定義
 
+```mermaid
+flowchart TD
+    A[Where does this code run?] --> B{Modifies game state?}
+    B -->|Yes| C{Affects world/items/players?}
+    C -->|Yes| D[SERVER - authoritative]
+    C -->|No| E{UI or visual only?}
+    E -->|Yes| F[CLIENT]
+    E -->|No| D
+    B -->|No| G{Reads input or shows UI?}
+    G -->|Yes| F
+    G -->|No| H{Shared data class?}
+    H -->|Yes| I[3_Game - both sides]
+    H -->|No| D
+```
+
 エンジンは専用サーバー用にコンパイルする際に自動的に `SERVER` を定義します。これは**コンパイル時**チェックであり、ランタイムチェックではありません:
 
 ```c

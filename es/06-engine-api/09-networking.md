@@ -54,6 +54,29 @@ La clase de RPC principal para enviar datos personalizados entre cliente y servi
 
 ### Definicion de Clase
 
+```mermaid
+sequenceDiagram
+    participant Client as Client (Player)
+    participant CHandler as Client RPC Handler
+    participant Network as Network (Engine ID 83722)
+    participant SHandler as Server RPC Handler
+    participant Server as Server (Logic)
+
+    Client->>CHandler: SendAction("HealPlayer", uid)
+    CHandler->>Network: ScriptRPC.Send()
+    Network->>SHandler: OnRPC dispatch by route name
+    SHandler->>Server: Permission check + execute
+
+    alt Authorized
+        Server->>SHandler: Action success
+        SHandler->>Network: ScriptRPC response
+        Network->>CHandler: OnRPC dispatch
+        CHandler->>Client: Update UI (OnDataReceived)
+    else Unauthorized
+        Server->>SHandler: Log warning
+        Note over Client: No response sent
+    end
+```
 ```c
 class ScriptRPC : ParamsWriteContext
 {

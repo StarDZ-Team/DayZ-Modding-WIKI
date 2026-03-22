@@ -78,6 +78,27 @@ Um `ScriptInvoker` é um único canal de evento. Um EventBus é uma coleção de
 
 ### EventBus do MyMod
 
+```mermaid
+graph TB
+    PUB["Publisher<br/>(e.g., ConfigManager)"]
+
+    PUB -->|"Invoke()"| INV["ScriptInvoker<br/>OnConfigChanged"]
+
+    INV -->|"callback"| SUB1["Subscriber A<br/>AdminPanel.OnConfigChanged()"]
+    INV -->|"callback"| SUB2["Subscriber B<br/>HUD.OnConfigChanged()"]
+    INV -->|"callback"| SUB3["Subscriber C<br/>Logger.OnConfigChanged()"]
+
+    SUB1 -.->|"Insert()"| INV
+    SUB2 -.->|"Insert()"| INV
+    SUB3 -.->|"Insert()"| INV
+
+    style PUB fill:#D94A4A,color:#fff
+    style INV fill:#FFD700,color:#000
+    style SUB1 fill:#4A90D9,color:#fff
+    style SUB2 fill:#4A90D9,color:#fff
+    style SUB3 fill:#4A90D9,color:#fff
+```
+
 MyMod implementa o EventBus como uma classe estática com campos `ScriptInvoker` nomeados para eventos bem conhecidos, mais um canal genérico `OnCustomEvent` para tópicos ad-hoc:
 
 ```c

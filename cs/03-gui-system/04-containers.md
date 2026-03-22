@@ -6,6 +6,30 @@
 
 Kontejnerové widgety organizují potomkovské widgety uvnitř sebe. Zatímco `FrameWidget` je nejjednodušší (neviditelný box, ruční pozicování), DayZ poskytuje tři specializované kontejnery, které zpracovávají rozložení automaticky: `WrapSpacerWidget`, `GridSpacerWidget` a `ScrollWidget`.
 
+
+```mermaid
+graph LR
+    subgraph "FrameWidget (Absolute)"
+        FA["Child A<br/>pos: 10,10"]
+        FB["Child B<br/>pos: 200,10"]
+        FC["Child C<br/>pos: 10,100"]
+    end
+
+    subgraph "WrapSpacer (Flow)"
+        WA["Item 1"] --> WB["Item 2"] --> WC["Item 3"]
+        WC --> WD["Item 4<br/>(wraps to next row)"]
+    end
+
+    subgraph "GridSpacer (Grid)"
+        GA["Cell 0,0"] --- GB["Cell 1,0"] --- GC["Cell 2,0"]
+        GD["Cell 0,1"] --- GE["Cell 1,1"] --- GF["Cell 2,1"]
+    end
+
+    style FA fill:#4A90D9,color:#fff
+    style WA fill:#2D8A4E,color:#fff
+    style GA fill:#D97A4A,color:#fff
+```
+
 ---
 
 ## FrameWidget -- Strukturální kontejner
@@ -61,7 +85,6 @@ FrameWidgetClass MyPanel {
 `WrapSpacerWidget` automaticky rozmisťuje své potomky v proudové sekvenci. Potomci jsou umísťováni jeden za druhým horizontálně a zalamují se na další řádek, když přesáhnou dostupnou šířku. Toto je widget, který použijete pro dynamické seznamy, kde se počet potomků mění za běhu.
 
 ### Atributy layoutu
-
 | Atribut | Hodnoty | Popis |
 |---|---|---|
 | `Padding` | celé číslo (pixely) | Mezera mezi hranou spaceru a jeho potomky |
@@ -292,6 +315,25 @@ ScrollWidgetClass ListScroll {
 ---
 
 ## Vzor ScrollWidget + WrapSpacer
+
+```mermaid
+graph TB
+    SCROLL["ScrollWidget<br/>fixed viewport size<br/>Scrollbar V = 1"]
+    WRAP["WrapSpacerWidget<br/>size: 1 0<br/>Size To Content V = 1"]
+    I1["Item 1"]
+    I2["Item 2"]
+    I3["Item 3"]
+    I4["Item N..."]
+
+    SCROLL --> WRAP
+    WRAP --> I1
+    WRAP --> I2
+    WRAP --> I3
+    WRAP --> I4
+
+    style SCROLL fill:#4A90D9,color:#fff
+    style WRAP fill:#2D8A4E,color:#fff
+```
 
 Toto je **ten** vzor pro posuvné dynamické seznamy v DayZ modech. Kombinuje `ScrollWidget` s pevnou výškou a `WrapSpacerWidget`, který roste, aby pojal své potomky.
 

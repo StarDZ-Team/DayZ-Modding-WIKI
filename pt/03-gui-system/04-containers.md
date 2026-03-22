@@ -1,5 +1,28 @@
 # Chapter 3.4: Container Widgets
 
+```mermaid
+graph LR
+    subgraph "FrameWidget (Absolute)"
+        FA["Child A<br/>pos: 10,10"]
+        FB["Child B<br/>pos: 200,10"]
+        FC["Child C<br/>pos: 10,100"]
+    end
+
+    subgraph "WrapSpacer (Flow)"
+        WA["Item 1"] --> WB["Item 2"] --> WC["Item 3"]
+        WC --> WD["Item 4<br/>(wraps to next row)"]
+    end
+
+    subgraph "GridSpacer (Grid)"
+        GA["Cell 0,0"] --- GB["Cell 1,0"] --- GC["Cell 2,0"]
+        GD["Cell 0,1"] --- GE["Cell 1,1"] --- GF["Cell 2,1"]
+    end
+
+    style FA fill:#4A90D9,color:#fff
+    style WA fill:#2D8A4E,color:#fff
+    style GA fill:#D97A4A,color:#fff
+```
+
 [Home](../README.md) | [<< Previous: Sizing & Positioning](03-sizing-positioning.md) | **Container Widgets** | [Next: Programmatic Widgets >>](05-programmatic-widgets.md)
 
 ---
@@ -288,6 +311,25 @@ ScrollWidgetClass ListScroll {
 ---
 
 ## O Padrao ScrollWidget + WrapSpacer
+
+```mermaid
+graph TB
+    SCROLL["ScrollWidget<br/>fixed viewport size<br/>Scrollbar V = 1"]
+    WRAP["WrapSpacerWidget<br/>size: 1 0<br/>Size To Content V = 1"]
+    I1["Item 1"]
+    I2["Item 2"]
+    I3["Item 3"]
+    I4["Item N..."]
+
+    SCROLL --> WRAP
+    WRAP --> I1
+    WRAP --> I2
+    WRAP --> I3
+    WRAP --> I4
+
+    style SCROLL fill:#4A90D9,color:#fff
+    style WRAP fill:#2D8A4E,color:#fff
+```
 
 Este e **o** padrao para listas dinamicas rolaveis em mods de DayZ. Ele combina um `ScrollWidget` de altura fixa com um `WrapSpacerWidget` que cresce para caber seus filhos.
 

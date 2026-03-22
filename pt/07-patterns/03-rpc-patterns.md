@@ -1,5 +1,31 @@
 # Chapter 7.3: RPC Communication Patterns
 
+```mermaid
+graph TB
+    subgraph "Approach 1: Single ID + String Route"
+        S1["All RPCs share<br/>one engine ID"]
+        S1 --> S1D["Dispatcher reads<br/>route string from payload"]
+        S1D --> S1H1["Handler A"]
+        S1D --> S1H2["Handler B"]
+        S1D --> S1H3["Handler C"]
+    end
+
+    subgraph "Approach 2: Integer Range per Module"
+        S2M1["Module A<br/>IDs 10100-10119"]
+        S2M2["Module B<br/>IDs 10200-10219"]
+        S2M3["Module C<br/>IDs 10300-10319"]
+    end
+
+    subgraph "Approach 3: Hash-Based IDs"
+        S3["ClassName::Method<br/>.Hash() → unique ID"]
+        S3 --> S3C["Collision detection<br/>at registration"]
+    end
+
+    style S1 fill:#4A90D9,color:#fff
+    style S2M1 fill:#2D8A4E,color:#fff
+    style S3 fill:#D97A4A,color:#fff
+```
+
 [Home](../README.md) | [<< Previous: Module Systems](02-module-systems.md) | **RPC Communication Patterns** | [Next: Config Persistence >>](04-config-persistence.md)
 
 ---

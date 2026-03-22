@@ -297,6 +297,46 @@ DayZDiag_x64.exe -filePatching -server -mod="MyMod" -config=serverDZ.cfg
 
 ## Kompletny przebieg pracy: od źródła do gry
 
+```mermaid
+graph LR
+    subgraph "Source Assets"
+        TGA[".tga textures"]
+        FBX[".fbx/.obj models"]
+        OGG[".ogg audio"]
+        CPP["config.cpp"]
+        ES[".c scripts"]
+    end
+
+    subgraph "DayZ Tools"
+        TV["TexView2"]
+        OB["Object Builder"]
+        BIN["Binarize"]
+        AB["AddonBuilder"]
+    end
+
+    subgraph "Game Ready"
+        PAA[".paa textures"]
+        P3D[".p3d models"]
+        CBIN["config.bin"]
+        PBO[".pbo archive"]
+    end
+
+    TGA --> TV --> PAA
+    FBX --> OB --> P3D
+    CPP --> BIN --> CBIN
+    PAA --> AB
+    P3D --> AB
+    CBIN --> AB
+    OGG --> AB
+    ES --> AB
+    AB --> PBO
+
+    PBO --> GAME["DayZ Game<br/>@MyMod folder"]
+
+    style PBO fill:#2D8A4E,color:#fff
+    style GAME fill:#4A90D9,color:#fff
+```
+
 ### Faza 1: Tworzenie zasobów źródłowych
 
 ```

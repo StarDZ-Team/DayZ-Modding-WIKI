@@ -337,6 +337,21 @@ La couche 5 (`5_Mission`) est là où la séparation devient explicite :
 
 ### Le define SERVER
 
+```mermaid
+flowchart TD
+    A[Where does this code run?] --> B{Modifies game state?}
+    B -->|Yes| C{Affects world/items/players?}
+    C -->|Yes| D[SERVER - authoritative]
+    C -->|No| E{UI or visual only?}
+    E -->|Yes| F[CLIENT]
+    E -->|No| D
+    B -->|No| G{Reads input or shows UI?}
+    G -->|Yes| F
+    G -->|No| H{Shared data class?}
+    H -->|Yes| I[3_Game - both sides]
+    H -->|No| D
+```
+
 Le moteur définit automatiquement `SERVER` lors de la compilation pour un serveur dédié. C'est une vérification à la **compilation**, pas à l'exécution :
 
 ```c

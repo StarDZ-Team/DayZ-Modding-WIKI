@@ -405,6 +405,45 @@ Here is the end-to-end pipeline for turning source assets into a playable mod:
 
 ### Phase 1: Create Source Assets
 
+```mermaid
+graph LR
+    subgraph "Source Assets"
+        TGA[".tga textures"]
+        FBX[".fbx/.obj models"]
+        OGG[".ogg audio"]
+        CPP["config.cpp"]
+        ES[".c scripts"]
+    end
+
+    subgraph "DayZ Tools"
+        TV["TexView2"]
+        OB["Object Builder"]
+        BIN["Binarize"]
+        AB["AddonBuilder"]
+    end
+
+    subgraph "Game Ready"
+        PAA[".paa textures"]
+        P3D[".p3d models"]
+        CBIN["config.bin"]
+        PBO[".pbo archive"]
+    end
+
+    TGA --> TV --> PAA
+    FBX --> OB --> P3D
+    CPP --> BIN --> CBIN
+    PAA --> AB
+    P3D --> AB
+    CBIN --> AB
+    OGG --> AB
+    ES --> AB
+    AB --> PBO
+
+    PBO --> GAME["DayZ Game<br/>@MyMod folder"]
+
+    style PBO fill:#2D8A4E,color:#fff
+    style GAME fill:#4A90D9,color:#fff
+```
 ```
 3D Software (Blender/3dsMax)  -->  FBX export
 Image Editor (Photoshop/GIMP) -->  TGA/PNG export

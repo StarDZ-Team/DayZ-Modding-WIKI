@@ -84,6 +84,27 @@ class WeatherUI
 
 ### Insert/Removeの動作
 
+```mermaid
+graph TB
+    PUB["Publisher<br/>(e.g., ConfigManager)"]
+
+    PUB -->|"Invoke()"| INV["ScriptInvoker<br/>OnConfigChanged"]
+
+    INV -->|"callback"| SUB1["Subscriber A<br/>AdminPanel.OnConfigChanged()"]
+    INV -->|"callback"| SUB2["Subscriber B<br/>HUD.OnConfigChanged()"]
+    INV -->|"callback"| SUB3["Subscriber C<br/>Logger.OnConfigChanged()"]
+
+    SUB1 -.->|"Insert()"| INV
+    SUB2 -.->|"Insert()"| INV
+    SUB3 -.->|"Insert()"| INV
+
+    style PUB fill:#D94A4A,color:#fff
+    style INV fill:#FFD700,color:#000
+    style SUB1 fill:#4A90D9,color:#fff
+    style SUB2 fill:#4A90D9,color:#fff
+    style SUB3 fill:#4A90D9,color:#fff
+```
+
 `Insert`は内部リストに関数リファレンスを追加します。`Remove`はリストを検索し一致するエントリを削除します。同じ関数で`Insert`を2回呼び出すと、`Invoke`ごとに2回呼び出されます。`Remove`を1回呼び出すと1つのエントリが削除されます。
 
 ```c

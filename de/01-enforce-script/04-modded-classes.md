@@ -143,6 +143,32 @@ new ModMe() erstellt eine Instanz mit dieser Vererbungskette:
 
 ### 1. Bestehende Methoden überschreiben
 
+```mermaid
+graph LR
+    subgraph "Vanilla DayZ"
+        V_PLAYER[class PlayerBase<br/>vanilla code]
+    end
+
+    subgraph "Mod A loads first"
+        MOD_A[modded class PlayerBase<br/>Mod A additions<br/>calls super]
+    end
+
+    subgraph "Mod B loads second"
+        MOD_B[modded class PlayerBase<br/>Mod B additions<br/>calls super]
+    end
+
+    subgraph "Runtime Call Chain"
+        CALL["player.OnConnect()"]
+        CALL --> MOD_B
+        MOD_B -->|"super.OnConnect()"| MOD_A
+        MOD_A -->|"super.OnConnect()"| V_PLAYER
+    end
+
+    style V_PLAYER fill:#2D5A27,color:#fff
+    style MOD_A fill:#4A90D9,color:#fff
+    style MOD_B fill:#D97A4A,color:#fff
+```
+
 Die häufigste Verwendung. Verhalten vor oder nach dem Vanilla-Code hinzufügen.
 
 ```c

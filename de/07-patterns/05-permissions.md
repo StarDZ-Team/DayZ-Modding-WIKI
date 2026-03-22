@@ -474,6 +474,22 @@ All three systems store permissions in JSON. The differences are structural:
 
 ## Wildcard and Superadmin Patterns
 
+```mermaid
+graph TD
+    ROOT["*  (superadmin)"] --> A["MyMod.*"]
+    A --> B["MyMod.Admin.*"]
+    B --> C["MyMod.Admin.Kick"]
+    B --> D["MyMod.Admin.Ban"]
+    B --> E["MyMod.Admin.Teleport"]
+    A --> F["MyMod.Player.*"]
+    F --> G["MyMod.Player.Shop"]
+    F --> H["MyMod.Player.Trade"]
+
+    style ROOT fill:#ff4444,color:#fff
+    style A fill:#ff8844,color:#fff
+    style B fill:#ffaa44,color:#fff
+```
+
 ### Full Wildcard: `"*"`
 
 Grants all permissions. This is the superadmin pattern. A player with `"*"` can do anything.

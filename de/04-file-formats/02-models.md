@@ -132,6 +132,23 @@ A P3D file contains multiple **LODs** (Levels of Detail), each serving a specifi
 
 ### LOD Resolution Values (Visual LODs)
 
+```mermaid
+graph TB
+    P3D["weapon.p3d"]
+
+    P3D --> RES["Resolution LODs<br/>1.0, 2.0, 4.0, 8.0, 16.0<br/>Visible 3D meshes"]
+    P3D --> GEO["Geometry LOD<br/>Collision detection<br/>Convex hull"]
+    P3D --> FIRE["Fire Geometry LOD<br/>Bullet collision<br/>Simplified shape"]
+    P3D --> VIEW["View Geometry LOD<br/>Camera collision"]
+    P3D --> SHADOW["Shadow LODs<br/>0.0, 10.0, 1000.0<br/>Shadow casting"]
+    P3D --> MEM["Memory LOD<br/>Named points<br/>Attachment positions"]
+
+    style RES fill:#4A90D9,color:#fff
+    style GEO fill:#D94A4A,color:#fff
+    style FIRE fill:#D97A4A,color:#fff
+    style MEM fill:#2D8A4E,color:#fff
+```
+
 The engine uses a formula based on distance and object size to determine which visual LOD to render:
 
 ```

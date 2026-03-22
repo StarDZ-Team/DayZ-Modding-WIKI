@@ -84,6 +84,30 @@ Cada capa se construye sobre las anteriores. Los numeros no son arbitrarios -- d
 
 ### Proposito
 
+```mermaid
+graph TB
+    subgraph "Script Module Load Order"
+        M5["5_Mission<br/>UI, HUD, Mission hooks<br/>MissionServer, MissionGameplay"]
+        M4["4_World<br/>Entities, Managers<br/>PlayerBase, ItemBase, CarScript"]
+        M3["3_Game<br/>Game init, Configs, RPC<br/>DayZGame, Constants, Enums"]
+        M2["2_GameLib<br/>Engine library<br/>Input, Settings, Components"]
+        M1["1_Core<br/>Engine bindings<br/>Proto declarations, Math, Physics"]
+    end
+
+    M1 --> M2 --> M3 --> M4 --> M5
+
+    M5 -.->|"can reference"| M4
+    M5 -.->|"can reference"| M3
+    M4 -.->|"can reference"| M3
+    M4 -.-x|"CANNOT reference"| M5
+
+    style M5 fill:#4A90D9,color:#fff
+    style M4 fill:#2D8A4E,color:#fff
+    style M3 fill:#D97A4A,color:#fff
+    style M2 fill:#8B5CF6,color:#fff
+    style M1 fill:#6B7280,color:#fff
+```
+
 La base absoluta. El codigo aqui se ejecuta a nivel del motor antes de que exista cualquier sistema del juego. Este es el punto mas temprano donde el codigo de un mod puede ejecutarse.
 
 ### Que Va Aqui

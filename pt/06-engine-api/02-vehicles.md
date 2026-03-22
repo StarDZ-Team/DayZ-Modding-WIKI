@@ -197,6 +197,25 @@ Zonas de dano comuns para veículos:
 
 ### Luzes
 
+```mermaid
+graph TD
+    V[Vehicle] --> E[Engine]
+    V --> FT[FuelTank]
+    V --> R[Radiator]
+    V --> B[Battery]
+    V --> W1[Wheel_1_1]
+    V --> W2[Wheel_1_2]
+    V --> W3[Wheel_2_1]
+    V --> W4[Wheel_2_2]
+    V --> D1[Door_1_1]
+    V --> D2[Door_2_1]
+    V --> H[Hood]
+    V --> T[Trunk]
+
+    style E fill:#ff6b6b,color:#fff
+    style FT fill:#ffa07a,color:#fff
+    style R fill:#87ceeb,color:#fff
+```
 ```c
 void SetLightsState(int state);   // 0 = desligado, 1 = ligado
 int  GetLightsState();

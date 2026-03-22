@@ -769,6 +769,61 @@ Class                          // Root of all reference types
 
 ### 1. Forgetting `ref` for Owned Objects
 
+```mermaid
+classDiagram
+    class Object {
+        +GetPosition() vector
+        +SetPosition(vector)
+        +GetType() string
+        +IsKindOf(string) bool
+    }
+
+    class Entity {
+        +GetOrientation() vector
+        +SetOrientation(vector)
+    }
+
+    class EntityAI {
+        +GetHealth(string, string) float
+        +SetHealth(string, string, float)
+        +IsAlive() bool
+        +GetInventory() GameInventory
+    }
+
+    class ItemBase {
+        +GetQuantity() float
+        +SetQuantity(float)
+        +OnDebugSpawn()
+    }
+
+    class PlayerBase {
+        +GetIdentity() PlayerIdentity
+        +GetBleeding() bool
+        +IsRestrained() bool
+    }
+
+    class Building {
+        +GetDoorIndex(int) int
+    }
+
+    class CarScript {
+        +EngineStart()
+        +EngineStop()
+        +Fill(CarFluid, float)
+    }
+
+    Object <|-- Entity
+    Entity <|-- EntityAI
+    EntityAI <|-- ItemBase
+    EntityAI <|-- ManBase
+    EntityAI <|-- Building
+    EntityAI <|-- DayZInfected
+    ManBase <|-- PlayerBase
+    ItemBase <|-- Weapon_Base
+    ItemBase <|-- ClothingBase
+    EntityAI <|-- CarScript
+```
+
 When a class owns another object (creates it, responsible for its lifetime), declare the field as `ref`. Without `ref`, the object may be garbage collected unexpectedly.
 
 ```c

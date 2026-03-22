@@ -29,6 +29,60 @@ ActionBase_Basic                         // 3_Game — shell vuoto, ancora di co
         └── ActionInteractBase           // interazioni mondo (apri porta, attiva interruttore)
 ```
 
+```mermaid
+classDiagram
+    ActionBase_Basic <|-- ActionBase
+    ActionBase <|-- AnimatedActionBase
+    AnimatedActionBase <|-- ActionSingleUseBase
+    AnimatedActionBase <|-- ActionContinuousBase
+    AnimatedActionBase <|-- ActionInteractBase
+
+    class ActionBase {
+        +m_Text : string
+        +m_Sound : string
+        +m_ConditionItem : CCIBase
+        +m_ConditionTarget : CCTBase
+        +m_StanceMask : int
+        +m_FullBody : bool
+        +m_SpecialtyWeight : float
+        +CreateConditionComponents()
+        +ActionCondition() bool
+        +HasTarget() bool
+        +GetText() string
+        +OnStart()
+        +OnEnd()
+        +OnUpdate()
+    }
+
+    class AnimatedActionBase {
+        +m_CommandUID : int
+        +m_CommandUIDProne : int
+        +m_CallbackClass : typename
+        +OnExecute()
+        +OnExecuteServer()
+        +OnExecuteClient()
+    }
+
+    class ActionSingleUseBase {
+        +GetActionCategory() AC_SINGLE_USE
+        +GetInputType() DefaultActionInput
+    }
+
+    class ActionContinuousBase {
+        +GetActionCategory() AC_CONTINUOUS
+        +GetInputType() ContinuousDefaultActionInput
+        +OnStartAnimationLoop()
+        +OnEndAnimationLoop()
+        +OnFinishProgress()
+    }
+
+    class ActionInteractBase {
+        +GetActionCategory() AC_INTERACT
+        +GetInputType() InteractActionInput
+        +UseMainItem() false
+    }
+```
+
 ### Differenze Chiave tra i Tipi di Azione
 
 | Proprietà | SingleUse | Continuous | Interact |
@@ -60,6 +114,22 @@ La macchina a stati dell'azione usa queste costanti definite in `3_Game/constant
 | `UA_ANIM_EVENT` | 11 | Evento di esecuzione animazione lanciato |
 
 ### Riferimento dei Metodi del Ciclo di Vita
+
+```mermaid
+flowchart TD
+    A[Player presses action key] --> B{Condition Components}
+    B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
+    C -->|false| D[Action not shown]
+    C -->|true| E[SetupAction]
+    E --> F[OnStart / OnStartServer / OnStartClient]
+    F --> G[Animation plays]
+    G --> H[UA_ANIM_EVENT fires]
+    H --> I[OnExecute]
+    I --> J[OnExecuteServer]
+    I --> K[OnExecuteClient]
+    J --> L[OnEnd / OnEndServer / OnEndClient]
+    K --> L
+```
 
 Questi metodi vengono chiamati in ordine durante la vita di un'azione. Fai override nelle tue azioni personalizzate:
 
@@ -129,6 +199,29 @@ Ogni azione ha due componenti condizione impostati in `CreateConditionComponents
 
 ### Condizioni Oggetto (CCIBase)
 
+```mermaid
+flowchart TD
+    A[Player holds action key] --> B{Condition Components}
+    B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
+    C -->|false| D[Action not shown]
+    C -->|true| E[SetupAction]
+    E --> F[OnStart / OnStartServer / OnStartClient]
+    F --> G[UA_IN_START: OnStartAnimationLoop]
+    G --> H[Animation loop begins]
+    H --> I{ActionComponent.Execute}
+    I -->|UA_PROCESSING| J[Do - loop continues]
+    J --> K{ActionConditionContinue?}
+    K -->|true| I
+    K -->|false| M[Interrupt]
+    I -->|UA_FINISHED| L[OnFinishProgress]
+    L --> N[UA_IN_END: OnEndAnimationLoop]
+    N --> O[OnEnd / OnEndServer / OnEndClient]
+    M --> O
+    P[Player releases key] --> Q[OnEndInput - UserEndsAction]
+    Q --> R[ActionComponent.Cancel]
+    R --> O
+```
+
 Controlla se l'oggetto nella mano del giocatore qualifica per questa azione.
 
 | Classe | Comportamento |
@@ -140,6 +233,19 @@ Controlla se l'oggetto nella mano del giocatore qualifica per questa azione.
 | `CCINotRuinedAndEmpty` | Passa se l'oggetto esiste, non rovinato e non vuoto |
 
 ### Condizioni Target (CCTBase)
+
+```mermaid
+flowchart TD
+    A[Player presses interact key] --> B{Condition Components}
+    B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
+    C -->|false| D[Action not shown]
+    C -->|true| E[SetupAction]
+    E --> F[OnStart / OnStartServer / OnStartClient]
+    F --> G[Animation plays]
+    G --> H[UA_ANIM_EVENT fires]
+    H --> I[OnExecute / OnExecuteServer / OnExecuteClient]
+    I --> J[OnEnd / OnEndServer / OnEndClient]
+```
 
 Controlla se l'oggetto target (ciò che il giocatore sta guardando) qualifica.
 

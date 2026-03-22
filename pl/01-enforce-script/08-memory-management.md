@@ -359,11 +359,46 @@ void ManualDelete()
 
 ### Kiedy uzywac delete
 
+```mermaid
+sequenceDiagram
+    participant Code as Your Code
+    participant Obj as MyObject
+    participant GC as Garbage Collector
+
+    Code->>Obj: ref MyObject obj = new MyObject()
+    Note over Obj: refcount = 1
+
+    Code->>Obj: ref MyObject copy = obj
+    Note over Obj: refcount = 2
+
+    Code->>Obj: copy = null
+    Note over Obj: refcount = 1
+
+    Code->>Obj: obj = null
+    Note over Obj: refcount = 0
+
+    Obj->>GC: ~MyObject() destructor called
+    GC->>GC: Memory freed
+```
+
 - When you need to release a resource **immediately** (not waiting for ARC)
 - When cleaning up in a shutdown/destroy method
 - When removing objects from the game world (`GetGame().ObjectDelete(obj)` for game entities)
 
 ### Kiedy NIE uzywac delete
+
+```mermaid
+graph LR
+    A[Object A<br/>ref m_B] -->|"strong ref"| B[Object B<br/>ref m_A]
+    B -->|"strong ref"| A
+
+    style A fill:#D94A4A,color:#fff
+    style B fill:#D94A4A,color:#fff
+
+    C["Neither can be freed!<br/>Both refcount = 1 forever"]
+
+    style C fill:#FFD700,color:#000
+```
 
 - On objects owned by someone else (the owner's `ref` will become null unexpectedly)
 - On objects still in use by other systems (timers, callbacks, UI)

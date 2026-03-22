@@ -207,6 +207,22 @@ Concede todas as permissões que começam com `"MyMod.Admin."`. Permite conceder
 
 ## Compatibilidade & Impacto
 
+```mermaid
+graph TD
+    ROOT["*  (superadmin)"] --> A["MyMod.*"]
+    A --> B["MyMod.Admin.*"]
+    B --> C["MyMod.Admin.Kick"]
+    B --> D["MyMod.Admin.Ban"]
+    B --> E["MyMod.Admin.Teleport"]
+    A --> F["MyMod.Player.*"]
+    F --> G["MyMod.Player.Shop"]
+    F --> H["MyMod.Player.Trade"]
+
+    style ROOT fill:#ff4444,color:#fff
+    style A fill:#ff8844,color:#fff
+    style B fill:#ffaa44,color:#fff
+```
+
 - **Multi-Mod:** Cada mod pode definir seu próprio namespace de permissão (`"ModA.Admin.Kick"`, `"ModB.Build.Spawn"`). O wildcard `"*"` concede superadmin em *todos* os mods que compartilham o mesmo armazém de permissões. Se mods usam arquivos de permissão independentes, `"*"` só se aplica dentro do escopo daquele mod.
 - **Ordem de Carregamento:** Arquivos de permissão são carregados uma vez durante o startup do servidor. Sem problemas de ordem cross-mod desde que cada mod leia seu próprio arquivo. Se um framework compartilhado (CF/COT) gerencia permissões, todos os mods usando esse framework compartilham a mesma árvore de permissões.
 - **Listen Server:** Verificações de permissão devem sempre rodar server-side. Em listen servers, código client-side pode chamar `HasPermission()` para gating de UI (mostrar/esconder botões admin), mas a verificação server-side é a autoritativa.
