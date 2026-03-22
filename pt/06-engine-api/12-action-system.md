@@ -1,32 +1,32 @@
-# Chapter 6.12: Action System
+# Capítulo 6.12: Sistema de Ações
 
-[Home](../../README.md) | [<< Previous: Mission Hooks](11-mission-hooks.md) | **Action System** | [Next: Input System >>](13-input-system.md)
+[Início](../../README.md) | [<< Anterior: Hooks de Missão](11-mission-hooks.md) | **Sistema de Ações** | [Próximo: Sistema de Entrada >>](13-input-system.md)
 
 ---
 
 ## Introdução
 
-The Sistema de Ações is how DayZ handles all player interactions with items and the world. Every time a player eats food, opens a door, bandages a wound, repairs a wall, or turns on a flashlight, the engine runs through the action pipeline. Understanding this pipeline --- from condition checks to animation callbacks to server execution --- is fundamental to creating any interactive gameplay mod.
+O Sistema de Ações é como o DayZ gerencia todas as interações do jogador com itens e o mundo. Toda vez que um jogador come comida, abre uma porta, faz um curativo, repara uma parede ou liga uma lanterna, o motor executa o pipeline de ações. Entender esse pipeline --- desde verificações de condição até callbacks de animação e execução no servidor --- é fundamental para criar qualquer mod de gameplay interativo.
 
-The system lives primarily in `4_World/classes/useractionscomponent/` and is built around three pillars:
+O sistema reside principalmente em `4_World/classes/useractionscomponent/` e é construído em torno de três pilares:
 
-1. **Ação classes** that define what happens (logic, conditions, animations)
-2. **Condition components** that gate when an action can appear (distance, item state, target type)
-3. **Ação components** that control how the action progresses (time, quantity, repeating cycles)
+1. **Classes de ação** que definem o que acontece (lógica, condições, animações)
+2. **Componentes de condição** que controlam quando uma ação pode aparecer (distância, estado do item, tipo do alvo)
+3. **Componentes de ação** que controlam como a ação progride (tempo, quantidade, ciclos repetidos)
 
-This chapter covers the full API, class hierarchy, lifecycle, and practical patterns for creating custom actions.
+Este capítulo cobre a API completa, hierarquia de classes, ciclo de vida e padrões práticos para criar ações customizadas.
 
 ---
 
-## Class Hierarchy
+## Hierarquia de Classes
 
 ```
-ActionBase_Basic                         // 3_Game — empty shell, compilation anchor
-└── ActionBase                           // 4_World — core logic, conditions, events
-    └── AnimatedActionBase               // 4_World — animation callbacks, OnExecute
-        ├── ActionSingleUseBase          // instant actions (eat pill, turn on light)
-        ├── ActionContinuousBase         // progress bar actions (bandage, repair, eat)
-        └── ActionInteractBase           // world interactions (open door, toggle switch)
+ActionBase_Basic                         // 3_Game — shell vazio, âncora de compilação
+└── ActionBase                           // 4_World — lógica central, condições, eventos
+    └── AnimatedActionBase               // 4_World — callbacks de animação, OnExecute
+        ├── ActionSingleUseBase          // ações instantâneas (tomar pílula, ligar lanterna)
+        ├── ActionContinuousBase         // ações com barra de progresso (curativo, reparo, comer)
+        └── ActionInteractBase           // interações com o mundo (abrir porta, alternar interruptor)
 ```
 
 ```mermaid
@@ -83,50 +83,50 @@ classDiagram
     }
 ```
 
-### Key Differences Between Ação Types
+### Diferenças Principais Entre Tipos de Ação
 
 | Propriedade | SingleUse | Continuous | Interact |
 |----------|-----------|------------|----------|
-| Category constant | `AC_SINGLE_USE` | `AC_CONTINUOUS` | `AC_INTERACT` |
-| Input type | `PadrãoAçãoInput` | `ContinuousPadrãoAçãoInput` | `InteractAçãoInput` |
-| Progress bar | No | Yes | No |
-| Uses main item | Yes | Yes | No (default) |
-| Has target | Varies | Varies | Yes (default) |
-| Typical use | Eat pill, toggle flashlight | Bandage, repair, eat food | Open door, turn on generator |
-| Callback class | `AçãoSingleUseBaseCB` | `AçãoContinuousBaseCB` | `AçãoInteractBaseCB` |
+| Constante de categoria | `AC_SINGLE_USE` | `AC_CONTINUOUS` | `AC_INTERACT` |
+| Tipo de entrada | `DefaultActionInput` | `ContinuousDefaultActionInput` | `InteractActionInput` |
+| Barra de progresso | Não | Sim | Não |
+| Usa item principal | Sim | Sim | Não (padrão) |
+| Tem alvo | Varia | Varia | Sim (padrão) |
+| Uso típico | Tomar pílula, alternar lanterna | Curativo, reparo, comer comida | Abrir porta, ligar gerador |
+| Classe de callback | `ActionSingleUseBaseCB` | `ActionContinuousBaseCB` | `ActionInteractBaseCB` |
 
 ---
 
-## Ação Lifecycle
+## Ciclo de Vida da Ação
 
-### State Constantes
+### Constantes de Estado
 
-The action state machine uses these constants defined in `3_Game/constants.c`:
+A máquina de estados da ação usa estas constantes definidas em `3_Game/constants.c`:
 
 | Constante | Valor | Significado |
 |----------|-------|---------|
-| `UA_NONE` | 0 | No action running |
-| `UA_PROCESSING` | 2 | Ação in progress |
-| `UA_FINISHED` | 4 | Ação completed successfully |
-| `UA_CANCEL` | 5 | Ação cancelled by player |
-| `UA_INTERRUPT` | 6 | Ação interrupted externally |
-| `UA_INITIALIZE` | 12 | Continuous action initializing |
-| `UA_ERROR` | 24 | Error state --- action aborted |
-| `UA_ANIM_EVENT` | 11 | Animation execute event fired |
-| `UA_IN_START` | 17 | Animation loop start event |
-| `UA_IN_END` | 18 | Animation loop end event |
+| `UA_NONE` | 0 | Nenhuma ação em execução |
+| `UA_PROCESSING` | 2 | Ação em progresso |
+| `UA_FINISHED` | 4 | Ação completada com sucesso |
+| `UA_CANCEL` | 5 | Ação cancelada pelo jogador |
+| `UA_INTERRUPT` | 6 | Ação interrompida externamente |
+| `UA_INITIALIZE` | 12 | Ação contínua inicializando |
+| `UA_ERROR` | 24 | Estado de erro --- ação abortada |
+| `UA_ANIM_EVENT` | 11 | Evento de execução de animação disparado |
+| `UA_IN_START` | 17 | Evento de início do loop de animação |
+| `UA_IN_END` | 18 | Evento de fim do loop de animação |
 
-### SingleUse Ação Flow
+### Fluxo de Ação SingleUse
 
 ```mermaid
 flowchart TD
-    A[Player presses action key] --> B{Condition Components}
+    A[Jogador pressiona tecla de ação] --> B{Componentes de Condição}
     B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
-    C -->|false| D[Action not shown]
+    C -->|false| D[Ação não exibida]
     C -->|true| E[SetupAction]
     E --> F[OnStart / OnStartServer / OnStartClient]
-    F --> G[Animation plays]
-    G --> H[UA_ANIM_EVENT fires]
+    F --> G[Animação é reproduzida]
+    G --> H[UA_ANIM_EVENT dispara]
     H --> I[OnExecute]
     I --> J[OnExecuteServer]
     I --> K[OnExecuteClient]
@@ -134,93 +134,93 @@ flowchart TD
     K --> L
 ```
 
-### Continuous Ação Flow
+### Fluxo de Ação Continuous
 
 ```mermaid
 flowchart TD
-    A[Player holds action key] --> B{Condition Components}
+    A[Jogador mantém tecla de ação] --> B{Componentes de Condição}
     B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
-    C -->|false| D[Action not shown]
+    C -->|false| D[Ação não exibida]
     C -->|true| E[SetupAction]
     E --> F[OnStart / OnStartServer / OnStartClient]
     F --> G[UA_IN_START: OnStartAnimationLoop]
-    G --> H[Animation loop begins]
+    G --> H[Loop de animação começa]
     H --> I{ActionComponent.Execute}
-    I -->|UA_PROCESSING| J[Do - loop continues]
+    I -->|UA_PROCESSING| J[Do - loop continua]
     J --> K{ActionConditionContinue?}
     K -->|true| I
-    K -->|false| M[Interrupt]
+    K -->|false| M[Interrupção]
     I -->|UA_FINISHED| L[OnFinishProgress]
     L --> N[UA_IN_END: OnEndAnimationLoop]
     N --> O[OnEnd / OnEndServer / OnEndClient]
     M --> O
-    P[Player releases key] --> Q[OnEndInput - UserEndsAction]
+    P[Jogador solta a tecla] --> Q[OnEndInput - UserEndsAction]
     Q --> R[ActionComponent.Cancel]
     R --> O
 ```
 
-### Interact Ação Flow
+### Fluxo de Ação Interact
 
 ```mermaid
 flowchart TD
-    A[Player presses interact key] --> B{Condition Components}
+    A[Jogador pressiona tecla de interação] --> B{Componentes de Condição}
     B -->|CCIBase.Can + CCTBase.Can| C{ActionCondition}
-    C -->|false| D[Action not shown]
+    C -->|false| D[Ação não exibida]
     C -->|true| E[SetupAction]
     E --> F[OnStart / OnStartServer / OnStartClient]
-    F --> G[Animation plays]
-    G --> H[UA_ANIM_EVENT fires]
+    F --> G[Animação é reproduzida]
+    G --> H[UA_ANIM_EVENT dispara]
     H --> I[OnExecute / OnExecuteServer / OnExecuteClient]
     I --> J[OnEnd / OnEndServer / OnEndClient]
 ```
 
-### Lifecycle Métodos Reference
+### Referência de Métodos do Ciclo de Vida
 
-These methods are called in order during an action's lifetime. Override them in your custom actions:
+Esses métodos são chamados em ordem durante o tempo de vida de uma ação. Sobrescreva-os em suas ações customizadas:
 
-| Método | Called on | Propósito |
+| Método | Chamado em | Propósito |
 |--------|-----------|---------|
-| `CreateConditionComponents()` | Both | Set `m_ConditionItem` and `m_ConditionTarget` |
-| `AçãoCondition()` | Both | Custom validation (distance, state, type checks) |
-| `AçãoConditionContinue()` | Both | Continuous-only: re-checked each frame during progress |
-| `SetupAção()` | Both | Internal: builds `AçãoData`, reserves inventory |
-| `OnStart()` | Both | Ação begins (cancels placing if active) |
-| `OnStartServer()` | Server | Server-side start logic |
-| `OnStartClient()` | Client | Client-side start effects |
-| `OnExecute()` | Both | Animation event fired --- main execution |
-| `OnExecuteServer()` | Server | Server-side execution logic |
-| `OnExecuteClient()` | Client | Client-side execution effects |
-| `OnFinishProgress()` | Both | Continuous-only: one cycle completed |
-| `OnFinishProgressServer()` | Server | Continuous-only: server cycle complete |
-| `OnFinishProgressClient()` | Client | Continuous-only: client cycle complete |
-| `OnStartAnimationLoop()` | Both | Continuous-only: loop animation begins |
-| `OnEndAnimationLoop()` | Both | Continuous-only: loop animation ends |
-| `OnEnd()` | Both | Ação finished (success or cancel) |
-| `OnEndServer()` | Server | Server-side cleanup |
-| `OnEndClient()` | Client | Client-side cleanup |
+| `CreateConditionComponents()` | Ambos | Definir `m_ConditionItem` e `m_ConditionTarget` |
+| `ActionCondition()` | Ambos | Validação customizada (distância, estado, verificações de tipo) |
+| `ActionConditionContinue()` | Ambos | Apenas contínuo: re-verificado a cada frame durante o progresso |
+| `SetupAction()` | Ambos | Interno: constrói `ActionData`, reserva inventário |
+| `OnStart()` | Ambos | Ação começa (cancela posicionamento se ativo) |
+| `OnStartServer()` | Servidor | Lógica de início no lado do servidor |
+| `OnStartClient()` | Cliente | Efeitos de início no lado do cliente |
+| `OnExecute()` | Ambos | Evento de animação disparado --- execução principal |
+| `OnExecuteServer()` | Servidor | Lógica de execução no lado do servidor |
+| `OnExecuteClient()` | Cliente | Efeitos de execução no lado do cliente |
+| `OnFinishProgress()` | Ambos | Apenas contínuo: um ciclo completado |
+| `OnFinishProgressServer()` | Servidor | Apenas contínuo: ciclo completo no servidor |
+| `OnFinishProgressClient()` | Cliente | Apenas contínuo: ciclo completo no cliente |
+| `OnStartAnimationLoop()` | Ambos | Apenas contínuo: loop de animação começa |
+| `OnEndAnimationLoop()` | Ambos | Apenas contínuo: loop de animação termina |
+| `OnEnd()` | Ambos | Ação finalizada (sucesso ou cancelamento) |
+| `OnEndServer()` | Servidor | Limpeza no lado do servidor |
+| `OnEndClient()` | Cliente | Limpeza no lado do cliente |
 
 ---
 
-## AçãoData
+## ActionData
 
-Every running action carries an `AçãoData` instance that holds the runtime context. This is passed to every lifecycle method:
+Toda ação em execução carrega uma instância de `ActionData` que contém o contexto de tempo de execução. Ela é passada para todo método do ciclo de vida:
 
 ```c
 class ActionData
 {
-    ref ActionBase       m_Action;          // the action class being performed
-    ItemBase             m_MainItem;        // item in player's hands (or null)
-    ActionBaseCB         m_Callback;        // animation callback handler
-    ref CABase           m_ActionComponent;  // progress component (time, quantity)
-    int                  m_State;           // current state (UA_PROCESSING, etc.)
-    ref ActionTarget     m_Target;          // target object + hit info
-    PlayerBase           m_Player;          // player performing the action
-    bool                 m_WasExecuted;     // true after OnExecute fires
-    bool                 m_WasActionStarted; // true after action loop starts
+    ref ActionBase       m_Action;          // a classe de ação sendo executada
+    ItemBase             m_MainItem;        // item nas mãos do jogador (ou null)
+    ActionBaseCB         m_Callback;        // handler de callback de animação
+    ref CABase           m_ActionComponent;  // componente de progresso (tempo, quantidade)
+    int                  m_State;           // estado atual (UA_PROCESSING, etc.)
+    ref ActionTarget     m_Target;          // objeto alvo + info de acerto
+    PlayerBase           m_Player;          // jogador executando a ação
+    bool                 m_WasExecuted;     // true após OnExecute disparar
+    bool                 m_WasActionStarted; // true após loop de ação iniciar
 }
 ```
 
-You can extend `AçãoData` for custom data. Override `CreateAçãoData()` in your action:
+Você pode estender `ActionData` para dados customizados. Sobrescreva `CreateActionData()` na sua ação:
 
 ```c
 class MyCustomActionData : ActionData
@@ -239,76 +239,76 @@ class MyCustomAction : ActionContinuousBase
     {
         MyCustomActionData data = MyCustomActionData.Cast(action_data);
         data.m_CustomValue = data.m_CustomValue + 1;
-        // ... use custom data
+        // ... usar dados customizados
     }
 }
 ```
 
 ---
 
-## AçãoTarget
+## ActionTarget
 
-The `AçãoTarget` class represents what the player is aiming at:
+A classe `ActionTarget` representa para o que o jogador está mirando:
 
-**File:** `4_World/classes/useractionscomponent/actiontargets.c`
+**Arquivo:** `4_World/classes/useractionscomponent/actiontargets.c`
 
 ```c
 class ActionTarget
 {
-    Object GetObject();         // the direct object under cursor (or proxy child)
-    Object GetParent();         // parent object (if target is a proxy/attachment)
-    bool   IsProxy();           // true if target has a parent
-    int    GetComponentIndex(); // geometry component (named selection) index
-    float  GetUtility();        // priority score
-    vector GetCursorHitPos();   // exact world position of cursor hit
+    Object GetObject();         // o objeto direto sob o cursor (ou proxy filho)
+    Object GetParent();         // objeto pai (se o alvo é um proxy/anexo)
+    bool   IsProxy();           // true se o alvo tem um pai
+    int    GetComponentIndex(); // índice do componente de geometria (seleção nomeada)
+    float  GetUtility();        // pontuação de prioridade
+    vector GetCursorHitPos();   // posição exata do mundo do acerto do cursor
 }
 ```
 
-### How Targets Are Selected
+### Como os Alvos São Selecionados
 
-The `AçãoTargets` class runs each frame on the client, gathering potential targets:
+A classe `ActionTargets` é executada a cada frame no cliente, coletando alvos potenciais:
 
-1. **Raycast** from camera position along camera direction (`c_RayDistance`)
-2. **Vicinity scan** for nearby objects around the player
-3. For each candidate, the engine calls `GetAçãos()` on the object to find registered actions
-4. Each action's condition components (`CCIBase.Can()`, `CCTBase.Can()`) and `AçãoCondition()` are tested
-5. Valid actions are ranked by utility and displayed in the HUD
+1. **Raycast** da posição da câmera na direção da câmera (`c_RayDistance`)
+2. **Varredura de proximidade** para objetos próximos ao redor do jogador
+3. Para cada candidato, o motor chama `GetActions()` no objeto para encontrar ações registradas
+4. Os componentes de condição de cada ação (`CCIBase.Can()`, `CCTBase.Can()`) e `ActionCondition()` são testados
+5. Ações válidas são classificadas por utilidade e exibidas no HUD
 
 ---
 
-## Condition Components
+## Componentes de Condição
 
-Every action has two condition components set in `CreateConditionComponents()`. These are checked **before** `AçãoCondition()` and determine whether the action can appear in the player's HUD at all.
+Toda ação tem dois componentes de condição definidos em `CreateConditionComponents()`. Estes são verificados **antes** de `ActionCondition()` e determinam se a ação pode aparecer no HUD do jogador.
 
-### Item Conditions (CCIBase)
+### Condições de Item (CCIBase)
 
-Controla whether the item in the player's hand qualifies for this action.
+Controla se o item na mão do jogador se qualifica para esta ação.
 
-**File:** `4_World/classes/useractionscomponent/itemconditioncomponents/`
+**Arquivo:** `4_World/classes/useractionscomponent/itemconditioncomponents/`
 
-| Class | Behavior |
+| Classe | Comportamento |
 |-------|----------|
-| `CCINone` | Always passes --- no item requirement |
-| `CCIDummy` | Passes if item is not null (item must exist) |
-| `CCINonRuined` | Passes if item exists AND is not ruined |
-| `CCINotPresent` | Passes if item is null (hands must be empty) |
-| `CCINotRuinedAndEmpty` | Passes if item exists, not ruined, and not empty |
+| `CCINone` | Sempre passa --- sem requisito de item |
+| `CCIDummy` | Passa se o item não é null (item deve existir) |
+| `CCINonRuined` | Passa se o item existe E não está arruinado |
+| `CCINotPresent` | Passa se o item é null (mãos devem estar vazias) |
+| `CCINotRuinedAndEmpty` | Passa se o item existe, não arruinado e não vazio |
 
 ```c
-// CCINone — no item needed, always true
+// CCINone — sem item necessário, sempre true
 class CCINone : CCIBase
 {
     override bool Can(PlayerBase player, ItemBase item) { return true; }
     override bool CanContinue(PlayerBase player, ItemBase item) { return true; }
 }
 
-// CCINotPresent — hands must be empty
+// CCINotPresent — mãos devem estar vazias
 class CCINotPresent : CCIBase
 {
     override bool Can(PlayerBase player, ItemBase item) { return !item; }
 }
 
-// CCINonRuined — item must exist and not be destroyed
+// CCINonRuined — item deve existir e não estar destruído
 class CCINonRuined : CCIBase
 {
     override bool Can(PlayerBase player, ItemBase item)
@@ -318,23 +318,23 @@ class CCINonRuined : CCIBase
 }
 ```
 
-### Target Conditions (CCTBase)
+### Condições de Alvo (CCTBase)
 
-Controla whether the target object (what the player is looking at) qualifies.
+Controla se o objeto alvo (para o que o jogador está olhando) se qualifica.
 
-**File:** `4_World/classes/useractionscomponent/targetconditionscomponents/`
+**Arquivo:** `4_World/classes/useractionscomponent/targetconditionscomponents/`
 
-| Class | Constructor | Behavior |
+| Classe | Construtor | Comportamento |
 |-------|-------------|----------|
-| `CCTNone` | `CCTNone()` | Always passes --- no target needed |
-| `CCTDummy` | `CCTDummy()` | Passes if target object exists |
-| `CCTSelf` | `CCTSelf()` | Passes if player exists and is alive |
-| `CCTObject` | `CCTObject(float dist)` | Target object within distance |
-| `CCTCursor` | `CCTCursor(float dist)` | Cursor hit position within distance |
-| `CCTNonRuined` | `CCTNonRuined(float dist)` | Target within distance AND not ruined |
-| `CCTCursorParent` | `CCTCursorParent(float dist)` | Cursor on parent object within distance |
+| `CCTNone` | `CCTNone()` | Sempre passa --- sem alvo necessário |
+| `CCTDummy` | `CCTDummy()` | Passa se o objeto alvo existe |
+| `CCTSelf` | `CCTSelf()` | Passa se o jogador existe e está vivo |
+| `CCTObject` | `CCTObject(float dist)` | Objeto alvo dentro da distância |
+| `CCTCursor` | `CCTCursor(float dist)` | Posição de acerto do cursor dentro da distância |
+| `CCTNonRuined` | `CCTNonRuined(float dist)` | Alvo dentro da distância E não arruinado |
+| `CCTCursorParent` | `CCTCursorParent(float dist)` | Cursor no objeto pai dentro da distância |
 
-Distance is measured from **both** the player's root position and head bone position (whichever is closer). The `CCTObject` check:
+A distância é medida tanto da posição raiz do jogador quanto da posição do bone da cabeça (a que for mais próxima). A verificação de `CCTObject`:
 
 ```c
 class CCTObject : CCTBase
@@ -363,41 +363,41 @@ class CCTObject : CCTBase
 }
 ```
 
-### Distance Constantes
+### Constantes de Distância
 
-**File:** `4_World/classes/useractionscomponent/actions/actionconstants.c`
+**Arquivo:** `4_World/classes/useractionscomponent/actions/actionconstants.c`
 
-| Constante | Valor (meters) | Typical use |
+| Constante | Valor (metros) | Uso típico |
 |----------|---------------|-------------|
-| `UAMaxDistances.SMALL` | 1.3 | Close interactions, ladders |
-| `UAMaxDistances.DEFAULT` | 2.0 | Standard actions |
-| `UAMaxDistances.REPAIR` | 3.0 | Repair actions |
-| `UAMaxDistances.LARGE` | 8.0 | Large area actions |
-| `UAMaxDistances.BASEBUILDING` | 20.0 | Base building |
-| `UAMaxDistances.EXPLOSIVE_REMOTE_ACTIVATION` | 100.0 | Remote detonation |
+| `UAMaxDistances.SMALL` | 1.3 | Interações próximas, escadas |
+| `UAMaxDistances.DEFAULT` | 2.0 | Ações padrão |
+| `UAMaxDistances.REPAIR` | 3.0 | Ações de reparo |
+| `UAMaxDistances.LARGE` | 8.0 | Ações de área grande |
+| `UAMaxDistances.BASEBUILDING` | 20.0 | Construção de base |
+| `UAMaxDistances.EXPLOSIVE_REMOTE_ACTIVATION` | 100.0 | Detonação remota |
 
 ---
 
-## Registering Açãos on Items
+## Registrando Ações em Itens
 
-Açãos are registered on entities through the `SetAçãos()` / `AddAção()` / `RemoveAção()` pattern. The engine calls `GetAçãos()` on an entity to retrieve its action list; the first time this happens, `InitializeAçãos()` builds the map via `SetAçãos()`.
+Ações são registradas em entidades através do padrão `SetActions()` / `AddAction()` / `RemoveAction()`. O motor chama `GetActions()` em uma entidade para recuperar sua lista de ações; na primeira vez que isso acontece, `InitializeActions()` constrói o mapa via `SetActions()`.
 
-### On ItemBase (Inventory Items)
+### Em ItemBase (Itens de Inventário)
 
-The most common pattern. Override `SetAçãos()` in a `modded class`:
+O padrão mais comum. Sobrescreva `SetActions()` em uma `modded class`:
 
 ```c
 modded class MyCustomItem extends ItemBase
 {
     override void SetActions()
     {
-        super.SetActions();          // CRITICAL: keep all vanilla actions
-        AddAction(MyCustomAction);   // add your action
+        super.SetActions();          // CRÍTICO: manter todas as ações vanilla
+        AddAction(MyCustomAction);   // adicionar sua ação
     }
 }
 ```
 
-To remove a vanilla action and add your own replacement:
+Para remover uma ação vanilla e adicionar sua própria substituição:
 
 ```c
 modded class Bandage_Basic extends ItemBase
@@ -405,18 +405,18 @@ modded class Bandage_Basic extends ItemBase
     override void SetActions()
     {
         super.SetActions();
-        RemoveAction(ActionBandageTarget);       // remove vanilla
-        AddAction(MyImprovedBandageAction);      // add replacement
+        RemoveAction(ActionBandageTarget);       // remover vanilla
+        AddAction(MyImprovedBandageAction);      // adicionar substituição
     }
 }
 ```
 
-### On BuildingBase (World Buildings)
+### Em BuildingBase (Construções do Mundo)
 
-Buildings use the same pattern but through `BuildingBase`:
+Construções usam o mesmo padrão, mas através de `BuildingBase`:
 
 ```c
-// Vanilla example: Well registers water actions
+// Exemplo vanilla: Poço registra ações de água
 class Well extends BuildingSuper
 {
     override void SetActions()
@@ -428,12 +428,12 @@ class Well extends BuildingSuper
 }
 ```
 
-### On PlayerBase (Player Açãos)
+### Em PlayerBase (Ações do Jogador)
 
-Player-level actions (drinking from ponds, opening doors, etc.) are registered in `PlayerBase.SetAçãos()`. There are two signatures:
+Ações no nível do jogador (beber de poças, abrir portas, etc.) são registradas em `PlayerBase.SetActions()`. Existem duas assinaturas:
 
 ```c
-// Modern approach (recommended) — uses InputActionMap parameter
+// Abordagem moderna (recomendada) — usa parâmetro InputActionMap
 void SetActions(out TInputActionMap InputActionMap)
 {
     AddAction(ActionOpenDoors, InputActionMap);
@@ -441,14 +441,14 @@ void SetActions(out TInputActionMap InputActionMap)
     // ...
 }
 
-// Legacy approach (backwards compatibility) — not recommended
+// Abordagem legada (compatibilidade retroativa) — não recomendada
 void SetActions()
 {
     // ...
 }
 ```
 
-Player also has `SetAçãosRemoteTarget()` for actions performed **on** a player by another player (CPR, checking pulse, etc.):
+O jogador também tem `SetActionsRemoteTarget()` para ações realizadas **em** um jogador por outro jogador (RCP, verificar pulso, etc.):
 
 ```c
 void SetActionsRemoteTarget(out TInputActionMap InputActionMap)
@@ -458,27 +458,27 @@ void SetActionsRemoteTarget(out TInputActionMap InputActionMap)
 }
 ```
 
-### How the Registration System Works Internally
+### Como o Sistema de Registro Funciona Internamente
 
-Each entity type maintains a static `TInputAçãoMap` (a `map<typename, ref array<AçãoBase_Basic>>`) keyed by input type. When `AddAção()` is called:
+Cada tipo de entidade mantém um `TInputActionMap` estático (um `map<typename, ref array<ActionBase_Basic>>`) indexado por tipo de entrada. Quando `AddAction()` é chamado:
 
-1. The action singleton is fetched from `AçãoManagerBase.GetAção()`
-2. The action's input type is queried (`GetInputType()`)
-3. The action is inserted into the array for that input type
-4. At runtime, the engine queries all actions for the matching input type
+1. O singleton da ação é obtido de `ActionManagerBase.GetAction()`
+2. O tipo de entrada da ação é consultado (`GetInputType()`)
+3. A ação é inserida no array para aquele tipo de entrada
+4. Em tempo de execução, o motor consulta todas as ações para o tipo de entrada correspondente
 
-This means actions are shared per **type** (class), not per instance. All items of the same class share the same action list.
+Isso significa que ações são compartilhadas por **tipo** (classe), não por instância. Todos os itens da mesma classe compartilham a mesma lista de ações.
 
 ---
 
-## Creating a Custom Ação --- Step by Step
+## Criando uma Ação Customizada --- Passo a Passo
 
-### Exemplo 1: Simple Single-Use Ação
+### Exemplo 1: Ação Simples de Uso Único
 
-A custom action that instantly heals the player when they use a special item:
+Uma ação customizada que cura instantaneamente o jogador quando ele usa um item especial:
 
 ```c
-// File: 4_World/actions/ActionHealInstant.c
+// Arquivo: 4_World/actions/ActionHealInstant.c
 
 class ActionHealInstant : ActionSingleUseBase
 {
@@ -486,28 +486,28 @@ class ActionHealInstant : ActionSingleUseBase
     {
         m_CommandUID = DayZPlayerConstants.CMD_ACTIONMOD_EAT_PILL;
         m_CommandUIDProne = DayZPlayerConstants.CMD_ACTIONFB_EAT_PILL;
-        m_Text = "#heal";  // stringtable key, or plain text: "Heal"
+        m_Text = "#heal";  // chave de stringtable, ou texto simples: "Curar"
     }
 
     override void CreateConditionComponents()
     {
-        m_ConditionItem = new CCINonRuined;    // item must not be ruined
-        m_ConditionTarget = new CCTSelf;       // self-action
+        m_ConditionItem = new CCINonRuined;    // item não deve estar arruinado
+        m_ConditionTarget = new CCTSelf;       // auto-ação
     }
 
     override bool HasTarget()
     {
-        return false;  // no external target needed
+        return false;  // sem alvo externo necessário
     }
 
     override bool HasProneException()
     {
-        return true;  // allow different animation when prone
+        return true;  // permitir animação diferente quando deitado
     }
 
     override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
     {
-        // Only show if player is actually hurt
+        // Mostrar apenas se o jogador está realmente ferido
         if (player.GetHealth("GlobalHealth", "Health") >= player.GetMaxHealth("GlobalHealth", "Health"))
             return false;
 
@@ -516,11 +516,11 @@ class ActionHealInstant : ActionSingleUseBase
 
     override void OnExecuteServer(ActionData action_data)
     {
-        // Heal the player on server
+        // Curar o jogador no servidor
         PlayerBase player = action_data.m_Player;
         player.SetHealth("GlobalHealth", "Health", player.GetMaxHealth("GlobalHealth", "Health"));
 
-        // Consume the item (reduce quantity by 1)
+        // Consumir o item (reduzir quantidade em 1)
         ItemBase item = action_data.m_MainItem;
         if (item)
         {
@@ -530,15 +530,15 @@ class ActionHealInstant : ActionSingleUseBase
 
     override void OnExecuteClient(ActionData action_data)
     {
-        // Optional: play a client-side effect, sound, or notification
+        // Opcional: reproduzir efeito no cliente, som ou notificação
     }
 }
 ```
 
-Register it on an item:
+Registrar em um item:
 
 ```c
-// File: 4_World/entities/HealingKit.c
+// Arquivo: 4_World/entities/HealingKit.c
 
 modded class HealingKit extends ItemBase
 {
@@ -550,31 +550,31 @@ modded class HealingKit extends ItemBase
 }
 ```
 
-### Exemplo 2: Continuous Ação with Progress Bar
+### Exemplo 2: Ação Contínua com Barra de Progresso
 
-A custom repair action that takes time and consumes item durability:
+Uma ação de reparo customizada que leva tempo e consome durabilidade do item:
 
 ```c
-// File: 4_World/actions/ActionRepairCustom.c
+// Arquivo: 4_World/actions/ActionRepairCustom.c
 
-// Step 1: Define the callback with an action component
+// Passo 1: Definir o callback com um componente de ação
 class ActionRepairCustomCB : ActionContinuousBaseCB
 {
     override void CreateActionComponent()
     {
-        // CAContinuousTime(seconds) — single progress bar that completes once
+        // CAContinuousTime(segundos) — barra de progresso única que completa uma vez
         m_ActionData.m_ActionComponent = new CAContinuousTime(UATimeSpent.DEFAULT_REPAIR_CYCLE);
     }
 }
 
-// Step 2: Define the action
+// Passo 2: Definir a ação
 class ActionRepairCustom : ActionContinuousBase
 {
     void ActionRepairCustom()
     {
         m_CallbackClass = ActionRepairCustomCB;
         m_CommandUID = DayZPlayerConstants.CMD_ACTIONFB_ASSEMBLE;
-        m_FullBody = true;  // full body animation (player cannot move)
+        m_FullBody = true;  // animação de corpo inteiro (jogador não pode se mover)
         m_StanceMask = DayZPlayerConstants.STANCEMASK_ERECT;
         m_SpecialtyWeight = UASoftSkillsWeight.ROUGH_HIGH;
         m_Text = "#repair";
@@ -592,7 +592,7 @@ class ActionRepairCustom : ActionContinuousBase
         if (!obj)
             return false;
 
-        // Only allow repairing damaged (but not ruined) objects
+        // Permitir apenas reparar objetos danificados (mas não arruinados)
         EntityAI entity = EntityAI.Cast(obj);
         if (!entity)
             return false;
@@ -600,7 +600,7 @@ class ActionRepairCustom : ActionContinuousBase
         float health = entity.GetHealth("", "Health");
         float maxHealth = entity.GetMaxHealth("", "Health");
 
-        // Must be damaged but not ruined
+        // Deve estar danificado mas não arruinado
         if (health >= maxHealth || entity.IsDamageDestroyed())
             return false;
 
@@ -609,31 +609,31 @@ class ActionRepairCustom : ActionContinuousBase
 
     override void OnFinishProgressServer(ActionData action_data)
     {
-        // Called when the progress bar completes
+        // Chamado quando a barra de progresso completa
         Object target = action_data.m_Target.GetObject();
         if (target)
         {
             EntityAI entity = EntityAI.Cast(target);
             if (entity)
             {
-                // Restore some health
+                // Restaurar alguma vida
                 float currentHealth = entity.GetHealth("", "Health");
                 entity.SetHealth("", "Health", currentHealth + 25);
             }
         }
 
-        // Damage the tool
+        // Danificar a ferramenta
         action_data.m_MainItem.DecreaseHealth(UADamageApplied.REPAIR, false);
     }
 }
 ```
 
-### Exemplo 3: Interact Ação (World Object Toggle)
+### Exemplo 3: Ação Interact (Alternância de Objeto do Mundo)
 
-An interact action for toggling a custom device on/off:
+Uma ação de interação para alternar um dispositivo customizado ligado/desligado:
 
 ```c
-// File: 4_World/actions/ActionToggleMyDevice.c
+// Arquivo: 4_World/actions/ActionToggleMyDevice.c
 
 class ActionToggleMyDevice : ActionInteractBase
 {
@@ -646,7 +646,7 @@ class ActionToggleMyDevice : ActionInteractBase
 
     override void CreateConditionComponents()
     {
-        m_ConditionItem = new CCINone;     // no item needed in hands
+        m_ConditionItem = new CCINone;     // sem item necessário nas mãos
         m_ConditionTarget = new CCTCursor(UAMaxDistances.DEFAULT);
     }
 
@@ -656,12 +656,12 @@ class ActionToggleMyDevice : ActionInteractBase
         if (!obj)
             return false;
 
-        // Check if target is our custom device type
+        // Verificar se o alvo é nosso tipo de dispositivo customizado
         MyCustomDevice device = MyCustomDevice.Cast(obj);
         if (!device)
             return false;
 
-        // Update display text based on current state
+        // Atualizar texto de exibição baseado no estado atual
         if (device.IsActive())
             m_Text = "#switch_off";
         else
@@ -684,7 +684,7 @@ class ActionToggleMyDevice : ActionInteractBase
 }
 ```
 
-Register it on the building/device:
+Registrar na construção/dispositivo:
 
 ```c
 class MyCustomDevice extends BuildingBase
@@ -697,9 +697,9 @@ class MyCustomDevice extends BuildingBase
 }
 ```
 
-### Exemplo 4: Ação with Specific Item Requirement
+### Exemplo 4: Ação com Requisito de Item Específico
 
-An action that requires the player to hold a specific tool type while targeting a specific object:
+Uma ação que requer que o jogador segure um tipo específico de ferramenta enquanto mira em um objeto específico:
 
 ```c
 class ActionUnlockWithKey : ActionInteractBase
@@ -707,32 +707,32 @@ class ActionUnlockWithKey : ActionInteractBase
     void ActionUnlockWithKey()
     {
         m_CommandUID = DayZPlayerConstants.CMD_ACTIONMOD_INTERACTONCE;
-        m_Text = "Unlock";
+        m_Text = "Destrancar";
     }
 
     override void CreateConditionComponents()
     {
-        m_ConditionItem = new CCINonRuined;   // must hold a non-ruined item
+        m_ConditionItem = new CCINonRuined;   // deve segurar um item não arruinado
         m_ConditionTarget = new CCTObject(UAMaxDistances.DEFAULT);
     }
 
     override bool UseMainItem()
     {
-        return true;  // action requires an item in hand
+        return true;  // ação requer um item na mão
     }
 
     override bool MainItemAlwaysInHands()
     {
-        return true;  // item must be in hands, not just inventory
+        return true;  // item deve estar nas mãos, não apenas no inventário
     }
 
     override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
     {
-        // Item must be a key
+        // Item deve ser uma chave
         if (!item || !item.IsInherited(MyKeyItem))
             return false;
 
-        // Target must be a locked container
+        // Alvo deve ser um contêiner trancado
         MyLockedContainer container = MyLockedContainer.Cast(target.GetObject());
         if (!container || !container.IsLocked())
             return false;
@@ -753,33 +753,33 @@ class ActionUnlockWithKey : ActionInteractBase
 
 ---
 
-## Ação Components (Progress Control)
+## Componentes de Ação (Controle de Progresso)
 
-Ação components control _how_ the action progresses over time. They are created in the callback's `CreateAçãoComponent()` method.
+Componentes de ação controlam _como_ a ação progride ao longo do tempo. Eles são criados no método `CreateActionComponent()` do callback.
 
-**File:** `4_World/classes/useractionscomponent/actioncomponents/`
+**Arquivo:** `4_World/classes/useractionscomponent/actioncomponents/`
 
-### Available Components
+### Componentes Disponíveis
 
-| Component | Parâmetros | Behavior |
+| Componente | Parâmetros | Comportamento |
 |-----------|------------|----------|
-| `CASingleUse` | none | Instant execution, no progress |
-| `CAInteract` | none | Instant execution for interact actions |
-| `CAContinuousTime` | `float time` | Progress bar, completes after `time` seconds |
-| `CAContinuousRepeat` | `float time` | Repeating cycles, fires `OnFinishProgress` each cycle |
-| `CAContinuousQuantity` | `float quantity, float time` | Consumes quantity over time |
-| `CAContinuousQuantityEdible` | `float quantity, float time` | Like Quantity but applies food/drink modifiers |
+| `CASingleUse` | nenhum | Execução instantânea, sem progresso |
+| `CAInteract` | nenhum | Execução instantânea para ações de interação |
+| `CAContinuousTime` | `float time` | Barra de progresso, completa após `time` segundos |
+| `CAContinuousRepeat` | `float time` | Ciclos repetidos, dispara `OnFinishProgress` a cada ciclo |
+| `CAContinuousQuantity` | `float quantity, float time` | Consome quantidade ao longo do tempo |
+| `CAContinuousQuantityEdible` | `float quantity, float time` | Como Quantity mas aplica modificadores de comida/bebida |
 
 ### CAContinuousTime
 
-Single progress bar that completes once:
+Barra de progresso única que completa uma vez:
 
 ```c
 class MyActionCB : ActionContinuousBaseCB
 {
     override void CreateActionComponent()
     {
-        // 5-second progress bar
+        // Barra de progresso de 5 segundos
         m_ActionData.m_ActionComponent = new CAContinuousTime(UATimeSpent.DEFAULT_CONSTRUCT);
     }
 }
@@ -787,42 +787,42 @@ class MyActionCB : ActionContinuousBaseCB
 
 ### CAContinuousRepeat
 
-Repeating cycles --- `OnFinishProgressServer()` is called each time a cycle completes, and the action continues until the player releases the key:
+Ciclos repetidos --- `OnFinishProgressServer()` é chamado cada vez que um ciclo completa, e a ação continua até o jogador soltar a tecla:
 
 ```c
 class MyRepeatActionCB : ActionContinuousBaseCB
 {
     override void CreateActionComponent()
     {
-        // Each cycle takes 5 seconds, repeats until player stops
+        // Cada ciclo leva 5 segundos, repete até o jogador parar
         m_ActionData.m_ActionComponent = new CAContinuousRepeat(UATimeSpent.DEFAULT_REPAIR_CYCLE);
     }
 }
 ```
 
-### Time Constantes
+### Constantes de Tempo
 
-**File:** `4_World/classes/useractionscomponent/actions/actionconstants.c`
+**Arquivo:** `4_World/classes/useractionscomponent/actions/actionconstants.c`
 
-| Constante | Valor (seconds) | Use |
+| Constante | Valor (segundos) | Uso |
 |----------|----------------|-----|
-| `UATimeSpent.DEFAULT` | 1.0 | General |
-| `UATimeSpent.DEFAULT_CONSTRUCT` | 5.0 | Construction |
-| `UATimeSpent.DEFAULT_REPAIR_CYCLE` | 5.0 | Repair per cycle |
-| `UATimeSpent.DEFAULT_DEPLOY` | 5.0 | Deploying items |
-| `UATimeSpent.BANDAGE` | 4.0 | Bandaging |
-| `UATimeSpent.RESTRAIN` | 10.0 | Restraining |
-| `UATimeSpent.SHAVE` | 12.75 | Shaving |
-| `UATimeSpent.SKIN` | 10.0 | Skinning animals |
-| `UATimeSpent.DIG_STASH` | 10.0 | Digging stash |
+| `UATimeSpent.DEFAULT` | 1.0 | Geral |
+| `UATimeSpent.DEFAULT_CONSTRUCT` | 5.0 | Construção |
+| `UATimeSpent.DEFAULT_REPAIR_CYCLE` | 5.0 | Reparo por ciclo |
+| `UATimeSpent.DEFAULT_DEPLOY` | 5.0 | Implantação de itens |
+| `UATimeSpent.BANDAGE` | 4.0 | Curativo |
+| `UATimeSpent.RESTRAIN` | 10.0 | Amarrar |
+| `UATimeSpent.SHAVE` | 12.75 | Barbear |
+| `UATimeSpent.SKIN` | 10.0 | Esfolar animais |
+| `UATimeSpent.DIG_STASH` | 10.0 | Cavar esconderijo |
 
 ---
 
-## Vanilla Exemplos Annotated
+## Exemplos Vanilla Anotados
 
-### AçãoOpenDoors (Interact)
+### ActionOpenDoors (Interact)
 
-**File:** `4_World/classes/useractionscomponent/actions/interact/actionopendoors.c`
+**Arquivo:** `4_World/classes/useractionscomponent/actions/interact/actionopendoors.c`
 
 ```c
 class ActionOpenDoors : ActionInteractBase
@@ -831,13 +831,13 @@ class ActionOpenDoors : ActionInteractBase
     {
         m_CommandUID  = DayZPlayerConstants.CMD_ACTIONMOD_OPENDOORFW;
         m_StanceMask  = DayZPlayerConstants.STANCEMASK_CROUCH | DayZPlayerConstants.STANCEMASK_ERECT;
-        m_Text        = "#open";   // stringtable reference
+        m_Text        = "#open";   // referência de stringtable
     }
 
     override void CreateConditionComponents()
     {
-        m_ConditionItem   = new CCINone();      // no item needed
-        m_ConditionTarget = new CCTCursor();     // cursor must be on something
+        m_ConditionItem   = new CCINone();      // sem item necessário
+        m_ConditionTarget = new CCTCursor();     // cursor deve estar em algo
     }
 
     override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
@@ -873,14 +873,14 @@ class ActionOpenDoors : ActionInteractBase
 }
 ```
 
-Key takeaways:
-- Uses `OnStartServer()` (not `OnExecuteServer()`) because interact actions fire immediately
-- `GetComponentIndex()` retrieves which door the player is looking at
-- Distance check done manually with `IsInReach()` as well as via `CCTCursor`
+Pontos-chave:
+- Usa `OnStartServer()` (não `OnExecuteServer()`) porque ações interact disparam imediatamente
+- `GetComponentIndex()` recupera qual porta o jogador está olhando
+- Verificação de distância feita manualmente com `IsInReach()` e também via `CCTCursor`
 
-### AçãoTurnOnPowerGenerator (Interact)
+### ActionTurnOnPowerGenerator (Interact)
 
-**File:** `4_World/classes/useractionscomponent/actions/interact/actionturnonpowergenerator.c`
+**Arquivo:** `4_World/classes/useractionscomponent/actions/interact/actionturnonpowergenerator.c`
 
 ```c
 class ActionTurnOnPowerGenerator : ActionInteractBase
@@ -916,14 +916,14 @@ class ActionTurnOnPowerGenerator : ActionInteractBase
 }
 ```
 
-Key takeaways:
-- Inherits default `CreateConditionComponents()` from `AçãoInteractBase` (`CCINone` + `CCTObject(DEFAULT)`)
-- Uses `OnExecuteServer()` for the actual toggle --- this fires on the animation event
-- Multiple condition checks chained in `AçãoCondition()`
+Pontos-chave:
+- Herda o `CreateConditionComponents()` padrão de `ActionInteractBase` (`CCINone` + `CCTObject(DEFAULT)`)
+- Usa `OnExecuteServer()` para a alternância real --- isso dispara no evento de animação
+- Múltiplas verificações de condição encadeadas em `ActionCondition()`
 
-### AçãoEat (Continuous)
+### ActionEat (Continuous)
 
-**File:** `4_World/classes/useractionscomponent/actions/continuous/actioneat.c`
+**Arquivo:** `4_World/classes/useractionscomponent/actions/continuous/actioneat.c`
 
 ```c
 class ActionEatBigCB : ActionContinuousBaseCB
@@ -931,8 +931,8 @@ class ActionEatBigCB : ActionContinuousBaseCB
     override void CreateActionComponent()
     {
         m_ActionData.m_ActionComponent = new CAContinuousQuantityEdible(
-            UAQuantityConsumed.EAT_BIG,   // 25 units consumed per cycle
-            UATimeSpent.DEFAULT            // 1 second per cycle
+            UAQuantityConsumed.EAT_BIG,   // 25 unidades consumidas por ciclo
+            UATimeSpent.DEFAULT            // 1 segundo por ciclo
         );
     }
 }
@@ -958,38 +958,38 @@ class ActionEatBig : ActionConsume
 }
 ```
 
-Key takeaways:
-- The callback class controls the pacing (`CAContinuousQuantityEdible`)
-- `AçãoConsume` (the parent) handles all the food consumption logic
-- `HasTarget()` returns false --- eating is a self-action
-- Different eat sizes just swap the callback class with different `UAQuantityConsumed` values
+Pontos-chave:
+- A classe de callback controla o ritmo (`CAContinuousQuantityEdible`)
+- `ActionConsume` (o pai) gerencia toda a lógica de consumo de comida
+- `HasTarget()` retorna false --- comer é uma auto-ação
+- Tamanhos de porção diferentes apenas trocam a classe de callback com valores diferentes de `UAQuantityConsumed`
 
 ---
 
-## Advanced Topics
+## Tópicos Avançados
 
-### Ação Condition Masks
+### Máscaras de Condição de Ação
 
-Açãos can be restricted to specific player states using `AçãoConditionMask`:
+Ações podem ser restritas a estados específicos do jogador usando `ActionConditionMask`:
 
 ```c
 enum ActionConditionMask
 {
-    ACM_NO_EXEPTION    = 0,     // no special conditions
-    ACM_IN_VEHICLE     = 1,     // can use in vehicle
-    ACM_ON_LADDER      = 2,     // can use on ladder
-    ACM_SWIMMING       = 4,     // can use while swimming
-    ACM_RESTRAIN       = 8,     // can use while restrained
-    ACM_RAISED         = 16,    // can use with weapon raised
-    ACM_ON_BACK        = 32,    // can use while on back
-    ACM_THROWING       = 64,    // can use while throwing
-    ACM_LEANING        = 128,   // can use while leaning
-    ACM_BROKEN_LEGS    = 256,   // can use with broken legs
-    ACM_IN_FREELOOK    = 512,   // can use in freelook
+    ACM_NO_EXEPTION    = 0,     // sem condições especiais
+    ACM_IN_VEHICLE     = 1,     // pode usar em veículo
+    ACM_ON_LADDER      = 2,     // pode usar em escada
+    ACM_SWIMMING       = 4,     // pode usar nadando
+    ACM_RESTRAIN       = 8,     // pode usar enquanto amarrado
+    ACM_RAISED         = 16,    // pode usar com arma levantada
+    ACM_ON_BACK        = 32,    // pode usar de costas
+    ACM_THROWING       = 64,    // pode usar enquanto arremessa
+    ACM_LEANING        = 128,   // pode usar enquanto inclina
+    ACM_BROKEN_LEGS    = 256,   // pode usar com pernas quebradas
+    ACM_IN_FREELOOK    = 512,   // pode usar em freelook
 }
 ```
 
-Override the corresponding methods in your action to enable these:
+Sobrescreva os métodos correspondentes na sua ação para habilitar estes:
 
 ```c
 class MyVehicleAction : ActionSingleUseBase
@@ -1001,46 +1001,46 @@ class MyVehicleAction : ActionSingleUseBase
 }
 ```
 
-### Full Body vs Additive Animations
+### Animações de Corpo Inteiro vs Aditivas
 
-Açãos can be **additive** (player can walk) or **full body** (player is locked in place):
+Ações podem ser **aditivas** (jogador pode andar) ou **corpo inteiro** (jogador fica travado no lugar):
 
 ```c
 class MyFullBodyAction : ActionContinuousBase
 {
     void MyFullBodyAction()
     {
-        m_FullBody = true;   // player cannot move during action
+        m_FullBody = true;   // jogador não pode se mover durante a ação
         m_CommandUID = DayZPlayerConstants.CMD_ACTIONFB_ASSEMBLE;
         m_StanceMask = DayZPlayerConstants.STANCEMASK_ERECT;
     }
 }
 ```
 
-- **Additive** (`m_FullBody = false`): Uses `CMD_ACTIONMOD_*` command UIDs. Player can walk.
-- **Full body** (`m_FullBody = true`): Uses `CMD_ACTIONFB_*` command UIDs. Player is stationary.
+- **Aditiva** (`m_FullBody = false`): Usa UIDs de comando `CMD_ACTIONMOD_*`. Jogador pode andar.
+- **Corpo inteiro** (`m_FullBody = true`): Usa UIDs de comando `CMD_ACTIONFB_*`. Jogador fica parado.
 
-### Prone Exception
+### Exceção para Deitado
 
-Some actions need different animations when prone vs standing:
+Algumas ações precisam de animações diferentes quando deitado vs em pé:
 
 ```c
 override bool HasProneException()
 {
-    return true;  // uses m_CommandUIDProne when player is prone
+    return true;  // usa m_CommandUIDProne quando jogador está deitado
 }
 ```
 
-When `HasProneException()` returns true, the engine uses `m_CommandUIDProne` instead of `m_CommandUID` if the player is in prone stance.
+Quando `HasProneException()` retorna true, o motor usa `m_CommandUIDProne` em vez de `m_CommandUID` se o jogador estiver na postura deitada.
 
-### Ação Interruption
+### Interrupção de Ação
 
-Açãos can be interrupted server-side through the callback:
+Ações podem ser interrompidas no lado do servidor através do callback:
 
 ```c
 override void OnFinishProgressServer(ActionData action_data)
 {
-    // Check if action should be interrupted
+    // Verificar se a ação deve ser interrompida
     if (SomeConditionFailed())
     {
         if (action_data.m_Callback)
@@ -1048,96 +1048,96 @@ override void OnFinishProgressServer(ActionData action_data)
         return;
     }
 
-    // Normal execution...
+    // Execução normal...
 }
 ```
 
-### Inventory and Quickbar Execution
+### Execução via Inventário e Quickbar
 
-Açãos can be configured to run from the inventory screen or quickbar:
+Ações podem ser configuradas para executar a partir da tela de inventário ou quickbar:
 
 ```c
 override bool CanBePerformedFromInventory()
 {
-    return true;   // action appears in inventory item context menu
+    return true;   // ação aparece no menu de contexto do item no inventário
 }
 
 override bool CanBePerformedFromQuickbar()
 {
-    return true;   // action can be triggered via quickbar
+    return true;   // ação pode ser acionada via quickbar
 }
 ```
 
-### Lock Target On Use
+### Travar Alvo ao Usar
 
-By default, actions with targets lock the target so only one player can interact at a time:
+Por padrão, ações com alvos travam o alvo para que apenas um jogador possa interagir de cada vez:
 
 ```c
 override bool IsLockTargetOnUse()
 {
-    return false;  // allow multiple players to interact simultaneously
+    return false;  // permitir múltiplos jogadores interagirem simultaneamente
 }
 ```
 
 ---
 
-## Ação Category Constantes
+## Constantes de Categoria de Ação
 
-**File:** `4_World/classes/useractionscomponent/_constants.c`
+**Arquivo:** `4_World/classes/useractionscomponent/_constants.c`
 
 | Constante | Valor | Descrição |
 |----------|-------|-------------|
-| `AC_UNCATEGORIZED` | 0 | Padrão --- should not be used |
-| `AC_SINGLE_USE` | 1 | Single-use actions |
-| `AC_CONTINUOUS` | 2 | Continuous (progress bar) actions |
-| `AC_INTERACT` | 3 | Interact actions |
+| `AC_UNCATEGORIZED` | 0 | Padrão --- não deve ser usado |
+| `AC_SINGLE_USE` | 1 | Ações de uso único |
+| `AC_CONTINUOUS` | 2 | Ações contínuas (barra de progresso) |
+| `AC_INTERACT` | 3 | Ações de interação |
 
 ---
 
 ## Erros Comuns
 
-### 1. Forgetting `super.SetAçãos()`
+### 1. Esquecendo `super.SetActions()`
 
-**Wrong:**
+**Errado:**
 ```c
 modded class Apple extends ItemBase
 {
     override void SetActions()
     {
-        // Missing super.SetActions()!
+        // Faltando super.SetActions()!
         AddAction(MyCustomEatAction);
     }
 }
 ```
 
-This **removes all vanilla actions** from the item. The player will no longer be able to eat, drop, or otherwise interact with apples through standard actions.
+Isso **remove todas as ações vanilla** do item. O jogador não poderá mais comer, soltar ou interagir com maçãs através de ações padrão.
 
-**Correct:**
+**Correto:**
 ```c
 modded class Apple extends ItemBase
 {
     override void SetActions()
     {
-        super.SetActions();          // preserve vanilla actions
+        super.SetActions();          // preservar ações vanilla
         AddAction(MyCustomEatAction);
     }
 }
 ```
 
-### 2. Putting Server Logic in OnExecuteClient
+### 2. Colocando Lógica do Servidor em OnExecuteClient
 
-**Wrong:**
+**Errado:**
 ```c
 override void OnExecuteClient(ActionData action_data)
 {
-    action_data.m_Player.SetHealth("GlobalHealth", "Health", 100);  // NO EFFECT
-    action_data.m_MainItem.Delete();  // client-side only, will desync
+    action_data.m_Player.SetHealth("GlobalHealth", "Health", 100);  // SEM EFEITO
+    action_data.m_MainItem.Delete();  // apenas no cliente, vai dessincronizar
 }
 ```
 
-Health changes and inventory operations must happen on the server. `OnExecuteClient` is only for visual feedback (sounds, particle effects, UI updates).
+Mudanças de vida e operações de inventário devem acontecer no servidor. `OnExecuteClient` é apenas para feedback visual (sons, efeitos de partículas, atualizações de UI).
 
-**Correct:**
+**Correto:**
 ```c
 override void OnExecuteServer(ActionData action_data)
 {
@@ -1147,21 +1147,21 @@ override void OnExecuteServer(ActionData action_data)
 
 override void OnExecuteClient(ActionData action_data)
 {
-    // Visual feedback only
+    // Apenas feedback visual
 }
 ```
 
-### 3. Not Checking for Null in AçãoCondition
+### 3. Não Verificando Null em ActionCondition
 
-**Wrong:**
+**Errado:**
 ```c
 override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
 {
-    return target.GetObject().IsInherited(MyClass);  // CRASH if target or object is null
+    return target.GetObject().IsInherited(MyClass);  // CRASH se target ou object for null
 }
 ```
 
-**Correct:**
+**Correto:**
 ```c
 override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase item)
 {
@@ -1176,44 +1176,44 @@ override bool ActionCondition(PlayerBase player, ActionTarget target, ItemBase i
 }
 ```
 
-### 4. Wrong Condition Components (Ação Never Appears)
+### 4. Componentes de Condição Errados (Ação Nunca Aparece)
 
-**Problema:** Ação does not show up in the HUD.
+**Problema:** A ação não aparece no HUD.
 
-Common causes:
-- `CCIDummy` requires an item in hand, but the action should work with empty hands --- use `CCINone` instead
-- `CCTDummy` requires a target object, but the action is a self-action --- use `CCTSelf` or `CCTNone`
-- `CCTObject` distance too small for the target type --- increase distance parameter
-- `HasTarget()` returns true but there is no valid target condition --- either add `CCTCursor`/`CCTObject` or set `HasTarget()` to false
+Causas comuns:
+- `CCIDummy` requer um item na mão, mas a ação deveria funcionar com mãos vazias --- use `CCINone` em vez disso
+- `CCTDummy` requer um objeto alvo, mas a ação é auto-ação --- use `CCTSelf` ou `CCTNone`
+- Distância de `CCTObject` muito pequena para o tipo de alvo --- aumente o parâmetro de distância
+- `HasTarget()` retorna true mas não há condição de alvo válida --- adicione `CCTCursor`/`CCTObject` ou defina `HasTarget()` para false
 
-### 5. Mixing Up OnStart vs OnExecute
+### 5. Confundindo OnStart vs OnExecute
 
-- `OnStart` / `OnStartServer`: Called when the action **begins** (animation starts). Use for setup, reserving items.
-- `OnExecute` / `OnExecuteServer`: Called when the animation **event fires** (the "do" moment). Use for the actual effect.
+- `OnStart` / `OnStartServer`: Chamado quando a ação **começa** (animação inicia). Use para preparação, reservar itens.
+- `OnExecute` / `OnExecuteServer`: Chamado quando o **evento de animação dispara** (o momento de "fazer"). Use para o efeito real.
 
-For interact actions, `OnStartServer` is commonly used because the action is instantaneous. For single-use actions, `OnExecuteServer` fires at the animation event. Choose the right one based on when you need the effect to happen.
+Para ações interact, `OnStartServer` é comumente usado porque a ação é instantânea. Para ações de uso único, `OnExecuteServer` dispara no evento de animação. Escolha o correto baseado em quando você precisa que o efeito aconteça.
 
-### 6. Continuous Ação Not Repeating
+### 6. Ação Contínua Não Repetindo
 
-If your continuous action completes once and stops instead of repeating, you are using `CAContinuousTime` (single completion). Switch to `CAContinuousRepeat` for repeating cycles:
+Se sua ação contínua completa uma vez e para em vez de repetir, você está usando `CAContinuousTime` (conclusão única). Troque para `CAContinuousRepeat` para ciclos repetidos:
 
 ```c
-// Single completion — progress bar fills once then action ends
+// Conclusão única — barra de progresso enche uma vez e a ação termina
 m_ActionData.m_ActionComponent = new CAContinuousTime(5.0);
 
-// Repeating — progress bar fills, fires OnFinishProgress, resets, continues
+// Repetição — barra de progresso enche, dispara OnFinishProgress, reseta, continua
 m_ActionData.m_ActionComponent = new CAContinuousRepeat(5.0);
 ```
 
-### 7. Ação Shows on Wrong Items
+### 7. Ação Aparece em Itens Errados
 
-Remember: `SetAçãos()` is called per **class type**, not per instance. If you add an action in a parent class, all children inherit it. If you only want the action on specific subclasses, either:
-- Add it only in the specific subclass's `SetAçãos()`
-- Add a type check in `AçãoCondition()` as a guard
+Lembre-se: `SetActions()` é chamado por **tipo de classe**, não por instância. Se você adiciona uma ação em uma classe pai, todos os filhos a herdam. Se você quer a ação apenas em subclasses específicas, ou:
+- Adicione apenas no `SetActions()` da subclasse específica
+- Adicione uma verificação de tipo em `ActionCondition()` como proteção
 
-### 8. Forgetting HasTarget() Override
+### 8. Esquecendo Sobrescrita de HasTarget()
 
-If your action is a self-action (eating, healing, toggling held item), you must override:
+Se sua ação é auto-ação (comer, curar, alternar item segurado), você deve sobrescrever:
 
 ```c
 override bool HasTarget()
@@ -1222,56 +1222,56 @@ override bool HasTarget()
 }
 ```
 
-Without this, the engine expects a target object and may not show the action, or will try to sync a non-existent target to the server.
+Sem isso, o motor espera um objeto alvo e pode não mostrar a ação, ou tentará sincronizar um alvo inexistente para o servidor.
 
 ---
 
-## File Locations Referência Rápida
+## Referência Rápida de Localizações de Arquivo
 
-| File | Propósito |
+| Arquivo | Propósito |
 |------|---------|
-| `4_World/classes/useractionscomponent/actionbase.c` | `AçãoBase` --- core action class |
-| `4_World/classes/useractionscomponent/animatedactionbase.c` | `AnimatedAçãoBase` + `AçãoBaseCB` |
-| `4_World/classes/useractionscomponent/actions/actionsingleusebase.c` | `AçãoSingleUseBase` |
-| `4_World/classes/useractionscomponent/actions/actioncontinuousbase.c` | `AçãoContinuousBase` |
-| `4_World/classes/useractionscomponent/actions/actioninteractbase.c` | `AçãoInteractBase` |
+| `4_World/classes/useractionscomponent/actionbase.c` | `ActionBase` --- classe central de ação |
+| `4_World/classes/useractionscomponent/animatedactionbase.c` | `AnimatedActionBase` + `ActionBaseCB` |
+| `4_World/classes/useractionscomponent/actions/actionsingleusebase.c` | `ActionSingleUseBase` |
+| `4_World/classes/useractionscomponent/actions/actioncontinuousbase.c` | `ActionContinuousBase` |
+| `4_World/classes/useractionscomponent/actions/actioninteractbase.c` | `ActionInteractBase` |
 | `4_World/classes/useractionscomponent/actions/actionconstants.c` | `UATimeSpent`, `UAMaxDistances`, `UAQuantityConsumed` |
 | `4_World/classes/useractionscomponent/_constants.c` | `AC_SINGLE_USE`, `AC_CONTINUOUS`, `AC_INTERACT` |
-| `4_World/classes/useractionscomponent/actiontargets.c` | `AçãoTarget`, `AçãoTargets` |
-| `4_World/classes/useractionscomponent/itemconditioncomponents/` | `CCI*` classes |
-| `4_World/classes/useractionscomponent/targetconditionscomponents/` | `CCT*` classes |
-| `4_World/classes/useractionscomponent/actioncomponents/` | `CA*` progress components |
+| `4_World/classes/useractionscomponent/actiontargets.c` | `ActionTarget`, `ActionTargets` |
+| `4_World/classes/useractionscomponent/itemconditioncomponents/` | Classes `CCI*` |
+| `4_World/classes/useractionscomponent/targetconditionscomponents/` | Classes `CCT*` |
+| `4_World/classes/useractionscomponent/actioncomponents/` | Componentes de progresso `CA*` |
 | `3_Game/constants.c` | `UA_NONE`, `UA_PROCESSING`, `UA_FINISHED`, etc. |
 
 ---
 
 ## Resumo
 
-The DayZ Sistema de Ações follows a consistent pattern:
+O Sistema de Ações do DayZ segue um padrão consistente:
 
-1. **Choose your base class**: `AçãoSingleUseBase` for instant, `AçãoContinuousBase` for timed, `AçãoInteractBase` for world toggles
-2. **Set condition components** in `CreateConditionComponents()`: CCI for item requirements, CCT for target requirements
-3. **Add custom validation** in `AçãoCondition()`: type checks, state checks, distance checks
-4. **Implement server logic** in `OnExecuteServer()` or `OnFinishProgressServer()`
-5. **Register the action** via `AddAção()` in the appropriate entity's `SetAçãos()`
-6. **Always call `super.SetAçãos()`** to preserve vanilla actions
+1. **Escolha sua classe base**: `ActionSingleUseBase` para instantâneo, `ActionContinuousBase` para temporizado, `ActionInteractBase` para alternâncias do mundo
+2. **Defina componentes de condição** em `CreateConditionComponents()`: CCI para requisitos de item, CCT para requisitos de alvo
+3. **Adicione validação customizada** em `ActionCondition()`: verificações de tipo, estado, distância
+4. **Implemente lógica do servidor** em `OnExecuteServer()` ou `OnFinishProgressServer()`
+5. **Registre a ação** via `AddAction()` no `SetActions()` da entidade apropriada
+6. **Sempre chame `super.SetActions()`** para preservar ações vanilla
 
-The system is designed to be modular: condition components handle "can this happen?", action components handle "how long does it take?", and your overrides handle "what does it do?". Keep server logic on the server, visual feedback on the client, and always null-check your targets.
+O sistema é projetado para ser modular: componentes de condição gerenciam "isso pode acontecer?", componentes de ação gerenciam "quanto tempo leva?", e suas sobrescritas gerenciam "o que isso faz?". Mantenha a lógica do servidor no servidor, feedback visual no cliente, e sempre verifique null nos seus alvos.
 
 ---
 
 ## Boas Práticas
 
-- **Always call `super.SetAçãos()` when modding existing items.** Omitting it removes all vanilla actions (eat, drop, inspect) from the item, breaking core gameplay.
-- **Put all state-changing logic in `OnExecuteServer` or `OnFinishProgressServer`.** Health changes, item deletion, and inventory manipulation must run server-side. `OnExecuteClient` is only for visual feedback.
-- **Use `CCTObject` with appropriate distance constants.** Hardcoding distance checks in `AçãoCondition()` is fragile. The built-in condition components handle distance gating, cursor alignment, and item state checks consistently.
-- **Null-check every object in `AçãoCondition()`.** The method is called frequently with potentially null targets. Accessing `.GetObject()` without a guard causes crashes that are hard to diagnose.
-- **Prefer `CAContinuousRepeat` over `CAContinuousTime` for repair-style actions.** Repeat fires `OnFinishProgressServer` each cycle and continues until the player releases the key, which feels more natural for ongoing tasks.
+- **Sempre chame `super.SetActions()` ao modificar itens existentes.** Omitir isso remove todas as ações vanilla (comer, soltar, inspecionar) do item, quebrando a jogabilidade central.
+- **Coloque toda lógica que altera estado em `OnExecuteServer` ou `OnFinishProgressServer`.** Mudanças de vida, exclusão de itens e manipulação de inventário devem rodar no lado do servidor. `OnExecuteClient` é apenas para feedback visual.
+- **Use `CCTObject` com constantes de distância apropriadas.** Codificar verificações de distância em `ActionCondition()` é frágil. Os componentes de condição integrados gerenciam controle de distância, alinhamento de cursor e verificações de estado de item de forma consistente.
+- **Verifique null em todo objeto em `ActionCondition()`.** O método é chamado frequentemente com alvos potencialmente null. Acessar `.GetObject()` sem proteção causa crashes difíceis de diagnosticar.
+- **Prefira `CAContinuousRepeat` ao invés de `CAContinuousTime` para ações estilo reparo.** Repeat dispara `OnFinishProgressServer` a cada ciclo e continua até o jogador soltar a tecla, o que parece mais natural para tarefas contínuas.
 
 ---
 
-## Compatibility & Impact
+## Compatibilidade e Impacto
 
-- **Multi-Mod:** Açãos are registered per class type via `SetAçãos()`. Two mods adding different actions to the same item class both work -- actions accumulate. However, if both mods override `SetAçãos()` without calling `super`, only the last-loaded mod's actions survive.
-- **Performance:** `AçãoCondition()` is evaluated every frame for every candidate action on the player's current target. Keep it lightweight -- avoid expensive raycasts, config lookups, or array iterations inside condition checks.
-- **Server/Client:** The action pipeline is split: condition checks and UI display run on the client, execution callbacks run on the server. The engine handles synchronization via internal RPCs. Never rely on client-side state for authoritative game logic.
+- **Multi-Mod:** Ações são registradas por tipo de classe via `SetActions()`. Dois mods adicionando ações diferentes ao mesmo item funcionam -- ações se acumulam. Porém, se ambos os mods sobrescrevem `SetActions()` sem chamar `super`, apenas as ações do último mod carregado sobrevivem.
+- **Performance:** `ActionCondition()` é avaliado a cada frame para cada ação candidata no alvo atual do jogador. Mantenha-o leve -- evite raycasts caros, consultas de configuração ou iterações de array dentro de verificações de condição.
+- **Servidor/Cliente:** O pipeline de ações é dividido: verificações de condição e exibição de UI rodam no cliente, callbacks de execução rodam no servidor. O motor gerencia a sincronização via RPCs internos. Nunca dependa de estado do lado do cliente para lógica autoritativa do jogo.

@@ -1,456 +1,456 @@
-# Chapter 4.1: Textures (.paa, .edds, .tga)
+# 第 4.1 章：纹理 (.paa, .edds, .tga)
 
-[Home](../../README.md) | **Textures** | [Next: 3D Models >>](02-models.md)
+[首页](../../README.md) | **纹理** | [下一章：3D 模型 >>](02-models.md)
 
 ---
 
 ## 简介
 
-Every surface you see in DayZ -- weapon skins, clothing, terrain, UI icons -- is defined by texture files. The engine uses a proprietary compressed format called **PAA** at runtime, but during development you work with several source formats that are converted during the build process. Understanding these formats, the naming conventions that bind them to materials, and the resolution rules the engine enforces is fundamental to creating visual content for DayZ mods.
+DayZ 中你看到的每一个表面——武器皮肤、服装、地形、UI 图标——都由纹理文件定义。引擎在运行时使用一种名为 **PAA** 的专有压缩格式，但在开发过程中你需要使用多种源格式，这些格式在构建过程中会被转换。理解这些格式、将它们绑定到材质的命名约定以及引擎执行的分辨率规则，是为 DayZ 模组创建视觉内容的基础。
 
-This chapter covers every texture format you will encounter, the suffix naming system that tells the engine how to interpret each texture, resolution and alpha channel requirements, and the practical workflow for converting between formats.
+本章涵盖你将遇到的每种纹理格式、告诉引擎如何解读每个纹理的后缀命名系统、分辨率和 Alpha 通道要求，以及格式之间的实际转换工作流程。
 
 ---
 
 ## 目录
 
-- [Texture Formats Overview](#texture-formats-overview)
-- [PAA Format](#paa-format)
-- [EDDS Format](#edds-format)
-- [TGA Format](#tga-format)
-- [PNG Format](#png-format)
-- [Texture Naming Conventions](#texture-naming-conventions)
-- [Resolution Requirements](#resolution-requirements)
-- [Alpha Channel Support](#alpha-channel-support)
-- [Converting Between Formats](#converting-between-formats)
-- [Texture Quality and Compression](#texture-quality-and-compression)
-- [Real-World Examples](#real-world-examples)
-- [Common Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+- [纹理格式概述](#texture-formats-overview)
+- [PAA 格式](#paa-format)
+- [EDDS 格式](#edds-format)
+- [TGA 格式](#tga-format)
+- [PNG 格式](#png-format)
+- [纹理命名约定](#texture-naming-conventions)
+- [分辨率要求](#resolution-requirements)
+- [Alpha 通道支持](#alpha-channel-support)
+- [格式之间的转换](#converting-between-formats)
+- [纹理质量与压缩](#texture-quality-and-compression)
+- [实际示例](#real-world-examples)
+- [常见错误](#common-mistakes)
+- [最佳实践](#best-practices)
 
 ---
 
-## Texture Formats Overview
+## 纹理格式概述
 
-DayZ uses four texture formats at different stages of the development pipeline:
+DayZ 在开发管线的不同阶段使用四种纹理格式：
 
-| Format | Extension | Role | Alpha Support | Used At |
+| 格式 | 扩展名 | 角色 | Alpha 支持 | 使用场景 |
 |--------|-----------|------|---------------|---------|
-| **PAA** | `.paa` | Runtime game format (compressed) | Yes | Final build, shipped in PBOs |
-| **EDDS** | `.edds` | Editor/intermediate DDS variant | Yes | Object Builder preview, auto-converts |
-| **TGA** | `.tga` | Uncompressed source artwork | Yes | Artist workspace, Photoshop/GIMP export |
-| **PNG** | `.png` | Portable source format | Yes | UI textures, external tools |
+| **PAA** | `.paa` | 运行时游戏格式（压缩） | 是 | 最终构建，打包在 PBO 中 |
+| **EDDS** | `.edds` | 编辑器/中间 DDS 变体 | 是 | Object Builder 预览，自动转换 |
+| **TGA** | `.tga` | 未压缩的源艺术素材 | 是 | 美术师工作空间，Photoshop/GIMP 导出 |
+| **PNG** | `.png` | 便携源格式 | 是 | UI 纹理，外部工具 |
 
-The general workflow is: **Source (TGA/PNG) --> DayZ Tools conversion --> PAA (game-ready)**.
+一般工作流程为：**源文件 (TGA/PNG) --> DayZ Tools 转换 --> PAA（游戏就绪）**。
 
 ---
 
-## PAA Format
+## PAA 格式
 
-**PAA** (PAcked Arma) is the native compressed texture format used by the Enfusion engine at runtime. Every texture that ships in a PBO must be in PAA format (or will be converted to it during binarization).
+**PAA**（PAcked Arma）是 Enfusion 引擎在运行时使用的原生压缩纹理格式。每个装入 PBO 的纹理必须是 PAA 格式（或在二进制化过程中被转换为 PAA）。
 
-### Characteristics
+### 特征
 
-- **Compressed:** Uses DXT1, DXT5, or ARGB8888 compression internally depending on alpha channel presence and quality settings.
-- **Mipmapped:** PAA files contain a full mipmap chain, generated automatically during conversion. This is critical for rendering performance -- the engine selects the appropriate mip level based on distance.
-- **Power-of-two dimensions:** The engine requires PAA textures to have dimensions that are powers of 2 (256, 512, 1024, 2048, 4096).
-- **Read-only at runtime:** The engine loads PAA files directly from PBOs. You never edit a PAA file -- you edit the source and re-convert.
+- **压缩：** 根据 Alpha 通道的存在和质量设置，内部使用 DXT1、DXT5 或 ARGB8888 压缩。
+- **含 Mipmap：** PAA 文件包含完整的 Mipmap 链，在转换时自动生成。这对渲染性能至关重要——引擎根据距离选择合适的 Mip 级别。
+- **二的幂次方尺寸：** 引擎要求 PAA 纹理的尺寸为 2 的幂次方（256、512、1024、2048、4096）。
+- **运行时只读：** 引擎直接从 PBO 加载 PAA 文件。你永远不会编辑 PAA 文件——你编辑源文件并重新转换。
 
-### Internal Compression Types
+### 内部压缩类型
 
-| Type | Alpha | Quality | Use Case |
+| 类型 | Alpha | 质量 | 使用场景 |
 |------|-------|---------|----------|
-| **DXT1** | No (1-bit) | Good, 6:1 ratio | Opaque textures, terrain |
-| **DXT5** | Full 8-bit | Good, 4:1 ratio | Textures with smooth alpha (glass, foliage) |
-| **ARGB4444** | Full 4-bit | Medium | UI textures, small icons |
-| **ARGB8888** | Full 8-bit | Lossless | Debug, highest quality (large file size) |
-| **AI88** | Grayscale + alpha | Good | Normal maps, grayscale masks |
+| **DXT1** | 无（1 位） | 好，6:1 比率 | 不透明纹理，地形 |
+| **DXT5** | 完整 8 位 | 好，4:1 比率 | 具有平滑 Alpha 的纹理（玻璃、植被） |
+| **ARGB4444** | 完整 4 位 | 中等 | UI 纹理，小图标 |
+| **ARGB8888** | 完整 8 位 | 无损 | 调试，最高质量（文件较大） |
+| **AI88** | 灰度 + Alpha | 好 | 法线贴图，灰度遮罩 |
 
-### When You See PAA Files
+### 何时会看到 PAA 文件
 
-- Inside unpacked vanilla game data (`dta/` and addon PBOs)
-- As the output of TexView2 conversion
-- As the output of Binarize when processing source textures
-- In your mod's final PBO after building
+- 在解包的原版游戏数据中（`dta/` 和插件 PBO）
+- 作为 TexView2 转换的输出
+- 作为 Binarize 处理源纹理的输出
+- 在你的模组最终 PBO 构建后
 
 ---
 
-## EDDS Format
+## EDDS 格式
 
-**EDDS** is an intermediate texture format used primarily by DayZ's **Object Builder** and the editor tools. It is essentially a variant of the standard DirectDraw Surface (DDS) format with engine-specific metadata.
+**EDDS** 是一种中间纹理格式，主要由 DayZ 的 **Object Builder** 和编辑器工具使用。它本质上是标准 DirectDraw Surface (DDS) 格式的变体，带有引擎特定的元数据。
 
-### Characteristics
+### 特征
 
-- **Preview format:** Object Builder can display EDDS textures directly, making them useful during model creation.
-- **Auto-converts to PAA:** When you run Binarize or AddonBuilder (without `-packonly`), EDDS files in your source tree are automatically converted to PAA.
-- **Larger than PAA:** EDDS files are not optimized for distribution -- they exist for editor convenience.
-- **DayZ-Samples format:** The official DayZ-Samples provided by Bohemia use EDDS textures extensively.
+- **预览格式：** Object Builder 可以直接显示 EDDS 纹理，使其在模型创建过程中非常有用。
+- **自动转换为 PAA：** 当你运行 Binarize 或 AddonBuilder（不使用 `-packonly`）时，源树中的 EDDS 文件会自动转换为 PAA。
+- **比 PAA 大：** EDDS 文件未针对分发进行优化——它们是为编辑器便利而存在的。
+- **DayZ-Samples 格式：** Bohemia 提供的官方 DayZ-Samples 大量使用 EDDS 纹理。
 
-### Workflow with EDDS
+### EDDS 工作流程
 
 ```
-Artist creates TGA/PNG source
-    --> Photoshop DDS plugin exports EDDS for preview
-        --> Object Builder displays EDDS on model
-            --> Binarize converts EDDS to PAA for PBO
+美术师创建 TGA/PNG 源文件
+    --> Photoshop DDS 插件导出 EDDS 用于预览
+        --> Object Builder 在模型上显示 EDDS
+            --> Binarize 将 EDDS 转换为 PAA 用于 PBO
 ```
 
-> **Tip:** You can skip EDDS entirely if you prefer. Convert your source textures directly to PAA using TexView2 and reference the PAA paths in your materials. EDDS is a convenience, not a requirement.
+> **提示：** 如果你愿意，可以完全跳过 EDDS。使用 TexView2 将源纹理直接转换为 PAA，并在材质中引用 PAA 路径。EDDS 是一种便利手段，不是必需的。
 
 ---
 
-## TGA Format
+## TGA 格式
 
-**TGA** (Truevision TGA / Targa) is the traditional uncompressed source format for DayZ texture work. Many vanilla DayZ textures were originally authored as TGA files.
+**TGA**（Truevision TGA / Targa）是 DayZ 纹理工作的传统未压缩源格式。许多原版 DayZ 纹理最初是以 TGA 文件编写的。
 
-### Characteristics
+### 特征
 
-- **Uncompressed:** No quality loss, full color depth (24-bit or 32-bit with alpha).
-- **Large file sizes:** A 2048x2048 TGA with alpha is approximately 16 MB.
-- **Alpha in dedicated channel:** TGA supports a proper 8-bit alpha channel (32-bit TGA), which maps directly to transparency in PAA.
-- **TexView2 compatible:** TexView2 can open TGA files directly and convert them to PAA.
+- **未压缩：** 无质量损失，完整色彩深度（24 位或带 Alpha 的 32 位）。
+- **文件较大：** 带 Alpha 的 2048x2048 TGA 大约为 16 MB。
+- **Alpha 在专用通道中：** TGA 支持适当的 8 位 Alpha 通道（32 位 TGA），可直接映射到 PAA 中的透明度。
+- **TexView2 兼容：** TexView2 可以直接打开 TGA 文件并将其转换为 PAA。
 
-### When to Use TGA
+### 何时使用 TGA
 
-- As your master source file for textures you author from scratch.
-- When exporting from Substance Painter or Photoshop for DayZ.
-- When the DayZ-Samples documentation or community tutorials specify TGA as the source format.
+- 作为你从头创作的纹理的主源文件。
+- 从 Substance Painter 或 Photoshop 导出用于 DayZ 时。
+- 当 DayZ-Samples 文档或社区教程指定 TGA 作为源格式时。
 
-### TGA Export Settings
+### TGA 导出设置
 
-When exporting TGA for DayZ conversion:
+为 DayZ 转换导出 TGA 时：
 
-- **Bit depth:** 32-bit (if alpha is needed) or 24-bit (opaque textures)
-- **Compression:** None (uncompressed)
-- **Orientation:** Bottom-left origin (standard TGA orientation)
-- **Resolution:** Must be power of 2 (see [Resolution Requirements](#resolution-requirements))
-
----
-
-## PNG Format
-
-**PNG** (Portable Network Graphics) is widely supported and can be used as an alternative source format, particularly for UI textures.
-
-### Characteristics
-
-- **Lossless compression:** Smaller than TGA but retains full quality.
-- **Full alpha channel:** 32-bit PNG supports 8-bit alpha.
-- **TexView2 compatible:** TexView2 can open and convert PNG to PAA.
-- **UI-friendly:** Many UI imagesets and icons in mods use PNG as their source format.
-
-### When to Use PNG
-
-- **UI textures and icons:** PNG is the practical choice for imagesets and HUD elements.
-- **Simple retextures:** When you only need a color/diffuse map with no complex alpha.
-- **Cross-tool workflows:** PNG is universally supported across image editors, web tools, and scripts.
-
-> **注意：** PNG is not an official Bohemia source format -- they prefer TGA. However, the conversion tools handle PNG without issues and many modders use it successfully.
+- **位深度：** 32 位（如果需要 Alpha）或 24 位（不透明纹理）
+- **压缩：** 无（未压缩）
+- **方向：** 左下角原点（标准 TGA 方向）
+- **分辨率：** 必须是 2 的幂次方（参见[分辨率要求](#resolution-requirements)）
 
 ---
 
-## Texture Naming Conventions
+## PNG 格式
 
-DayZ uses a strict suffix system to identify the role of each texture. The engine and materials reference textures by filename, and the suffix tells both the engine and other modders what type of data the texture contains.
+**PNG**（Portable Network Graphics）得到广泛支持，可作为替代源格式使用，特别适用于 UI 纹理。
 
-### Required Suffixes
+### 特征
 
-| Suffix | Full Name | Purpose | Typical Format |
+- **无损压缩：** 比 TGA 小但保留完整质量。
+- **完整 Alpha 通道：** 32 位 PNG 支持 8 位 Alpha。
+- **TexView2 兼容：** TexView2 可以打开并将 PNG 转换为 PAA。
+- **UI 友好：** 许多模组中的 UI 图像集和图标使用 PNG 作为源格式。
+
+### 何时使用 PNG
+
+- **UI 纹理和图标：** PNG 是图像集和 HUD 元素的实用选择。
+- **简单重新纹理：** 当你只需要颜色/漫反射贴图而没有复杂 Alpha 时。
+- **跨工具工作流程：** PNG 在图像编辑器、网页工具和脚本中得到普遍支持。
+
+> **注意：** PNG 不是 Bohemia 的官方源格式——他们偏好 TGA。但是，转换工具可以无问题地处理 PNG，许多模组制作者都成功使用它。
+
+---
+
+## 纹理命名约定
+
+DayZ 使用严格的后缀系统来标识每个纹理的角色。引擎和材质通过文件名引用纹理，后缀告诉引擎和其他模组制作者纹理包含什么类型的数据。
+
+### 必需后缀
+
+| 后缀 | 全称 | 用途 | 典型格式 |
 |--------|-----------|---------|----------------|
-| `_co` | **Color / Diffuse** | The base color (albedo) of a surface | RGB, optional alpha |
-| `_nohq` | **Normal Map (High Quality)** | Surface detail normals, defines bumps and grooves | RGB (tangent-space normal) |
-| `_smdi` | **Specular / Metallic / Detail Index** | Controls shininess and metallic properties | RGB channels encode separate data |
-| `_ca` | **Color with Alpha** | Color texture where the alpha channel carries meaningful data (transparency, mask) | RGBA |
-| `_as` | **Ambient Shadow** | Ambient occlusion / shadow bake | Grayscale |
-| `_mc` | **Macro** | Large-scale color variation visible at distance | RGB |
-| `_li` | **Light / Emissive** | Self-illumination map (glowing parts) | RGB |
-| `_no` | **Normal Map (Standard)** | Lower quality normal map variant | RGB |
-| `_mca` | **Macro with Alpha** | Macro texture with alpha channel | RGBA |
-| `_de` | **Detail** | Tiling detail texture for close-up surface variation | RGB |
+| `_co` | **Color / Diffuse** | 表面的基础颜色（反照率） | RGB，可选 Alpha |
+| `_nohq` | **Normal Map (High Quality)** | 表面细节法线，定义凹凸和凹槽 | RGB（切线空间法线） |
+| `_smdi` | **Specular / Metallic / Detail Index** | 控制光泽度和金属属性 | RGB 通道编码单独的数据 |
+| `_ca` | **Color with Alpha** | Alpha 通道携带有意义数据（透明度、遮罩）的颜色纹理 | RGBA |
+| `_as` | **Ambient Shadow** | 环境光遮蔽 / 阴影烘焙 | 灰度 |
+| `_mc` | **Macro** | 在远距离可见的大尺度颜色变化 | RGB |
+| `_li` | **Light / Emissive** | 自发光贴图（发光部分） | RGB |
+| `_no` | **Normal Map (Standard)** | 较低质量的法线贴图变体 | RGB |
+| `_mca` | **Macro with Alpha** | 带 Alpha 通道的宏观纹理 | RGBA |
+| `_de` | **Detail** | 用于近距离表面变化的平铺细节纹理 | RGB |
 
-### Naming Convention in Practice
+### 命名约定实践
 
-A single item typically has multiple textures, all sharing a base name:
+单个物品通常有多个纹理，共享一个基础名称：
 
 ```
 data/
-  my_rifle_co.paa          <-- Base color (what you see)
-  my_rifle_nohq.paa        <-- Normal map (surface bumps)
-  my_rifle_smdi.paa         <-- Specular/metallic (shininess)
-  my_rifle_as.paa           <-- Ambient shadow (baked AO)
-  my_rifle_ca.paa           <-- Color with alpha (if transparency needed)
+  my_rifle_co.paa          <-- 基础颜色（你看到的）
+  my_rifle_nohq.paa        <-- 法线贴图（表面凹凸）
+  my_rifle_smdi.paa         <-- 高光/金属（光泽度）
+  my_rifle_as.paa           <-- 环境阴影（烘焙 AO）
+  my_rifle_ca.paa           <-- 带 Alpha 的颜色（如果需要透明度）
 ```
 
-### The _smdi Channels
+### _smdi 通道
 
-The specular/metallic/detail texture packs three data streams into one RGB image:
+高光/金属/细节纹理将三个数据流打包到一张 RGB 图像中：
 
-| Channel | Data | Range | Effect |
+| 通道 | 数据 | 范围 | 效果 |
 |---------|------|-------|--------|
-| **R** | Metallic | 0-255 | 0 = non-metal, 255 = full metal |
-| **G** | Roughness (inverted specular) | 0-255 | 0 = rough/matte, 255 = smooth/glossy |
-| **B** | Detail index / AO | 0-255 | Detail tiling or ambient occlusion |
+| **R** | 金属度 | 0-255 | 0 = 非金属，255 = 全金属 |
+| **G** | 粗糙度（反向高光） | 0-255 | 0 = 粗糙/哑光，255 = 光滑/光泽 |
+| **B** | 细节索引 / AO | 0-255 | 细节平铺或环境光遮蔽 |
 
-### The _nohq Channels
+### _nohq 通道
 
-Normal maps in DayZ use tangent-space encoding:
+DayZ 中的法线贴图使用切线空间编码：
 
-| Channel | Data |
+| 通道 | 数据 |
 |---------|------|
-| **R** | X-axis normal (left-right) |
-| **G** | Y-axis normal (up-down) |
-| **B** | Z-axis normal (toward viewer) |
-| **A** | Specular power (optional, depends on material) |
+| **R** | X 轴法线（左右） |
+| **G** | Y 轴法线（上下） |
+| **B** | Z 轴法线（朝向观察者） |
+| **A** | 高光功率（可选，取决于材质） |
 
 ---
 
-## Resolution Requirements
+## 分辨率要求
 
-The Enfusion engine requires all textures to have **power-of-two dimensions**. Both width and height must independently be a power of 2, but they do not have to be equal (non-square textures are valid).
+Enfusion 引擎要求所有纹理具有 **二的幂次方尺寸**。宽度和高度必须各自独立地为 2 的幂次方，但不必相等（非正方形纹理是有效的）。
 
-### Valid Dimensions
+### 有效尺寸
 
-| Size | Typical Use |
+| 尺寸 | 典型用途 |
 |------|-------------|
-| **64x64** | Tiny icons, UI elements |
-| **128x128** | Small icons, inventory thumbnails |
-| **256x256** | UI panels, small item textures |
-| **512x512** | Standard item textures, clothing |
-| **1024x1024** | Weapons, detailed clothing, vehicle parts |
-| **2048x2048** | High-detail weapons, character models |
-| **4096x4096** | Terrain textures, large vehicle textures |
+| **64x64** | 微型图标，UI 元素 |
+| **128x128** | 小图标，物品栏缩略图 |
+| **256x256** | UI 面板，小物品纹理 |
+| **512x512** | 标准物品纹理，服装 |
+| **1024x1024** | 武器，精细服装，车辆零件 |
+| **2048x2048** | 高细节武器，角色模型 |
+| **4096x4096** | 地形纹理，大型车辆纹理 |
 
-### Non-Square Textures
+### 非正方形纹理
 
-Non-square power-of-two textures are valid:
+非正方形的二的幂次方纹理是有效的：
 
 ```
-256x512    -- Valid (both are powers of 2)
-512x1024   -- Valid
-1024x2048  -- Valid
-300x512    -- INVALID (300 is not a power of 2)
+256x512    -- 有效（两者都是 2 的幂次方）
+512x1024   -- 有效
+1024x2048  -- 有效
+300x512    -- 无效（300 不是 2 的幂次方）
 ```
 
-### Resolution Guidelines
+### 分辨率指南
 
-- **Weapons:** 2048x2048 for the main body, 1024x1024 for attachments.
-- **Clothing:** 1024x1024 or 2048x2048 depending on surface area coverage.
-- **UI icons:** 128x128 or 256x256 for inventory icons, 64x64 for HUD elements.
-- **Terrain:** 4096x4096 for satellite maps, 512x512 or 1024x1024 for material tiles.
-- **Normal maps:** Same resolution as the corresponding color texture.
-- **SMDI maps:** Same resolution as the corresponding color texture.
+- **武器：** 主体 2048x2048，配件 1024x1024。
+- **服装：** 根据表面积覆盖范围选择 1024x1024 或 2048x2048。
+- **UI 图标：** 物品栏图标 128x128 或 256x256，HUD 元素 64x64。
+- **地形：** 卫星地图 4096x4096，材质贴片 512x512 或 1024x1024。
+- **法线贴图：** 与对应颜色纹理相同的分辨率。
+- **SMDI 贴图：** 与对应颜色纹理相同的分辨率。
 
-> **警告：** If a texture has non-power-of-two dimensions, the engine will either refuse to load it or display a magenta error texture. TexView2 will show a warning during conversion.
+> **警告：** 如果纹理的尺寸不是二的幂次方，引擎将拒绝加载它或显示品红色错误纹理。TexView2 在转换时会显示警告。
 
 ---
 
-## Alpha Channel Support
+## Alpha 通道支持
 
-The alpha channel in a texture carries additional data beyond color. How it is interpreted depends on the texture suffix and the material shader.
+纹理中的 Alpha 通道承载颜色之外的附加数据。其解读方式取决于纹理后缀和材质着色器。
 
-### Alpha Channel Roles
+### Alpha 通道角色
 
-| Suffix | Alpha Interpretation |
+| 后缀 | Alpha 解读 |
 |--------|---------------------|
-| `_co` | Usually unused; if present, may define transparency for simple materials |
-| `_ca` | Transparency mask (0 = fully transparent, 255 = fully opaque) |
-| `_nohq` | Specular power map (higher = sharper specular highlight) |
-| `_smdi` | Usually unused |
-| `_li` | Emissive intensity mask |
+| `_co` | 通常未使用；如果存在，可能为简单材质定义透明度 |
+| `_ca` | 透明度遮罩（0 = 完全透明，255 = 完全不透明） |
+| `_nohq` | 高光功率贴图（越高 = 越锐利的高光） |
+| `_smdi` | 通常未使用 |
+| `_li` | 自发光强度遮罩 |
 
-### Creating Textures with Alpha
+### 创建带 Alpha 的纹理
 
-In your image editor (Photoshop, GIMP, Krita):
+在你的图像编辑器（Photoshop、GIMP、Krita）中：
 
-1. Create the RGB content as normal.
-2. Add an alpha channel.
-3. Paint white (255) where you want full opacity/effect, black (0) where you want none.
-4. Export as 32-bit TGA or PNG.
-5. Convert to PAA using TexView2 -- it will detect the alpha channel automatically.
+1. 正常创建 RGB 内容。
+2. 添加 Alpha 通道。
+3. 在需要完全不透明/效果的地方涂白色（255），在不需要的地方涂黑色（0）。
+4. 导出为 32 位 TGA 或 PNG。
+5. 使用 TexView2 转换为 PAA——它会自动检测 Alpha 通道。
 
-### Verifying Alpha in TexView2
+### 在 TexView2 中验证 Alpha
 
-Open the PAA in TexView2 and use the channel display buttons:
+在 TexView2 中打开 PAA 并使用通道显示按钮：
 
-- **RGBA** -- Shows the final composite
-- **RGB** -- Shows color only
-- **A** -- Shows alpha channel only (white = opaque, black = transparent)
+- **RGBA** -- 显示最终合成效果
+- **RGB** -- 仅显示颜色
+- **A** -- 仅显示 Alpha 通道（白色 = 不透明，黑色 = 透明）
 
 ---
 
-## Converting Between Formats
+## 格式之间的转换
 
-### TexView2 (Primary Tool)
+### TexView2（主要工具）
 
-**TexView2** is included with DayZ Tools and is the standard texture conversion utility.
+**TexView2** 包含在 DayZ Tools 中，是标准的纹理转换工具。
 
-**Opening a file:**
-1. Launch TexView2 from DayZ Tools or directly from `DayZ Tools\Bin\TexView2\TexView2.exe`.
-2. Open your source file (TGA, PNG, or EDDS).
-3. Verify the image looks correct and check dimensions.
+**打开文件：**
+1. 从 DayZ Tools 或直接从 `DayZ Tools\Bin\TexView2\TexView2.exe` 启动 TexView2。
+2. 打开你的源文件（TGA、PNG 或 EDDS）。
+3. 验证图像是否正确并检查尺寸。
 
-**Converting to PAA:**
-1. Open the source texture in TexView2.
-2. Go to **File --> Save As**.
-3. Select **PAA** as the output format.
-4. Choose the compression type:
-   - **DXT1** for opaque textures (no alpha needed)
-   - **DXT5** for textures with alpha transparency
-   - **ARGB4444** for small UI textures where file size matters
-5. Click **Save**.
+**转换为 PAA：**
+1. 在 TexView2 中打开源纹理。
+2. 进入 **File --> Save As**。
+3. 选择 **PAA** 作为输出格式。
+4. 选择压缩类型：
+   - **DXT1** 用于不透明纹理（不需要 Alpha）
+   - **DXT5** 用于具有 Alpha 透明度的纹理
+   - **ARGB4444** 用于文件大小重要的小型 UI 纹理
+5. 点击 **Save**。
 
-**Batch conversion via command line:**
+**通过命令行批量转换：**
 
 ```bash
-# Convert a single TGA to PAA
+# 将单个 TGA 转换为 PAA
 "P:\DayZ Tools\Bin\TexView2\TexView2.exe" -i "source.tga" -o "output.paa"
 
-# TexView2 will auto-select compression based on alpha channel presence
+# TexView2 会根据 Alpha 通道的存在自动选择压缩方式
 ```
 
-### Binarize (Automated)
+### Binarize（自动化）
 
-When Binarize processes your mod's source directory, it automatically converts all recognized texture formats (TGA, PNG, EDDS) to PAA. This happens as part of the AddonBuilder pipeline.
+当 Binarize 处理你的模组源目录时，它会自动将所有识别的纹理格式（TGA、PNG、EDDS）转换为 PAA。这作为 AddonBuilder 管线的一部分发生。
 
-**Binarize conversion flow:**
+**Binarize 转换流程：**
 ```
 source/mod_name/data/texture_co.tga
-    --> Binarize detects TGA
-        --> Converts to PAA with automatic compression selection
-            --> Output: build/mod_name/data/texture_co.paa
+    --> Binarize 检测到 TGA
+        --> 自动选择压缩方式转换为 PAA
+            --> 输出：build/mod_name/data/texture_co.paa
 ```
 
-### Manual Conversion Table
+### 手动转换表
 
-| From | To | Tool | Notes |
+| 来源 | 目标 | 工具 | 备注 |
 |------|----|------|-------|
-| TGA --> PAA | TexView2 | Standard workflow |
-| PNG --> PAA | TexView2 | Works identically to TGA |
-| EDDS --> PAA | TexView2 or Binarize | Automatic during build |
-| PAA --> TGA | TexView2 (Save As TGA) | For editing existing textures |
-| PAA --> PNG | TexView2 (Save As PNG) | For extracting to portable format |
-| PSD --> TGA/PNG | Photoshop/GIMP | Export from editor, then convert |
+| TGA --> PAA | TexView2 | 标准工作流程 |
+| PNG --> PAA | TexView2 | 与 TGA 完全相同 |
+| EDDS --> PAA | TexView2 或 Binarize | 构建时自动完成 |
+| PAA --> TGA | TexView2（另存为 TGA） | 用于编辑现有纹理 |
+| PAA --> PNG | TexView2（另存为 PNG） | 用于提取为便携格式 |
+| PSD --> TGA/PNG | Photoshop/GIMP | 从编辑器导出，然后转换 |
 
 ---
 
-## Texture Quality and Compression
+## 纹理质量与压缩
 
-### Compression Type Selection
+### 压缩类型选择
 
-| Scenario | Recommended Compression | Reason |
+| 场景 | 推荐压缩 | 原因 |
 |----------|------------------------|--------|
-| Opaque diffuse (`_co`) | DXT1 | Best ratio, no alpha needed |
-| Transparent diffuse (`_ca`) | DXT5 | Full alpha support |
-| Normal maps (`_nohq`) | DXT5 | Alpha channel carries specular power |
-| Specular maps (`_smdi`) | DXT1 | Usually opaque, RGB channels only |
-| UI textures | ARGB4444 or DXT5 | Small size, clean edges |
-| Emissive maps (`_li`) | DXT1 or DXT5 | DXT5 if alpha carries intensity |
+| 不透明漫反射 (`_co`) | DXT1 | 最佳比率，无需 Alpha |
+| 透明漫反射 (`_ca`) | DXT5 | 完整 Alpha 支持 |
+| 法线贴图 (`_nohq`) | DXT5 | Alpha 通道携带高光功率 |
+| 高光贴图 (`_smdi`) | DXT1 | 通常不透明，仅 RGB 通道 |
+| UI 纹理 | ARGB4444 或 DXT5 | 小尺寸，清晰边缘 |
+| 自发光贴图 (`_li`) | DXT1 或 DXT5 | 如果 Alpha 携带强度则用 DXT5 |
 
-### Quality vs. File Size
+### 质量 vs. 文件大小
 
 ```
-Format        2048x2048 approx. size
+格式          2048x2048 大约大小
 -----------------------------------------
-ARGB8888      16.0 MB    (uncompressed)
-DXT5           5.3 MB    (4:1 compression)
-DXT1           2.7 MB    (6:1 compression)
-ARGB4444       8.0 MB    (2:1 compression)
+ARGB8888      16.0 MB    （未压缩）
+DXT5           5.3 MB    （4:1 压缩）
+DXT1           2.7 MB    （6:1 压缩）
+ARGB4444       8.0 MB    （2:1 压缩）
 ```
 
-### In-Game Quality Settings
+### 游戏内质量设置
 
-Players can adjust texture quality in DayZ's video settings. The engine selects lower mip levels when quality is reduced, so your textures will look progressively blurrier at lower settings. This is automatic -- you do not need to create separate quality levels.
+玩家可以在 DayZ 的视频设置中调整纹理质量。当质量降低时，引擎会选择较低的 Mip 级别，因此你的纹理在较低设置下会逐渐变得模糊。这是自动的——你不需要创建单独的质量级别。
 
 ---
 
 ## 实际示例
 
-### Weapon Texture Set
+### 武器纹理集
 
-A typical weapon mod contains these texture files:
+典型的武器模组包含以下纹理文件：
 
 ```
 MyWeapons/data/weapons/m4a1/
-  my_weapon_co.paa           <-- 2048x2048, DXT1, base color
-  my_weapon_nohq.paa         <-- 2048x2048, DXT5, normal map
-  my_weapon_smdi.paa          <-- 2048x2048, DXT1, specular/metallic
-  my_weapon_as.paa            <-- 1024x1024, DXT1, ambient shadow
+  my_weapon_co.paa           <-- 2048x2048，DXT1，基础颜色
+  my_weapon_nohq.paa         <-- 2048x2048，DXT5，法线贴图
+  my_weapon_smdi.paa          <-- 2048x2048，DXT1，高光/金属
+  my_weapon_as.paa            <-- 1024x1024，DXT1，环境阴影
 ```
 
-The material file (`.rvmat`) references these textures and assigns them to shader stages.
+材质文件（`.rvmat`）引用这些纹理并将它们分配给着色器阶段。
 
-### UI Texture (Imageset Source)
+### UI 纹理（图像集源）
 
 ```
 MyFramework/data/gui/icons/
-  my_icons_co.paa           <-- 512x512, ARGB4444, sprite atlas
+  my_icons_co.paa           <-- 512x512，ARGB4444，精灵图集
 ```
 
-UI textures are often packed into a single atlas (imageset) and referenced by name in layout files. ARGB4444 compression is common for UI because it preserves clean edges while keeping file sizes small.
+UI 纹理通常被打包到单个图集（图像集）中，并在布局文件中按名称引用。ARGB4444 压缩在 UI 中很常见，因为它在保持文件大小小的同时保留清晰的边缘。
 
-### Terrain Textures
+### 地形纹理
 
 ```
 terrain/
-  grass_green_co.paa         <-- 1024x1024, DXT1, tiling color
-  grass_green_nohq.paa       <-- 1024x1024, DXT5, tiling normal
-  grass_green_smdi.paa        <-- 1024x1024, DXT1, tiling specular
-  grass_green_mc.paa          <-- 512x512, DXT1, macro variation
-  grass_green_de.paa          <-- 512x512, DXT1, detail tiling
+  grass_green_co.paa         <-- 1024x1024，DXT1，平铺颜色
+  grass_green_nohq.paa       <-- 1024x1024，DXT5，平铺法线
+  grass_green_smdi.paa        <-- 1024x1024，DXT1，平铺高光
+  grass_green_mc.paa          <-- 512x512，DXT1，宏观变化
+  grass_green_de.paa          <-- 512x512，DXT1，细节平铺
 ```
 
-Terrain textures tile across the landscape. The `_mc` macro texture adds large-scale color variation to prevent repetition.
+地形纹理在地表上平铺。`_mc` 宏观纹理添加大尺度颜色变化以防止重复。
 
 ---
 
 ## 常见错误
 
-### 1. Non-Power-of-Two Dimensions
+### 1. 非二的幂次方尺寸
 
-**症状：** Magenta texture in-game, TexView2 warnings.
-**修复：** Resize your source to the nearest power of 2 before converting.
+**症状：** 游戏中纹理显示为品红色，TexView2 显示警告。
+**修复：** 在转换前将源文件调整为最接近的 2 的幂次方。
 
-### 2. Missing Suffix
+### 2. 缺少后缀
 
-**症状：** Material cannot find the texture, or it renders incorrectly.
-**修复：** Always include the proper suffix (`_co`, `_nohq`, etc.) in the filename.
+**症状：** 材质找不到纹理，或者渲染不正确。
+**修复：** 始终在文件名中包含正确的后缀（`_co`、`_nohq` 等）。
 
-### 3. Wrong Compression for Alpha
+### 3. Alpha 使用了错误的压缩
 
-**症状：** Transparency looks blocky or binary (on/off with no gradient).
-**修复：** Use DXT5 instead of DXT1 for textures that need smooth alpha gradients.
+**症状：** 透明度看起来块状或二值化（开/关没有渐变）。
+**修复：** 对需要平滑 Alpha 渐变的纹理使用 DXT5 而不是 DXT1。
 
-### 4. Forgetting Mipmaps
+### 4. 忘记 Mipmap
 
-**症状：** Texture looks fine up close but shimmers/sparkles at distance.
-**修复：** PAA files generated by TexView2 automatically include mipmaps. If you are using a non-standard tool, ensure mipmap generation is enabled.
+**症状：** 纹理近处看起来正常，但远处闪烁/闪亮。
+**修复：** TexView2 生成的 PAA 文件自动包含 Mipmap。如果你使用非标准工具，请确保启用了 Mipmap 生成。
 
-### 5. Incorrect Normal Map Format
+### 5. 法线贴图格式不正确
 
-**症状：** Lighting on the model looks inverted or flat.
-**修复：** Ensure your normal map is in tangent-space format with DirectX-style Y-axis convention (green channel: up = lighter). Some tools export OpenGL-style (inverted Y) -- you need to invert the green channel.
+**症状：** 模型上的光照看起来反转或平坦。
+**修复：** 确保你的法线贴图为切线空间格式，使用 DirectX 风格的 Y 轴约定（绿色通道：上 = 较亮）。某些工具导出 OpenGL 风格（Y 反转）——你需要反转绿色通道。
 
-### 6. Path Mismatch After Conversion
+### 6. 转换后路径不匹配
 
-**症状：** Model or material shows magenta because it references a `.tga` path but the PBO contains `.paa`.
-**修复：** Materials should reference the final `.paa` path. Binarize handles path remapping automatically, but if you pack with `-packonly` (no binarization), you must ensure the paths match exactly.
+**症状：** 模型或材质显示品红色，因为它引用了 `.tga` 路径，但 PBO 包含的是 `.paa`。
+**修复：** 材质应引用最终的 `.paa` 路径。Binarize 自动处理路径重映射，但如果你使用 `-packonly`（不进行二进制化）打包，你必须确保路径完全匹配。
 
 ---
 
-## Best Practices
+## 最佳实践
 
-1. **Keep source files in version control.** Store TGA/PNG masters alongside your mod. The PAA files are generated output -- the sources are what matter.
+1. **将源文件纳入版本控制。** 将 TGA/PNG 主文件与模组一起存储。PAA 文件是生成的输出——源文件才是重要的。
 
-2. **Match resolution to importance.** A rifle the player stares at for hours deserves 2048x2048. A can of beans in the back of a shelf can use 512x512.
+2. **根据重要性匹配分辨率。** 玩家盯着看几个小时的步枪值得 2048x2048。架子后面的一罐豆子可以使用 512x512。
 
-3. **Always provide a normal map.** Even a flat normal map (128, 128, 255 solid fill) is better than none -- missing normal maps cause material errors.
+3. **始终提供法线贴图。** 即使是平坦的法线贴图（128, 128, 255 纯色填充）也比没有好——缺少法线贴图会导致材质错误。
 
-4. **Name consistently.** One base name, multiple suffixes: `myitem_co.paa`, `myitem_nohq.paa`, `myitem_smdi.paa`. Never mix naming schemes.
+4. **命名要一致。** 一个基础名称，多个后缀：`myitem_co.paa`、`myitem_nohq.paa`、`myitem_smdi.paa`。永远不要混用命名方案。
 
-5. **Preview in TexView2 before building.** Open your PAA output and verify it looks correct. Check each channel individually.
+5. **构建前在 TexView2 中预览。** 打开你的 PAA 输出并验证它是否正确。单独检查每个通道。
 
-6. **Use DXT1 by default, DXT5 only when alpha is needed.** DXT1 is half the file size of DXT5 and looks identical for opaque textures.
+6. **默认使用 DXT1，只在需要 Alpha 时使用 DXT5。** DXT1 的文件大小是 DXT5 的一半，对于不透明纹理看起来完全相同。
 
-7. **Test at low quality settings.** What looks great at Ultra may be unreadable at Low because the engine drops mip levels aggressively.
+7. **在低质量设置下测试。** 在超高画质下看起来很棒的东西在低画质下可能无法辨认，因为引擎会激进地降低 Mip 级别。
 
 ---
 
@@ -458,4 +458,4 @@ Terrain textures tile across the landscape. The `_mc` macro texture adds large-s
 
 | 上一章 | 上级 | 下一章 |
 |----------|----|------|
-| [Part 3: GUI System](../03-gui-system/07-styles-fonts.md) | [Part 4: File Formats & DayZ Tools](../04-file-formats/01-textures.md) | [4.2 3D Models](02-models.md) |
+| [第 3 部分：GUI 系统](../03-gui-system/07-styles-fonts.md) | [第 4 部分：文件格式与 DayZ Tools](../04-file-formats/01-textures.md) | [4.2 3D 模型](02-models.md) |

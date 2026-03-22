@@ -1,461 +1,287 @@
-# Chapter 4.1: Textures (.paa, .edds, .tga)
+# 4.1. fejezet: Textúrák (.paa, .edds, .tga)
 
-[Home](../../README.md) | **Textures** | [Next: 3D Models >>](02-models.md)
-
----
-
-## Bevezetes
-
-Every surface you see in DayZ -- weapon skins, clothing, terrain, UI icons -- is defined by texture files. The engine uses a proprietary compressed format called **PAA** at runtime, but during development you work with several source formats that are converted during the build process. Understanding these formats, the naming conventions that bind them to materials, and the resolution rules the engine enforces is fundamental to creating visual content for DayZ mods.
-
-This chapter covers every texture format you will encounter, the suffix naming system that tells the engine how to interpret each texture, resolution and alpha channel requirements, and the practical workflow for converting between formats.
+[Kezdőlap](../../README.md) | **Textúrák** | [Következő: 3D modellek >>](02-models.md)
 
 ---
 
-## Tartalomjegyzek
+## Bevezetés
 
-- [Texture Formats Overview](#texture-formats-overview)
-- [PAA Format](#paa-format)
-- [EDDS Format](#edds-format)
-- [TGA Format](#tga-format)
-- [PNG Format](#png-format)
-- [Texture Naming Conventions](#texture-naming-conventions)
-- [Resolution Requirements](#resolution-requirements)
-- [Alpha Channel Support](#alpha-channel-support)
-- [Converting Between Formats](#converting-between-formats)
-- [Texture Quality and Compression](#texture-quality-and-compression)
-- [Real-World Examples](#real-world-examples)
-- [Common Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+Minden felület, amit a DayZ-ben látsz -- fegyver skinek, ruházat, terep, UI ikonok -- textúra fájlok határozzák meg. A motor egy szabadalmazott tömörített formátumot használ, a **PAA**-t futásidőben, de a fejlesztés során több forrásformátummal dolgozol, amelyek a build folyamat során konvertálódnak. Ezen formátumok megértése, az elnevezési konvenciók amelyek az anyagokhoz kötik őket, és a motor által megkövetelt felbontási szabályok alapvetőek a DayZ modok vizuális tartalmának létrehozásához.
+
+Ez a fejezet lefed minden textúra formátumot, amellyel találkozni fogsz, az utótag elnevezési rendszert, amely megmondja a motornak hogyan értelmezze az egyes textúrákat, a felbontási és alfa csatorna követelményeket, és a formátumok közötti konvertálás gyakorlati munkafolyamatát.
 
 ---
 
-## Texture Formats Overview
+## Tartalomjegyzék
 
-DayZ uses four texture formats at different stages of the development pipeline:
+- [Textúra formátumok áttekintése](#texture-formats-overview)
+- [PAA formátum](#paa-format)
+- [EDDS formátum](#edds-format)
+- [TGA formátum](#tga-format)
+- [PNG formátum](#png-format)
+- [Textúra elnevezési konvenciók](#texture-naming-conventions)
+- [Felbontási követelmények](#resolution-requirements)
+- [Alfa csatorna támogatás](#alpha-channel-support)
+- [Konvertálás formátumok között](#converting-between-formats)
+- [Textúra minőség és tömörítés](#texture-quality-and-compression)
+- [Valós példák](#real-world-examples)
+- [Gyakori hibák](#common-mistakes)
+- [Bevált gyakorlatok](#best-practices)
 
-| Formatum | Kiterjesztes | Szerepe | Alpha tamogatas | Hasznalat helye |
+---
+
+## Textúra formátumok áttekintése
+
+A DayZ négy textúra formátumot használ a fejlesztési csővezeték különböző szakaszaiban:
+
+| Formátum | Kiterjesztés | Szerep | Alfa támogatás | Használat helye |
 |--------|-----------|------|---------------|---------|
-| **PAA** | `.paa` | Runtime game format (compressed) | Yes | Final build, shipped in PBOs |
-| **EDDS** | `.edds` | Editor/intermediate DDS variant | Yes | Object Builder preview, auto-converts |
-| **TGA** | `.tga` | Uncompressed source artwork | Yes | Artist workspace, Photoshop/GIMP export |
-| **PNG** | `.png` | Portable source format | Yes | UI textures, external tools |
+| **PAA** | `.paa` | Futásidejű játék formátum (tömörített) | Igen | Végső build, PBO-kba csomagolva |
+| **EDDS** | `.edds` | Szerkesztő/köztes DDS változat | Igen | Object Builder előnézet, automatikusan konvertál |
+| **TGA** | `.tga` | Tömörítetlen forrás alkotás | Igen | Művész munkaterület, Photoshop/GIMP export |
+| **PNG** | `.png` | Hordozható forrás formátum | Igen | UI textúrák, külső eszközök |
 
-The general workflow is: **Source (TGA/PNG) --> DayZ eszkozok conversion --> PAA (game-ready)**.
+Az általános munkafolyamat: **Forrás (TGA/PNG) --> DayZ Tools konverzió --> PAA (játékra kész)**.
 
 ---
 
-## PAA Format
+## PAA formátum
 
-**PAA** (PAcked Arma) is the native compressed texture format used by the Enfusion engine at runtime. Every texture that ships in a PBO must be in PAA format (or will be converted to it during binarization).
+A **PAA** (PAcked Arma) az Enfusion motor által futásidőben használt natív tömörített textúra formátum. Minden textúrának, ami PBO-ban kerül szállításra, PAA formátumban kell lennie (vagy binarizálás során konvertálódik azzá).
 
-### Characteristics
+### Jellemzők
 
-- **Compressed:** Uses DXT1, DXT5, or ARGB8888 compression internally depending on alpha channel presence and quality settings.
-- **Mipmapped:** PAA files contain a full mipmap chain, generated automatically during conversion. This is critical for rendering performance -- the engine selects the appropriate mip level based on distance.
-- **Power-of-two dimensions:** The engine requires PAA textures to have dimensions that are powers of 2 (256, 512, 1024, 2048, 4096).
-- **Read-only at runtime:** The engine loads PAA files directly from PBOs. You never edit a PAA file -- you edit the source and re-convert.
+- **Tömörített:** DXT1, DXT5 vagy ARGB8888 tömörítést használ belül az alfa csatorna jelenlététől és a minőségi beállításoktól függően.
+- **Mipmap-olt:** A PAA fájlok teljes mipmap láncot tartalmaznak, amelyet a konverzió során automatikusan generálnak. Ez kritikus a renderelési teljesítményhez -- a motor a távolság alapján választja ki a megfelelő mip szintet.
+- **Kettő hatványai méretű:** A motor megköveteli, hogy a PAA textúrák 2 hatványai méretűek legyenek (256, 512, 1024, 2048, 4096).
+- **Futásidőben csak olvasható:** A motor közvetlenül a PBO-kból tölti be a PAA fájlokat. Soha nem szerkesztesz PAA fájlt -- a forrást szerkeszted és újrakonvertálod.
 
-### Internal Compression Types
+### Belső tömörítési típusok
 
-| Tipus | Alpha | Quality | Felhasznalasi terrulet |
+| Típus | Alfa | Minőség | Felhasználási terület |
 |------|-------|---------|----------|
-| **DXT1** | No (1-bit) | Good, 6:1 ratio | Opaque textures, terrain |
-| **DXT5** | Full 8-bit | Good, 4:1 ratio | Texturak with smooth alpha (glass, foliage) |
-| **ARGB4444** | Full 4-bit | Medium | UI textures, small icons |
-| **ARGB8888** | Full 8-bit | Lossless | Debug, highest quality (large file size) |
-| **AI88** | Grayscale + alpha | Good | Normal maps, grayscale masks |
-
-### When You See PAA Files
-
-- Inside unpacked vanilla game data (`dta/` and addon PBOs)
-- As the output of TexView2 conversion
-- As the output of Binarize when processing source textures
-- In your mod's final PBO after building
+| **DXT1** | Nem (1-bites) | Jó, 6:1 arány | Átlátszatlan textúrák, terep |
+| **DXT5** | Teljes 8-bites | Jó, 4:1 arány | Sima alfával rendelkező textúrák (üveg, lombozat) |
+| **ARGB4444** | Teljes 4-bites | Közepes | UI textúrák, kis ikonok |
+| **ARGB8888** | Teljes 8-bites | Veszteségmentes | Hibakeresés, legmagasabb minőség (nagy fájlméret) |
+| **AI88** | Szürkeárnyalatos + alfa | Jó | Normál térképek, szürkeárnyalatos maszkok |
 
 ---
 
-## EDDS Format
+## EDDS formátum
 
-**EDDS** is an intermediate texture format used primarily by DayZ's **Object Builder** and the editor tools. It is essentially a variant of the standard DirectDraw Surface (DDS) format with engine-specific metadata.
+Az **EDDS** egy köztes textúra formátum, amelyet elsősorban a DayZ **Object Builder** és a szerkesztő eszközök használnak. Lényegében a szabványos DirectDraw Surface (DDS) formátum változata motor-specifikus metaadatokkal.
 
-### Characteristics
+### Jellemzők
 
-- **Preview format:** Object Builder can display EDDS textures directly, making them useful during model creation.
-- **Auto-converts to PAA:** When you run Binarize or AddonBuilder (without `-packonly`), EDDS files in your source tree are automatically converted to PAA.
-- **Larger than PAA:** EDDS files are not optimized for distribution -- they exist for editor convenience.
-- **DayZ-Samples format:** The official DayZ-Samples provided by Bohemia use EDDS textures extensively.
+- **Előnézeti formátum:** Az Object Builder közvetlenül megjelenítheti az EDDS textúrákat, ami hasznossá teszi őket a modell készítés során.
+- **Automatikusan konvertálódik PAA-vá:** Amikor a Binarize-t vagy az AddonBuilder-t futtatod (a `-packonly` nélkül), a forrásfában lévő EDDS fájlok automatikusan PAA-vá konvertálódnak.
 
-### Workflow with EDDS
-
-```
-Artist creates TGA/PNG source
-    --> Photoshop DDS plugin exports EDDS for preview
-        --> Object Builder displays EDDS on model
-            --> Binarize converts EDDS to PAA for PBO
-```
-
-> **Tipp:** You can skip EDDS entirely if you prefer. Convert your source textures directly to PAA using TexView2 and reference the PAA paths in your materials. EDDS is a convenience, not a requirement.
+> **Tipp:** Teljesen átugorhatod az EDDS-t, ha úgy tetszik. Konvertáld a forrás textúráidat közvetlenül PAA-vá a TexView2 használatával, és hivatkozz a PAA útvonalakra az anyagaidban. Az EDDS kényelmi funkció, nem követelmény.
 
 ---
 
-## TGA Format
+## TGA formátum
 
-**TGA** (Truevision TGA / Targa) is the traditional uncompressed source format for DayZ texture work. Many vanilla DayZ textures were originally authored as TGA files.
+A **TGA** (Truevision TGA / Targa) a hagyományos tömörítetlen forrásformátum a DayZ textúra munkához. Sok vanilla DayZ textúra eredetileg TGA fájlként készült.
 
-### Characteristics
+### Mikor használjuk a TGA-t
 
-- **Uncompressed:** No quality loss, full color depth (24-bit or 32-bit with alpha).
-- **Large file sizes:** A 2048x2048 TGA with alpha is approximately 16 MB.
-- **Alpha in dedicated channel:** TGA supports a proper 8-bit alpha channel (32-bit TGA), which maps directly to transparency in PAA.
-- **TexView2 compatible:** TexView2 can open TGA files directly and convert them to PAA.
-
-### Mikor hasznaljuk TGA
-
-- As your master source file for textures you author from scratch.
-- When exporting from Substance Painter or Photoshop for DayZ.
-- When the DayZ-Samples documentation or community tutorials specify TGA as the source format.
-
-### TGA Export Settings
-
-When exporting TGA for DayZ conversion:
-
-- **Bit depth:** 32-bit (if alpha is needed) or 24-bit (opaque textures)
-- **Compression:** None (uncompressed)
-- **Orientation:** Bottom-left origin (standard TGA orientation)
-- **Resolution:** Must be power of 2 (see [Resolution Requirements](#resolution-requirements))
+- A nulláról készített textúráid mesterforrás fájljaként.
+- Substance Painter-ből vagy Photoshop-ból való exportáláskor DayZ-hez.
+- Amikor a DayZ-Samples dokumentáció vagy közösségi oktatóanyagok TGA-t adnak meg forrásformátumként.
 
 ---
 
-## PNG Format
+## PNG formátum
 
-**PNG** (Portable Network Graphics) is widely supported and can be used as an alternative source format, particularly for UI textures.
+A **PNG** (Portable Network Graphics) széles körben támogatott és alternatív forrásformátumként használható, különösen UI textúrákhoz.
 
-### Characteristics
+### Mikor használjuk a PNG-t
 
-- **Lossless compression:** Smaller than TGA but retains full quality.
-- **Full alpha channel:** 32-bit PNG supports 8-bit alpha.
-- **TexView2 compatible:** TexView2 can open and convert PNG to PAA.
-- **UI-friendly:** Many UI imagesets and icons in mods use PNG as their source format.
+- **UI textúrák és ikonok:** A PNG a praktikus választás imagesetekhez és HUD elemekhez.
+- **Egyszerű újraszínezések:** Amikor csak szín/diffúz térképre van szükséged komplex alfa nélkül.
+- **Eszközök közötti munkafolyamatok:** A PNG univerzálisan támogatott a képszerkesztők, web eszközök és scriptek között.
 
-### Mikor hasznaljuk PNG
-
-- **UI textures and icons:** PNG is the practical choice for imagesets and HUD elements.
-- **Simple retextures:** When you only need a color/diffuse map with no complex alpha.
-- **Cross-tool workflows:** PNG is universally supported across image editors, web tools, and scripts.
-
-> **Megjegyzes:** PNG is not an official Bohemia source format -- they prefer TGA. However, the conversion tools handle PNG without issues and many modders use it successfully.
+> **Megjegyzés:** A PNG nem hivatalos Bohemia forrásformátum -- ők a TGA-t preferálják. Azonban a konverziós eszközök probléma nélkül kezelik a PNG-t, és sok modder sikeresen használja.
 
 ---
 
-## Texture Naming Conventions
+## Textúra elnevezési konvenciók
 
-DayZ uses a strict suffix system to identify the role of each texture. The engine and materials reference textures by filename, and the suffix tells both the engine and other modders what type of data the texture contains.
+A DayZ szigorú utótag rendszert használ az egyes textúrák szerepének azonosítására.
 
-### Required Suffixes
+### Kötelező utótagok
 
-| Suffix | Full Name | Cel | Typical Format |
+| Utótag | Teljes név | Cél | Tipikus formátum |
 |--------|-----------|---------|----------------|
-| `_co` | **Color / Diffuse** | The base color (albedo) of a surface | RGB, optional alpha |
-| `_nohq` | **Normal Map (High Quality)** | Surface detail normals, defines bumps and grooves | RGB (tangent-space normal) |
-| `_smdi` | **Specular / Metallic / Detail Index** | Controls shininess and metallic properties | RGB channels encode separate data |
-| `_ca` | **Color with Alpha** | Color texture where the alpha channel carries meaningful data (transparency, mask) | RGBA |
-| `_as` | **Ambient Shadow** | Ambient occlusion / shadow bake | Grayscale |
-| `_mc` | **Macro** | Large-scale color variation visible at distance | RGB |
-| `_li` | **Light / Emissive** | Self-illumination map (glowing parts) | RGB |
-| `_no` | **Normal Map (Standard)** | Lower quality normal map variant | RGB |
-| `_mca` | **Macro with Alpha** | Macro texture with alpha channel | RGBA |
-| `_de` | **Detail** | Tiling detail texture for close-up surface variation | RGB |
+| `_co` | **Color / Diffuse** | A felület alapszíne (albedo) | RGB, opcionális alfa |
+| `_nohq` | **Normal Map (High Quality)** | Felületi részlet normálok, dudorodásokat és barázdákat definiál | RGB (érintőtér normál) |
+| `_smdi` | **Specular / Metallic / Detail Index** | Fényességet és fémes tulajdonságokat szabályoz | RGB csatornák külön adatokat kódolnak |
+| `_ca` | **Color with Alpha** | Szín textúra, ahol az alfa csatorna értelmes adatot hordoz (átlátszóság, maszk) | RGBA |
+| `_as` | **Ambient Shadow** | Környezeti elzáródás / árnyék sütés | Szürkeárnyalatos |
+| `_mc` | **Macro** | Nagyszabású szín variáció távolról látható | RGB |
+| `_li` | **Light / Emissive** | Önvilágítási térkép (izzó részek) | RGB |
 
-### Naming Convention in Practice
+### Elnevezési konvenció a gyakorlatban
 
-A single item typically has multiple textures, all sharing a base name:
+Egyetlen tárgynak jellemzően több textúrája van, amelyek mind közös alapnevet osztanak:
 
 ```
 data/
-  my_rifle_co.paa          <-- Base color (what you see)
-  my_rifle_nohq.paa        <-- Normal map (surface bumps)
-  my_rifle_smdi.paa         <-- Specular/metallic (shininess)
-  my_rifle_as.paa           <-- Ambient shadow (baked AO)
-  my_rifle_ca.paa           <-- Color with alpha (if transparency needed)
+  my_rifle_co.paa          <-- Alapszín (amit látsz)
+  my_rifle_nohq.paa        <-- Normál térkép (felületi egyenetlenségek)
+  my_rifle_smdi.paa         <-- Tükrözési/fémes (fényesség)
+  my_rifle_as.paa           <-- Környezeti árnyék (sütött AO)
+  my_rifle_ca.paa           <-- Szín alfával (ha átlátszóság szükséges)
 ```
-
-### The _smdi Channels
-
-The specular/metallic/detail texture packs three data streams into one RGB image:
-
-| Channel | Data | Range | Hatas |
-|---------|------|-------|--------|
-| **R** | Metallic | 0-255 | 0 = non-metal, 255 = full metal |
-| **G** | Roughness (inverted specular) | 0-255 | 0 = rough/matte, 255 = smooth/glossy |
-| **B** | Detail index / AO | 0-255 | Detail tiling or ambient occlusion |
-
-### The _nohq Channels
-
-Normal maps in DayZ use tangent-space encoding:
-
-| Channel | Data |
-|---------|------|
-| **R** | X-axis normal (left-right) |
-| **G** | Y-axis normal (up-down) |
-| **B** | Z-axis normal (toward viewer) |
-| **A** | Specular power (optional, depends on material) |
 
 ---
 
-## Resolution Requirements
+## Felbontási követelmények
 
-The Enfusion engine requires all textures to have **power-of-two dimensions**. Both width and height must independently be a power of 2, but they do not have to be equal (non-square textures are valid).
+Az Enfusion motor megköveteli, hogy minden textúra **kettő hatványai méretű** legyen. A szélességnek és magasságnak egyenként kell 2 hatványa lennie, de nem kell egyenlőnek lenniük (nem négyzetes textúrák érvényesek).
 
-### Valid Dimensions
+### Érvényes méretek
 
-| Meret | Tipikus hasznalat |
+| Méret | Tipikus használat |
 |------|-------------|
-| **64x64** | Tiny icons, UI elements |
-| **128x128** | Small icons, inventory thumbnails |
-| **256x256** | UI panels, small item textures |
-| **512x512** | Standard item textures, clothing |
-| **1024x1024** | Weapons, detailed clothing, vehicle parts |
-| **2048x2048** | High-detail weapons, character models |
-| **4096x4096** | Terrain textures, large vehicle textures |
+| **64x64** | Apró ikonok, UI elemek |
+| **128x128** | Kis ikonok, leltár miniatűrök |
+| **256x256** | UI panelek, kis tárgy textúrák |
+| **512x512** | Szabványos tárgy textúrák, ruházat |
+| **1024x1024** | Fegyverek, részletes ruházat, járműalkatrészek |
+| **2048x2048** | Nagy részletességű fegyverek, karakter modellek |
+| **4096x4096** | Terep textúrák, nagy jármű textúrák |
 
-### Non-Square Texturak
-
-Non-square power-of-two textures are valid:
-
-```
-256x512    -- Valid (both are powers of 2)
-512x1024   -- Valid
-1024x2048  -- Valid
-300x512    -- INVALID (300 is not a power of 2)
-```
-
-### Resolution Guidelines
-
-- **Weapons:** 2048x2048 for the main body, 1024x1024 for attachments.
-- **Clothing:** 1024x1024 or 2048x2048 depending on surface area coverage.
-- **UI icons:** 128x128 or 256x256 for inventory icons, 64x64 for HUD elements.
-- **Terrain:** 4096x4096 for satellite maps, 512x512 or 1024x1024 for material tiles.
-- **Normal maps:** Same resolution as the corresponding color texture.
-- **SMDI maps:** Same resolution as the corresponding color texture.
-
-> **Figyelmezetes:** If a texture has non-power-of-two dimensions, the engine will either refuse to load it or display a magenta error texture. TexView2 will show a warning during conversion.
+> **Figyelmeztetés:** Ha egy textúra nem kettő hatványa méretű, a motor vagy nem tölti be, vagy magenta hibajelző textúrát jelenít meg. A TexView2 figyelmeztetést mutat a konverzió során.
 
 ---
 
-## Alpha Channel Support
+## Alfa csatorna támogatás
 
-The alpha channel in a texture carries additional data beyond color. How it is interpreted depends on the texture suffix and the material shader.
+A textúra alfa csatornája a színen túli további adatot hordoz. Az értelmezése a textúra utótagtól és az anyag shader-től függ.
 
-### Alpha Channel Roles
+### Textúrák készítése alfával
 
-| Suffix | Alpha Interpretation |
-|--------|---------------------|
-| `_co` | Usually unused; if present, may define transparency for simple materials |
-| `_ca` | Transparency mask (0 = fully transparent, 255 = fully opaque) |
-| `_nohq` | Specular power map (higher = sharper specular highlight) |
-| `_smdi` | Usually unused |
-| `_li` | Emissive intensity mask |
+Képszerkesztődben (Photoshop, GIMP, Krita):
 
-### Creating Texturak with Alpha
-
-In your image editor (Photoshop, GIMP, Krita):
-
-1. Create the RGB content as normal.
-2. Add an alpha channel.
-3. Paint white (255) where you want full opacity/effect, black (0) where you want none.
-4. Export as 32-bit TGA or PNG.
-5. Convert to PAA using TexView2 -- it will detect the alpha channel automatically.
-
-### Verifying Alpha in TexView2
-
-Open the PAA in TexView2 and use the channel display buttons:
-
-- **RGBA** -- Shows the final composite
-- **RGB** -- Shows color only
-- **A** -- Shows alpha channel only (white = opaque, black = transparent)
+1. Készítsd el az RGB tartalmat a szokásos módon.
+2. Adj hozzá alfa csatornát.
+3. Fesd fehérre (255) ahol teljes átlátszatlanságot/hatást akarsz, feketére (0) ahol semmit.
+4. Exportáld 32-bites TGA-ként vagy PNG-ként.
+5. Konvertáld PAA-vá a TexView2 használatával -- automatikusan felismeri az alfa csatornát.
 
 ---
 
-## Converting Between Formats
+## Konvertálás formátumok között
 
-### TexView2 (Primary Tool)
+### TexView2 (elsődleges eszköz)
 
-**TexView2** is included with DayZ eszkozok and is the standard texture conversion utility.
+A **TexView2** a DayZ Tools-szal együtt kerül telepítésre és a szabványos textúra konverziós segédprogram.
 
-**Opening a file:**
-1. Launch TexView2 from DayZ eszkozok or directly from `DayZ eszkozok\Bin\TexView2\TexView2.exe`.
-2. Open your source file (TGA, PNG, or EDDS).
-3. Verify the image looks correct and check dimensions.
+**Konvertálás PAA-vá:**
+1. Nyisd meg a forrás textúrát a TexView2-ben.
+2. Válaszd a **File --> Save As** menüt.
+3. Válaszd a **PAA** kimeneti formátumot.
+4. Válaszd a tömörítési típust:
+   - **DXT1** átlátszatlan textúrákhoz (nincs szükség alfára)
+   - **DXT5** alfa átlátszóságú textúrákhoz
+   - **ARGB4444** kis UI textúrákhoz ahol a fájlméret számít
+5. Kattints a **Save** gombra.
 
-**Converting to PAA:**
-1. Open the source texture in TexView2.
-2. Go to **File --> Save As**.
-3. Select **PAA** as the output format.
-4. Choose the compression type:
-   - **DXT1** for opaque textures (no alpha needed)
-   - **DXT5** for textures with alpha transparency
-   - **ARGB4444** for small UI textures where file size matters
-5. Click **Save**.
+### Manuális konverziós táblázat
 
-**Batch conversion via command line:**
-
-```bash
-# Convert a single TGA to PAA
-"P:\DayZ Tools\Bin\TexView2\TexView2.exe" -i "source.tga" -o "output.paa"
-
-# TexView2 will auto-select compression based on alpha channel presence
-```
-
-### Binarize (Automated)
-
-When Binarize processes your mod's source directory, it automatically converts all recognized texture formats (TGA, PNG, EDDS) to PAA. This happens as part of the AddonBuilder pipeline.
-
-**Binarize conversion flow:**
-```
-source/mod_name/data/texture_co.tga
-    --> Binarize detects TGA
-        --> Converts to PAA with automatic compression selection
-            --> Output: build/mod_name/data/texture_co.paa
-```
-
-### Manual Conversion Table
-
-| From | To | Eszkoz | Megjegyzesek |
+| Honnan | Hova | Eszköz | Megjegyzések |
 |------|----|------|-------|
-| TGA --> PAA | TexView2 | Standard workflow |
-| PNG --> PAA | TexView2 | Works identically to TGA |
-| EDDS --> PAA | TexView2 or Binarize | Automatic during build |
-| PAA --> TGA | TexView2 (Save As TGA) | For editing existing textures |
-| PAA --> PNG | TexView2 (Save As PNG) | For extracting to portable format |
-| PSD --> TGA/PNG | Photoshop/GIMP | Export from editor, then convert |
+| TGA --> PAA | TexView2 | Szabványos munkafolyamat |
+| PNG --> PAA | TexView2 | A TGA-val azonosan működik |
+| EDDS --> PAA | TexView2 vagy Binarize | Automatikus build során |
+| PAA --> TGA | TexView2 (Save As TGA) | Meglévő textúrák szerkesztéséhez |
+| PAA --> PNG | TexView2 (Save As PNG) | Hordozható formátumba való kinyeréshez |
+| PSD --> TGA/PNG | Photoshop/GIMP | Export a szerkesztőből, majd konvertálás |
 
 ---
 
-## Texture Quality and Compression
+## Textúra minőség és tömörítés
 
-### Compression Type Selection
+### Tömörítési típus kiválasztása
 
-| Forgatokonyv | Recommended Compression | Ok |
+| Forgatókönyv | Ajánlott tömörítés | Ok |
 |----------|------------------------|--------|
-| Opaque diffuse (`_co`) | DXT1 | Best ratio, no alpha needed |
-| Transparent diffuse (`_ca`) | DXT5 | Full alpha support |
-| Normal maps (`_nohq`) | DXT5 | Alpha channel carries specular power |
-| Specular maps (`_smdi`) | DXT1 | Usually opaque, RGB channels only |
-| UI textures | ARGB4444 or DXT5 | Small size, clean edges |
-| Emissive maps (`_li`) | DXT1 or DXT5 | DXT5 if alpha carries intensity |
-
-### Quality vs. File Size
-
-```
-Format        2048x2048 approx. size
------------------------------------------
-ARGB8888      16.0 MB    (uncompressed)
-DXT5           5.3 MB    (4:1 compression)
-DXT1           2.7 MB    (6:1 compression)
-ARGB4444       8.0 MB    (2:1 compression)
-```
-
-### In-Game Quality Settings
-
-Players can adjust texture quality in DayZ's video settings. The engine selects lower mip levels when quality is reduced, so your textures will look progressively blurrier at lower settings. This is automatic -- you do not need to create separate quality levels.
+| Átlátszatlan diffúz (`_co`) | DXT1 | Legjobb arány, nincs szükség alfára |
+| Átlátszó diffúz (`_ca`) | DXT5 | Teljes alfa támogatás |
+| Normál térképek (`_nohq`) | DXT5 | Az alfa csatorna tükrözési erőt hordoz |
+| Tükrözési térképek (`_smdi`) | DXT1 | Általában átlátszatlan, csak RGB csatornák |
+| UI textúrák | ARGB4444 vagy DXT5 | Kis méret, tiszta élek |
 
 ---
 
-## Valos peldak
+## Valós példák
 
-### Weapon Texture Set
+### Fegyver textúra készlet
 
-A typical weapon mod contains these texture files:
-
-```
-MyWeapons/data/weapons/m4a1/
-  my_weapon_co.paa           <-- 2048x2048, DXT1, base color
-  my_weapon_nohq.paa         <-- 2048x2048, DXT5, normal map
-  my_weapon_smdi.paa          <-- 2048x2048, DXT1, specular/metallic
-  my_weapon_as.paa            <-- 1024x1024, DXT1, ambient shadow
-```
-
-The material file (`.rvmat`) references these textures and assigns them to shader stages.
-
-### UI Texture (Imageset Source)
+Tipikus fegyvermod textúra fájljai:
 
 ```
-MyFramework/data/gui/icons/
-  my_icons_co.paa           <-- 512x512, ARGB4444, sprite atlas
+MyMod_Weapons/data/weapons/m4a1/
+  my_weapon_co.paa           <-- 2048x2048, DXT1, alapszín
+  my_weapon_nohq.paa         <-- 2048x2048, DXT5, normál térkép
+  my_weapon_smdi.paa          <-- 2048x2048, DXT1, tükrözési/fémes
+  my_weapon_as.paa            <-- 1024x1024, DXT1, környezeti árnyék
 ```
-
-UI textures are often packed into a single atlas (imageset) and referenced by name in layout files. ARGB4444 compression is common for UI because it preserves clean edges while keeping file sizes small.
-
-### Terrain Texturak
-
-```
-terrain/
-  grass_green_co.paa         <-- 1024x1024, DXT1, tiling color
-  grass_green_nohq.paa       <-- 1024x1024, DXT5, tiling normal
-  grass_green_smdi.paa        <-- 1024x1024, DXT1, tiling specular
-  grass_green_mc.paa          <-- 512x512, DXT1, macro variation
-  grass_green_de.paa          <-- 512x512, DXT1, detail tiling
-```
-
-Terrain textures tile across the landscape. The `_mc` macro texture adds large-scale color variation to prevent repetition.
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-### 1. Non-Power-of-Two Dimensions
+### 1. Nem kettő hatványa méretű
 
-**Tunet:** Magenta texture in-game, TexView2 warnings.
-**Javitas:** Resize your source to the nearest power of 2 before converting.
+**Tünet:** Magenta textúra a játékban, TexView2 figyelmeztetések.
+**Javítás:** Méretezd át a forrásodat a legközelebbi 2 hatványára a konvertálás előtt.
 
-### 2. Missing Suffix
+### 2. Hiányzó utótag
 
-**Tunet:** Material cannot find the texture, or it renders incorrectly.
-**Javitas:** Always include the proper suffix (`_co`, `_nohq`, etc.) in the filename.
+**Tünet:** Az anyag nem találja a textúrát, vagy hibásan renderelődik.
+**Javítás:** Mindig add meg a megfelelő utótagot (`_co`, `_nohq` stb.) a fájlnévben.
 
-### 3. Wrong Compression for Alpha
+### 3. Rossz tömörítés az alfához
 
-**Tunet:** Transparency looks blocky or binary (on/off with no gradient).
-**Javitas:** Use DXT5 instead of DXT1 for textures that need smooth alpha gradients.
+**Tünet:** Az átlátszóság blokkos vagy bináris (be/ki gradiens nélkül).
+**Javítás:** Használj DXT5-öt DXT1 helyett olyan textúrákhoz, amelyeknek sima alfa gradiensre van szükségük.
 
-### 4. Forgetting Mipmaps
+### 4. Helytelen normál térkép formátum
 
-**Tunet:** Texture looks fine up close but shimmers/sparkles at distance.
-**Javitas:** PAA files generated by TexView2 automatically include mipmaps. If you are using a non-standard tool, ensure mipmap generation is enabled.
+**Tünet:** A megvilágítás a modellen fordítva vagy lapos.
+**Javítás:** Győződj meg róla, hogy a normál térképed érintőtér formátumú DirectX-stílusú Y-tengely konvencióval (zöld csatorna: felfelé = világosabb).
 
-### 5. Incorrect Normal Map Format
+### 5. Útvonal eltérés konverzió után
 
-**Tunet:** Lighting on the model looks inverted or flat.
-**Javitas:** Ensure your normal map is in tangent-space format with DirectX-style Y-axis convention (green channel: up = lighter). Some tools export OpenGL-style (inverted Y) -- you need to invert the green channel.
-
-### 6. Path Mismatch After Conversion
-
-**Tunet:** Model or material shows magenta because it references a `.tga` path but the PBO contains `.paa`.
-**Javitas:** Anyagok should reference the final `.paa` path. Binarize handles path remapping automatically, but if you pack with `-packonly` (no binarization), you must ensure the paths match exactly.
+**Tünet:** A modell vagy anyag magentát mutat, mert `.tga` útvonalra hivatkozik, de a PBO `.paa`-t tartalmaz.
+**Javítás:** Az anyagoknak a végleges `.paa` útvonalra kell hivatkozniuk.
 
 ---
 
-## Bevalt gyakorlatok
+## Bevált gyakorlatok
 
-1. **Keep source files in version control.** Store TGA/PNG masters alongside your mod. The PAA files are generated output -- the sources are what matter.
+1. **Tartsd a forrásfájlokat verziókezelés alatt.** Tárold a TGA/PNG mestereket a mododdal együtt. A PAA fájlok generált kimenet -- a források az amik számítanak.
 
-2. **Match resolution to importance.** A rifle the player stares at for hours deserves 2048x2048. A can of beans in the back of a shelf can use 512x512.
+2. **Igazítsd a felbontást a fontossághoz.** Egy puska, amelyet a játékos órákig néz, megérdemli a 2048x2048-at. Egy konzerv a polc hátuljában megúszhatja az 512x512-vel.
 
-3. **Always provide a normal map.** Even a flat normal map (128, 128, 255 solid fill) is better than none -- missing normal maps cause material errors.
+3. **Mindig adj meg normál térképet.** Még egy lapos normál térkép is (128, 128, 255 egyszínű kitöltés) jobb, mint semmi -- a hiányzó normál térképek anyag hibákat okoznak.
 
-4. **Name consistently.** One base name, multiple suffixes: `myitem_co.paa`, `myitem_nohq.paa`, `myitem_smdi.paa`. Never mix naming schemes.
+4. **Nevezd el következetesen.** Egy alapnév, több utótag: `myitem_co.paa`, `myitem_nohq.paa`, `myitem_smdi.paa`. Soha ne keverj elnevezési sémákat.
 
-5. **Preview in TexView2 before building.** Open your PAA output and verify it looks correct. Check each channel individually.
+5. **Nézd meg előnézetben a TexView2-ben a build előtt.** Nyisd meg a PAA kimenetedet és ellenőrizd, hogy jól néz ki. Vizsgáld meg külön-külön minden csatornát.
 
-6. **Use DXT1 by default, DXT5 only when alpha is needed.** DXT1 is half the file size of DXT5 and looks identical for opaque textures.
+6. **Használj DXT1-et alapértelmezetten, DXT5-öt csak amikor alfa szükséges.** A DXT1 fele akkora fájlméretű mint a DXT5 és azonosnak tűnik átlátszatlan textúráknál.
 
-7. **Test at low quality settings.** What looks great at Ultra may be unreadable at Low because the engine drops mip levels aggressively.
+7. **Tesztelj alacsony minőségi beállításoknál.** Ami Ultra-n remekül néz ki, az Low-on olvashatatlan lehet, mert a motor agresszíven csökkenti a mip szinteket.
 
 ---
 
-## Navigacio
+## Navigáció
 
-| Elozo | Fel | Kovetkezo |
+| Előző | Fel | Következő |
 |----------|----|------|
-| [Part 3: GUI System](../03-gui-system/07-styles-fonts.md) | [Part 4: File Formats & DayZ eszkozok](../04-file-formats/01-textures.md) | [4.2 3D modellek](02-models.md) |
+| [3. rész: GUI rendszer](../03-gui-system/07-styles-fonts.md) | [4. rész: Fájlformátumok és DayZ Tools](../04-file-formats/01-textures.md) | [4.2 3D modellek](02-models.md) |

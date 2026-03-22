@@ -1,28 +1,28 @@
-# Troubleshooting Guide
+# Руководство по устранению неполадок
 
-[Home](../README.md) | **Troubleshooting Guide**
+[Главная](../README.md) | **Устранение неполадок**
 
 ---
 
-> Когда что-то идет не так, начните здесь. Это руководство организовано по **тому, что вы видите** (симптому), а не по системе. Найдите свою проблему, прочитайте причину, примените исправление.
+> Когда что-то идёт не так, начните здесь. Это руководство организовано по **тому, что вы видите** (симптому), а не по системе. Найдите свою проблему, прочитайте причину, примените исправление.
 
 ---
 
 ## Содержание
 
-1. [Mod Won't Load](#1-mod-wont-load)
-2. [Script Errors](#2-script-errors)
-3. [RPC and Network Issues](#3-rpc-and-network-issues)
-4. [UI Problems](#4-ui-problems)
-5. [Build and PBO Issues](#5-build-and-pbo-issues)
-6. [Performance Issues](#6-performance-issues)
-7. [Item, Vehicle, and Entity Issues](#7-item-vehicle-and-entity-issues)
-8. [Config and Types Issues](#8-config-and-types-issues)
-9. [Persistence Issues](#9-persistence-issues)
-10. [Decision Flowcharts](#10-decision-flowcharts)
-11. [Debug Commands Quick Reference](#11-debug-commands-quick-reference)
-12. [Log File Locations](#12-log-file-locations)
-13. [Where to Get Help](#13-where-to-get-help)
+1. [Мод не загружается](#1-мод-не-загружается)
+2. [Ошибки скриптов](#2-ошибки-скриптов)
+3. [Проблемы с RPC и сетью](#3-проблемы-с-rpc-и-сетью)
+4. [Проблемы с интерфейсом](#4-проблемы-с-интерфейсом)
+5. [Проблемы сборки и PBO](#5-проблемы-сборки-и-pbo)
+6. [Проблемы производительности](#6-проблемы-производительности)
+7. [Проблемы с предметами, транспортом и сущностями](#7-проблемы-с-предметами-транспортом-и-сущностями)
+8. [Проблемы с конфигурацией и types](#8-проблемы-с-конфигурацией-и-types)
+9. [Проблемы с персистентностью](#9-проблемы-с-персистентностью)
+10. [Блок-схемы принятия решений](#10-блок-схемы-принятия-решений)
+11. [Краткая справка по командам отладки](#11-краткая-справка-по-командам-отладки)
+12. [Расположение файлов логов](#12-расположение-файлов-логов)
+13. [Где получить помощь](#13-где-получить-помощь)
 
 ---
 
@@ -31,61 +31,61 @@
 Это проблемы, при которых мод не появляется, не активируется или отклоняется игрой при запуске.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| "Addon requires addon X" error at startup | Missing or incorrect `requiredAddons[]` entry | Add the exact `CfgPatches` class name of the dependency to your `requiredAddons[]`. Names are case-sensitive. См. [Chapter 2.2](02-mod-structure/02-config-cpp.md). |
-| Mod not visible in launcher | `mod.cpp` file is missing or has syntax errors | Create or fix `mod.cpp` in your mod root. It must contain `name`, `author`, and `dir` fields. См. [Chapter 2.3](02-mod-structure/03-mod-cpp.md). |
-| "Config parse error" on startup | Syntax error in `config.cpp` | Check for missing semicolons after class closings (`};`), unclosed braces, or unbalanced quotes. Every class body ends with `};`, every property ends with `;`. |
-| No script log entries at all | `CfgMods` `defs` block points to wrong path | Verify that your `config.cpp` `CfgMods` entry has the correct `dir` and that the script defs file matches your folder structure. The engine silently ignores wrong paths. |
-| Mod loads but nothing happens | Scripts compile but never execute | Check that your mod has an entry point: a `modded class MissionServer` or `MissionGameplay`, a registered module, or a plugin. Scripts do not run by themselves. См. [Chapter 7.2](07-patterns/02-module-systems.md). |
-| "Cannot register cfg class X" | Duplicate `CfgPatches` class name | Another mod already uses that class name. Rename your `CfgPatches` class to something unique with your mod prefix. |
-| Mod loads only in singleplayer | Server does not have the mod installed | Ensure the server's `-mod=` launch parameter includes your mod path, and the PBO is in the server's `@YourMod/Addons/` folder. |
-| "Addon X is not signed" | Server requires signed addons | Sign your PBOs with your private key and provide the `.bikey` to the server's `keys/` folder. См. [Chapter 4.6](04-file-formats/06-pbo-packing.md). |
+|---------|---------|-------------|
+| Ошибка "Addon requires addon X" при запуске | Отсутствует или неверная запись `requiredAddons[]` | Добавьте точное имя класса `CfgPatches` зависимости в ваш `requiredAddons[]`. Имена чувствительны к регистру. См. [Главу 2.2](02-mod-structure/02-config-cpp.md). |
+| Мод не виден в лаунчере | Файл `mod.cpp` отсутствует или содержит синтаксические ошибки | Создайте или исправьте `mod.cpp` в корне мода. Он должен содержать поля `name`, `author` и `dir`. См. [Главу 2.3](02-mod-structure/03-mod-cpp.md). |
+| "Config parse error" при запуске | Синтаксическая ошибка в `config.cpp` | Проверьте отсутствующие точки с запятой после закрытия классов (`};`), незакрытые фигурные скобки или несбалансированные кавычки. Каждое тело класса заканчивается `};`, каждое свойство --- `;`. |
+| Нет записей в логе скриптов вообще | Блок `defs` в `CfgMods` указывает на неверный путь | Убедитесь, что запись `CfgMods` в `config.cpp` содержит правильный `dir` и что файл определений скриптов соответствует структуре папок. Движок молча игнорирует неверные пути. |
+| Мод загружается, но ничего не происходит | Скрипты компилируются, но никогда не выполняются | Проверьте, что у вашего мода есть точка входа: `modded class MissionServer` или `MissionGameplay`, зарегистрированный модуль или плагин. Скрипты не запускаются сами по себе. См. [Главу 7.2](07-patterns/02-module-systems.md). |
+| "Cannot register cfg class X" | Дублирующееся имя класса `CfgPatches` | Другой мод уже использует это имя класса. Переименуйте ваш класс `CfgPatches` на уникальное имя с префиксом мода. |
+| Мод загружается только в одиночной игре | На сервере не установлен мод | Убедитесь, что параметр запуска `-mod=` сервера включает путь к вашему моду, и PBO находится в папке `@YourMod/Addons/` сервера. |
+| "Addon X is not signed" | Сервер требует подписанные аддоны | Подпишите ваши PBO закрытым ключом и предоставьте `.bikey` в папку `keys/` сервера. См. [Главу 4.6](04-file-formats/06-pbo-packing.md). |
 
 ---
 
 ## 2. Ошибки скриптов
 
-Они появляются в логе скриптов как `SCRIPT (E):` or `SCRIPT ERROR:` lines.
+Они появляются в логе скриптов как строки `SCRIPT (E):` или `SCRIPT ERROR:`.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| `Null pointer access` | Accessing a variable that is `null` | Add a null check before using the variable: `if (myVar) { myVar.DoSomething(); }`. Это most common runtime error. |
-| `Cannot convert type 'X' to type 'Y'` | Direct cast between incompatible types | Use `Class.CastTo()` for safe downcasting: `Class.CastTo(result, source);`. Never assume a cast will succeed. См. [Chapter 1.9](01-enforce-script/09-casting-reflection.md). |
-| `Undefined variable 'X'` | Typo, wrong scope, or wrong layer | Check spelling first. If the variable is a class from another file, ensure it is defined in the same or lower layer. `3_Game` cannot see `4_World` types. См. [Chapter 2.1](02-mod-structure/01-five-layers.md). |
-| `Method 'X' not found` | Calling a method that does not exist on that class | Verify the method name and check the parent class. You may need to cast to a more specific type first. Check vanilla scripts at `P:\DZ\scripts\` for the correct API. |
-| `Division by zero` | Dividing by a variable that equals `0` | Add a guard: `if (divisor != 0) result = value / divisor;`. This also applies to modulo (`%`) operations. |
-| `Redeclaration of variable 'X'` | Same variable name declared in sibling `else if` blocks | Declare the variable once before the `if`/`else` chain, then assign inside each branch. См. [Chapter 1.12](01-enforce-script/12-gotchas.md). |
-| `Member already defined` | Duplicate variable or method name in a class | Check for copy/paste errors. Each member name must be unique within a class hierarchy (including parent classes). |
-| `Cannot create instance of type 'X'` | Trying to `new` an abstract class or an interface | Check that the class is not abstract (no `proto` methods without bodies). Instantiate a concrete subclass instead. |
-| `Stack overflow` | Infinite recursion | A method calls itself without a base case, or a `modded class` override does not properly guard against re-entry. Add a depth check or fix the recursive call. |
-| `Index out of range` | Array access with invalid index | Always check `array.Count()` or use `array.IsValidIndex(idx)` before accessing by index. |
-| `String conversion error` | Using `string.ToInt()` or `string.ToFloat()` on non-numeric text | Validate string content before conversion. There is no try/catch, so you must guard manually. |
-| `Error: Serializer X mismatch` | Read/write order does not match in serialization | Ensure `OnStoreСохранить()` and `OnStoreLoad()` write and read the same types in the same order, including version checks. |
-| Syntax error with no clear message | Backslash `\` or escaped quote `\"` in string literal | Enforce Script's CParser does not support `\\` or `\"`. Use forward slashes for paths (`"my/path/file"`). For quotes, use single-quote characters. См. [Chapter 1.12](01-enforce-script/12-gotchas.md). |
-| `JsonFileLoader` returns null data | Assigning the return value of `JsonLoadFile()` | `JsonLoadFile()` returns `void`. Pre-allocate the object and pass it by reference: `ref MyConfig cfg = new MyConfig(); JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);`. См. [Chapter 6.8](06-engine-api/08-file-io.md). |
-| `Object.IsAlive()` does not exist | Calling `IsAlive()` on base `Object` | `IsAlive()` is only on `EntityAI`. Cast first: `EntityAI entity; if (Class.CastTo(entity, obj) && entity.IsAlive()) { ... }` |
-| No ternary operator support | Using `condition ? a : b` syntax | Enforce Script has no ternary operator. Use an `if`/`else` block instead. См. [Chapter 1.12](01-enforce-script/12-gotchas.md). |
-| `do...while` loop error | Using `do { } while(cond)` | Enforce Script does not support `do...while`. Use a `while` loop with a `break` condition instead. См. [Chapter 1.12](01-enforce-script/12-gotchas.md). |
-| Multiline method call fails | Splitting a single method call across lines incorrectly | Avoid splitting chained calls with comments or preprocessor directives between lines. Keep method call chains on one line or use intermediate variables. |
+|---------|---------|-------------|
+| `Null pointer access` | Обращение к переменной, которая равна `null` | Добавьте проверку на null перед использованием переменной: `if (myVar) { myVar.DoSomething(); }`. Это самая распространённая ошибка времени выполнения. |
+| `Cannot convert type 'X' to type 'Y'` | Прямое приведение между несовместимыми типами | Используйте `Class.CastTo()` для безопасного приведения типов вниз: `Class.CastTo(result, source);`. Никогда не предполагайте, что приведение удастся. См. [Главу 1.9](01-enforce-script/09-casting-reflection.md). |
+| `Undefined variable 'X'` | Опечатка, неверная область видимости или неверный слой | Сначала проверьте правописание. Если переменная --- это класс из другого файла, убедитесь, что он определён в том же или нижнем слое. `3_Game` не видит типы из `4_World`. См. [Главу 2.1](02-mod-structure/01-five-layers.md). |
+| `Method 'X' not found` | Вызов метода, которого не существует у данного класса | Проверьте имя метода и родительский класс. Возможно, нужно сначала привести к более конкретному типу. Проверьте ванильные скрипты в `P:\DZ\scripts\` для корректного API. |
+| `Division by zero` | Деление на переменную, равную `0` | Добавьте проверку: `if (divisor != 0) result = value / divisor;`. Это также относится к операциям модуля (`%`). |
+| `Redeclaration of variable 'X'` | Одно и то же имя переменной объявлено в соседних блоках `else if` | Объявите переменную один раз перед цепочкой `if`/`else`, затем присваивайте значение внутри каждой ветки. См. [Главу 1.12](01-enforce-script/12-gotchas.md). |
+| `Member already defined` | Дублирующееся имя переменной или метода в классе | Проверьте на ошибки копирования/вставки. Каждое имя члена должно быть уникальным в иерархии классов (включая родительские классы). |
+| `Cannot create instance of type 'X'` | Попытка `new` для абстрактного класса или интерфейса | Проверьте, что класс не абстрактный (нет методов `proto` без тела). Создайте экземпляр конкретного подкласса. |
+| `Stack overflow` | Бесконечная рекурсия | Метод вызывает сам себя без базового случая, или переопределение в `modded class` не имеет должной защиты от повторного входа. Добавьте проверку глубины или исправьте рекурсивный вызов. |
+| `Index out of range` | Обращение к массиву с недопустимым индексом | Всегда проверяйте `array.Count()` или используйте `array.IsValidIndex(idx)` перед обращением по индексу. |
+| `String conversion error` | Использование `string.ToInt()` или `string.ToFloat()` для нечислового текста | Проверяйте содержимое строки перед конвертацией. Поскольку try/catch отсутствует, проверка должна быть ручной. |
+| `Error: Serializer X mismatch` | Порядок чтения/записи не совпадает при сериализации | Убедитесь, что `OnStoreSave()` и `OnStoreLoad()` записывают и читают одни и те же типы в одном и том же порядке, включая проверки версий. |
+| Синтаксическая ошибка без ясного сообщения | Обратная косая черта `\` или экранированная кавычка `\"` в строковом литерале | CParser Enforce Script не поддерживает `\\` или `\"`. Используйте прямые косые черты для путей (`"my/path/file"`). Для кавычек используйте одинарные кавычки. См. [Главу 1.12](01-enforce-script/12-gotchas.md). |
+| `JsonFileLoader` возвращает null | Присвоение возвращаемого значения `JsonLoadFile()` | `JsonLoadFile()` возвращает `void`. Предварительно создайте объект и передайте его по ссылке: `ref MyConfig cfg = new MyConfig(); JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);`. См. [Главу 6.8](06-engine-api/08-file-io.md). |
+| `Object.IsAlive()` не существует | Вызов `IsAlive()` на базовом `Object` | `IsAlive()` есть только у `EntityAI`. Сначала приведите тип: `EntityAI entity; if (Class.CastTo(entity, obj) && entity.IsAlive()) { ... }` |
+| Тернарный оператор не поддерживается | Использование синтаксиса `condition ? a : b` | В Enforce Script нет тернарного оператора. Используйте блок `if`/`else`. См. [Главу 1.12](01-enforce-script/12-gotchas.md). |
+| Ошибка цикла `do...while` | Использование `do { } while(cond)` | Enforce Script не поддерживает `do...while`. Используйте цикл `while` с условием `break`. См. [Главу 1.12](01-enforce-script/12-gotchas.md). |
+| Многострочный вызов метода не работает | Неправильное разделение одного вызова метода на несколько строк | Избегайте разделения цепочек вызовов с комментариями или директивами препроцессора между строками. Держите цепочки вызовов на одной строке или используйте промежуточные переменные. |
 
 ---
 
 ## 3. Проблемы с RPC и сетью
 
-Проблемы с удаленным вызовом процедур и коммуникацией клиент-сервер.
+Проблемы с удалёнными вызовами процедур и коммуникацией клиент-сервер.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| RPC sent but never received | Registration mismatch | Both sender and receiver must register the same RPC ID. Verify the ID matches exactly on both client and server. См. [Chapter 6.9](06-engine-api/09-networking.md). |
-| RPC received but data is corrupted | Read/write parameter mismatch | The sender's `Write()` calls and receiver's `Read()` calls must have the same types in the same order. A single mismatch corrupts all subsequent reads. |
-| RPC crashes the server | Null entity target or wrong parameter types | Ensure the target entity exists on both sides. Never send `null` as the RPC target. Validate all read parameters before use. |
-| Data not syncing to clients | Missing `SetSynchDirty()` | After changing any variable registered for synchronization, call `SetSynchDirty()` on the entity. Without it, the engine does not broadcast changes. |
-| Works in singleplayer / listen server, fails on dedicated | Different code paths for listen vs. dedicated | On a listen server, both client and server run in the same process, hiding timing and null issues. Always test on a dedicated server. Check `GetGame().IsServer()` and `GetGame().IsMultiplayer()` guards. |
-| RPC floods and server lag | Sending RPCs every frame or in tight loops | Throttle RPC calls with timers or accumulators. Batch multiple small updates into a single RPC. Use Net Sync Variables for data that changes frequently. |
-| Client receives RPC meant for all clients | Using `RPCSingleParam` with wrong target | Use `null` as the identity parameter to broadcast, or provide a specific `PlayerIdentity` to send to one client. |
-| `OnRPC()` never called | Override is in the wrong class or layer | `OnRPC()` must be overridden on the entity that receives the RPC. If overriding on `PlayerBase`, ensure you call `super.OnRPC()` so other mods still work. |
-| Net Sync Variables not updating on client | Missing `RegisterNetSyncVariable*()` or wrong type | Register each variable in the constructor with the correct method (`RegisterNetSyncVariableInt`, `RegisterNetSyncVariableFloat`, `RegisterNetSyncVariableBool`). Override `OnVariablesSynchronized()` to react to changes on the client side. |
-| RPC works for host but not other players | Using player object reference instead of identity | On dedicated servers, the host player is not special. Ensure you are using `PlayerIdentity` for targeting and not relying on local player references that only exist on the sender's machine. |
+|---------|---------|-------------|
+| RPC отправлен, но не получен | Несовпадение регистрации | Отправитель и получатель должны зарегистрировать один и тот же ID RPC. Убедитесь, что ID точно совпадает на клиенте и сервере. См. [Главу 6.9](06-engine-api/09-networking.md). |
+| RPC получен, но данные повреждены | Несовпадение параметров чтения/записи | Вызовы `Write()` отправителя и `Read()` получателя должны иметь одинаковые типы в одинаковом порядке. Одно несовпадение повреждает все последующие чтения. |
+| RPC вызывает краш сервера | Null-сущность как цель или неверные типы параметров | Убедитесь, что целевая сущность существует на обеих сторонах. Никогда не отправляйте `null` как цель RPC. Проверяйте все прочитанные параметры перед использованием. |
+| Данные не синхронизируются с клиентами | Отсутствует `SetSynchDirty()` | После изменения любой переменной, зарегистрированной для синхронизации, вызовите `SetSynchDirty()` на сущности. Без этого движок не рассылает изменения. |
+| Работает в одиночной игре / listen server, не работает на выделенном | Разные пути кода для listen vs. выделенного | На listen server клиент и сервер работают в одном процессе, скрывая проблемы таймингов и null. Всегда тестируйте на выделенном сервере. Проверяйте `GetGame().IsServer()` и `GetGame().IsMultiplayer()`. |
+| Флуд RPC и лаг сервера | Отправка RPC каждый кадр или в тесных циклах | Ограничивайте вызовы RPC таймерами или аккумуляторами. Группируйте несколько мелких обновлений в один RPC. Используйте Net Sync Variables для часто меняющихся данных. |
+| Клиент получает RPC, предназначенный для всех | Использование `RPCSingleParam` с неверной целью | Используйте `null` как параметр identity для широковещания или укажите конкретный `PlayerIdentity` для отправки одному клиенту. |
+| `OnRPC()` никогда не вызывается | Переопределение в неверном классе или слое | `OnRPC()` должен быть переопределён на сущности, которая получает RPC. При переопределении на `PlayerBase` убедитесь, что вызываете `super.OnRPC()`, чтобы другие моды продолжали работать. |
+| Net Sync Variables не обновляются на клиенте | Отсутствует `RegisterNetSyncVariable*()` или неверный тип | Зарегистрируйте каждую переменную в конструкторе с правильным методом (`RegisterNetSyncVariableInt`, `RegisterNetSyncVariableFloat`, `RegisterNetSyncVariableBool`). Переопределите `OnVariablesSynchronized()` для реакции на изменения на стороне клиента. |
+| RPC работает для хоста, но не для других игроков | Использование ссылки на объект игрока вместо identity | На выделенных серверах хост-игрок не является особенным. Убедитесь, что используете `PlayerIdentity` для адресации, а не локальные ссылки на игрока, которые существуют только на машине отправителя. |
 
 ---
 
@@ -94,310 +94,310 @@
 Проблемы с макетами GUI, виджетами, меню и вводом.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| Layout loads but nothing is visible | Widget size is zero | Check `hexactsize` and `vexactsize` values. Both must be greater than zero. Do not use negative sizes. См. [Chapter 3.3](03-gui-system/03-sizing-positioning.md). |
-| `CreateWidgets()` returns null | Layout file path is wrong or file is missing | Verify the `.layout` file path is correct (forward slashes, no typos). The engine returns `null` silently on bad paths, no error is logged. |
-| Widgets exist but cannot be clicked | Another widget is covering the button | Check widget `priority` (z-order). Higher priority widgets render on top and capture input first. Also check that the button has `ButtonWidget` as its `ScriptClass` or is a `ButtonWidget` type. |
-| Game input is stuck / cannot move after closing UI | `ChangeGameFocus()` calls are imbalanced | Every `GetGame().GetInput().ChangeGameFocus(1)` must be paired with `ChangeGameFocus(-1)`. Track your focus changes and ensure cleanup happens even if the UI is force-closed. |
-| Text shows `#STR_some_key` literally | Stringtable entry is missing or file is not loaded | Add the key to your `stringtable.csv`. Check that the CSV is in your mod root and has the correct `Language,Key,Original` header format. См. [Chapter 5.2](05-config-files/02-inputs-xml.md). |
-| Mouse cursor does not appear | `ShowUICursor()` not called | Call `GetGame().GetUIManager().ShowUICursor(true)` when opening your UI. Call it with `false` when closing. |
-| UI flickers or renders behind game world | Layout is not attached to correct parent widget | Attach your layout to a proper parent. For fullscreen overlays, use `GetGame().GetWorkspace()` as the parent. |
-| ScrollWidget content does not scroll | Content is not inside a WrapSpacer or child widget | ScrollWidget needs a single child (usually a `WrapSpacer` or `FrameWidget`) that is larger than the scroll area. Put your content widgets inside that child. См. [Chapter 3.3](03-gui-system/03-sizing-positioning.md). |
-| Image or icon not showing | Path uses backslashes or wrong extension | Use forward slashes in image paths. Verify the file exists and is in a recognized format (`.paa`, `.edds`). Use `ImageWidget` for images, not `TextWidget`. |
-| Slider does not respond to input | Missing script handler or wrong widget type | Ensure the slider widget has a `ScriptClass` assigned and that your handler processes `OnChange` events. Initialize the slider range in script. |
-| UI looks different at other resolutions | Using hardcoded pixel values | Use proportional sizing (`halign`, `valign`, `hfill`, `vfill`) instead of fixed pixel values. Test at multiple resolutions. См. [Chapter 3.3](03-gui-system/03-sizing-positioning.md). |
+|---------|---------|-------------|
+| Макет загружается, но ничего не видно | Размер виджета равен нулю | Проверьте значения `hexactsize` и `vexactsize`. Оба должны быть больше нуля. Не используйте отрицательные размеры. См. [Главу 3.3](03-gui-system/03-sizing-positioning.md). |
+| `CreateWidgets()` возвращает null | Путь к файлу макета неверен или файл отсутствует | Убедитесь, что путь к `.layout` файлу корректен (прямые косые черты, без опечаток). Движок молча возвращает `null` при неверных путях, ошибка не логируется. |
+| Виджеты существуют, но не кликаются | Другой виджет перекрывает кнопку | Проверьте `priority` виджета (z-порядок). Виджеты с более высоким приоритетом отрисовываются поверх и первыми перехватывают ввод. Также проверьте, что кнопка имеет `ButtonWidget` в качестве `ScriptClass` или является типом `ButtonWidget`. |
+| Ввод в игре заблокирован / нельзя двигаться после закрытия UI | Несбалансированные вызовы `ChangeGameFocus()` | Каждый `GetGame().GetInput().ChangeGameFocus(1)` должен быть сопровождён `ChangeGameFocus(-1)`. Отслеживайте смену фокуса и обеспечьте очистку даже при принудительном закрытии UI. |
+| Текст показывает `#STR_some_key` буквально | Запись в stringtable отсутствует или файл не загружен | Добавьте ключ в ваш `stringtable.csv`. Проверьте, что CSV находится в корне мода и имеет правильный формат заголовка `Language,Key,Original`. См. [Главу 5.1](05-config-files/01-stringtable.md). |
+| Курсор мыши не появляется | Не вызван `ShowUICursor()` | Вызовите `GetGame().GetUIManager().ShowUICursor(true)` при открытии UI. Вызовите с `false` при закрытии. |
+| UI мерцает или отрисовывается за игровым миром | Макет прикреплён к неверному родительскому виджету | Прикрепите макет к правильному родителю. Для полноэкранных оверлеев используйте `GetGame().GetWorkspace()` как родитель. |
+| Содержимое ScrollWidget не прокручивается | Содержимое не внутри WrapSpacer или дочернего виджета | ScrollWidget нужен один дочерний элемент (обычно `WrapSpacer` или `FrameWidget`), который больше области прокрутки. Поместите виджеты содержимого внутрь него. См. [Главу 3.3](03-gui-system/03-sizing-positioning.md). |
+| Изображение или иконка не показывается | Путь использует обратные косые черты или неверное расширение | Используйте прямые косые черты в путях к изображениям. Убедитесь, что файл существует и имеет распознаваемый формат (`.paa`, `.edds`). Используйте `ImageWidget` для изображений, а не `TextWidget`. |
+| Слайдер не реагирует на ввод | Отсутствует скриптовый обработчик или неверный тип виджета | Убедитесь, что виджету слайдера назначен `ScriptClass` и что ваш обработчик обрабатывает события `OnChange`. Инициализируйте диапазон слайдера в скрипте. |
+| UI выглядит иначе при других разрешениях | Использование жёстко заданных пиксельных значений | Используйте пропорциональное масштабирование (`halign`, `valign`, `hfill`, `vfill`) вместо фиксированных пиксельных значений. Тестируйте при разных разрешениях. См. [Главу 3.3](03-gui-system/03-sizing-positioning.md). |
 
 ---
 
 ## 5. Проблемы сборки и PBO
 
-Problems with packing, binarizing, and deploying mods.
+Проблемы с упаковкой, бинаризацией и развёртыванием модов.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| "Include file not found" during binarize | Config references a file that does not exist | Check that all `#include` paths in model configs and rvmats are correct. Ensure the P: drive is mounted and source files are accessible. |
-| PBO builds successfully but mod crashes on load | `config.cpp` binarization error | Try building with binarization disabled to isolate the issue. If it works unbinarized, the problem is in a config that the binarizer rejects silently. |
-| "Signature check failed" on server connect | PBO is unsigned or signed with wrong key | Re-sign the PBO with your private key using DSSignFile. Ensure the server has the matching `.bikey` in its `keys/` folder. |
-| File patching changes not taking effect | Not using the diagnostic executable | File patching only works with `DayZDiag_x64.exe`, not the retail `DayZ_x64.exe`. Launch with `-filePatching` parameter. |
-| "Prefix mismatch" warning | PBO prefix does not match `config.cpp` | Ensure the `$PBOPREFIX$` file content matches the addon prefix defined in your `config.cpp` `CfgPatches`. |
-| Addon Builder fails silently | Path contains special characters or spaces | Move your project to a path without spaces or special characters. Use short folder names. |
-| Binarized model looks wrong in-game | LOD or geometry issues in P3D | Check model LODs in Object Builder. Ensure the Fire Geometry and View Geometry LODs are correct. Rebuild the model. |
-| Old version of mod loads despite changes | Cached PBO or workshop version overriding | Delete the old PBO. Check that the game is not loading a cached workshop version. Verify the `-mod=` path points to your development folder, not the workshop folder. |
-| Addon Builder reports "no entry" warnings | Config references a property that does not exist | These warnings are usually non-fatal. Check that all `CfgVehicles` base classes exist. Missing entries in inherited configs cause cascading warnings. |
-| PBO packing includes unwanted files | No `.pboignore` or filter set | Addon Builder packs everything in the source folder. Use a `.pboignore` file or explicitly exclude file types (`.psd`, `.blend`, `.bak`) in the builder settings. |
+|---------|---------|-------------|
+| "Include file not found" при бинаризации | Конфигурация ссылается на несуществующий файл | Проверьте, что все пути `#include` в конфигурациях моделей и rvmat корректны. Убедитесь, что диск P: смонтирован и исходные файлы доступны. |
+| PBO собирается успешно, но мод крашится при загрузке | Ошибка бинаризации `config.cpp` | Попробуйте сборку с отключённой бинаризацией для изоляции проблемы. Если без бинаризации работает, проблема в конфигурации, которую бинаризатор отклоняет молча. |
+| "Signature check failed" при подключении к серверу | PBO не подписан или подписан неверным ключом | Повторно подпишите PBO закрытым ключом с помощью DSSignFile. Убедитесь, что на сервере есть соответствующий `.bikey` в папке `keys/`. |
+| Изменения file patching не применяются | Не используется диагностический исполняемый файл | File patching работает только с `DayZDiag_x64.exe`, а не с розничным `DayZ_x64.exe`. Запускайте с параметром `-filePatching`. |
+| Предупреждение "Prefix mismatch" | Префикс PBO не совпадает с `config.cpp` | Убедитесь, что содержимое файла `$PBOPREFIX$` совпадает с префиксом аддона, определённым в вашем `config.cpp` `CfgPatches`. |
+| Addon Builder завершается молча | Путь содержит специальные символы или пробелы | Переместите проект по пути без пробелов и специальных символов. Используйте короткие имена папок. |
+| Бинаризованная модель выглядит неправильно в игре | Проблемы с LOD или геометрией в P3D | Проверьте LOD модели в Object Builder. Убедитесь, что LOD Fire Geometry и View Geometry корректны. Пересоберите модель. |
+| Загружается старая версия мода несмотря на изменения | Кешированный PBO или версия Workshop перекрывает | Удалите старый PBO. Проверьте, что игра не загружает кешированную версию из Workshop. Убедитесь, что путь `-mod=` указывает на папку разработки, а не на папку Workshop. |
+| Addon Builder сообщает о предупреждениях "no entry" | Конфигурация ссылается на несуществующее свойство | Эти предупреждения обычно не фатальны. Проверьте, что все базовые классы `CfgVehicles` существуют. Отсутствующие записи в унаследованных конфигурациях вызывают каскадные предупреждения. |
+| PBO упаковывает ненужные файлы | Нет `.pboignore` или фильтра | Addon Builder упаковывает всё в исходной папке. Используйте файл `.pboignore` или явно исключите типы файлов (`.psd`, `.blend`, `.bak`) в настройках сборщика. |
 
 ---
 
 ## 6. Проблемы производительности
 
-Server or client FPS drops, memory problems, and slow operations.
+Падение FPS сервера или клиента, проблемы с памятью и медленные операции.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| Low server FPS (below 20) | Heavy processing in `OnUpdate()` or per-frame methods | Use a delta-time accumulator to throttle work: only execute logic every N seconds. Move expensive operations to timers or scheduled callbacks. См. [Chapter 7.7](07-patterns/07-performance.md). |
-| Memory grows over time (memory leak) | `ref` reference cycles preventing garbage collection | When two objects hold `ref` references to each other, neither is ever freed. Make one side a raw (non-`ref`) reference. Break cycles in cleanup methods. См. [Chapter 1.8](01-enforce-script/08-memory-management.md). |
-| Slow server startup | Heavy initialization in `OnInit` | Defer non-critical initialization with `GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater()`. Load configs lazily on first use instead of all at startup. |
-| Client FPS drops near specific objects | Complex model with too many polygons or bad LODs | Add proper LOD levels to your model. The engine uses LODs to reduce poly count at distance. Ensure LOD transitions are smooth. |
-| Stutter every few seconds | Periodic garbage collection spikes | Reduce object churn. Reuse objects via pooling instead of constantly creating and destroying them. Pre-allocate arrays. |
-| Network lag spikes | Too many RPCs or large RPC payloads | Batch small updates into fewer RPCs. Use Net Sync Variables for frequently changing values. Compress data where possible. |
-| Log file growing very large | Excessive `Print()` or debug logging | Remove or guard debug `Print()` calls behind `#ifdef DEVELOPER` or a debug flag. Large log files can slow disk I/O. |
-| High entity count causing server lag | Too many spawned entities in the world | Reduce `nominal` values in `types.xml`. Clean up dynamic objects with lifetime management. Limit AI spawn density. |
+|---------|---------|-------------|
+| Низкий FPS сервера (ниже 20) | Тяжёлая обработка в `OnUpdate()` или покадровых методах | Используйте аккумулятор delta-time для ограничения нагрузки: выполняйте логику только каждые N секунд. Перенесите дорогие операции на таймеры или отложенные обратные вызовы. См. [Главу 7.7](07-patterns/07-performance.md). |
+| Память растёт со временем (утечка памяти) | Циклы ссылок `ref`, препятствующие сборке мусора | Когда два объекта держат ссылки `ref` друг на друга, ни один из них никогда не освобождается. Сделайте одну сторону обычной (не `ref`) ссылкой. Разрывайте циклы в методах очистки. См. [Главу 1.8](01-enforce-script/08-memory-management.md). |
+| Медленный запуск сервера | Тяжёлая инициализация в `OnInit` | Откладывайте некритичную инициализацию с помощью `GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater()`. Загружайте конфигурации лениво при первом использовании вместо загрузки всех при старте. |
+| FPS клиента падает возле определённых объектов | Сложная модель с слишком большим количеством полигонов или плохими LOD | Добавьте правильные уровни LOD к вашей модели. Движок использует LOD для уменьшения количества полигонов на расстоянии. Убедитесь, что переходы между LOD плавные. |
+| Подёргивания каждые несколько секунд | Периодические пики сборки мусора | Уменьшите оборот объектов. Переиспользуйте объекты через пулинг вместо постоянного создания и уничтожения. Предварительно выделяйте массивы. |
+| Сетевые лаги | Слишком много RPC или большие полезные нагрузки RPC | Группируйте мелкие обновления в меньшее число RPC. Используйте Net Sync Variables для часто меняющихся значений. Сжимайте данные по возможности. |
+| Файл лога растёт очень быстро | Избыточное использование `Print()` или отладочного логирования | Удалите или оградите отладочные вызовы `Print()` за `#ifdef DEVELOPER` или флагом отладки. Большие файлы логов могут замедлять дисковый ввод-вывод. |
+| Большое количество сущностей вызывает лаг сервера | Слишком много заспавненных сущностей в мире | Уменьшите значения `nominal` в `types.xml`. Очищайте динамические объекты с управлением временем жизни. Ограничьте плотность спавна ИИ. |
 
 ---
 
 ## 7. Проблемы с предметами, транспортом и сущностями
 
-Problems with custom items, vehicles, and world entities.
+Проблемы с пользовательскими предметами, транспортными средствами и мировыми сущностями.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| Item will not spawn (admin tools say "cannot create") | `scope=0` in config or missing from `types.xml` | Set `scope=2` in your item's `CfgVehicles` config for items that should be spawnable. Add an entry to your server's `types.xml` if the item should appear in loot. |
-| Item spawns but is invisible | Model path (`.p3d`) is wrong or missing | Check the `model` path in your `CfgVehicles` class. Use forward slashes. Verify the `.p3d` file exists and is packed in your PBO. |
-| Item has no inventory icon | Missing or wrong `inventorySlot` or icon config | Define the `picture` path in your config pointing to a valid `.paa` or `.edds` icon file. Check `rotationFlags` for correct icon orientation. |
-| Vehicle spawns but will not drive | Missing engine, wheels, or parts | Ensure all required parts are attached. Use `OnDebugSpawn()` to spawn a fully assembled vehicle for testing. Check that simulation type is correct in config. |
-| Item cannot be picked up | Incorrect geometry or wrong `inventorySlot` | Verify the item has proper Fire Geometry in the model. Check that the `itemSize[]` is set correctly and the item fits in available inventory slots. |
-| Entity immediately deleted after spawn | `lifetime` is zero in `types.xml` or scope issue | Set appropriate `lifetime` value in `types.xml`. Ensure `scope=2` in config. Check server cleanup settings in `globals.xml`. |
-| Custom animal/zombie does not move | AI config missing or broken | Verify `AIAgentType` in config. Check that the entity has proper NavMesh-compatible geometry. Test with vanilla AI configs first. |
-| Attachments do not snap to item | Wrong `inventorySlot` names | Attachment slot names must match exactly between the parent item's `attachments[]` and the child item's `inventorySlot[]`. Names are case-sensitive. |
-| Item damage zones not working | `DamageSystem` config mismatch with model | Each `DamageZone` name must match a named selection in the model's Fire Geometry LOD. Check with Object Builder. См. [Chapter 6.1](06-engine-api/01-entity-system.md). |
-| Custom sound does not play | Sound shader or config path wrong | Verify the sound shader class name in `CfgSoundShaders` and `CfgSoundSets`. Check that the `.ogg` file path is correct and the file is packed in the PBO. |
-| Item has wrong weight or size | `weight` and `itemSize[]` config values | `weight` is in grams (integer). `itemSize[]` defines the inventory grid slots as `{width, height}`. Check parent class values if inheriting. |
-| Crafting recipe not appearing | Recipe config or condition wrong | Check `CfgRecipes` registration. Verify both ingredient items have correct `canBeSplit`, `isMeleeWeapon`, or other required properties. Test with vanilla recipe configs as reference. |
+|---------|---------|-------------|
+| Предмет не спавнится (админ-инструменты говорят "cannot create") | `scope=0` в конфигурации или отсутствие в `types.xml` | Установите `scope=2` в конфигурации `CfgVehicles` вашего предмета для предметов, которые должны быть доступны для спавна. Добавьте запись в `types.xml` сервера, если предмет должен появляться в луте. |
+| Предмет спавнится, но невидим | Путь к модели (`.p3d`) неверен или отсутствует | Проверьте путь `model` в вашем классе `CfgVehicles`. Используйте прямые косые черты. Убедитесь, что файл `.p3d` существует и упакован в PBO. |
+| У предмета нет иконки в инвентаре | Отсутствует или неверный `inventorySlot` или конфигурация иконки | Определите путь `picture` в конфигурации, указывающий на валидный файл иконки `.paa` или `.edds`. Проверьте `rotationFlags` для правильной ориентации иконки. |
+| Транспорт спавнится, но не едет | Отсутствует двигатель, колёса или детали | Убедитесь, что все необходимые детали установлены. Используйте `OnDebugSpawn()` для спавна полностью собранного транспорта для тестирования. Проверьте правильность типа симуляции в конфигурации. |
+| Предмет нельзя подобрать | Неправильная геометрия или неверный `inventorySlot` | Убедитесь, что у предмета есть правильная Fire Geometry в модели. Проверьте, что `itemSize[]` установлен корректно и предмет помещается в доступные слоты инвентаря. |
+| Сущность немедленно удаляется после спавна | `lifetime` равен нулю в `types.xml` или проблема с scope | Установите подходящее значение `lifetime` в `types.xml`. Убедитесь, что `scope=2` в конфигурации. Проверьте настройки очистки сервера в `globals.xml`. |
+| Пользовательское животное/зомби не двигается | Конфигурация ИИ отсутствует или повреждена | Проверьте `AIAgentType` в конфигурации. Убедитесь, что сущность имеет геометрию, совместимую с NavMesh. Сначала протестируйте с ванильными конфигурациями ИИ. |
+| Вложения не крепятся к предмету | Неверные имена `inventorySlot` | Имена слотов вложений должны точно совпадать между `attachments[]` родительского предмета и `inventorySlot[]` дочернего предмета. Имена чувствительны к регистру. |
+| Зоны урона предмета не работают | Несоответствие конфигурации `DamageSystem` и модели | Каждое имя `DamageZone` должно совпадать с именованным выделением в LOD Fire Geometry модели. Проверьте в Object Builder. См. [Главу 6.1](06-engine-api/01-entity-system.md). |
+| Пользовательский звук не воспроизводится | Неверный звуковой шейдер или путь в конфигурации | Проверьте имя класса звукового шейдера в `CfgSoundShaders` и `CfgSoundSets`. Убедитесь, что путь к файлу `.ogg` корректен и файл упакован в PBO. |
+| У предмета неправильный вес или размер | Значения `weight` и `itemSize[]` в конфигурации | `weight` указывается в граммах (целое число). `itemSize[]` определяет ячейки сетки инвентаря как `{ширина, высота}`. Проверьте значения родительского класса при наследовании. |
+| Рецепт крафта не появляется | Неверная конфигурация рецепта или условия | Проверьте регистрацию `CfgRecipes`. Убедитесь, что оба ингредиента имеют корректные свойства `canBeSplit`, `isMeleeWeapon` или другие необходимые. Тестируйте с ванильными конфигурациями рецептов как образцом. |
 
 ---
 
 ## 8. Проблемы с конфигурацией и types
 
-Problems with `config.cpp`, `types.xml`, and other configuration files.
+Проблемы с `config.cpp`, `types.xml` и другими конфигурационными файлами.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| Config values not taking effect | Using binarized config but editing source | Rebuild your PBO after config changes. If using file patching, ensure `DayZDiag_x64.exe` and `-filePatching` are active. |
-| `types.xml` changes ignored | Editing the wrong `types.xml` file | The server loads types from `mpmissions/your_mission/db/types.xml`. Editing a types file elsewhere has no effect. Check the server's active mission folder. |
-| "Error loading types" on server start | XML syntax error in `types.xml` | Validate your XML. Common issues: unclosed tags, missing quotes on attribute values, or `&` instead of `&amp;`. Use an XML validator. |
-| Items spawn with wrong quantities | `quantmin`/`quantmax` values incorrect | Values are percentages (0-100) in `types.xml`, not absolute counts. `-1` means "use default". |
-| Loot table not spawning items | `nominal` is 0 or missing `category`/`usage`/`tag` | Set `nominal` above 0. Add at least one `<usage>` and `<category>` tag so the Central Economy knows where to spawn items. |
-| JSON config file not loading | Malformed JSON or wrong path | Validate JSON syntax (no trailing commas, proper quoting). Use `$profile:` prefix for server profile paths. Check that the file exists with `FileExist()`. |
-| `cfgGameplay.json` changes ignored | File not enabled or wrong location | Place the file in the mission folder. Set `enableCustomGameplay` to `1` in `serverDZ.cfg`. Restart the server (not just reload). |
-| Class inheritance not working in config | `baseClass` misspelled or not loaded | The parent class must exist in the same or earlier addon. Check that `requiredAddons[]` includes the addon defining the parent class. |
+|---------|---------|-------------|
+| Значения конфигурации не применяются | Используется бинаризованная конфигурация, но редактируется исходник | Пересоберите PBO после изменений конфигурации. При использовании file patching убедитесь, что активны `DayZDiag_x64.exe` и `-filePatching`. |
+| Изменения в `types.xml` игнорируются | Редактируется неправильный файл `types.xml` | Сервер загружает types из `mpmissions/your_mission/db/types.xml`. Редактирование файла types в другом месте не даёт эффекта. Проверьте активную папку миссии сервера. |
+| "Error loading types" при запуске сервера | Синтаксическая ошибка XML в `types.xml` | Проверьте XML. Частые проблемы: незакрытые теги, отсутствующие кавычки у значений атрибутов или `&` вместо `&amp;`. Используйте XML-валидатор. |
+| Предметы спавнятся с неверным количеством | Неверные значения `quantmin`/`quantmax` | Значения указываются в процентах (0-100) в `types.xml`, а не в абсолютных числах. `-1` означает "использовать значение по умолчанию". |
+| Таблица лута не спавнит предметы | `nominal` равен 0 или отсутствует `category`/`usage`/`tag` | Установите `nominal` больше 0. Добавьте хотя бы один тег `<usage>` и `<category>`, чтобы Центральная экономика знала, где спавнить предметы. |
+| JSON-файл конфигурации не загружается | Некорректный JSON или неверный путь | Проверьте синтаксис JSON (нет висящих запятых, правильное кавычение). Используйте префикс `$profile:` для путей серверного профиля. Проверьте существование файла с помощью `FileExist()`. |
+| Изменения `cfgGameplay.json` игнорируются | Файл не включён или находится в неверном месте | Поместите файл в папку миссии. Установите `enableCustomGameplay` в `1` в `serverDZ.cfg`. Перезапустите сервер (не просто перезагрузку). |
+| Наследование классов не работает в конфигурации | `baseClass` написан с ошибкой или не загружен | Родительский класс должен существовать в том же или более раннем аддоне. Проверьте, что `requiredAddons[]` включает аддон, определяющий родительский класс. |
 
 ---
 
 ## 9. Проблемы с персистентностью
 
-Problems with data saving and loading across server restarts.
+Проблемы с сохранением и загрузкой данных между перезапусками сервера.
 
 | Симптом | Причина | Исправление |
-|---------|-------|-----|
-| Player data lost on restart | Not saving to `$profile:` directory | Use `JsonFileLoader<T>.JsonСохранитьFile()` with a `$profile:` path. Сохранить on player disconnect (`PlayerDisconnected`) and periodically during gameplay. |
-| Сохранитьd file is empty or corrupt | Crash during write, or serialization error | Write to a temporary file first, then rename to the final path. Validate data before saving. Always handle `FileExist()` checks on load. |
-| `OnStoreСохранить`/`OnStoreLoad` mismatch | Version changed but no migration | Always write a version number first. On load, read the version and handle old formats: `if (version < CURRENT) { /* read old format */ }`. |
-| Items disappear from storage | `lifetime` expired in `types.xml` | Increase `lifetime` for persistent items. Default is often too short for base-building containers. Check `globals.xml` `cleanupLifetimeRuin` value. |
-| Custom variables reset on relog | Variables not synced or stored | Register variables for network sync with `RegisterNetSyncVariable*()`. For persistence, save/load in `OnStoreСохранить()`/`OnStoreLoad()`. |
+|---------|---------|-------------|
+| Данные игрока потеряны после перезапуска | Не сохраняется в каталог `$profile:` | Используйте `JsonFileLoader<T>.JsonSaveFile()` с путём `$profile:`. Сохраняйте при отключении игрока (`PlayerDisconnected`) и периодически во время игры. |
+| Сохранённый файл пуст или повреждён | Краш во время записи или ошибка сериализации | Сначала записывайте во временный файл, затем переименовывайте в итоговый путь. Проверяйте данные перед сохранением. Всегда обрабатывайте проверки `FileExist()` при загрузке. |
+| Несовпадение `OnStoreSave`/`OnStoreLoad` | Версия изменилась, но миграция не выполнена | Всегда записывайте номер версии первым. При загрузке читайте версию и обрабатывайте старые форматы: `if (version < CURRENT) { /* чтение старого формата */ }`. |
+| Предметы исчезают из хранилища | `lifetime` истёк в `types.xml` | Увеличьте `lifetime` для персистентных предметов. Значение по умолчанию часто слишком короткое для контейнеров строительства баз. Проверьте значение `cleanupLifetimeRuin` в `globals.xml`. |
+| Пользовательские переменные сбрасываются при перезаходе | Переменные не синхронизированы или не сохранены | Зарегистрируйте переменные для сетевой синхронизации с помощью `RegisterNetSyncVariable*()`. Для персистентности сохраняйте/загружайте в `OnStoreSave()`/`OnStoreLoad()`. |
 
 ---
 
 ## 10. Блок-схемы принятия решений
 
-Step-by-step diagnostic processes for common "it doesn't work" situations.
+Пошаговые диагностические процессы для распространённых ситуаций "это не работает".
 
-### "My mod doesn't work at all"
+### "Мой мод вообще не работает"
 
-1. **Check the script log** for `SCRIPT (E)` errors. Fix the first error you find. (Section 2)
-2. **Is the mod listed in the launcher?** If not, check that `mod.cpp` exists and is valid. (Section 1)
-3. **Does the log mention your CfgPatches class?** If not, check `config.cpp` syntax, `requiredAddons[]`, and the `-mod=` launch parameter.
-4. **Do scripts compile?** Look for compile errors in the RPT. Fix any syntax errors. (Section 2)
-5. **Is there an entry point?** You need a `modded class MissionServer`/`MissionGameplay`, a registered module, or a plugin. Scripts without an entry point never run.
-6. **Still nothing?** Add `Print("MY_MOD: Init reached");` at your entry point to confirm execution.
+1. **Проверьте лог скриптов** на наличие ошибок `SCRIPT (E)`. Исправьте первую найденную ошибку. (Раздел 2)
+2. **Мод отображается в лаунчере?** Если нет, проверьте существование и валидность `mod.cpp`. (Раздел 1)
+3. **Лог упоминает ваш класс CfgPatches?** Если нет, проверьте синтаксис `config.cpp`, `requiredAddons[]` и параметр запуска `-mod=`.
+4. **Скрипты компилируются?** Ищите ошибки компиляции в RPT. Исправьте все синтаксические ошибки. (Раздел 2)
+5. **Есть ли точка входа?** Вам нужен `modded class MissionServer`/`MissionGameplay`, зарегистрированный модуль или плагин. Скрипты без точки входа никогда не запускаются.
+6. **Всё ещё ничего?** Добавьте `Print("MY_MOD: Init reached");` в вашу точку входа для подтверждения выполнения.
 
-### "Works offline but not on a dedicated server"
+### "Работает офлайн, но не на выделенном сервере"
 
-1. **Is the mod installed on the server?** Check that `-mod=` includes your mod path and the PBO is in `@YourMod/Addons/`.
-2. **Client-only code on server?** `GetGame().GetPlayer()` returns `null` during server init. Add `GetGame().IsServer()` / `GetGame().IsClient()` guards.
-3. **RPCs working?** Add `Print()` on both send and receive sides. Check that RPC IDs match and target entity exists on both sides. (Section 3)
-4. **Data syncing?** Verify `SetSynchDirty()` is called after changes. Check read/write parameter order matches.
-5. **Timing issues?** Listen servers hide race conditions because client and server share a process. Dedicated servers expose these. Add null checks and readiness guards.
+1. **Мод установлен на сервере?** Проверьте, что `-mod=` включает путь к моду и PBO находится в `@YourMod/Addons/`.
+2. **Клиентский код на сервере?** `GetGame().GetPlayer()` возвращает `null` во время инициализации сервера. Добавьте проверки `GetGame().IsServer()` / `GetGame().IsClient()`.
+3. **RPC работают?** Добавьте `Print()` на обеих сторонах --- отправки и получения. Проверьте совпадение ID RPC и существование целевой сущности на обеих сторонах. (Раздел 3)
+4. **Данные синхронизируются?** Убедитесь, что `SetSynchDirty()` вызывается после изменений. Проверьте совпадение порядка параметров чтения/записи.
+5. **Проблемы таймингов?** Listen server скрывает состояния гонки, потому что клиент и сервер делят один процесс. Выделенные серверы выявляют их. Добавьте проверки на null и условия готовности.
 
-### "My UI is broken"
+### "Мой UI сломан"
 
-1. **Does `CreateWidgets()` return null?** The layout path is wrong or the file is missing. Check forward slashes, verify the `.layout` is packed in the PBO.
-2. **Widgets exist but invisible?** Check sizes (must be > 0, no negative values). Check `Show(true)` is called. Check text/widget alpha is not 0.
-3. **Visible but not clickable?** Check widget `priority` (z-order). Verify `ScriptClass` is assigned. Confirm the handler is set.
-4. **Input stuck after closing UI?** `ChangeGameFocus()` calls are imbalanced. Every `ChangeGameFocus(1)` needs a matching `ChangeGameFocus(-1)`. Check cleanup runs even on force-close.
+1. **`CreateWidgets()` возвращает null?** Путь к макету неверен или файл отсутствует. Проверьте прямые косые черты, убедитесь, что `.layout` упакован в PBO.
+2. **Виджеты существуют, но невидимы?** Проверьте размеры (должны быть > 0, без отрицательных значений). Проверьте вызов `Show(true)`. Проверьте, что альфа текста/виджета не 0.
+3. **Видимы, но не кликаются?** Проверьте `priority` виджета (z-порядок). Убедитесь, что `ScriptClass` назначен. Подтвердите установку обработчика.
+4. **Ввод заблокирован после закрытия UI?** Несбалансированные вызовы `ChangeGameFocus()`. Каждый `ChangeGameFocus(1)` требует парного `ChangeGameFocus(-1)`. Проверьте, что очистка выполняется даже при принудительном закрытии.
 
 ---
 
 ## 11. Краткая справка по командам отладки
 
-Use these in the DayZDiag debug console or admin tools.
+Используйте их в отладочной консоли DayZDiag или админ-инструментах.
 
-| Action | Command |
-|--------|---------|
-| Spawn item on ground | `GetGame().CreateObject("AKM", GetGame().GetPlayer().GetPosition());` |
-| Spawn vehicle (assembled) | `EntityAI car = EntityAI.Cast(GetGame().CreateObject("OffroadHatchback", GetGame().GetPlayer().GetPosition())); if (car) car.OnDebugSpawn();` |
-| Spawn zombie | `GetGame().CreateObject("ZmbM_Normal_00", GetGame().GetPlayer().GetPosition());` |
-| Teleport to coords | `GetGame().GetPlayer().SetPosition("6543 0 2114".ToVector());` |
-| Heal fully | `GetGame().GetPlayer().SetHealth("", "", 5000);` |
-| Full blood | `GetGame().GetPlayer().SetHealth("", "Blood", 5000);` |
-| Остановить unconscious | `GetGame().GetPlayer().SetHealth("", "Shock", 0);` |
-| Set noon | `GetGame().GetWorld().SetDate(2024, 9, 15, 12, 0);` |
-| Set night | `GetGame().GetWorld().SetDate(2024, 9, 15, 2, 0);` |
-| Clear weather | `GetGame().GetWeather().GetOvercast().Set(0,0,0); GetGame().GetWeather().GetRain().Set(0,0,0);` |
-| Heavy rain | `GetGame().GetWeather().GetOvercast().Set(1,0,0); GetGame().GetWeather().GetRain().Set(1,0,0);` |
-| Print position | `Print(GetGame().GetPlayer().GetPosition());` |
-| Check server/client | `Print("IsServer: " + GetGame().IsServer().ToString());` |
-| Print FPS | `Print("FPS: " + (1.0 / GetGame().GetDeltaT()).ToString());` |
+| Действие | Команда |
+|----------|---------|
+| Заспавнить предмет на земле | `GetGame().CreateObject("AKM", GetGame().GetPlayer().GetPosition());` |
+| Заспавнить транспорт (собранный) | `EntityAI car = EntityAI.Cast(GetGame().CreateObject("OffroadHatchback", GetGame().GetPlayer().GetPosition())); if (car) car.OnDebugSpawn();` |
+| Заспавнить зомби | `GetGame().CreateObject("ZmbM_Normal_00", GetGame().GetPlayer().GetPosition());` |
+| Телепорт по координатам | `GetGame().GetPlayer().SetPosition("6543 0 2114".ToVector());` |
+| Полное исцеление | `GetGame().GetPlayer().SetHealth("", "", 5000);` |
+| Полная кровь | `GetGame().GetPlayer().SetHealth("", "Blood", 5000);` |
+| Остановить потерю сознания | `GetGame().GetPlayer().SetHealth("", "Shock", 0);` |
+| Установить полдень | `GetGame().GetWorld().SetDate(2024, 9, 15, 12, 0);` |
+| Установить ночь | `GetGame().GetWorld().SetDate(2024, 9, 15, 2, 0);` |
+| Ясная погода | `GetGame().GetWeather().GetOvercast().Set(0,0,0); GetGame().GetWeather().GetRain().Set(0,0,0);` |
+| Сильный дождь | `GetGame().GetWeather().GetOvercast().Set(1,0,0); GetGame().GetWeather().GetRain().Set(1,0,0);` |
+| Вывести позицию | `Print(GetGame().GetPlayer().GetPosition());` |
+| Проверить сервер/клиент | `Print("IsServer: " + GetGame().IsServer().ToString());` |
+| Вывести FPS | `Print("FPS: " + (1.0 / GetGame().GetDeltaT()).ToString());` |
 
-**Common Chernarus locations:** Elektro `"10570 0 2354"`, Cherno `"6649 0 2594"`, NWAF `"4494 0 10365"`, Tisy `"1693 0 13575"`, Berezino `"12121 0 9216"`
+**Известные локации Черноруси:** Электро `"10570 0 2354"`, Черно `"6649 0 2594"`, СЗАФ `"4494 0 10365"`, Тиси `"1693 0 13575"`, Березино `"12121 0 9216"`
 
-### Launch Parameters
+### Параметры запуска
 
-| Parameter | Purpose |
-|-----------|---------|
-| `-filePatching` | Load unpacked files (requires DayZDiag) |
-| `-scriptDebug=true` | Enable script debug features |
-| `-doLogs` | Enable detailed logging |
-| `-adminLog` | Enable admin log on server |
-| `-freezeCheck` | Detect and log script freezes |
-| `-noSound` | Disable sound (faster testing) |
-| `-noPause` | Server does not pause when empty |
-| `-profiles=<path>` | Custom profile/log directory |
-| `-connect=<ip>` | Auto-connect to server on launch |
-| `-port=<port>` | Server port (default 2302) |
-| `-mod=@Mod1;@Mod2` | Load mods (semicolon-separated) |
-| `-serverMod=@Mod` | Server-only mods (not sent to clients) |
+| Параметр | Назначение |
+|----------|------------|
+| `-filePatching` | Загрузка распакованных файлов (требуется DayZDiag) |
+| `-scriptDebug=true` | Включение функций отладки скриптов |
+| `-doLogs` | Включение подробного логирования |
+| `-adminLog` | Включение админ-лога на сервере |
+| `-freezeCheck` | Обнаружение и логирование зависаний скриптов |
+| `-noSound` | Отключение звука (быстрее тестирование) |
+| `-noPause` | Сервер не приостанавливается, когда пуст |
+| `-profiles=<path>` | Пользовательский каталог профиля/логов |
+| `-connect=<ip>` | Автоматическое подключение к серверу при запуске |
+| `-port=<port>` | Порт сервера (по умолчанию 2302) |
+| `-mod=@Mod1;@Mod2` | Загрузка модов (разделённых точкой с запятой) |
+| `-serverMod=@Mod` | Серверные моды (не отправляются клиентам) |
 
 ---
 
 ## 12. Расположение файлов логов
 
-Knowing where to look is half the battle.
+Знать, где искать --- это половина дела.
 
-### Client Logs
+### Клиентские логи
 
-| Log | Location | Contains |
-|-----|----------|----------|
-| Script log | `%localappdata%\DayZ\` (most recent `.RPT` file) | Script errors, warnings, `Print()` output |
-| Crash dumps | `%localappdata%\DayZ\` (`.mdmp` files) | Crash analysis data |
-| Workbench log | Workbench IDE output panel | Compile errors during development |
+| Лог | Расположение | Содержимое |
+|-----|-------------|------------|
+| Лог скриптов | `%localappdata%\DayZ\` (последний файл `.RPT`) | Ошибки скриптов, предупреждения, вывод `Print()` |
+| Дампы крашей | `%localappdata%\DayZ\` (файлы `.mdmp`) | Данные для анализа крашей |
+| Лог Workbench | Панель вывода Workbench IDE | Ошибки компиляции во время разработки |
 
-### Server Logs
+### Серверные логи
 
-| Log | Location | Contains |
-|-----|----------|----------|
-| Script log | `<server_root>\profiles\` (most recent `.RPT` file) | Script errors, server-side `Print()` |
-| Admin log | `<server_root>\profiles\` (`.ADM` file) | Player connections, kills, chat |
-| Crash dumps | `<server_root>\profiles\` (`.mdmp` files) | Server crash data |
-| Custom logs | `<server_root>\profiles\` | Any logs written with `FileHandle` |
+| Лог | Расположение | Содержимое |
+|-----|-------------|------------|
+| Лог скриптов | `<server_root>\profiles\` (последний файл `.RPT`) | Ошибки скриптов, серверный `Print()` |
+| Админ-лог | `<server_root>\profiles\` (файл `.ADM`) | Подключения игроков, убийства, чат |
+| Дампы крашей | `<server_root>\profiles\` (файлы `.mdmp`) | Данные крашей сервера |
+| Пользовательские логи | `<server_root>\profiles\` | Любые логи, записанные через `FileHandle` |
 
-### Reading Logs Effectively
+### Эффективное чтение логов
 
-- Search for `SCRIPT (E)` to find script errors
-- Search for `SCRIPT ERROR` to find fatal script problems
-- Search for your mod name or class names to filter relevant entries
-- Errors often cascade -- fix the **first** error in the log, not the last
-- Timestamp each log read: the most recent `.RPT` file has the latest session
+- Ищите `SCRIPT (E)` для нахождения ошибок скриптов
+- Ищите `SCRIPT ERROR` для нахождения фатальных проблем со скриптами
+- Ищите имя вашего мода или классов для фильтрации релевантных записей
+- Ошибки часто каскадируются --- исправляйте **первую** ошибку в логе, а не последнюю
+- Отмечайте время каждого чтения лога: последний файл `.RPT` содержит данные последней сессии
 
 ---
 
 ## 13. Где получить помощь
 
-When this guide does not solve your problem, these are the best resources.
+Когда это руководство не решает вашу проблему, вот лучшие ресурсы.
 
-### Community Resources
+### Ресурсы сообщества
 
-| Resource | URL | Best For |
-|----------|-----|----------|
-| DayZ Modding Discord | `discord.gg/dayzmods` | Real-time help from experienced modders |
-| Bohemia Interactive Forums | `forums.bohemia.net/forums/forum/231-dayz-modding/` | Official forums, announcements |
-| DayZ Feedback Tracker | `feedback.bistudio.com/tag/dayz/` | Official bug reports |
-| DayZ Workshop | Steam Workshop (DayZ) | Browse published mods for reference |
-| Bohemia Wiki | `community.bistudio.com/wiki/DayZ:Modding_Basics` | Official modding basics |
+| Ресурс | URL | Лучше всего для |
+|--------|-----|-----------------|
+| DayZ Modding Discord | `discord.gg/dayzmods` | Помощь в реальном времени от опытных моддеров |
+| Форумы Bohemia Interactive | `forums.bohemia.net/forums/forum/231-dayz-modding/` | Официальные форумы, объявления |
+| DayZ Feedback Tracker | `feedback.bistudio.com/tag/dayz/` | Официальные отчёты об ошибках |
+| DayZ Workshop | Steam Workshop (DayZ) | Просмотр опубликованных модов для справки |
+| Bohemia Wiki | `community.bistudio.com/wiki/DayZ:Modding_Basics` | Официальные основы моддинга |
 
-### Reference Source Code
+### Справочный исходный код
 
-Study these mods to learn patterns from experienced modders:
+Изучайте эти моды для освоения паттернов от опытных моддеров:
 
-| Mod | What to Learn |
-|-----|---------------|
-| **Community Framework (CF)** | Module lifecycle, RPC management, logging, managed pointers |
-| **DayZ Expansion** | Large-scale mod architecture, market system, vehicles, parties |
-| **Community Online Tools (COT)** | Admin tools, permissions, UI patterns, player management |
-| **VPP Admin Tools** | Server administration, permissions, ESP, teleportation |
-| **Dabs Framework** | MVC pattern, data binding, UI component framework |
-| **BuilderItems** | Simple item mod structure (good starting example) |
-| **BaseBuildingPlus** | Building system, placement mechanics, persistence |
+| Мод | Чему можно научиться |
+|-----|---------------------|
+| **Community Framework (CF)** | Жизненный цикл модулей, управление RPC, логирование, управляемые указатели |
+| **DayZ Expansion** | Масштабная архитектура мода, система маркета, транспорт, группы |
+| **Community Online Tools (COT)** | Админ-инструменты, права доступа, паттерны UI, управление игроками |
+| **VPP Admin Tools** | Администрирование сервера, права доступа, ESP, телепортация |
+| **Dabs Framework** | Паттерн MVC, привязка данных, фреймворк UI-компонентов |
+| **BuilderItems** | Простая структура мода предметов (хороший начальный пример) |
+| **BaseBuildingPlus** | Система строительства, механика размещения, персистентность |
 
-### Vanilla Script Reference
+### Справочник ванильных скриптов
 
-The authoritative reference for all engine classes and methods:
+Авторитетный справочник по всем классам и методам движка:
 
-- Mount P: drive via DayZ Tools
-- Navigate to `P:\DZ\scripts\`
-- Organized by layer: `3_Game/`, `4_World/`, `5_Mission/`
-- Use your editor's search to find any vanilla class, method, or enum
+- Смонтируйте диск P: через DayZ Tools
+- Перейдите к `P:\DZ\scripts\`
+- Организовано по слоям: `3_Game/`, `4_World/`, `5_Mission/`
+- Используйте поиск вашего редактора для нахождения любого ванильного класса, метода или перечисления
 
-### Quick Checklist Before Asking for Help
+### Краткий чек-лист перед обращением за помощью
 
-Before posting in a community forum or Discord, gather this information:
+Прежде чем публиковать вопрос на форуме или в Discord, соберите эту информацию:
 
-1. **What you expected** to happen
-2. **What actually happened** (exact error messages, behavior)
-3. **Script log excerpt** (the relevant `SCRIPT (E)` lines, not the entire log)
-4. **Your code** (the relevant section, not the entire mod)
-5. **What you already tried** (saves everyone time)
-6. **DayZ version and mod list** (compatibility matters)
-7. **Client or server** (specify which side has the problem)
-
----
-
-## Quick Symptom Index
-
-Cannot find your problem in the sections above? Try this alphabetical index.
-
-| Symptom (what you see) | Go to |
-|-------------------------|-------|
-| Addon Builder fails | [Section 5](#5-build-and-pbo-issues) |
-| Array index out of range | [Section 2](#2-script-errors) |
-| Buttons not clickable | [Section 4](#4-ui-problems) |
-| Cannot convert type | [Section 2](#2-script-errors) |
-| Cannot create instance | [Section 2](#2-script-errors) |
-| Config parse error | [Section 1](#1-mod-wont-load) |
-| Cursor missing | [Section 4](#4-ui-problems) |
-| Division by zero | [Section 2](#2-script-errors) |
-| Data lost on restart | [Section 9](#9-persistence-issues) |
-| Entity deleted after spawn | [Section 7](#7-item-vehicle-and-entity-issues) |
-| File patching not working | [Section 5](#5-build-and-pbo-issues) |
-| FPS drops | [Section 6](#6-performance-issues) |
-| Game input stuck | [Section 4](#4-ui-problems) |
-| Image not showing | [Section 4](#4-ui-problems) |
-| Item invisible | [Section 7](#7-item-vehicle-and-entity-issues) |
-| Item won't spawn | [Section 7](#7-item-vehicle-and-entity-issues) |
-| JSON not loading | [Section 8](#8-config-and-types-issues) |
-| Layout returns null | [Section 4](#4-ui-problems) |
-| Loot not spawning | [Section 8](#8-config-and-types-issues) |
-| Member already defined | [Section 2](#2-script-errors) |
-| Memory leak | [Section 6](#6-performance-issues) |
-| Method not found | [Section 2](#2-script-errors) |
-| Mod not in launcher | [Section 1](#1-mod-wont-load) |
-| Null pointer access | [Section 2](#2-script-errors) |
-| Player data lost | [Section 9](#9-persistence-issues) |
-| PBO signature failed | [Section 5](#5-build-and-pbo-issues) |
-| Prefix mismatch | [Section 5](#5-build-and-pbo-issues) |
-| RPC not received | [Section 3](#3-rpc-and-network-issues) |
-| Scroll not working | [Section 4](#4-ui-problems) |
-| Сохранить file corrupt | [Section 9](#9-persistence-issues) |
-| Server crash on startup | [Section 2](#2-script-errors) |
-| Slider not responding | [Section 4](#4-ui-problems) |
-| Stack overflow | [Section 2](#2-script-errors) |
-| Text shows STR key | [Section 4](#4-ui-problems) |
-| Types.xml ignored | [Section 8](#8-config-and-types-issues) |
-| Undefined variable | [Section 2](#2-script-errors) |
-| Variable redeclaration | [Section 2](#2-script-errors) |
-| Vehicle won't drive | [Section 7](#7-item-vehicle-and-entity-issues) |
-| Widget invisible | [Section 4](#4-ui-problems) |
-| Works offline fails online | [Section 3](#3-rpc-and-network-issues) |
+1. **Что вы ожидали** --- что должно было произойти
+2. **Что произошло на самом деле** (точные сообщения об ошибках, поведение)
+3. **Фрагмент лога скриптов** (соответствующие строки `SCRIPT (E)`, а не весь лог)
+4. **Ваш код** (соответствующий фрагмент, а не весь мод)
+5. **Что вы уже попробовали** (экономит время всем)
+6. **Версия DayZ и список модов** (совместимость имеет значение)
+7. **Клиент или сервер** (укажите, на какой стороне проблема)
 
 ---
 
-*Problem still unsolved? Check the [FAQ](faq.md) for additional answers, the [Cheat Sheet](cheatsheet.md) for syntax reference, or ask in the DayZ Modding Discord.*
+## Алфавитный указатель симптомов
+
+Не можете найти свою проблему в разделах выше? Попробуйте этот алфавитный указатель.
+
+| Симптом (что вы видите) | Перейти к |
+|-------------------------|-----------|
+| Addon Builder не работает | [Раздел 5](#5-проблемы-сборки-и-pbo) |
+| Array index out of range | [Раздел 2](#2-ошибки-скриптов) |
+| Кнопки не кликаются | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Cannot convert type | [Раздел 2](#2-ошибки-скриптов) |
+| Cannot create instance | [Раздел 2](#2-ошибки-скриптов) |
+| Config parse error | [Раздел 1](#1-мод-не-загружается) |
+| Курсор отсутствует | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Division by zero | [Раздел 2](#2-ошибки-скриптов) |
+| Данные потеряны после перезапуска | [Раздел 9](#9-проблемы-с-персистентностью) |
+| Сущность удаляется после спавна | [Раздел 7](#7-проблемы-с-предметами-транспортом-и-сущностями) |
+| File patching не работает | [Раздел 5](#5-проблемы-сборки-и-pbo) |
+| Падение FPS | [Раздел 6](#6-проблемы-производительности) |
+| Ввод в игре заблокирован | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Изображение не отображается | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Предмет невидим | [Раздел 7](#7-проблемы-с-предметами-транспортом-и-сущностями) |
+| Предмет не спавнится | [Раздел 7](#7-проблемы-с-предметами-транспортом-и-сущностями) |
+| JSON не загружается | [Раздел 8](#8-проблемы-с-конфигурацией-и-types) |
+| Макет возвращает null | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Лут не спавнится | [Раздел 8](#8-проблемы-с-конфигурацией-и-types) |
+| Member already defined | [Раздел 2](#2-ошибки-скриптов) |
+| Утечка памяти | [Раздел 6](#6-проблемы-производительности) |
+| Method not found | [Раздел 2](#2-ошибки-скриптов) |
+| Мод не в лаунчере | [Раздел 1](#1-мод-не-загружается) |
+| Null pointer access | [Раздел 2](#2-ошибки-скриптов) |
+| Данные игрока потеряны | [Раздел 9](#9-проблемы-с-персистентностью) |
+| PBO подпись не прошла | [Раздел 5](#5-проблемы-сборки-и-pbo) |
+| Prefix mismatch | [Раздел 5](#5-проблемы-сборки-и-pbo) |
+| RPC не получен | [Раздел 3](#3-проблемы-с-rpc-и-сетью) |
+| Прокрутка не работает | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Файл сохранения повреждён | [Раздел 9](#9-проблемы-с-персистентностью) |
+| Краш сервера при запуске | [Раздел 2](#2-ошибки-скриптов) |
+| Слайдер не реагирует | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Stack overflow | [Раздел 2](#2-ошибки-скриптов) |
+| Текст показывает STR-ключ | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Types.xml игнорируется | [Раздел 8](#8-проблемы-с-конфигурацией-и-types) |
+| Undefined variable | [Раздел 2](#2-ошибки-скриптов) |
+| Variable redeclaration | [Раздел 2](#2-ошибки-скриптов) |
+| Транспорт не едет | [Раздел 7](#7-проблемы-с-предметами-транспортом-и-сущностями) |
+| Виджет невидим | [Раздел 4](#4-проблемы-с-интерфейсом) |
+| Работает офлайн, не работает онлайн | [Раздел 3](#3-проблемы-с-rpc-и-сетью) |
+
+---
+
+*Проблема всё ещё не решена? Проверьте [ЧаВо](faq.md) для дополнительных ответов, [Шпаргалку](cheatsheet.md) для справки по синтаксису или спросите в DayZ Modding Discord.*

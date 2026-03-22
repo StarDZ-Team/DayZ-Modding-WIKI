@@ -1,85 +1,85 @@
-# Chapter 4.2: 3D Models (.p3d)
+# Rozdział 4.2: Modele 3D (.p3d)
 
-[Home](../../README.md) | [<< Previous: Textures](01-textures.md) | **3D Models** | [Next: Materials >>](03-materials.md)
+[Strona główna](../../README.md) | [<< Poprzedni: Tekstury](01-textures.md) | **Modele 3D** | [Dalej: Materiały >>](03-materials.md)
 
 ---
 
 ## Wprowadzenie
 
-Every physical object in DayZ -- weapons, clothing, buildings, vehicles, trees, rocks -- is a 3D model stored in Bohemia's proprietary **P3D** format. The P3D format is far more than a mesh container: it encodes multiple levels of detail, collision geometry, animation selections, memory points for attachments and effects, and proxy positions for mountable items. Understanding how P3D files work and how to create them with **Object Builder** is essential for any mod that adds physical items to the game world.
+Każdy fizyczny obiekt w DayZ -- broń, ubrania, budynki, pojazdy, drzewa, skały -- to model 3D przechowywany w zastrzeżonym formacie **P3D** firmy Bohemia. Format P3D to znacznie więcej niż kontener siatki: koduje wiele poziomów szczegółowości, geometrię kolizji, selekcje animacji, punkty pamięci dla dodatków i efektów oraz pozycje proxy dla montowanych przedmiotów. Zrozumienie działania plików P3D i sposobu ich tworzenia za pomocą **Object Builder** jest niezbędne dla każdego moda dodającego fizyczne przedmioty do świata gry.
 
-This chapter covers the P3D format structure, the LOD system, named selections, memory points, the proxy system, animation configuration via `model.cfg`, and the import workflow from standard 3D formats.
+Ten rozdział opisuje strukturę formatu P3D, system LOD, nazwane selekcje, punkty pamięci, system proxy, konfigurację animacji przez `model.cfg` oraz przebieg pracy przy imporcie ze standardowych formatów 3D.
 
 ---
 
-## Spis tresci
+## Spis treści
 
-- [P3D Format Overview](#p3d-format-overview)
+- [Przegląd formatu P3D](#przegląd-formatu-p3d)
 - [Object Builder](#object-builder)
-- [The LOD System](#the-lod-system)
-- [Named Selections](#named-selections)
-- [Memory Points](#memory-points)
-- [The Proxy System](#the-proxy-system)
-- [Model.cfg for Animations](#modelcfg-for-animations)
-- [Importing from FBX/OBJ](#importing-from-fbxobj)
-- [Common Model Types](#common-model-types)
-- [Common Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+- [System LOD](#system-lod)
+- [Nazwane selekcje](#nazwane-selekcje)
+- [Punkty pamięci](#punkty-pamięci)
+- [System proxy](#system-proxy)
+- [Model.cfg dla animacji](#modelcfg-dla-animacji)
+- [Import z FBX/OBJ](#import-z-fbxobj)
+- [Typowe typy modeli](#typowe-typy-modeli)
+- [Najczęstsze błędy](#najczęstsze-błędy)
+- [Dobre praktyki](#dobre-praktyki)
 
 ---
 
-## Przeglad formatu P3D
+## Przegląd formatu P3D
 
-**P3D** (Point 3D) is Bohemia Interactive's binary 3D model format, inherited from the Real Virtuality engine and carried forward into Enfusion. It is a compiled, engine-ready format -- you do not write P3D files by hand.
+**P3D** (Point 3D) to binarny format modeli 3D firmy Bohemia Interactive, odziedziczony z silnika Real Virtuality i przeniesiony do Enfusion. Jest to skompilowany, gotowy dla silnika format -- nie piszesz plików P3D ręcznie.
 
 ### Kluczowe cechy
 
-- **Binary format:** Not human-readable. Created and edited exclusively with Object Builder.
-- **Multi-LOD container:** A single P3D file contains multiple LOD (Level of Detail) meshes, each with a different purpose.
-- **Engine-native:** The DayZ engine loads P3D directly. No runtime conversion occurs.
-- **Binarized vs. unbinarized:** Source P3D files from Object Builder are "MLOD" (editable). Binarize converts them to "ODOL" (optimized, read-only). The game can load both, but ODOL loads faster and is smaller.
+- **Format binarny:** Nie jest czytelny dla człowieka. Tworzony i edytowany wyłącznie za pomocą Object Builder.
+- **Kontener wielu LOD:** Pojedynczy plik P3D zawiera wiele siatek LOD (Level of Detail), każda o innym przeznaczeniu.
+- **Natywny dla silnika:** Silnik DayZ ładuje P3D bezpośrednio. Nie zachodzi żadna konwersja w trakcie działania.
+- **Zbinaryzowany vs. niezbinaryzowany:** Źródłowe pliki P3D z Object Builder to "MLOD" (edytowalne). Binarize konwertuje je do "ODOL" (zoptymalizowane, tylko do odczytu). Gra może ładować oba, ale ODOL ładuje się szybciej i jest mniejszy.
 
-### File Types You Will Encounter
+### Typy plików, które napotkasz
 
-| Extension | Description |
+| Rozszerzenie | Opis |
 |-----------|-------------|
-| `.p3d` | 3D model (both MLOD source and ODOL binarized) |
-| `.rtm` | Runtime Motion -- animation keyframe data |
-| `.bisurf` | Surface properties file (used alongside P3D) |
+| `.p3d` | Model 3D (zarówno źródłowy MLOD, jak i zbinaryzowany ODOL) |
+| `.rtm` | Runtime Motion -- dane klatek kluczowych animacji |
+| `.bisurf` | Plik właściwości powierzchni (używany obok P3D) |
 
 ### MLOD vs. ODOL
 
-| Property | MLOD (Source) | ODOL (Binarized) |
+| Właściwość | MLOD (Źródłowy) | ODOL (Zbinaryzowany) |
 |----------|---------------|-------------------|
-| Created by | Object Builder | Binarize |
-| Editable | Yes | No |
-| File size | Larger | Smaller |
-| Load speed | Slower | Faster |
-| Used during | Development | Release |
-| Contains | Full edit data, named selections | Optimized mesh data |
+| Tworzony przez | Object Builder | Binarize |
+| Edytowalny | Tak | Nie |
+| Rozmiar pliku | Większy | Mniejszy |
+| Prędkość ładowania | Wolniejsza | Szybsza |
+| Używany podczas | Rozwoju | Wydania |
+| Zawiera | Pełne dane edycji, nazwane selekcje | Zoptymalizowane dane siatki |
 
-> **Important:** When you pack a PBO with binarization enabled, your MLOD P3D files are automatically converted to ODOL. If you pack with `-packonly`, the MLOD files are included as-is. Both work in-game, but ODOL is preferred for release builds.
+> **Ważne:** Gdy pakujesz PBO z włączoną binaryzacją, twoje pliki MLOD P3D są automatycznie konwertowane do ODOL. Jeśli pakujesz z `-packonly`, pliki MLOD są dołączane w niezmienionej formie. Oba działają w grze, ale ODOL jest preferowany dla kompilacji wydaniowych.
 
 ---
 
 ## Object Builder
 
-**Object Builder** is the Bohemia-provided tool for creating and editing P3D models. It is included in the DayZ Tools suite on Steam.
+**Object Builder** to narzędzie dostarczone przez Bohemię do tworzenia i edycji modeli P3D. Jest dołączony do pakietu DayZ Tools na Steam.
 
-### Core Capabilities
+### Podstawowe możliwości
 
-- Create and edit 3D meshes with vertices, edges, and faces.
-- Define multiple LODs within a single P3D file.
-- Assign **named selections** (groups of vertices/faces) for animation and texture control.
-- Place **memory points** for attachment positions, particle origins, and sound sources.
-- Add **proxy objects** for attachable items (magazines, optics, etc.).
-- Assign materials (`.rvmat`) and textures (`.paa`) to faces.
-- Import meshes from FBX, OBJ, and 3DS formats.
-- Export validated P3D files for Binarize.
+- Tworzenie i edycja siatek 3D z wierzchołkami, krawędziami i ścianami.
+- Definiowanie wielu LOD w pojedynczym pliku P3D.
+- Przypisywanie **nazwanych selekcji** (grup wierzchołków/ścian) do animacji i kontroli tekstur.
+- Umieszczanie **punktów pamięci** dla pozycji dodatków, źródeł cząstek i źródeł dźwięku.
+- Dodawanie **obiektów proxy** dla montowanych przedmiotów (magazynki, optyka, itp.).
+- Przypisywanie materiałów (`.rvmat`) i tekstur (`.paa`) do ścian.
+- Import siatek z formatów FBX, OBJ i 3DS.
+- Eksport zwalidowanych plików P3D dla Binarize.
 
-### Workspace Setup
+### Konfiguracja przestrzeni roboczej
 
-Object Builder requires the **P: drive** (workdrive) to be set up. This virtual drive provides a unified path prefix that the engine uses to locate assets.
+Object Builder wymaga skonfigurowania **dysku P:** (workdrive). Ten wirtualny dysk zapewnia jednolity prefiks ścieżki, którego silnik używa do lokalizowania zasobów.
 
 ```
 P:\
@@ -93,103 +93,86 @@ P:\
         my_item_co.paa
 ```
 
-All paths in P3D files and materials are relative to the P: drive root. For example, a material reference inside the model would be `MyMod\data\textures\my_item_co.paa`.
+Wszystkie ścieżki w plikach P3D i materiałach są relatywne do korzenia dysku P:. Na przykład, referencja materiału wewnątrz modelu to `MyMod\data\textures\my_item_co.paa`.
 
-### Basic Workflow in Object Builder
+### Podstawowy przebieg pracy w Object Builder
 
-1. **Create or import** your mesh geometry.
-2. **Define LODs** -- at minimum, create Resolution, Geometry, and Fire Geometry LODs.
-3. **Assign materials** to faces in the Resolution LOD.
-4. **Name selections** for any parts that animate, swap textures, or need code interaction.
-5. **Place memory points** for attachments, muzzle flash positions, ejection ports, etc.
-6. **Add proxies** for items that can be attached (optics, magazines, suppressors).
-7. **Validate** using Object Builder's built-in validation (Structure --> Validate).
-8. **Save** as P3D.
-9. **Build** via Binarize or AddonBuilder.
+1. **Utwórz lub zaimportuj** geometrię siatki.
+2. **Zdefiniuj LOD** -- co najmniej utwórz LOD Resolution, Geometry i Fire Geometry.
+3. **Przypisz materiały** do ścian w LOD Resolution.
+4. **Nazwij selekcje** dla części, które animują, zamieniają tekstury lub wymagają interakcji kodu.
+5. **Umieść punkty pamięci** dla dodatków, pozycji błysku wylotowego, portów wyrzutu łusek, itp.
+6. **Dodaj proxy** dla przedmiotów, które mogą być dołączone (optyka, magazynki, tłumiki).
+7. **Zwaliduj** za pomocą wbudowanej walidacji Object Builder (Structure --> Validate).
+8. **Zapisz** jako P3D.
+9. **Zbuduj** przez Binarize lub AddonBuilder.
 
 ---
 
 ## System LOD
 
-A P3D file contains multiple **LODs** (Levels of Detail), each serving a specific purpose. The engine selects which LOD to use based on the situation -- distance from camera, physics calculations, shadow rendering, etc.
+Plik P3D zawiera wiele **LOD** (Level of Detail -- poziomów szczegółowości), z których każdy służy konkretnemu celowi. Silnik wybiera, którego LOD użyć na podstawie sytuacji -- odległości od kamery, obliczeń fizyki, renderowania cieni, itp.
 
 ### Typy LOD
 
-| LOD | Resolution Value | Purpose |
+| LOD | Wartość rozdzielczości | Przeznaczenie |
 |-----|-----------------|---------|
-| **Resolution 0** | 1.000 | Highest detail visual mesh. Rendered when the object is close to the camera. |
-| **Resolution 1** | 1.100 | Medium detail. Rendered at moderate distance. |
-| **Resolution 2** | 1.200 | Low detail. Rendered at far distance. |
-| **Resolution 3+** | 1.300+ | Additional distance LODs. |
-| **View Geometry** | Special | Determines what blocks the player's view (first person). Simplified mesh. |
-| **Fire Geometry** | Special | Collision for bullets and projectiles. Must be convex or composed of convex parts. |
-| **Geometry** | Special | Physics collision. Used for movement collision, gravity, placement. Must be convex or composed of convex decomposition. |
-| **Shadow 0** | Special | Shadow casting mesh (close range). |
-| **Shadow 1000** | Special | Shadow casting mesh (far range). Simpler than Shadow 0. |
-| **Memory** | Special | Contains only named points (no visible geometry). Used for attachment positions, sound origins, etc. |
-| **Roadway** | Special | Defines walkable surfaces on objects (vehicles, buildings with enterable interiors). |
-| **Paths** | Special | AI pathfinding hints for buildings. |
-
-### LOD Resolution Values (Visual LODs)
-
-The engine uses a formula based on distance and object size to determine which visual LOD to render:
-
-```
-LOD selected = (distance_to_object * LOD_factor) / object_bounding_sphere_radius
-```
-
-Lower values = closer camera. The engine finds the LOD whose resolution value is the closest match to the calculated value.
-
-### Creating LODs in Object Builder
-
-1. **File --> New LOD** or right-click the LOD list.
-2. Select the LOD type from the dropdown.
-3. For visual LODs (Resolution), enter the resolution value.
-4. Model the geometry for that LOD.
+| **Resolution 0** | 1.000 | Siatka wizualna najwyższego detalu. Renderowana, gdy obiekt jest blisko kamery. |
+| **Resolution 1** | 1.100 | Średni detal. Renderowana przy umiarkowanej odległości. |
+| **Resolution 2** | 1.200 | Niski detal. Renderowana przy dużej odległości. |
+| **Resolution 3+** | 1.300+ | Dodatkowe LOD odległości. |
+| **View Geometry** | Specjalny | Określa, co blokuje widok gracza (pierwsza osoba). Uproszczona siatka. |
+| **Fire Geometry** | Specjalny | Kolizja dla pocisków. Musi być wypukła lub złożona z wypukłych części. |
+| **Geometry** | Specjalny | Kolizja fizyki. Używana dla kolizji ruchu, grawitacji, umieszczania. Musi być wypukła lub złożona z dekompozycji wypukłej. |
+| **Shadow 0** | Specjalny | Siatka rzucania cieni (bliski zasięg). |
+| **Shadow 1000** | Specjalny | Siatka rzucania cieni (daleki zasięg). Prostsza niż Shadow 0. |
+| **Memory** | Specjalny | Zawiera tylko nazwane punkty (bez widocznej geometrii). Używany dla pozycji dodatków, źródeł dźwięku, itp. |
+| **Roadway** | Specjalny | Definiuje powierzchnie po których można chodzić na obiektach (pojazdy, budynki z wchodzalnymi wnętrzami). |
+| **Paths** | Specjalny | Wskazówki pathfindingu AI dla budynków. |
 
 ### Wymagania LOD wg typu przedmiotu
 
-| Item Type | Required LODs | Recommended Additional LODs |
+| Typ przedmiotu | Wymagane LOD | Zalecane dodatkowe LOD |
 |-----------|---------------|----------------------------|
-| **Handheld item** | Resolution 0, Geometry, Fire Geometry, Memory | Shadow 0, Resolution 1 |
-| **Clothing** | Resolution 0, Geometry, Fire Geometry, Memory | Shadow 0, Resolution 1, Resolution 2 |
-| **Weapon** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Resolution 1, Resolution 2 |
-| **Building** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Shadow 1000, Roadway, Paths |
-| **Vehicle** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Roadway, Resolution 1+ |
+| **Przedmiot ręczny** | Resolution 0, Geometry, Fire Geometry, Memory | Shadow 0, Resolution 1 |
+| **Ubranie** | Resolution 0, Geometry, Fire Geometry, Memory | Shadow 0, Resolution 1, Resolution 2 |
+| **Broń** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Resolution 1, Resolution 2 |
+| **Budynek** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Shadow 1000, Roadway, Paths |
+| **Pojazd** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Roadway, Resolution 1+ |
 
 ### Zasady LOD geometrii
 
-The Geometry and Fire Geometry LODs have strict requirements:
+LOD Geometry i Fire Geometry mają ścisłe wymagania:
 
-- **Must be convex** or composed of multiple convex components. The engine's physics system requires convex collision shapes.
-- **Named selections must match** those in the Resolution LOD (for animated parts).
-- **Mass must be defined.** Select all vertices in the Geometry LOD and assign mass via **Structure --> Mass**. This determines the object's physical weight.
-- **Keep it simple.** Fewer triangles = better physics performance. A weapon's geometry LOD might have 20-50 triangles vs. thousands in the visual LOD.
+- **Muszą być wypukłe** lub złożone z wielu wypukłych komponentów. System fizyki silnika wymaga wypukłych kształtów kolizji.
+- **Nazwane selekcje muszą się zgadzać** z tymi w LOD Resolution (dla animowanych części).
+- **Masa musi być zdefiniowana.** Zaznacz wszystkie wierzchołki w LOD Geometry i przypisz masę przez **Structure --> Mass**. Określa to fizyczną wagę obiektu.
+- **Utrzymuj prostotę.** Mniej trójkątów = lepsza wydajność fizyki. LOD geometrii broni może mieć 20-50 trójkątów vs. tysiące w LOD wizualnym.
 
 ---
 
 ## Nazwane selekcje
 
-Named selections are groups of vertices, edges, or faces within a LOD that are tagged with a name. They serve as handles that the engine and scripts use to manipulate parts of a model.
+Nazwane selekcje to grupy wierzchołków, krawędzi lub ścian w LOD, które są oznaczone nazwą. Służą jako uchwyty, które silnik i skrypty używają do manipulowania częściami modelu.
 
-### Co robia nazwane selekcje
+### Co robią nazwane selekcje
 
-| Purpose | Example Selection Name | Used By |
+| Przeznaczenie | Przykładowa nazwa selekcji | Używane przez |
 |---------|----------------------|---------|
-| **Animation** | `bolt`, `trigger`, `magazine` | `model.cfg` animation sources |
-| **Texture swaps** | `camo`, `camo1`, `body` | `hiddenSelections[]` in config.cpp |
-| **Damage textures** | `zbytek` | Engine damage system, material swaps |
-| **Attachment points** | `magazine`, `optics`, `suppressor` | Proxy and attachment system |
+| **Animacja** | `bolt`, `trigger`, `magazine` | Źródła animacji `model.cfg` |
+| **Zamiana tekstur** | `camo`, `camo1`, `body` | `hiddenSelections[]` w config.cpp |
+| **Tekstury uszkodzeń** | `zbytek` | System uszkodzeń silnika, zamiana materiałów |
+| **Punkty montażu** | `magazine`, `optics`, `suppressor` | System proxy i montażu |
 
-### hiddenSelections (Texture Swaps)
+### hiddenSelections (Zamiana tekstur)
 
-The most common use of named selections for modders is **hiddenSelections** -- the ability to swap textures at runtime via config.cpp.
+Najczęstsze użycie nazwanych selekcji przez modderów to **hiddenSelections** -- możliwość zamiany tekstur w trakcie działania przez config.cpp.
 
-**In the P3D model (Resolution LOD):**
-1. Select the faces that should be retexturable.
-2. Name the selection (e.g., `camo`).
+**W modelu P3D (LOD Resolution):**
+1. Zaznacz ściany, które powinny mieć wymienialną teksturę.
+2. Nazwij selekcję (np. `camo`).
 
-**In config.cpp:**
+**W config.cpp:**
 ```cpp
 class MyRifle: Rifle_Base
 {
@@ -199,55 +182,55 @@ class MyRifle: Rifle_Base
 };
 ```
 
-This allows different variants of the same model with different textures without duplicating the P3D file.
+Pozwala to na różne warianty tego samego modelu z różnymi teksturami bez duplikowania pliku P3D.
 
 ### Tworzenie nazwanych selekcji
 
-In Object Builder:
+W Object Builder:
 
-1. Select the vertices or faces you want to group.
-2. Go to **Structure --> Named Selections** (or press Ctrl+N).
-3. Click **New**, enter the selection name.
-4. Click **Assign** to tag the selected geometry with that name.
+1. Zaznacz wierzchołki lub ściany, które chcesz zgrupować.
+2. Przejdź do **Structure --> Named Selections** (lub naciśnij Ctrl+N).
+3. Kliknij **New**, wpisz nazwę selekcji.
+4. Kliknij **Assign**, aby oznaczyć wybraną geometrię tą nazwą.
 
-> **Tip:** Selection names are case-sensitive. `Camo` and `camo` are different selections. Convention is lowercase.
+> **Wskazówka:** Nazwy selekcji rozróżniają wielkość liter. `Camo` i `camo` to różne selekcje. Konwencja to małe litery.
 
-### Selekcje miedzy LODami
+### Selekcje między LODami
 
-Named selections must be consistent across LODs for animations to work:
+Nazwane selekcje muszą być spójne między LODami, aby animacje działały:
 
-- If the `bolt` selection exists in Resolution 0, it must also exist in Geometry and Fire Geometry LODs (covering the corresponding collision geometry).
-- Shadow LODs should also have the selection if the animated part should cast correct shadows.
+- Jeśli selekcja `bolt` istnieje w Resolution 0, musi również istnieć w LODach Geometry i Fire Geometry (obejmując odpowiednią geometrię kolizji).
+- LODy Shadow powinny również mieć selekcję, jeśli animowana część powinna rzucać poprawne cienie.
 
 ---
 
-## Punkty pamieci
+## Punkty pamięci
 
-Memory points are named positions defined in the **Memory LOD**. They have no visual representation in-game -- they define spatial coordinates that the engine and scripts reference for positioning effects, attachments, sounds, and more.
+Punkty pamięci to nazwane pozycje zdefiniowane w **LOD Memory**. Nie mają wizualnej reprezentacji w grze -- definiują współrzędne przestrzenne, do których silnik i skrypty się odwołują przy pozycjonowaniu efektów, dodatków, dźwięków i więcej.
 
-### Typowe punkty pamieci
+### Typowe punkty pamięci
 
-| Point Name | Purpose |
+| Nazwa punktu | Przeznaczenie |
 |------------|---------|
-| `usti hlavne` | Muzzle position (where bullets originate, muzzle flash appears) |
-| `konec hlavne` | End of barrel (used with `usti hlavne` to define barrel direction) |
-| `nabojnicestart` | Ejection port start (where shell casings emerge) |
-| `nabojniceend` | Ejection port end (direction of ejection) |
-| `handguard` | Handguard attachment point |
-| `magazine` | Magazine well position |
-| `optics` | Optic rail position |
-| `suppressor` | Suppressor mount position |
-| `trigger` | Trigger position (for hand IK) |
-| `pistolgrip` | Pistol grip position (for hand IK) |
-| `lefthand` | Left hand grip position |
-| `righthand` | Right hand grip position |
-| `eye` | Eye position (for first-person view alignment) |
-| `pilot` | Driver/pilot seat position (vehicles) |
-| `light_l` / `light_r` | Left/right headlight positions (vehicles) |
+| `usti hlavne` | Pozycja wylotu lufy (skąd wychodzą pociski, pojawia się błysk wylotowy) |
+| `konec hlavne` | Koniec lufy (używany z `usti hlavne` do definiowania kierunku lufy) |
+| `nabojnicestart` | Początek portu wyrzutu (skąd wylatują łuski) |
+| `nabojniceend` | Koniec portu wyrzutu (kierunek wyrzutu) |
+| `handguard` | Punkt montażu chwytki |
+| `magazine` | Pozycja gniazda magazynka |
+| `optics` | Pozycja szyny optyki |
+| `suppressor` | Pozycja montażu tłumika |
+| `trigger` | Pozycja spustu (dla IK ręki) |
+| `pistolgrip` | Pozycja chwytni pistoletowej (dla IK ręki) |
+| `lefthand` | Pozycja chwytu lewej ręki |
+| `righthand` | Pozycja chwytu prawej ręki |
+| `eye` | Pozycja oka (dla wyrównania widoku z pierwszej osoby) |
+| `pilot` | Pozycja siedzenia kierowcy/pilota (pojazdy) |
+| `light_l` / `light_r` | Pozycje lewego/prawego reflektora (pojazdy) |
 
-### Kierunkowe punkty pamieci
+### Kierunkowe punkty pamięci
 
-Many effects need both a position and a direction. This is achieved with paired memory points:
+Wiele efektów wymaga zarówno pozycji, jak i kierunku. Osiąga się to za pomocą par punktów pamięci:
 
 ```
 usti hlavne  ------>  konec hlavne
@@ -256,72 +239,37 @@ usti hlavne  ------>  konec hlavne
 The direction vector is: konec hlavne - usti hlavne
 ```
 
-### Creating Memory Points in Object Builder
-
-1. Switch to the **Memory LOD** in the LOD list.
-2. Create a vertex at the desired position.
-3. Name it via **Structure --> Named Selections**: create a selection with the point name and assign the single vertex to it.
-
-> **Note:** The Memory LOD should contain ONLY named points (individual vertices). Do not create faces or edges in the Memory LOD.
-
 ---
 
 ## System proxy
 
-Proxies define positions where other P3D models can be attached. When you see a magazine inserted in a weapon, an optic mounted on a rail, or a suppressor screwed onto a barrel -- those are proxy-attached models.
+Proxy definiują pozycje, w których inne modele P3D mogą być zamontowane. Gdy widzisz magazynek włożony do broni, optykę zamontowaną na szynie lub tłumik nakręcony na lufę -- to są modele zamontowane przez proxy.
 
-### Jak dzialaja proxy
+### Jak działają proxy
 
-A proxy is a special reference placed in the Resolution LOD that points to another P3D file. The engine renders the proxy's referenced model at the proxy's position and orientation.
+Proxy to specjalna referencja umieszczona w LOD Resolution, która wskazuje na inny plik P3D. Silnik renderuje referencyjny model proxy w pozycji i orientacji proxy.
 
 ### Konwencja nazewnictwa proxy
 
-Proxy names follow the pattern: `proxy:\path\to\model.p3d`
+Nazwy proxy podążają za wzorcem: `proxy:\path\to\model.p3d`
 
-For attachment proxies on weapons, the standard names are:
+Dla proxy montażu na broni standardowe nazwy to:
 
-| Proxy Path | Attachment Type |
+| Ścieżka proxy | Typ montażu |
 |------------|----------------|
-| `proxy:\dz\weapons\attachments\magazine\mag_placeholder.p3d` | Magazine slot |
-| `proxy:\dz\weapons\attachments\optics\optic_placeholder.p3d` | Optics rail |
-| `proxy:\dz\weapons\attachments\suppressor\sup_placeholder.p3d` | Suppressor mount |
-| `proxy:\dz\weapons\attachments\handguard\handguard_placeholder.p3d` | Handguard slot |
-| `proxy:\dz\weapons\attachments\stock\stock_placeholder.p3d` | Stock/buttstock slot |
-
-### Dodawanie proxy w Object Builder
-
-1. In the Resolution LOD, position the 3D cursor where the attachment should appear.
-2. Go to **Structure --> Proxy --> Create**.
-3. Enter the proxy path (e.g., `dz\weapons\attachments\magazine\mag_placeholder.p3d`).
-4. The proxy appears as a small arrow indicating position and orientation.
-5. Rotate and position the proxy to align correctly with the attachment geometry.
-
-### Indeks proxy
-
-Each proxy has an index number (starting from 1). When a model has multiple proxies of the same type, the index differentiates them. The index is referenced in config.cpp:
-
-```cpp
-class MyWeapon: Rifle_Base
-{
-    class Attachments
-    {
-        class magazine
-        {
-            type = "magazine";
-            proxy = "proxy:\dz\weapons\attachments\magazine\mag_placeholder.p3d";
-            proxyIndex = 1;
-        };
-    };
-};
-```
+| `proxy:\dz\weapons\attachments\magazine\mag_placeholder.p3d` | Slot magazynka |
+| `proxy:\dz\weapons\attachments\optics\optic_placeholder.p3d` | Szyna optyki |
+| `proxy:\dz\weapons\attachments\suppressor\sup_placeholder.p3d` | Montaż tłumika |
+| `proxy:\dz\weapons\attachments\handguard\handguard_placeholder.p3d` | Slot chwytki |
+| `proxy:\dz\weapons\attachments\stock\stock_placeholder.p3d` | Slot kolby |
 
 ---
 
-## Model.cfg for Animations
+## Model.cfg dla animacji
 
-The `model.cfg` file defines animations for P3D models. It maps animation sources (driven by game logic) to transformations on named selections.
+Plik `model.cfg` definiuje animacje dla modeli P3D. Mapuje źródła animacji (sterowane logiką gry) na transformacje na nazwanych selekcjach.
 
-### Basic Structure
+### Podstawowa struktura
 
 ```cpp
 class CfgModels
@@ -392,173 +340,166 @@ class CfgSkeletons
 
 ### Typy animacji
 
-| Type | Keyword | Movement | Controlled By |
+| Typ | Słowo kluczowe | Ruch | Kontrolowane przez |
 |------|---------|----------|---------------|
-| **Translation** | `translation` | Linear movement along an axis | `offset0` / `offset1` (meters) |
-| **Rotation** | `rotation` | Rotation around an axis | `angle0` / `angle1` (radians) |
-| **RotationX/Y/Z** | `rotationX` | Rotation around a fixed world axis | `angle0` / `angle1` |
-| **Hide** | `hide` | Show/hide a selection | `hideValue` threshold |
+| **Translacja** | `translation` | Ruch liniowy wzdłuż osi | `offset0` / `offset1` (metry) |
+| **Rotacja** | `rotation` | Obrót wokół osi | `angle0` / `angle1` (radiany) |
+| **RotationX/Y/Z** | `rotationX` | Obrót wokół stałej osi świata | `angle0` / `angle1` |
+| **Ukrycie** | `hide` | Pokaż/ukryj selekcję | Próg `hideValue` |
 
-### Zrodla animacji
+### Źródła animacji
 
-Animation sources are engine-provided values that drive animations:
+Źródła animacji to dostarczane przez silnik wartości sterujące animacjami:
 
-| Source | Range | Description |
+| Źródło | Zakres | Opis |
 |--------|-------|-------------|
-| `reload` | 0-1 | Weapon reload phase |
-| `trigger` | 0-1 | Trigger pull |
-| `zeroing` | 0-N | Weapon zeroing setting |
-| `isFlipped` | 0-1 | Iron sight flip state |
-| `door` | 0-1 | Door open/close |
-| `rpm` | 0-N | Vehicle engine RPM |
-| `speed` | 0-N | Vehicle speed |
-| `fuel` | 0-1 | Vehicle fuel level |
-| `damper` | 0-1 | Vehicle suspension |
+| `reload` | 0-1 | Faza przeładowania broni |
+| `trigger` | 0-1 | Naciśnięcie spustu |
+| `zeroing` | 0-N | Ustawienie zerowania broni |
+| `isFlipped` | 0-1 | Stan odwrócenia celownika mechanicznego |
+| `door` | 0-1 | Otwarcie/zamknięcie drzwi |
+| `rpm` | 0-N | Obroty silnika pojazdu |
+| `speed` | 0-N | Prędkość pojazdu |
+| `fuel` | 0-1 | Poziom paliwa pojazdu |
+| `damper` | 0-1 | Zawieszenie pojazdu |
 
 ---
 
 ## Import z FBX/OBJ
 
-Most modders create 3D models in external tools (Blender, 3ds Max, Maya) and import them into Object Builder.
+Większość modderów tworzy modele 3D w zewnętrznych narzędziach (Blender, 3ds Max, Maya) i importuje je do Object Builder.
 
-### Obslugiwane formaty importu
+### Obsługiwane formaty importu
 
-| Format | Extension | Notes |
+| Format | Rozszerzenie | Uwagi |
 |--------|-----------|-------|
-| **FBX** | `.fbx` | Best compatibility. Export as FBX 2013 or later (binary). |
-| **OBJ** | `.obj` | Wavefront OBJ. Simple mesh data only (no animations). |
-| **3DS** | `.3ds` | Legacy 3ds Max format. Limited to 65K vertices per mesh. |
+| **FBX** | `.fbx` | Najlepsza kompatybilność. Eksportuj jako FBX 2013 lub nowszy (binarny). |
+| **OBJ** | `.obj` | Wavefront OBJ. Tylko proste dane siatki (bez animacji). |
+| **3DS** | `.3ds` | Starszy format 3ds Max. Ograniczony do 65K wierzchołków na siatkę. |
 
 ### Przebieg importu
 
-**Step 1: Prepare in your 3D software**
-- Model should be centered at origin.
-- Apply all transforms (location, rotation, scale).
-- Scale: 1 unit = 1 meter. DayZ uses meters.
-- Triangulate the mesh (Object Builder works with triangles).
-- UV unwrap the model.
-- Export as FBX (binary, no animation, Y-up or Z-up -- Object Builder handles both).
+**Krok 1: Przygotuj w oprogramowaniu 3D**
+- Model powinien być wyśrodkowany w punkcie początkowym.
+- Zastosuj wszystkie transformacje (lokalizacja, rotacja, skala).
+- Skala: 1 jednostka = 1 metr. DayZ używa metrów.
+- Trianguluj siatkę (Object Builder pracuje z trójkątami).
+- Rozwiń UV modelu.
+- Eksportuj jako FBX (binarny, bez animacji, Y-up lub Z-up -- Object Builder obsługuje oba).
 
-**Step 2: Import into Object Builder**
-1. Open Object Builder.
-2. **File --> Import --> FBX** (or OBJ/3DS).
-3. Review the import settings:
-   - Scale factor (should be 1.0 if your source is in meters).
-   - Axis conversion (Z-up to Y-up if needed).
-4. The mesh appears in a new Resolution LOD.
+**Krok 2: Zaimportuj do Object Builder**
+1. Otwórz Object Builder.
+2. **File --> Import --> FBX** (lub OBJ/3DS).
+3. Przejrzyj ustawienia importu:
+   - Współczynnik skali (powinien być 1.0 jeśli źródło jest w metrach).
+   - Konwersja osi (Z-up do Y-up w razie potrzeby).
+4. Siatka pojawia się w nowym LOD Resolution.
 
-**Step 3: Post-import setup**
-1. Assign materials to faces (select faces, right-click --> **Face Properties**).
-2. Create additional LODs (Geometry, Fire Geometry, Memory, Shadow).
-3. Simplify geometry for collision LODs (remove small details, ensure convexity).
-4. Add named selections, memory points, and proxies.
-5. Validate and save.
-
-### Blender-Specific Tips
-
-- Use the **Blender DayZ Toolbox** community addon if available -- it streamlines export settings.
-- Export with: **Apply Modifiers**, **Triangulate Faces**, **Apply Scale**.
-- Set **Forward: -Z Forward**, **Up: Y Up** in the FBX export dialog.
-- Name mesh objects in Blender to match intended named selections -- some importers preserve object names.
+**Krok 3: Konfiguracja po imporcie**
+1. Przypisz materiały do ścian (zaznacz ściany, prawy przycisk --> **Face Properties**).
+2. Utwórz dodatkowe LODy (Geometry, Fire Geometry, Memory, Shadow).
+3. Uprość geometrię dla LODów kolizji (usuń drobne detale, zapewnij wypukłość).
+4. Dodaj nazwane selekcje, punkty pamięci i proxy.
+5. Zwaliduj i zapisz.
 
 ---
 
 ## Typowe typy modeli
 
-### Bron
+### Broń
 
-Weapons are the most complex P3D models, requiring:
-- High-poly Resolution LOD (5,000-20,000 triangles)
-- Multiple named selections (bolt, trigger, magazine, camo, etc.)
-- Full memory point set (muzzle, ejection, grip positions)
-- Multiple proxies (magazine, optics, suppressor, handguard, stock)
-- Skeleton and animations in model.cfg
-- View Geometry for first-person obstruction
+Broń to najbardziej złożone modele P3D, wymagające:
+- LOD Resolution z dużą liczbą wielokątów (5 000-20 000 trójkątów)
+- Wielu nazwanych selekcji (bolt, trigger, magazine, camo, itp.)
+- Pełnego zestawu punktów pamięci (wylot, wyrzut, pozycje chwytów)
+- Wielu proxy (magazynek, optyka, tłumik, chwytka, kolba)
+- Szkieletu i animacji w model.cfg
+- View Geometry dla przesłaniania z pierwszej osoby
 
-### Odziez
+### Odzież
 
-Clothing models are rigged to the character skeleton:
-- Resolution LOD follows the character's bone structure
-- Named selections for texture variants (`camo`, `camo1`)
-- Simpler collision geometry
-- No proxies (usually)
-- hiddenSelections for color/camo variants
+Modele odzieży są zriggowane do szkieletu postaci:
+- LOD Resolution podąża za strukturą kości postaci
+- Nazwane selekcje dla wariantów tekstur (`camo`, `camo1`)
+- Prostsza geometria kolizji
+- Brak proxy (zazwyczaj)
+- hiddenSelections dla wariantów koloru/kamuflaży
 
 ### Budynki
 
-Buildings have unique requirements:
-- Large, detailed Resolution LODs
-- Roadway LOD for walkable surfaces (floors, stairs)
-- Paths LOD for AI navigation
-- View Geometry to prevent seeing through walls
-- Multiple Shadow LODs for performance at different distances
-- Named selections for doors and windows that open
+Budynki mają unikalne wymagania:
+- Duże, szczegółowe LODy Resolution
+- LOD Roadway dla powierzchni do chodzenia (podłogi, schody)
+- LOD Paths dla nawigacji AI
+- View Geometry zapobiegająca widzeniu przez ściany
+- Wiele LODów Shadow dla wydajności na różnych odległościach
+- Nazwane selekcje dla drzwi i okien, które się otwierają
 
 ### Pojazdy
 
-Vehicles combine many systems:
-- Detailed Resolution LOD with animated parts (wheels, doors, hood)
-- Complex skeleton with many bones
-- Roadway LOD for passengers standing in truck beds
-- Memory points for lights, exhaust, driver position, passenger seats
-- Multiple proxies for attachments (wheels, doors)
+Pojazdy łączą wiele systemów:
+- Szczegółowy LOD Resolution z animowanymi częściami (koła, drzwi, maska)
+- Złożony szkielet z wieloma kośćmi
+- LOD Roadway dla pasażerów stojących na platformie ciężarówki
+- Punkty pamięci dla świateł, wydechu, pozycji kierowcy, siedzeń pasażerów
+- Wiele proxy dla dodatków (koła, drzwi)
 
 ---
 
-## Najczestsze bledy
+## Najczęstsze błędy
 
-### 1. Missing Geometry LOD
+### 1. Brak LOD Geometry
 
-**Symptom:** Object has no collision. Players and bullets pass through it.
-**Fix:** Create a Geometry LOD with a simplified convex mesh. Assign mass to vertices.
+**Objaw:** Obiekt nie ma kolizji. Gracze i pociski przechodzą przez niego.
+**Rozwiązanie:** Utwórz LOD Geometry z uproszczoną wypukłą siatką. Przypisz masę do wierzchołków.
 
-### 2. Non-Convex Collision Shapes
+### 2. Niewypukłe kształty kolizji
 
-**Symptom:** Physics glitches, objects bouncing erratically, items falling through surfaces.
-**Fix:** Break complex shapes into multiple convex components in the Geometry LOD. Each component must be a closed convex solid.
+**Objaw:** Usterki fizyki, obiekty odbijające się niekontrolowanie, przedmioty przenikające przez powierzchnie.
+**Rozwiązanie:** Rozbij złożone kształty na wiele wypukłych komponentów w LOD Geometry. Każdy komponent musi być zamkniętym wypukłym bryłą.
 
-### 3. Inconsistent Named Selections
+### 3. Niespójne nazwane selekcje
 
-**Symptom:** Animations only work visually but not for collision, or shadow does not animate.
-**Fix:** Ensure every named selection that exists in the Resolution LOD also exists in Geometry, Fire Geometry, and Shadow LODs.
+**Objaw:** Animacje działają tylko wizualnie, ale nie dla kolizji, lub cień się nie animuje.
+**Rozwiązanie:** Upewnij się, że każda nazwana selekcja istniejąca w LOD Resolution istnieje również w LODach Geometry, Fire Geometry i Shadow.
 
-### 4. Wrong Scale
+### 4. Zła skala
 
-**Symptom:** Object is gigantic or microscopic in-game.
-**Fix:** Verify your 3D software uses meters as the unit. A DayZ character is approximately 1.8 meters tall.
+**Objaw:** Obiekt jest gigantyczny lub mikroskopijny w grze.
+**Rozwiązanie:** Sprawdź, czy twoje oprogramowanie 3D używa metrów jako jednostki. Postać DayZ ma około 1,8 metra wzrostu.
 
-### 5. Missing Memory Points
+### 5. Brakujące punkty pamięci
 
-**Symptom:** Muzzle flash appears at the wrong position, attachments float in space.
-**Fix:** Create the Memory LOD and add all required named points at correct positions.
+**Objaw:** Błysk wylotowy pojawia się w złej pozycji, dodatki unoszą się w przestrzeni.
+**Rozwiązanie:** Utwórz LOD Memory i dodaj wszystkie wymagane nazwane punkty w prawidłowych pozycjach.
 
-### 6. No Mass Defined
+### 6. Niezdefiniowana masa
 
-**Symptom:** Object cannot be picked up, or physics interactions behave strangely.
-**Fix:** Select all vertices in the Geometry LOD and assign mass via **Structure --> Mass**.
+**Objaw:** Obiekt nie może być podniesiony lub interakcje fizyczne zachowują się dziwnie.
+**Rozwiązanie:** Zaznacz wszystkie wierzchołki w LOD Geometry i przypisz masę przez **Structure --> Mass**.
 
 ---
 
 ## Dobre praktyki
 
-1. **Start with the Geometry LOD.** Block out your collision shape first, then build the visual detail on top. This prevents the common mistake of creating a beautiful model that cannot collide properly.
+1. **Zacznij od LOD Geometry.** Zablokuj kształt kolizji najpierw, potem buduj detal wizualny na wierzchu. Zapobiega to częstemu błędowi tworzenia pięknego modelu, który nie może prawidłowo kolidować.
 
-2. **Use reference models.** Extract vanilla P3D files from the game data and study them in Object Builder. They show exactly what the engine expects for each item type.
+2. **Używaj modeli referencyjnych.** Wypakuj waniliowe pliki P3D z danych gry i przestudiuj je w Object Builder. Pokazują dokładnie, czego silnik oczekuje dla każdego typu przedmiotu.
 
-3. **Validate frequently.** Use Object Builder's **Structure --> Validate** after every significant change. Fix warnings before they become mysterious in-game bugs.
+3. **Waliduj często.** Używaj **Structure --> Validate** w Object Builder po każdej istotnej zmianie. Napraw ostrzeżenia, zanim staną się tajemniczymi błędami w grze.
 
-4. **Keep LOD triangle counts proportional.** Resolution 0 might have 10,000 triangles; Resolution 1 should have ~5,000; Geometry should have ~100-500. Dramatic reduction at each level.
+4. **Utrzymuj liczbę trójkątów LOD proporcjonalną.** Resolution 0 może mieć 10 000 trójkątów; Resolution 1 powinien mieć ~5 000; Geometry powinien mieć ~100-500. Dramatyczna redukcja na każdym poziomie.
 
-5. **Name selections descriptively.** Use `bolt_carrier` instead of `sel01`. Your future self (and other modders) will thank you.
+5. **Nazywaj selekcje opisowo.** Używaj `bolt_carrier` zamiast `sel01`. Twoje przyszłe ja (i inni modderzy) będą wdzięczni.
 
-6. **Test with file patching first.** Load your unbinarized P3D via file patching mode before committing to a full PBO build. This catches most issues faster.
+6. **Testuj z file patching najpierw.** Załaduj swój niezbinaryzowany P3D przez tryb file patching przed committowaniem do pełnego builda PBO. Wyłapuje to większość problemów szybciej.
 
-7. **Document memory points.** Keep a reference image or text file listing all memory points and their intended positions. Complex weapons can have 20+ points.
+7. **Dokumentuj punkty pamięci.** Przechowuj obraz referencyjny lub plik tekstowy z listą wszystkich punktów pamięci i ich zamierzonych pozycji. Złożona broń może mieć 20+ punktów.
 
 ---
 
 ## Nawigacja
 
-| Previous | Up | Next |
+| Poprzedni | W górę | Dalej |
 |----------|----|------|
-| [4.1 Textures](01-textures.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.3 Materials](03-materials.md) |
+| [4.1 Tekstury](01-textures.md) | [Część 4: Formaty plików i DayZ Tools](01-textures.md) | [4.3 Materiały](03-materials.md) |

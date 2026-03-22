@@ -1,108 +1,108 @@
-# Chapter 6.19: Terrain & World Queries
+# Capítulo 6.19: Consultas de Terreno e Mundo
 
-[Home](../../README.md) | [<< Previous: Animation System](18-animation-system.md) | **Terrain & World Queries** | [Next: Particle & Effect System >>](20-particle-effects.md)
+[Início](../../README.md) | [<< Anterior: Sistema de Animação](18-animation-system.md) | **Consultas de Terreno e Mundo** | [Próximo: Sistema de Partículas e Efeitos >>](20-particle-effects.md)
 
 ---
 
 ## Introdução
 
-Every spatial operation in DayZ --- spawning objects on the ground, checking line of sight, detecting nearby entities, determining surface type for footstep sounds --- depends on querying the world. The engine exposes three categories of spatial API: **terrain queries** (height, surface type, normals), **object queries** (finding entities near a position), and **raycasting** (tracing a line through the world to detect collisions). This chapter documents every available method, its exact signature, and the practical patterns found in vanilla code.
+Toda operação espacial no DayZ --- gerar objetos no chão, verificar linha de visão, detectar entidades próximas, determinar o tipo de superfície para sons de passos --- depende de consultar o mundo. O motor expõe três categorias de API espacial: **consultas de terreno** (altura, tipo de superfície, normais), **consultas de objetos** (encontrar entidades perto de uma posição) e **raycasting** (traçar uma linha através do mundo para detectar colisões). Este capítulo documenta cada método disponível, sua assinatura exata e os padrões práticos encontrados no código vanilla.
 
-All terrain and surface functions live on the `CGame` class, accessed via `GetGame()` or the global `g_Game`. Raycasting is provided by the static `DayZPhysics` class. World state (time, date, coordinates) is accessed through the `World` object returned by `GetGame().GetWorld()`.
+Todas as funções de terreno e superfície residem na classe `CGame`, acessada via `GetGame()` ou o global `g_Game`. Raycasting é fornecido pela classe estática `DayZPhysics`. Estado do mundo (hora, data, coordenadas) é acessado através do objeto `World` retornado por `GetGame().GetWorld()`.
 
 ---
 
-## Terrain Height Queries
+## Consultas de Altura do Terreno
 
-### SurfaceY --- Ground Height at X,Z
+### SurfaceY --- Altura do Chão em X,Z
 
-The most commonly used terrain query. Retorna the Y (vertical) coordinate of the terrain at a given X,Z position. This ignores objects, roads, and water --- it returns raw terrain height only.
+A consulta de terreno mais comumente usada. Retorna a coordenada Y (vertical) do terreno em uma posição X,Z dada. Isso ignora objetos, estradas e água --- retorna apenas a altura bruta do terreno.
 
 ```c
-// Signature (CGame)
+// Assinatura (CGame)
 proto native float SurfaceY(float x, float z);
 ```
 
-**Usage:**
+**Uso:**
 
 ```c
-// Get terrain height at a world position
+// Obter altura do terreno em uma posição do mundo
 float groundY = GetGame().SurfaceY(x, z);
 
-// Snap a position to the ground
+// Ajustar uma posição para o chão
 vector pos = "100 0 200";
 pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
 
-// Common pattern: spawn position adjustment
+// Padrão comum: ajuste de posição de spawn
 vector spawnPos = somePosition;
 spawnPos[1] = GetGame().SurfaceY(spawnPos[0], spawnPos[2]);
 ```
 
-**Vanilla example** (`effectarea.c`):
+**Exemplo vanilla** (`effectarea.c`):
 
 ```c
-partPos[1] = g_Game.SurfaceY(partPos[0], partPos[2]); // Snap particles to ground
+partPos[1] = g_Game.SurfaceY(partPos[0], partPos[2]); // Ajustar partículas ao chão
 ```
 
-### SurfaceRoadY --- Height Including Roads
+### SurfaceRoadY --- Altura Incluindo Estradas
 
-Retorna height including road surfaces (bridges, elevated roads). Use this when you need the actual walkable surface, not raw terrain.
+Retorna a altura incluindo superfícies de estrada (pontes, estradas elevadas). Use quando precisar da superfície real transitável, não do terreno bruto.
 
 ```c
-// Signatures (CGame)
+// Assinaturas (CGame)
 proto native float SurfaceRoadY(float x, float z, RoadSurfaceDetection rsd = RoadSurfaceDetection.LEGACY);
 proto native float SurfaceRoadY3D(float x, float y, float z, RoadSurfaceDetection rsd);
 ```
 
-The `RoadSurfaceDetection` enum controls search direction:
+O enum `RoadSurfaceDetection` controla a direção da busca:
 
 ```c
 enum RoadSurfaceDetection
 {
-    UNDER,    // Find nearest surface under given point
-    ABOVE,    // Find nearest surface above given point
-    CLOSEST,  // Find nearest surface to given point
-    LEGACY,   // UNDER but without proxy support (default)
+    UNDER,    // Encontrar superfície mais próxima abaixo do ponto dado
+    ABOVE,    // Encontrar superfície mais próxima acima do ponto dado
+    CLOSEST,  // Encontrar superfície mais próxima ao ponto dado
+    LEGACY,   // UNDER mas sem suporte a proxy (padrão)
 }
 ```
 
-### GetSurface --- Modern Surface Detection API
+### GetSurface --- API Moderna de Detecção de Superfície
 
-The newer, more flexible surface detection API that combines height, normal, and surface type into one call.
+A API mais recente e flexível de detecção de superfície que combina altura, normal e tipo de superfície em uma única chamada.
 
 ```c
-// Signature (CGame)
+// Assinatura (CGame)
 proto native bool GetSurface(SurfaceDetectionParameters params, SurfaceDetectionResult result);
 ```
 
-**Parâmetro class:**
+**Classe de parâmetros:**
 
 ```c
 class SurfaceDetectionParameters
 {
-    SurfaceDetectionType type = SurfaceDetectionType.Scenery; // Scenery or Roadway
-    vector position;                                          // 3D position to trace from
-    bool includeWater = false;                                // Return water if higher than surface
-    UseObjectsMode syncMode = UseObjectsMode.Wait;            // Wait, NoWait, or NoLock
-    Object ignore = null;                                     // Object to ignore (Roadway only)
-    RoadSurfaceDetection rsd = RoadSurfaceDetection.ABOVE;    // Search direction (Roadway only)
+    SurfaceDetectionType type = SurfaceDetectionType.Scenery; // Scenery ou Roadway
+    vector position;                                          // posição 3D para traçar
+    bool includeWater = false;                                // Retornar água se estiver mais alta que a superfície
+    UseObjectsMode syncMode = UseObjectsMode.Wait;            // Wait, NoWait ou NoLock
+    Object ignore = null;                                     // Objeto a ignorar (apenas Roadway)
+    RoadSurfaceDetection rsd = RoadSurfaceDetection.ABOVE;    // Direção de busca (apenas Roadway)
 };
 ```
 
-**Result class:**
+**Classe de resultado:**
 
 ```c
 class SurfaceDetectionResult
 {
-    float height = 0;          // Y position of detected surface
-    float normalX = 0;         // Surface normal X component
-    float normalZ = 0;         // Surface normal Z component
-    SurfaceInfo surface = null; // Surface material info handle
-    bool aboveWater = false;   // Whether water was the returned surface
+    float height = 0;          // posição Y da superfície detectada
+    float normalX = 0;         // componente X da normal da superfície
+    float normalZ = 0;         // componente Z da normal da superfície
+    SurfaceInfo surface = null; // handle de info do material da superfície
+    bool aboveWater = false;   // Se a água foi a superfície retornada
 };
 ```
 
-**Vanilla example** (`transport.c`):
+**Exemplo vanilla** (`transport.c`):
 
 ```c
 VehicleFlippedContext ctx;
@@ -115,7 +115,7 @@ g_Game.GetSurface(ctx.m_SurfaceParams, ctx.m_SurfaceResult);
 
 ### GetHighestSurfaceYDifference
 
-Utility method on `CGame` that returns the largest height difference between a set of positions. Useful for slope checks.
+Método utilitário em `CGame` que retorna a maior diferença de altura entre um conjunto de posições. Útil para verificações de inclinação.
 
 ```c
 float GetHighestSurfaceYDifference(array<vector> positions);
@@ -123,54 +123,54 @@ float GetHighestSurfaceYDifference(array<vector> positions);
 
 ---
 
-## Surface Type Queries
+## Consultas de Tipo de Superfície
 
-### SurfaceGetType --- Material at Position
+### SurfaceGetType --- Material na Posição
 
-Retorna the surface material name at a given X,Z coordinate. The return value is the Y position where the surface was found.
+Retorna o nome do material da superfície em uma coordenada X,Z dada. O valor de retorno é a posição Y onde a superfície foi encontrada.
 
 ```c
-// Signatures (CGame)
+// Assinaturas (CGame)
 proto float SurfaceGetType(float x, float z, out string type);
 proto float SurfaceGetType3D(float x, float y, float z, out string type);
 ```
 
-**Usage:**
+**Uso:**
 
 ```c
 string surfaceType;
 GetGame().SurfaceGetType(x, z, surfaceType);
-// surfaceType is now e.g.: "cp_gravel", "cp_concrete", "cp_grass",
+// surfaceType agora é ex.: "cp_gravel", "cp_concrete", "cp_grass",
 //   "cp_dirt", "cp_broadleaf_dense1", "cp_asphalt", etc.
 ```
 
-**Vanilla example** (`carscript.c`):
+**Exemplo vanilla** (`carscript.c`):
 
 ```c
 string surface;
 g_Game.SurfaceGetType(wheelPos[0], wheelPos[2], surface);
 ```
 
-The `3D` variant traces downward from the given Y position, useful when you want to detect the surface under a specific height (e.g., under a bridge):
+A variante `3D` traça para baixo a partir da posição Y dada, útil quando você quer detectar a superfície sob uma altura específica (por exemplo, sob uma ponte):
 
 ```c
-// Detect surface at exact 3D position
+// Detectar superfície em posição 3D exata
 string surfaceType;
 g_Game.SurfaceGetType3D(pos[0], pos[1], pos[2], surfaceType);
 ```
 
-### SurfaceUnderObject --- Material Under an Entity
+### SurfaceUnderObject --- Material Sob uma Entidade
 
-Retorna the surface type and liquid type directly under a specific object.
+Retorna o tipo de superfície e tipo de líquido diretamente sob um objeto específico.
 
 ```c
-// Signatures (CGame)
+// Assinaturas (CGame)
 proto void SurfaceUnderObject(notnull Object object, out string type, out int liquidType);
 proto void SurfaceUnderObjectEx(notnull Object object, out string type, out string impact, out int liquidType);
 proto void SurfaceUnderObjectByBone(notnull Object object, int boneType, out string type, out int liquidType);
 ```
 
-There are also `CorrectedLiquid` variants that normalize the liquid type values:
+Também existem variantes `CorrectedLiquid` que normalizam os valores de tipo de líquido:
 
 ```c
 void SurfaceUnderObjectCorrectedLiquid(notnull Object object, out string type, out int liquidType);
@@ -178,34 +178,34 @@ void SurfaceUnderObjectExCorrectedLiquid(notnull Object object, out string type,
 void SurfaceUnderObjectByBoneCorrectedLiquid(notnull Object object, int boneType, out string type, out int liquidType);
 ```
 
-### Surface Normal --- Slope Direction
+### Normal da Superfície --- Direção da Inclinação
 
-Retorna the normal vector of the terrain surface, pointing away from the ground. Essential for aligning objects to slopes.
+Retorna o vetor normal da superfície do terreno, apontando para longe do chão. Essencial para alinhar objetos em encostas.
 
 ```c
-// Signature (CGame)
+// Assinatura (CGame)
 proto native vector SurfaceGetNormal(float x, float z);
 ```
 
-**Usage:**
+**Uso:**
 
 ```c
 vector normal = GetGame().SurfaceGetNormal(x, z);
-// normal is approximately "0 1 0" on flat ground
-// On a slope, X and Z components indicate tilt direction
+// normal é aproximadamente "0 1 0" em terreno plano
+// Em uma encosta, os componentes X e Z indicam a direção da inclinação
 ```
 
-**Vanilla example** (`hologram.c` --- building placement):
+**Exemplo vanilla** (`hologram.c` --- posicionamento de construção):
 
 ```c
 normal = g_Game.SurfaceGetNormal(projection_position[0], projection_position[2]);
 vector angles = normal.VectorToAngles();
-angles[1] = angles[1] + 270; // Correct rotation for vertical alignment
+angles[1] = angles[1] + 270; // Corrigir rotação para alinhamento vertical
 ```
 
-### GetSurfaceOrientation --- Tilt as Angles
+### GetSurfaceOrientation --- Inclinação como Ângulos
 
-A convenience method on `CGame` that converts the surface normal to Euler angles, ready for `SetOrientation()`.
+Um método de conveniência em `CGame` que converte a normal da superfície para ângulos de Euler, prontos para `SetOrientation()`.
 
 ```c
 vector GetSurfaceOrientation(float x, float z)
@@ -219,7 +219,7 @@ vector GetSurfaceOrientation(float x, float z)
 
 ### SurfaceGetNoiseMultiplier
 
-Retorna a noise multiplier for a surface at a given position, used by the stealth/sound system.
+Retorna um multiplicador de ruído para uma superfície em uma posição dada, usado pelo sistema de furtividade/som.
 
 ```c
 proto native float SurfaceGetNoiseMultiplier(Object directHit, vector pos, int componentIndex);
@@ -227,17 +227,17 @@ proto native float SurfaceGetNoiseMultiplier(Object directHit, vector pos, int c
 
 ---
 
-## Water Queries
+## Consultas de Água
 
-### Sea and Pond Detection
+### Detecção de Mar e Lago
 
 ```c
-// Signatures (CGame)
-proto native bool SurfaceIsSea(float x, float z);    // True if position is over the sea
-proto native bool SurfaceIsPond(float x, float z);    // True if position is over a pond/lake
+// Assinaturas (CGame)
+proto native bool SurfaceIsSea(float x, float z);    // True se a posição está sobre o mar
+proto native bool SurfaceIsPond(float x, float z);    // True se a posição está sobre um lago/lagoa
 ```
 
-There is no single `SurfaceIsWater` function in the engine. To check for any water, combine both:
+Não existe uma função `SurfaceIsWater` única no motor. Para verificar qualquer água, combine ambas:
 
 ```c
 bool IsOverWater(float x, float z)
@@ -246,131 +246,131 @@ bool IsOverWater(float x, float z)
 }
 ```
 
-### Sea Level and Wave Data
+### Nível do Mar e Dados de Ondas
 
 ```c
-// Signatures (CGame)
-proto native float SurfaceGetSeaLevel();        // Current sea level height
-proto native float SurfaceGetSeaLevelMin();     // Minimum sea level
-proto native float SurfaceGetSeaLevelMax();     // Maximum sea level
-proto native float SurfaceGetSeaWaveMax();      // Max sea wave height
-proto native float SurfaceGetSeaWaveCurrent();  // Current sea wave height
+// Assinaturas (CGame)
+proto native float SurfaceGetSeaLevel();        // Nível atual do mar
+proto native float SurfaceGetSeaLevelMin();     // Nível mínimo do mar
+proto native float SurfaceGetSeaLevelMax();     // Nível máximo do mar
+proto native float SurfaceGetSeaWaveMax();      // Altura máxima da onda do mar
+proto native float SurfaceGetSeaWaveCurrent();  // Altura atual da onda do mar
 ```
 
-### Water Depth
+### Profundidade da Água
 
 ```c
-// Signature (CGame)
+// Assinatura (CGame)
 proto native float GetWaterDepth(vector posWS);
 ```
 
-Retorna the water depth at a world-space position. Retorna 0 or negative if the position is above water.
+Retorna a profundidade da água em uma posição no espaço mundo. Retorna 0 ou negativo se a posição estiver acima da água.
 
-### Water Surface Height
+### Altura da Superfície da Água
 
 ```c
-proto native float GetWaterSurfaceHeightNoFakeWave(vector posWS); // Without visual wave offset
-proto native float GetWaterSurfaceHeight(vector posWS);           // With visual wave offset
+proto native float GetWaterSurfaceHeightNoFakeWave(vector posWS); // Sem deslocamento visual de onda
+proto native float GetWaterSurfaceHeight(vector posWS);           // Com deslocamento visual de onda
 ```
 
 ---
 
-## Object Queries
+## Consultas de Objetos
 
-### GetObjectsAtPosition --- Cylinder Search
+### GetObjectsAtPosition --- Busca por Cilindro
 
-Finds all objects within a horizontal radius of a position. The search is a vertical cylinder (infinite height), meaning objects above and below the position are included regardless of vertical distance.
+Encontra todos os objetos dentro de um raio horizontal de uma posição. A busca é um cilindro vertical (altura infinita), o que significa que objetos acima e abaixo da posição são incluídos independentemente da distância vertical.
 
 ```c
-// Signatures (CGame)
+// Assinaturas (CGame)
 proto native void GetObjectsAtPosition(vector pos, float radius, out array<Object> objects, out array<CargoBase> proxyCargos);
 proto native void GetObjectsAtPosition3D(vector pos, float radius, out array<Object> objects, out array<CargoBase> proxyCargos);
 ```
 
-The `3D` variant searches a sphere instead of a cylinder, respecting vertical distance.
+A variante `3D` busca em uma esfera em vez de cilindro, respeitando a distância vertical.
 
-**Usage:**
+**Uso:**
 
 ```c
 array<Object> objects = new array<Object>();
 array<CargoBase> proxyCargo = new array<CargoBase>();
 GetGame().GetObjectsAtPosition(position, radius, objects, proxyCargo);
 
-// proxyCargo can be null if you don't need cargo info
+// proxyCargo pode ser null se você não precisa de info de cargo
 GetGame().GetObjectsAtPosition(position, radius, objects, null);
 ```
 
-**Vanilla examples:**
+**Exemplos vanilla:**
 
 ```c
-// GeyserArea --- kill entities in area
+// GeyserArea --- matar entidades na área
 array<Object> nearestObjects = new array<Object>();
 g_Game.GetObjectsAtPosition(m_Position, m_Radius, nearestObjects, null);
 foreach (Object obj : nearestObjects)
 {
-    // process objects...
+    // processar objetos...
 }
 
-// Bot hunt system --- find nearest target within 100m
+// Sistema de caça de bots --- encontrar alvo mais próximo dentro de 100m
 array<Object> objects = new array<Object>;
 array<CargoBase> proxyCargos = new array<CargoBase>;
 g_Game.GetObjectsAtPosition(pos, 100.0, objects, proxyCargos);
 ```
 
-> **WARNING: Performance.** `GetObjectsAtPosition` queries every object in range. A radius of 100m in a populated area can return hundreds or thousands of objects. Always:
-> - Use the smallest radius that serves your purpose
-> - Cache results; do not call every frame
-> - Filter results immediately and discard the array
-> - Prefer the `3D` variant when vertical filtering matters
+> **AVISO: Performance.** `GetObjectsAtPosition` consulta todos os objetos no alcance. Um raio de 100m em uma área populada pode retornar centenas ou milhares de objetos. Sempre:
+> - Use o menor raio que atenda seu propósito
+> - Faça cache dos resultados; não chame a cada frame
+> - Filtre os resultados imediatamente e descarte o array
+> - Prefira a variante `3D` quando filtragem vertical importar
 
 ---
 
 ## Raycasting --- DayZPhysics
 
-Raycasting traces a line (or thick line) through the world and reports what it hits. DayZ provides several raycast methods on the static `DayZPhysics` class, each suited to different use cases.
+Raycasting traça uma linha (ou linha grossa) através do mundo e reporta o que atingiu. DayZ fornece vários métodos de raycast na classe estática `DayZPhysics`, cada um adequado para diferentes casos de uso.
 
-### ObjIntersect Modes
+### Modos ObjIntersect
 
-Every raycast must specify which geometry to test against. These are defined in `3_game/constants.c`:
+Todo raycast deve especificar qual geometria testar. Estes são definidos em `3_game/constants.c`:
 
 ```c
 enum ObjIntersect
 {
-    Fire,   // ObjIntersectFire(0):  Fire Geometry (bullet collision)
-    View,   // ObjIntersectView(1):  View Geometry (visual/rendering)
-    Geom,   // ObjIntersectGeom(2):  Geometry (physical collision)
-    IFire,  // ObjIntersectIFire(3): Indirect Fire Geometry
-    None    // ObjIntersectNone(4):  No geometry testing
+    Fire,   // ObjIntersectFire(0):  Geometria de Fogo (colisão de balas)
+    View,   // ObjIntersectView(1):  Geometria de Visão (visual/renderização)
+    Geom,   // ObjIntersectGeom(2):  Geometria (colisão física)
+    IFire,  // ObjIntersectIFire(3): Geometria de Fogo Indireto
+    None    // ObjIntersectNone(4):  Sem teste de geometria
 }
 ```
 
-| Mode | Caso de Uso |
+| Modo | Caso de Uso |
 |------|----------|
-| `ObjIntersectFire` | Bullet collision, damage traces |
-| `ObjIntersectView` | Visual obstruction checks, action targeting |
-| `ObjIntersectGeom` | Physical collision, placement validation |
-| `ObjIntersectIFire` | Indirect fire geometry (rangefinder, raycaster item) |
-| `ObjIntersectNone` | Ground-only raycasts |
+| `ObjIntersectFire` | Colisão de balas, rastreamento de dano |
+| `ObjIntersectView` | Verificações de obstrução visual, direcionamento de ações |
+| `ObjIntersectGeom` | Colisão física, validação de posicionamento |
+| `ObjIntersectIFire` | Geometria de fogo indireto (rangefinder, item raycaster) |
+| `ObjIntersectNone` | Raycasts apenas no chão |
 
 ### CollisionFlags
 
-Controla what the raycast reports. Defined in `1_core/proto/endebug.c`:
+Controla o que o raycast reporta. Definido em `1_core/proto/endebug.c`:
 
 ```c
 enum CollisionFlags
 {
-    FIRSTCONTACT,   // Stop at first hit (any), fastest
-    NEARESTCONTACT, // Return only the nearest contact (default)
-    ONLYSTATIC,     // Only static/terrain objects
-    ONLYDYNAMIC,    // Only dynamic objects (players, items, vehicles)
-    ONLYWATER,      // Only water components
-    ALLOBJECTS,     // Return first contact for EACH object hit
+    FIRSTCONTACT,   // Parar no primeiro acerto (qualquer), mais rápido
+    NEARESTCONTACT, // Retornar apenas o contato mais próximo (padrão)
+    ONLYSTATIC,     // Apenas objetos estáticos/terreno
+    ONLYDYNAMIC,    // Apenas objetos dinâmicos (jogadores, itens, veículos)
+    ONLYWATER,      // Apenas componentes de água
+    ALLOBJECTS,     // Retornar primeiro contato para CADA objeto atingido
 }
 ```
 
-### PhxInteractionCamadas
+### PhxInteractionLayers
 
-Defines which physics layers participate in bullet-type raycasts. Defined in `3_game/global/dayzphysics.c`:
+Define quais camadas de física participam em raycasts tipo bala. Definido em `3_game/global/dayzphysics.c`:
 
 ```c
 enum PhxInteractionLayers
@@ -386,7 +386,7 @@ enum PhxInteractionLayers
     VEHICLE_NOTERRAIN,
     CHARACTER_NO_GRAVITY,
     RAGDOLL_NO_CHARACTER,
-    FIREGEOM,       // Redefinition of RAGDOLL_NO_CHARACTER
+    FIREGEOM,       // Redefinição de RAGDOLL_NO_CHARACTER
     DOOR,
     RAGDOLL,
     WATERLAYER,
@@ -407,7 +407,7 @@ enum PhxInteractionLayers
 };
 ```
 
-Camadas are combined with bitwise OR for `RayCastBullet` and related methods:
+Camadas são combinadas com OR bit-a-bit para `RayCastBullet` e métodos relacionados:
 
 ```c
 PhxInteractionLayers hitMask = PhxInteractionLayers.BUILDING
@@ -419,12 +419,12 @@ PhxInteractionLayers hitMask = PhxInteractionLayers.BUILDING
 
 ---
 
-### RaycastRV --- Simple Raycast
+### RaycastRV --- Raycast Simples
 
-The most commonly used raycast function. Traces a line and returns the first (or nearest) hit.
+A função de raycast mais comumente usada. Traça uma linha e retorna o primeiro (ou mais próximo) acerto.
 
 ```c
-// Signature (DayZPhysics)
+// Assinatura (DayZPhysics)
 proto static bool RaycastRV(
     vector begPos,
     vector endPos,
@@ -444,25 +444,25 @@ proto static bool RaycastRV(
 
 **Parâmetros:**
 
-| Parâmetro | Type | Descrição |
+| Parâmetro | Tipo | Descrição |
 |-----------|------|-------------|
-| `begPos` | `vector` | Start position of the ray |
-| `endPos` | `vector` | End position of the ray |
-| `contactPos` | `out vector` | World position of first contact |
-| `contactDir` | `out vector` | Normal direction at contact point |
-| `contactComponent` | `out int` | Index of hit component on the object |
-| `results` | `set<Object>` | Set of all objects hit (can be NULL) |
-| `with` | `Object` | Ignore collisions with this object |
-| `ignore` | `Object` | Ignore collisions with this object |
-| `sorted` | `bool` | Sort results by distance (only if `ground_only = false`) |
-| `ground_only` | `bool` | Only test against the ground, ignore all objects |
-| `iType` | `int` | Intersection mode (`ObjIntersectView`, etc.) |
-| `radius` | `float` | Radius of the ray (0 = line, >0 = thick ray) |
-| `flags` | `CollisionFlags` | What to report |
+| `begPos` | `vector` | Posição inicial do raio |
+| `endPos` | `vector` | Posição final do raio |
+| `contactPos` | `out vector` | Posição do mundo do primeiro contato |
+| `contactDir` | `out vector` | Direção normal no ponto de contato |
+| `contactComponent` | `out int` | Índice do componente atingido no objeto |
+| `results` | `set<Object>` | Conjunto de todos os objetos atingidos (pode ser NULL) |
+| `with` | `Object` | Ignorar colisões com este objeto |
+| `ignore` | `Object` | Ignorar colisões com este objeto |
+| `sorted` | `bool` | Ordenar resultados por distância (apenas se `ground_only = false`) |
+| `ground_only` | `bool` | Testar apenas contra o chão, ignorar todos os objetos |
+| `iType` | `int` | Modo de interseção (`ObjIntersectView`, etc.) |
+| `radius` | `float` | Raio do raio (0 = linha, >0 = raio grosso) |
+| `flags` | `CollisionFlags` | O que reportar |
 
-**Retorna:** `true` if the ray hit something.
+**Retorna:** `true` se o raio atingiu algo.
 
-**Vanilla example** (rangefinder --- measure distance):
+**Exemplo vanilla** (rangefinder --- medir distância):
 
 ```c
 vector from = g_Game.GetCurrentCameraPosition();
@@ -486,7 +486,7 @@ if (hit)
 }
 ```
 
-**Vanilla example** (raycaster item --- visual beam):
+**Exemplo vanilla** (item raycaster --- feixe visual):
 
 ```c
 bool is_collision = DayZPhysics.RaycastRV(
@@ -500,12 +500,12 @@ bool is_collision = DayZPhysics.RaycastRV(
 
 ---
 
-### RaycastRVProxy --- Structured Raycast
+### RaycastRVProxy --- Raycast Estruturado
 
-The structured version of raycasting that returns detailed results including proxy objects (attached items, vehicle parts), hierarchy levels, and surface information. Preferred for complex queries like action targeting.
+A versão estruturada de raycasting que retorna resultados detalhados incluindo objetos proxy (itens anexados, partes de veículos), níveis de hierarquia e informações de superfície. Preferido para consultas complexas como direcionamento de ações.
 
 ```c
-// Signature (DayZPhysics)
+// Assinatura (DayZPhysics)
 proto static bool RaycastRVProxy(
     notnull RaycastRVParams in,
     out notnull array<ref RaycastRVResult> results,
@@ -513,20 +513,20 @@ proto static bool RaycastRVProxy(
 );
 ```
 
-**RaycastRVParams** (input):
+**RaycastRVParams** (entrada):
 
 ```c
 class RaycastRVParams
 {
-    vector begPos;          // Start position
-    vector endPos;          // End position
-    Object ignore;          // Ignore this object
-    Object with;            // Ignore collisions with this object
-    float radius;           // Ray thickness (0 = line)
-    CollisionFlags flags;   // Default: NEARESTCONTACT
-    int type;               // Default: ObjIntersectView
-    bool sorted;            // Default: false
-    bool groundOnly;        // Default: false
+    vector begPos;          // Posição inicial
+    vector endPos;          // Posição final
+    Object ignore;          // Ignorar este objeto
+    Object with;            // Ignorar colisões com este objeto
+    float radius;           // Grossura do raio (0 = linha)
+    CollisionFlags flags;   // Padrão: NEARESTCONTACT
+    int type;               // Padrão: ObjIntersectView
+    bool sorted;            // Padrão: false
+    bool groundOnly;        // Padrão: false
 
     void RaycastRVParams(vector vBeg, vector vEnd, Object pIgnore = null, float fRadius = 0.0)
     {
@@ -543,24 +543,24 @@ class RaycastRVParams
 };
 ```
 
-**RaycastRVResult** (output --- one per hit):
+**RaycastRVResult** (saída --- um por acerto):
 
 ```c
 class RaycastRVResult
 {
-    Object obj;        // Object hit (NULL if terrain only). If hierLevel > 0, this is the proxy
-    Object parent;     // If hierLevel > 0, the root parent of the proxy
-    vector pos;        // World position of the collision
-    vector dir;        // Normal direction at collision (or intersection direction)
-    int hierLevel;     // 0 = landscape/world object, > 0 = proxy (attachment, component)
-    int component;     // Index of component in the geometry level
-    SurfaceInfo surface; // Surface material info handle
-    bool entry;        // false if the start point was inside the object
-    bool exit;         // false if the end point was inside the object
+    Object obj;        // Objeto atingido (NULL se apenas terreno). Se hierLevel > 0, este é o proxy
+    Object parent;     // Se hierLevel > 0, o pai raiz do proxy
+    vector pos;        // Posição do mundo da colisão
+    vector dir;        // Direção normal na colisão (ou direção de interseção)
+    int hierLevel;     // 0 = paisagem/objeto do mundo, > 0 = proxy (anexo, componente)
+    int component;     // Índice do componente no nível de geometria
+    SurfaceInfo surface; // Handle de info do material da superfície
+    bool entry;        // false se o ponto inicial estava dentro do objeto
+    bool exit;         // false se o ponto final estava dentro do objeto
 };
 ```
 
-**Vanilla example** (action targeting --- find what player is looking at):
+**Exemplo vanilla** (direcionamento de ação --- encontrar para o que o jogador está olhando):
 
 ```c
 RaycastRVParams rayInput = new RaycastRVParams(m_RayStart, m_RayEnd, m_Player);
@@ -574,20 +574,20 @@ if (DayZPhysics.RaycastRVProxy(rayInput, results))
         float distance = vector.DistanceSq(results[i].pos, m_RayStart);
         Object cursorTarget = results[i].obj;
 
-        // Check if hit is a proxy (attachment on another object)
+        // Verificar se o acerto é um proxy (anexo em outro objeto)
         if (results[i].hierLevel > 0)
         {
-            // results[i].parent is the root object
+            // results[i].parent é o objeto raiz
         }
     }
 }
 ```
 
-**Vanilla example** (flashbang --- line-of-sight check with exclusions):
+**Exemplo vanilla** (flashbang --- verificação de linha de visão com exclusões):
 
 ```c
 array<Object> excluded = new array<Object>;
-excluded.Insert(this); // Ignore the grenade itself
+excluded.Insert(this); // Ignorar a própria granada
 array<ref RaycastRVResult> results = new array<ref RaycastRVResult>;
 
 RaycastRVParams rayParams = new RaycastRVParams(pos, headPos, excluded[0]);
@@ -597,12 +597,12 @@ DayZPhysics.RaycastRVProxy(rayParams, results, excluded);
 
 ---
 
-### RayCastBullet and SphereCastBullet --- Physics-Camada Raycasts
+### RayCastBullet e SphereCastBullet --- Raycasts de Camada Física
 
-These use the physics interaction layer system instead of geometry intersection modes. They are more appropriate for bullet trajectory simulation and physics-aware queries.
+Esses usam o sistema de camadas de interação física em vez de modos de interseção geométrica. São mais apropriados para simulação de trajetória de balas e consultas com consciência física.
 
 ```c
-// Signatures (DayZPhysics)
+// Assinaturas (DayZPhysics)
 proto static bool RayCastBullet(
     vector begPos, vector endPos,
     PhxInteractionLayers layerMask,
@@ -625,9 +625,9 @@ proto static bool SphereCastBullet(
 );
 ```
 
-The `hitFraction` output is a value from 0.0 to 1.0 indicating where along the ray the hit occurred (0 = at start, 1 = at end).
+A saída `hitFraction` é um valor de 0.0 a 1.0 indicando onde ao longo do raio o acerto ocorreu (0 = no início, 1 = no fim).
 
-**Vanilla example** (developer teleport):
+**Exemplo vanilla** (teleporte de desenvolvedor):
 
 ```c
 PhxInteractionLayers layers = 0;
@@ -642,11 +642,11 @@ float hitFraction;
 
 if (DayZPhysics.SphereCastBullet(rayStart, rayEnd, 0.01, layers, ignore, hitObj, hitPos, hitNormal, hitFraction))
 {
-    // hitPos contains the world position of the hit
+    // hitPos contém a posição do mundo do acerto
 }
 ```
 
-**Vanilla example** (target temperature debug --- find entity under cursor):
+**Exemplo vanilla** (debug de temperatura alvo --- encontrar entidade sob o cursor):
 
 ```c
 PhxInteractionLayers hitMask = PhxInteractionLayers.BUILDING
@@ -663,12 +663,12 @@ DayZPhysics.RayCastBullet(from, to, hitMask, player, obj, hitPos, hitNormal, hit
 
 ---
 
-### Overlap Queries --- Volume Intersection Tests
+### Consultas de Sobreposição --- Testes de Interseção de Volume
 
-`DayZPhysics` also provides overlap tests that check if a volume intersects any physics objects. All use the bullet physics layer system and return results through a callback.
+`DayZPhysics` também fornece testes de sobreposição que verificam se um volume intersecta quaisquer objetos de física. Todos usam o sistema de camadas de física bullet e retornam resultados através de um callback.
 
 ```c
-// Signatures (DayZPhysics)
+// Assinaturas (DayZPhysics)
 proto static bool SphereOverlapBullet(vector position, float radius, PhxInteractionLayers layerMask, notnull CollisionOverlapCallback callback);
 proto static bool CylinderOverlapBullet(vector transform[4], vector extents, PhxInteractionLayers layerMask, notnull CollisionOverlapCallback callback);
 proto static bool CapsuleOverlapBullet(vector transform[4], float radius, float height, PhxInteractionLayers layerMask, notnull CollisionOverlapCallback callback);
@@ -678,19 +678,19 @@ proto static bool EntityOverlapSingleBullet(vector transform[4], IEntity entity,
 proto static bool GeometryOverlapBullet(vector transform[4], dGeom geometry, PhxInteractionLayers layerMask, notnull CollisionOverlapCallback callback);
 ```
 
-**Callback class:**
+**Classe de callback:**
 
 ```c
 class CollisionOverlapCallback : Managed
 {
     bool OnContact(IEntity other, Contact contact)
     {
-        return true; // Return true to continue checking, false to stop
+        return true; // Retorne true para continuar verificando, false para parar
     }
 };
 ```
 
-**Usage:**
+**Uso:**
 
 ```c
 class MyOverlapCallback : CollisionOverlapCallback
@@ -700,7 +700,7 @@ class MyOverlapCallback : CollisionOverlapCallback
     override bool OnContact(IEntity other, Contact contact)
     {
         m_Hits.Insert(other);
-        return true; // Continue checking
+        return true; // Continuar verificando
     }
 };
 
@@ -709,165 +709,165 @@ DayZPhysics.SphereOverlapBullet(position, 5.0, PhxInteractionLayers.CHARACTER, c
 
 foreach (IEntity hit : callback.m_Hits)
 {
-    // Process each entity in the sphere
+    // Processar cada entidade na esfera
 }
 ```
 
 ---
 
-### GetHitSurface --- Surface at Raycast Hit
+### GetHitSurface --- Superfície no Acerto do Raycast
 
-Checks whether a specific surface type was hit between two points on an object.
+Verifica se um tipo de superfície específico foi atingido entre dois pontos em um objeto.
 
 ```c
-// Signatures (DayZPhysics)
+// Assinaturas (DayZPhysics)
 proto static bool GetHitSurface(Object other, vector begPos, vector endPos, string surface);
 proto static bool GetHitSurfaceAndLiquid(Object other, vector begPos, vector endPos, string surface, out int liquidType);
 ```
 
 ---
 
-## Distance and Position Utilities
+## Utilitários de Distância e Posição
 
-### vector.Distance and vector.DistanceSq
+### vector.Distance e vector.DistanceSq
 
 ```c
-// Exact distance between two points
+// Distância exata entre dois pontos
 float dist = vector.Distance(posA, posB);
 
-// Squared distance --- MUCH faster, use for comparisons
+// Distância ao quadrado --- MUITO mais rápido, use para comparações
 float distSq = vector.DistanceSq(posA, posB);
 ```
 
-**Always prefer `DistanceSq` for distance comparisons.** It avoids the expensive square root operation:
+**Sempre prefira `DistanceSq` para comparações de distância.** Isso evita a cara operação de raiz quadrada:
 
 ```c
-// GOOD: compare squared distances
+// BOM: comparar distâncias ao quadrado
 float maxRangeSq = maxRange * maxRange;
 if (vector.DistanceSq(myPos, targetPos) < maxRangeSq)
 {
-    // Within range
+    // Dentro do alcance
 }
 
-// BAD: computing square root every check
+// RUIM: calculando raiz quadrada a cada verificação
 if (vector.Distance(myPos, targetPos) < maxRange)
 {
-    // Works but slower
+    // Funciona mas é mais lento
 }
 ```
 
-### Direction Vectors
+### Vetores de Direção
 
 ```c
-// Get direction from A to B (normalized)
+// Obter direção de A para B (normalizada)
 vector dir = targetPos - myPos;
 dir.Normalize();
 
-// Get player's facing direction
+// Obter direção que o jogador está encarando
 vector playerDir = player.GetDirection();
 
-// Convert angles to direction vector
+// Converter ângulos para vetor de direção
 vector dir = orientation.AnglesToVector();
 
-// Convert direction to angles
+// Converter direção para ângulos
 vector angles = direction.VectorToAngles();
 ```
 
-### Position Arithmetic
+### Aritmética de Posição
 
 ```c
-// Offset a position along a direction
+// Deslocar uma posição ao longo de uma direção
 vector newPos = origin + (direction * distance);
 
-// Get a position at eye level
+// Obter uma posição no nível dos olhos
 vector eyePos = player.GetPosition() + "0 1.5 0";
 
-// Vector component access
+// Acesso a componentes de vetor
 float x = pos[0];
 float y = pos[1];
 float z = pos[2];
 
-// Create vector from components
+// Criar vetor a partir de componentes
 vector v = Vector(x, y, z);
 ```
 
 ---
 
-## World Queries
+## Consultas de Mundo
 
-The `World` object provides access to time, date, geographic coordinates, and other global world state.
+O objeto `World` fornece acesso a hora, data, coordenadas geográficas e outros estados globais do mundo.
 
 ```c
 World world = GetGame().GetWorld();
 ```
 
-### Date and Time
+### Data e Hora
 
 ```c
-// Get current in-game date and time
+// Obter data e hora atual no jogo
 int year, month, day, hour, minute;
 GetGame().GetWorld().GetDate(year, month, day, hour, minute);
 
-// Set in-game date and time (server only)
+// Definir data e hora no jogo (apenas servidor)
 GetGame().GetWorld().SetDate(2024, 6, 15, 14, 30);
 
-// Get world time in milliseconds (since world start)
-float worldTimeMs = GetWorldTime(); // Global function from 1_Core
+// Obter tempo do mundo em milissegundos (desde o início do mundo)
+float worldTimeMs = GetWorldTime(); // Função global de 1_Core
 ```
 
-### Day/Night and Celestial
+### Dia/Noite e Celestial
 
 ```c
-// Check if it is currently nighttime
+// Verificar se é atualmente noite
 bool nighttime = GetGame().GetWorld().IsNight();
 
-// Get sun/moon state (0 = full sun, 1 = full moon)
+// Obter estado sol/lua (0 = sol pleno, 1 = lua plena)
 float sunOrMoon = GetGame().GetWorld().GetSunOrMoon();
 
-// Moon brightness
+// Brilho da lua
 float moonIntensity = GetGame().GetWorld().GetMoonIntensity();
 ```
 
-### Geographic Coordinates
+### Coordenadas Geográficas
 
 ```c
-// Get map latitude and longitude (affects sun position, season behavior)
+// Obter latitude e longitude do mapa (afeta posição do sol, comportamento sazonal)
 float lat = GetGame().GetWorld().GetLatitude();
 float lon = GetGame().GetWorld().GetLongitude();
 ```
 
-### World Size and Grid
+### Tamanho e Grade do Mundo
 
 ```c
-// Get world size in meters (e.g., 15360 for Chernarus)
+// Obter tamanho do mundo em metros (ex.: 15360 para Chernarus)
 int worldSize = GetGame().GetWorld().GetWorldSize();
 
-// Convert world position to grid coordinates
+// Converter posição do mundo para coordenadas de grade
 int gridX, gridZ;
 GetGame().GetWorld().GetGridCoords(player.GetPosition(), 100, gridX, gridZ);
 ```
 
-### World Name
+### Nome do Mundo
 
 ```c
-// Get the name of the currently loaded world
+// Obter o nome do mundo atualmente carregado
 string worldName;
 GetGame().GetWorldName(worldName);
-// Returns: "chernarusplus", "enoch" (Livonia), etc.
+// Retorna: "chernarusplus", "enoch" (Livonia), etc.
 ```
 
 ---
 
-## WorldData --- Environment Configuration
+## WorldData --- Configuração de Ambiente
 
-The `WorldData` class holds environment configuration for the current map: temperature curves, sunrise/sunset times, weather settings. It is subclassed per map (e.g., `ChernarusPlusData`, `EnochData`).
+A classe `WorldData` contém a configuração ambiental para o mapa atual: curvas de temperatura, horários de nascer/pôr do sol, configurações de clima. Ela é subclassificada por mapa (ex.: `ChernarusPlusData`, `EnochData`).
 
 ```c
-// Access current WorldData (only available in 4_World and above)
-WorldData worldData = g_Game.GetWorldData(); // if available
+// Acessar WorldData atual (disponível apenas em 4_World e acima)
+WorldData worldData = g_Game.GetWorldData(); // se disponível
 ```
 
-Key properties include monthly min/max temperatures, sunrise/sunset hours, and weather probability settings. These are set in the `Init()` method per map:
+Propriedades-chave incluem temperaturas mínimas/máximas mensais, horários de nascer/pôr do sol e configurações de probabilidade de clima. Estas são definidas no método `Init()` por mapa:
 
 ```c
 m_Sunrise_Jan = 8.54;
@@ -880,21 +880,21 @@ m_MinTemps = {-3,-2,0,4,9,14,18,17,12,7,4,0};
 
 ---
 
-## Practical Exemplos
+## Exemplos Práticos
 
-### Spawn an Object on the Ground
+### Gerar um Objeto no Chão
 
 ```c
 void SpawnOnGround(string className, vector pos)
 {
-    // Snap Y to terrain
+    // Ajustar Y para o terreno
     pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
 
     Object obj = GetGame().CreateObjectEx(className, pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH);
 }
 ```
 
-### Check Line of Sight Between Two Points
+### Verificar Linha de Visão Entre Dois Pontos
 
 ```c
 bool HasLineOfSight(vector from, vector to, Object ignoreObj)
@@ -911,12 +911,12 @@ bool HasLineOfSight(vector from, vector to, Object ignoreObj)
         ObjIntersectView
     );
 
-    // If nothing was hit, there is clear line of sight
+    // Se nada foi atingido, há linha de visão livre
     return !hit;
 }
 ```
 
-### Find Nearest Building
+### Encontrar Construção Mais Próxima
 
 ```c
 Object FindNearestBuilding(vector pos, float searchRadius)
@@ -944,15 +944,15 @@ Object FindNearestBuilding(vector pos, float searchRadius)
 }
 ```
 
-### Check if Position is Indoors
+### Verificar se a Posição está em Ambiente Interno
 
-A common technique is to raycast straight up. If something is above you within a reasonable distance, you are likely indoors.
+Uma técnica comum é fazer raycast direto para cima. Se algo está acima de você dentro de uma distância razoável, você provavelmente está em ambiente interno.
 
 ```c
 bool IsIndoors(vector pos)
 {
-    vector from = pos + "0 0.5 0";   // Slightly above ground
-    vector to = pos + "0 20.0 0";    // 20m straight up
+    vector from = pos + "0 0.5 0";   // Ligeiramente acima do chão
+    vector to = pos + "0 20.0 0";    // 20m direto para cima
     vector contactPos, contactDir;
     int contactComponent;
 
@@ -966,22 +966,22 @@ bool IsIndoors(vector pos)
 }
 ```
 
-### Ground Slope Check for Placement
+### Verificação de Inclinação do Terreno para Posicionamento
 
 ```c
 bool IsSlopeTooSteep(vector pos, float maxSlopeDegrees)
 {
     vector normal = GetGame().SurfaceGetNormal(pos[0], pos[2]);
 
-    // The Y component of the normal indicates how vertical the surface is
-    // Y = 1.0 means perfectly flat, Y = 0.0 means vertical wall
+    // O componente Y da normal indica quão vertical é a superfície
+    // Y = 1.0 significa perfeitamente plano, Y = 0.0 significa parede vertical
     float slopeAngle = Math.Acos(normal[1]) * Math.RAD2DEG;
 
     return slopeAngle > maxSlopeDegrees;
 }
 ```
 
-### Check if Position is Over Water
+### Verificar se a Posição está Sobre Água
 
 ```c
 bool IsOverWater(vector pos)
@@ -999,15 +999,15 @@ bool IsOverWater(vector pos)
 }
 ```
 
-### Obstruction Check (Vanilla Padrão)
+### Verificação de Obstrução (Padrão Vanilla)
 
-The vanilla `MiscGameplayFunctions` class provides ready-made obstruction checks that combine `RaycastRVProxy` and `RaycastRV`:
+A classe vanilla `MiscGameplayFunctions` fornece verificações de obstrução prontas que combinam `RaycastRVProxy` e `RaycastRV`:
 
 ```c
-// Simple obstruction check
+// Verificação simples de obstrução
 bool obstructed = MiscGameplayFunctions.IsObjectObstructed(targetObject);
 
-// With distance check
+// Com verificação de distância
 bool obstructed = MiscGameplayFunctions.IsObjectObstructed(
     targetObject,
     true,            // doDistanceCheck
@@ -1016,12 +1016,12 @@ bool obstructed = MiscGameplayFunctions.IsObjectObstructed(
 );
 ```
 
-### Melee Targeting Camada Mask
+### Máscara de Camadas para Alvo de Corpo-a-corpo
 
-The vanilla melee system defines a practical layer mask for obstruction checks. This is a good reference for which layers to include:
+O sistema vanilla de corpo-a-corpo define uma máscara prática de camadas para verificações de obstrução. Esta é uma boa referência para quais camadas incluir:
 
 ```c
-// From meleetargeting.c
+// De meleetargeting.c
 const static PhxInteractionLayers MELEE_TARGET_OBSTRUCTION_LAYERS =
     PhxInteractionLayers.BUILDING
     | PhxInteractionLayers.DOOR
@@ -1037,36 +1037,36 @@ const static PhxInteractionLayers MELEE_TARGET_OBSTRUCTION_LAYERS =
 
 ## Boas Práticas
 
-- **Use `DistanceSq` instead of `Distance` for comparisons.** The square root in `Distance` is expensive. Pre-compute `maxRange * maxRange` and compare against `DistanceSq`. The vanilla codebase does this extensively in action targeting and vicinity checks.
-- **Keep `GetObjectsAtPosition` radius as small as possible.** Every meter of radius dramatically increases the number of objects returned. A 100m radius in a city can return thousands of objects. Cache results and reuse them within the same frame.
-- **Never raycast every frame without throttling.** Even `RaycastRV` is expensive at scale. Use timers (0.1--0.5 second intervals) for periodic checks. The rangefinder uses a 0.5-second timer for its measurements.
-- **Prefer `RaycastRVProxy` over `RaycastRV` for complex queries.** The proxy version returns structured results with hierarchy information, surface data, and component indices. It is what the vanilla action system uses for cursor targeting.
-- **Use `ground_only = true` when you only need terrain height.** This skips all object intersection tests and is significantly faster than a full raycast.
-- **Combine `SurfaceIsSea` and `SurfaceIsPond` for water checks.** There is no single `SurfaceIsWater` function. Always check both unless you specifically need to distinguish between sea and pond.
+- **Use `DistanceSq` em vez de `Distance` para comparações.** A raiz quadrada em `Distance` é cara. Pré-compute `maxRange * maxRange` e compare com `DistanceSq`. O código vanilla faz isso extensivamente em direcionamento de ações e verificações de proximidade.
+- **Mantenha o raio de `GetObjectsAtPosition` o menor possível.** Cada metro de raio aumenta dramaticamente o número de objetos retornados. Um raio de 100m em uma cidade pode retornar milhares de objetos. Faça cache dos resultados e reutilize-os dentro do mesmo frame.
+- **Nunca faça raycast a cada frame sem limitação.** Mesmo `RaycastRV` é caro em escala. Use timers (intervalos de 0.1--0.5 segundos) para verificações periódicas. O rangefinder usa um timer de 0.5 segundos para suas medições.
+- **Prefira `RaycastRVProxy` ao `RaycastRV` para consultas complexas.** A versão proxy retorna resultados estruturados com informações de hierarquia, dados de superfície e índices de componentes. É o que o sistema vanilla de ações usa para direcionamento por cursor.
+- **Use `ground_only = true` quando precisar apenas da altura do terreno.** Isso pula todos os testes de interseção de objetos e é significativamente mais rápido que um raycast completo.
+- **Combine `SurfaceIsSea` e `SurfaceIsPond` para verificações de água.** Não existe uma função `SurfaceIsWater` única. Sempre verifique ambas, a menos que precise especificamente distinguir entre mar e lagoa.
 
 ---
 
-## Compatibility & Impact
+## Compatibilidade e Impacto
 
-> **Mod Compatibility:** Terrain and raycast queries are read-only operations that do not modify world state. Multiple mods can safely call these functions simultaneously without conflicts.
+> **Compatibilidade de Mods:** Consultas de terreno e raycast são operações somente-leitura que não modificam o estado do mundo. Múltiplos mods podem chamar essas funções simultaneamente com segurança, sem conflitos.
 
-- **Server/Client:** All terrain queries (`SurfaceY`, `SurfaceGetType`, `SurfaceGetNormal`, `SurfaceIsSea`, `SurfaceIsPond`) are safe to call on both server and client. World modification methods like `SetDate()` are server-authoritative.
-- **Performance Impact:** `GetObjectsAtPosition` with large radii is the most common performance mistake. A mod that calls it every frame with a 50m+ radius will cause noticeable server lag. Raycast operations are cheaper but still should not run every frame on many entities.
-- **Map Dependency:** `SurfaceGetType` returns different surface names depending on the map. Chernarus and Livonia share most surface type names (`cp_gravel`, `cp_concrete`, etc.), but custom maps may define their own. Always handle unknown surface types gracefully.
-- **WorldData Subclassing:** If your mod needs to read or override temperature or weather data, note that `WorldData` is subclassed per map. Modding the base class affects all maps; modding `ChernarusPlusData` only affects Chernarus.
+- **Servidor/Cliente:** Todas as consultas de terreno (`SurfaceY`, `SurfaceGetType`, `SurfaceGetNormal`, `SurfaceIsSea`, `SurfaceIsPond`) são seguras para chamar tanto no servidor quanto no cliente. Métodos de modificação de mundo como `SetDate()` são autoritativos do servidor.
+- **Impacto na Performance:** `GetObjectsAtPosition` com grandes raios é o erro de performance mais comum. Um mod que chama isso a cada frame com raio de 50m+ causará lag perceptível no servidor. Operações de raycast são mais baratas, mas ainda não devem ser executadas a cada frame em muitas entidades.
+- **Dependência de Mapa:** `SurfaceGetType` retorna nomes de superfície diferentes dependendo do mapa. Chernarus e Livonia compartilham a maioria dos nomes de tipos de superfície (`cp_gravel`, `cp_concrete`, etc.), mas mapas customizados podem definir os seus próprios. Sempre trate tipos de superfície desconhecidos de forma elegante.
+- **Subclassificação de WorldData:** Se seu mod precisa ler ou sobrescrever dados de temperatura ou clima, note que `WorldData` é subclassificada por mapa. Modificar a classe base afeta todos os mapas; modificar `ChernarusPlusData` afeta apenas Chernarus.
 
 ---
 
 ## Teoria vs Prática
 
-| Documentation/Expectation | Actual Behavior |
+| Documentação/Expectativa | Comportamento Real |
 |--------------------------|-----------------|
-| `SurfaceY` returns ground height | Retorna raw terrain height, ignoring roads, bridges, and objects. Use `SurfaceRoadY` for surfaces that include roads. |
-| `RaycastRV` `ignore` parameter ignores one object | Only ignores one object. For multiple exclusions, use `RaycastRVProxy` with the `excluded` array parameter. |
-| `GetObjectsAtPosition` returns all objects | Retorna objects with physics bodies. Pure visual objects (particles, effects) are not returned. |
-| `RaycastRVResult.obj` is always the world object | When `hierLevel > 0`, `obj` is the proxy (attachment/component) and `parent` is the actual world object. Always check `hierLevel`. |
-| `CollisionFlags.ALLOBJECTS` returns everything | Retorna the first contact per object, not all contacts per object. Multiple results come from multiple distinct objects. |
-| Surface type names are standardized | Surface names are map-dependent configuration values from CfgSurfaces. Custom maps define custom surface names. |
+| `SurfaceY` retorna altura do chão | Retorna altura bruta do terreno, ignorando estradas, pontes e objetos. Use `SurfaceRoadY` para superfícies que incluem estradas. |
+| O parâmetro `ignore` de `RaycastRV` ignora um objeto | Ignora apenas um objeto. Para múltiplas exclusões, use `RaycastRVProxy` com o parâmetro de array `excluded`. |
+| `GetObjectsAtPosition` retorna todos os objetos | Retorna objetos com corpos físicos. Objetos puramente visuais (partículas, efeitos) não são retornados. |
+| `RaycastRVResult.obj` é sempre o objeto do mundo | Quando `hierLevel > 0`, `obj` é o proxy (anexo/componente) e `parent` é o objeto real do mundo. Sempre verifique `hierLevel`. |
+| `CollisionFlags.ALLOBJECTS` retorna tudo | Retorna o primeiro contato por objeto, não todos os contatos por objeto. Múltiplos resultados vêm de múltiplos objetos distintos. |
+| Nomes de tipos de superfície são padronizados | Nomes de superfície são valores de configuração dependentes do mapa de CfgSurfaces. Mapas customizados definem nomes de superfície customizados. |
 
 ---
 
@@ -1074,34 +1074,34 @@ const static PhxInteractionLayers MELEE_TARGET_OBSTRUCTION_LAYERS =
 
 | Erro | Correção |
 |---------|-----|
-| Calling `GetObjectsAtPosition` every frame with a large radius | Use a timer (0.25--1.0 second interval). Cache the results array. |
-| Using `vector.Distance` in a loop comparing many objects | Use `vector.DistanceSq` and compare against `maxRange * maxRange`. |
-| Ignoring the `hierLevel` field in `RaycastRVResult` | When `hierLevel > 0`, the hit is on a proxy. Use `parent` to get the actual world entity. |
-| Using `SurfaceY` for spawn placement on bridges or buildings | `SurfaceY` returns terrain height only. For structures, raycast downward with `ObjIntersectGeom` or use `SurfaceRoadY`. |
-| Assuming `RaycastRV` `contactDir` is always valid | `contactDir` is only populated when an object is hit, not when hitting bare terrain with `ground_only = true`. |
-| Not null-checking `RaycastRVResult.obj` | Terrain-only hits return `obj = NULL`. Always check before casting or accessing properties. |
-| Passing `null` for `ignore` when the player could self-intersect | Always pass the player (or the casting entity) as `ignore` to prevent the ray from hitting the caster's own collision geometry. |
-| Using `ObjIntersectFire` for visual obstruction checks | `Fire` geometry is optimized for bullet paths and may have gaps that `View` geometry covers. Use `ObjIntersectView` for line-of-sight checks. |
+| Chamar `GetObjectsAtPosition` a cada frame com raio grande | Use um timer (intervalo de 0.25--1.0 segundo). Faça cache do array de resultados. |
+| Usar `vector.Distance` em loop comparando muitos objetos | Use `vector.DistanceSq` e compare com `maxRange * maxRange`. |
+| Ignorar o campo `hierLevel` em `RaycastRVResult` | Quando `hierLevel > 0`, o acerto está em um proxy. Use `parent` para obter a entidade real do mundo. |
+| Usar `SurfaceY` para posicionamento de spawn em pontes ou construções | `SurfaceY` retorna apenas altura do terreno. Para estruturas, faça raycast para baixo com `ObjIntersectGeom` ou use `SurfaceRoadY`. |
+| Assumir que `contactDir` de `RaycastRV` é sempre válido | `contactDir` só é preenchido quando um objeto é atingido, não ao atingir terreno nu com `ground_only = true`. |
+| Não verificar null em `RaycastRVResult.obj` | Acertos apenas no terreno retornam `obj = NULL`. Sempre verifique antes de fazer cast ou acessar propriedades. |
+| Passar `null` para `ignore` quando o jogador poderia auto-intersectar | Sempre passe o jogador (ou a entidade que faz o cast) como `ignore` para prevenir que o raio atinja a própria geometria de colisão do emissor. |
+| Usar `ObjIntersectFire` para verificações de obstrução visual | Geometria `Fire` é otimizada para caminhos de balas e pode ter lacunas que a geometria `View` cobre. Use `ObjIntersectView` para verificações de linha de visão. |
 
 ---
 
-## Observed in Real Mods
+## Observado em Mods Reais
 
-> These patterns were confirmed by studying the source code of professional DayZ mods and vanilla game scripts.
+> Esses padrões foram confirmados estudando o código-fonte de mods profissionais de DayZ e scripts vanilla do jogo.
 
-| Padrão | Source | File/Location |
+| Padrão | Fonte | Arquivo/Localização |
 |---------|--------|---------------|
-| `SurfaceY` snap for ground-level particle placement | Vanilla | `4_World/classes/contaminatedarea/effectarea.c` |
-| `SurfaceGetType` for vehicle wheel surface detection | Vanilla | `4_World/entities/vehicles/carscript.c` |
-| `SurfaceGetNormal` + `VectorToAngles` for terrain-aligned placement | Vanilla | `4_World/classes/hologram.c` |
-| `RaycastRV` with `ObjIntersectIFire` for rangefinder measurement | Vanilla | `4_World/entities/itembase/rangefinder.c` |
-| `RaycastRVProxy` with `ALLOBJECTS` for action cursor targeting | Vanilla | `4_World/classes/useractionscomponent/actiontargets.c` |
-| `RayCastBullet` with combined `PhxInteractionCamadas` for teleport | Vanilla | `4_World/plugins/plugindeveloper/developerteleport.c` |
-| `SphereCastBullet` with small radius for precise hit detection | Vanilla | `4_World/plugins/plugindeveloper/developerteleport.c` |
-| `GetObjectsAtPosition` with `null` proxyCargo for area kill zones | Vanilla | `4_World/classes/contaminatedarea/geyserarea.c` |
-| `IsObjectObstructedCache` to batch raycast calls per frame | Vanilla | `4_World/static/miscgameplayfunctions.c` |
-| Combined `PhxInteractionCamadas` bitmask for melee obstruction | Vanilla | `4_World/classes/meleetargeting.c` |
+| Ajuste `SurfaceY` para posicionamento de partículas ao nível do chão | Vanilla | `4_World/classes/contaminatedarea/effectarea.c` |
+| `SurfaceGetType` para detecção de superfície de roda de veículo | Vanilla | `4_World/entities/vehicles/carscript.c` |
+| `SurfaceGetNormal` + `VectorToAngles` para posicionamento alinhado ao terreno | Vanilla | `4_World/classes/hologram.c` |
+| `RaycastRV` com `ObjIntersectIFire` para medição de rangefinder | Vanilla | `4_World/entities/itembase/rangefinder.c` |
+| `RaycastRVProxy` com `ALLOBJECTS` para direcionamento de cursor de ação | Vanilla | `4_World/classes/useractionscomponent/actiontargets.c` |
+| `RayCastBullet` com `PhxInteractionLayers` combinadas para teleporte | Vanilla | `4_World/plugins/plugindeveloper/developerteleport.c` |
+| `SphereCastBullet` com raio pequeno para detecção precisa de acerto | Vanilla | `4_World/plugins/plugindeveloper/developerteleport.c` |
+| `GetObjectsAtPosition` com `null` proxyCargo para zonas de morte por área | Vanilla | `4_World/classes/contaminatedarea/geyserarea.c` |
+| `IsObjectObstructedCache` para agrupar chamadas de raycast por frame | Vanilla | `4_World/static/miscgameplayfunctions.c` |
+| Bitmask combinada de `PhxInteractionLayers` para obstrução de corpo-a-corpo | Vanilla | `4_World/classes/meleetargeting.c` |
 
 ---
 
-[Home](../../README.md) | [<< Anterior: Sistema de Animação](18-animation-system.md) | **Consultas de Terreno e Mundo**
+[Início](../../README.md) | [<< Anterior: Sistema de Animação](18-animation-system.md) | **Consultas de Terreno e Mundo** | [Próximo: Sistema de Partículas e Efeitos >>](20-particle-effects.md)
