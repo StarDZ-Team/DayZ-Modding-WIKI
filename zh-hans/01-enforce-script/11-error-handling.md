@@ -1,60 +1,64 @@
-# Chapter 1.11: Error Handling
+# 第 1.11 章：错误处理
 
-[Home](../../README.md) | [<< Previous: Enums & Preprocessor](10-enums-preprocessor.md) | **Error Handling** | [Next: Gotchas >>](12-gotchas.md)
+[首页](../../README.md) | [<< 上一章：枚举与预处理器](10-enums-preprocessor.md) | **错误处理** | [下一章：注意事项 >>](12-gotchas.md)
+
+---
+
+> **目标：**学习如何在没有 try/catch 的语言中处理错误。掌握守卫子句、防御性编程和结构化日志模式，使你的模组保持稳定。
 
 ---
 
 ## 目录
 
-- [The Fundamental Rule: No try/catch](#the-fundamental-rule-no-trycatch)
-- [Guard Clause Pattern](#guard-clause-pattern)
-  - [Single Guard](#single-guard)
-  - [Multiple Guards (Stacked)](#multiple-guards-stacked)
-  - [Guard With Logging](#guard-with-logging)
-- [Null Checking](#null-checking)
-  - [Before Every Operation](#before-every-operation)
-  - [Chained Null Checks](#chained-null-checks)
-  - [The notnull Keyword](#the-notnull-keyword)
-- [ErrorEx — Engine Error Reporting](#errorex--engine-error-reporting)
-  - [Severity Levels](#severity-levels)
-  - [When to Use Each Level](#when-to-use-each-level)
-- [DumpStackString — Stack Traces](#dumpstackstring--stack-traces)
-- [Debug Printing](#debug-printing)
-  - [Basic Print](#basic-print)
-  - [Conditional Debug with #ifdef](#conditional-debug-with-ifdef)
-- [Structured Logging Patterns](#structured-logging-patterns)
-  - [Simple Prefix Pattern](#simple-prefix-pattern)
-  - [Level-Based Logger Class](#level-based-logger-class)
-  - [MyLog Style (Production Pattern)](#mylog-style-production-pattern)
-- [Real-World Examples](#real-world-examples)
-  - [Safe Function With Multiple Guards](#safe-function-with-multiple-guards)
-  - [Safe Config Loading](#safe-config-loading)
-  - [Safe RPC Handler](#safe-rpc-handler)
-  - [Safe Inventory Operation](#safe-inventory-operation)
-- [Defensive Patterns Summary](#defensive-patterns-summary)
-- [Common Mistakes](#common-mistakes)
-- [Summary](#summary)
-- [Navigation](#navigation)
+- [基本规则：没有 try/catch](#基本规则没有-trycatch)
+- [守卫子句模式](#守卫子句模式)
+  - [单个守卫](#单个守卫)
+  - [多个守卫（堆叠）](#多个守卫堆叠)
+  - [带日志的守卫](#带日志的守卫)
+- [空值检查](#空值检查)
+  - [每次操作前检查](#每次操作前检查)
+  - [链式空值检查](#链式空值检查)
+  - [notnull 关键字](#notnull-关键字)
+- [ErrorEx——引擎错误报告](#errorex引擎错误报告)
+  - [严重级别](#严重级别)
+  - [何时使用每个级别](#何时使用每个级别)
+- [DumpStackString——堆栈跟踪](#dumpstackstring堆栈跟踪)
+- [调试打印](#调试打印)
+  - [基本 Print](#基本-print)
+  - [使用 #ifdef 的条件调试](#使用-ifdef-的条件调试)
+- [结构化日志模式](#结构化日志模式)
+  - [简单前缀模式](#简单前缀模式)
+  - [基于级别的日志类](#基于级别的日志类)
+  - [生产日志模式](#生产日志模式)
+- [真实案例](#真实案例)
+  - [带多个守卫的安全函数](#带多个守卫的安全函数)
+  - [安全的配置加载](#安全的配置加载)
+  - [安全的 RPC 处理器](#安全的-rpc-处理器)
+  - [安全的物品栏操作](#安全的物品栏操作)
+- [防御性模式总结](#防御性模式总结)
+- [常见错误](#常见错误)
+- [总结](#总结)
+- [导航](#导航)
 
 ---
 
 ## 基本规则：没有 try/catch
 
-Enforce Script has **no exception handling**. There is no `try`, no `catch`, no `throw`, no `finally`. If something goes wrong at runtime (null dereference, invalid cast, array out of bounds), the engine either:
+Enforce Script **没有异常处理**。没有 `try`、没有 `catch`、没有 `throw`、没有 `finally`。如果运行时出现问题（空引用、无效类型转换、数组越界），引擎要么：
 
-1. **Crashes silently** — the function stops executing, no error message
-2. **Logs a script error** — visible in the `.RPT` log file
-3. **Crashes the server/client** — in severe cases
+1. **静默崩溃**——函数停止执行，没有错误消息
+2. **记录脚本错误**——在 `.RPT` 日志文件中可见
+3. **使服务器/客户端崩溃**——在严重的情况下
 
-This means **every potential failure point must be guarded manually**. The primary defense is the **guard clause pattern**.
+这意味着**每个潜在的失败点都必须手动守卫**。主要的防御手段是**守卫子句模式**。
 
 ---
 
 ## 守卫子句模式
 
-A guard clause checks a precondition at the top of a function and returns early if it fails. This keeps the "happy path" un-nested and readable.
+守卫子句在函数顶部检查前置条件，如果检查失败则提前返回。这使"正常路径"保持不嵌套且可读。
 
-### 单一守卫
+### 单个守卫
 
 ```c
 void TeleportPlayer(PlayerBase player, vector destination)
@@ -66,30 +70,30 @@ void TeleportPlayer(PlayerBase player, vector destination)
 }
 ```
 
-### 多重守卫（堆叠）
+### 多个守卫（堆叠）
 
-Stack guards at the top of the function — each checks one precondition:
+在函数顶部堆叠守卫——每个守卫检查一个前置条件：
 
 ```c
 void GiveItemToPlayer(PlayerBase player, string className, int quantity)
 {
-    // Guard 1: player exists
+    // 守卫 1：玩家存在
     if (!player)
         return;
 
-    // Guard 2: player is alive
+    // 守卫 2：玩家存活
     if (!player.IsAlive())
         return;
 
-    // Guard 3: valid class name
+    // 守卫 3：有效的类名
     if (className == "")
         return;
 
-    // Guard 4: valid quantity
+    // 守卫 4：有效的数量
     if (quantity <= 0)
         return;
 
-    // All preconditions met — safe to proceed
+    // 所有前置条件满足——可以安全继续
     for (int i = 0; i < quantity; i++)
     {
         player.GetInventory().CreateInInventory(className);
@@ -99,7 +103,7 @@ void GiveItemToPlayer(PlayerBase player, string className, int quantity)
 
 ### 带日志的守卫
 
-In production code, always log why a guard triggered — silent failures are hard to debug:
+在生产代码中，始终记录守卫触发的原因——静默失败很难调试：
 
 ```c
 void StartMission(PlayerBase initiator, string missionId)
@@ -122,7 +126,7 @@ void StartMission(PlayerBase initiator, string missionId)
         return;
     }
 
-    // Proceed with mission start
+    // 继续启动任务
     Print("[Missions] Starting mission " + missionId);
     // ...
 }
@@ -132,15 +136,15 @@ void StartMission(PlayerBase initiator, string missionId)
 
 ## 空值检查
 
-Null references are the most common crash source in DayZ modding. Every reference type can be `null`.
+空引用是 DayZ 模组开发中最常见的崩溃原因。每个引用类型都可以是 `null`。
 
 ### 每次操作前检查
 
 ```c
-// WRONG — crashes if player, identity, or name is null at any point
+// 错误——如果 player、identity 或 name 在任何点为 null 都会崩溃
 string name = player.GetIdentity().GetName();
 
-// CORRECT — check at each step
+// 正确——在每一步检查
 if (!player)
     return;
 
@@ -153,7 +157,7 @@ string name = identity.GetName();
 
 ### 链式空值检查
 
-When you need to traverse a chain of references, check each link:
+当你需要遍历引用链时，检查每个环节：
 
 ```c
 void PrintHandItemName(PlayerBase player)
@@ -175,32 +179,32 @@ void PrintHandItemName(PlayerBase player)
 
 ### notnull 关键字
 
-`notnull` is a parameter modifier that makes the compiler reject `null` arguments at the call site:
+`notnull` 是一个参数修饰符，使编译器在调用处拒绝 `null` 参数：
 
 ```c
 void ProcessItem(notnull EntityAI item)
 {
-    // Compiler guarantees item is not null
-    // No null check needed inside the function
+    // 编译器保证 item 不为 null
+    // 函数内部不需要空值检查
     Print(item.GetType());
 }
 
-// Usage:
+// 用法：
 EntityAI item = GetSomeItem();
 if (item)
 {
-    ProcessItem(item);  // OK — compiler knows item is not null here
+    ProcessItem(item);  // OK——编译器知道此处 item 不为 null
 }
-ProcessItem(null);      // Compile error!
+ProcessItem(null);      // 编译错误！
 ```
 
-> **限制：** `notnull` only catches literal `null` and obviously-null variables at the call site. It does not prevent a variable that was non-null at check time from becoming null due to engine deletion.
+> **限制：**`notnull` 只能在调用处捕获字面 `null` 和明显为 null 的变量。它无法防止在检查时非 null 的变量因引擎删除而变为 null。
 
 ---
 
-## ErrorEx — Engine Error Reporting
+## ErrorEx——引擎错误报告
 
-`ErrorEx` writes an error message to the script log (`.RPT` file). It does **not** stop execution or throw an exception.
+`ErrorEx` 将错误消息写入脚本日志（`.RPT` 文件）。它**不会**停止执行或抛出异常。
 
 ```c
 ErrorEx("Something went wrong");
@@ -208,34 +212,34 @@ ErrorEx("Something went wrong");
 
 ### 严重级别
 
-`ErrorEx` accepts an optional second parameter of type `ErrorExSeverity`:
+`ErrorEx` 接受一个可选的第二个参数，类型为 `ErrorExSeverity`：
 
 ```c
-// INFO — informational, not an error
+// INFO——信息性的，不是错误
 ErrorEx("Config loaded successfully", ErrorExSeverity.INFO);
 
-// WARNING — potential problem, execution continues
+// WARNING——潜在问题，执行继续
 ErrorEx("Config file not found, using defaults", ErrorExSeverity.WARNING);
 
-// ERROR — definite problem (default severity if omitted)
+// ERROR——确定的问题（省略时的默认严重级别）
 ErrorEx("Failed to create object: class not found");
 ErrorEx("Critical failure in RPC handler", ErrorExSeverity.ERROR);
 ```
 
 | 严重级别 | 何时使用 |
 |----------|-------------|
-| `ErrorExSeverity.INFO` | Informational messages you want in the error log |
-| `ErrorExSeverity.WARNING` | Recoverable problems (missing config, fallback used) |
-| `ErrorExSeverity.ERROR` | Definite bugs or unrecoverable states |
+| `ErrorExSeverity.INFO` | 你想要在错误日志中看到的信息性消息 |
+| `ErrorExSeverity.WARNING` | 可恢复的问题（缺少配置、使用了回退） |
+| `ErrorExSeverity.ERROR` | 确定的错误或不可恢复的状态 |
 
-### 何时使用各级别
+### 何时使用每个级别
 
 ```c
 void LoadConfig(string path)
 {
     if (!FileExist(path))
     {
-        // WARNING — recoverable, we'll use defaults
+        // WARNING——可恢复，我们将使用默认值
         ErrorEx("Config not found at " + path + ", using defaults", ErrorExSeverity.WARNING);
         UseDefaultConfig();
         return;
@@ -246,13 +250,13 @@ void LoadConfig(string path)
 
     if (cfg.Version < EXPECTED_VERSION)
     {
-        // INFO — not a problem, just noteworthy
+        // INFO——不是问题，只是值得注意
         ErrorEx("Config version " + cfg.Version.ToString() + " is older than expected", ErrorExSeverity.INFO);
     }
 
     if (!cfg.Validate())
     {
-        // ERROR — bad data that will cause problems
+        // ERROR——坏数据会导致问题
         ErrorEx("Config validation failed for " + path);
         UseDefaultConfig();
         return;
@@ -262,9 +266,9 @@ void LoadConfig(string path)
 
 ---
 
-## DumpStackString — Stack Traces
+## DumpStackString——堆栈跟踪
 
-`DumpStackString` captures the current call stack as a string. This is crucial for diagnosing where an unexpected state occurred:
+`DumpStackString` 将当前调用堆栈捕获为字符串。这对于诊断意外状态出现的位置至关重要：
 
 ```c
 void OnUnexpectedState(string context)
@@ -276,7 +280,7 @@ void OnUnexpectedState(string context)
 }
 ```
 
-Use it in guard clauses to trace the caller:
+在守卫子句中使用它来跟踪调用者：
 
 ```c
 void CriticalFunction(PlayerBase player)
@@ -294,11 +298,11 @@ void CriticalFunction(PlayerBase player)
 
 ---
 
-## 调试输出
+## 调试打印
 
-### 基本输出
+### 基本 Print
 
-`Print()` writes to the script log file. It accepts any type:
+`Print()` 写入脚本日志文件。它接受任何类型：
 
 ```c
 Print("Hello World");                    // string
@@ -306,7 +310,7 @@ Print(42);                               // int
 Print(3.14);                             // float
 Print(player.GetPosition());             // vector
 
-// Formatted print
+// 格式化打印
 Print(string.Format("Player %1 at position %2 with %3 HP",
     player.GetIdentity().GetName(),
     player.GetPosition().ToString(),
@@ -316,7 +320,7 @@ Print(string.Format("Player %1 at position %2 with %3 HP",
 
 ### 使用 #ifdef 的条件调试
 
-Wrap debug prints in preprocessor guards so they compile out of release builds:
+用预处理器守卫包裹调试打印，使它们在发布版本中被编译排除：
 
 ```c
 void ProcessAI(DayZInfected zombie)
@@ -328,14 +332,14 @@ void ProcessAI(DayZInfected zombie)
         ));
     #endif
 
-    // Actual logic...
+    // 实际逻辑...
 }
 ```
 
-For mod-specific debug flags, define your own symbol:
+对于模组特定的调试标志，定义你自己的符号：
 
 ```c
-// In your config.cpp:
+// 在你的 config.cpp 中：
 // defines[] = { "MYMOD_DEBUG" };
 
 #ifdef MYMOD_DEBUG
@@ -349,7 +353,7 @@ For mod-specific debug flags, define your own symbol:
 
 ### 简单前缀模式
 
-The simplest approach — prepend a tag to every Print call:
+最简单的方法——在每个 Print 调用前加上标签：
 
 ```c
 class MissionManager
@@ -370,7 +374,7 @@ class MissionManager
 
 ### 基于级别的日志类
 
-A reusable logger with severity levels:
+带有严重级别的可复用日志器：
 
 ```c
 class ModLogger
@@ -407,18 +411,18 @@ class ModLogger
     }
 }
 
-// Usage:
+// 用法：
 ref ModLogger g_MissionLog = new ModLogger("Missions");
 g_MissionLog.Info("System started");
 g_MissionLog.Error("Failed to load mission data");
 ```
 
-### MyLog 风格（生产模式）
+### 生产日志模式
 
-For production mods, a static logging class with file output, daily rotation, and multiple output targets:
+对于生产模组，带有文件输出、每日轮转和多个输出目标的静态日志类：
 
 ```c
-// Enum for log levels
+// 日志级别枚举
 enum MyLogLevel
 {
     TRACE   = 0,
@@ -434,7 +438,7 @@ class MyLog
     private static MyLogLevel s_FileMinLevel = MyLogLevel.DEBUG;
     private static MyLogLevel s_ConsoleMinLevel = MyLogLevel.INFO;
 
-    // Usage: MyLog.Info("ModuleName", "Something happened");
+    // 用法：MyLog.Info("ModuleName", "Something happened");
     static void Info(string source, string message)
     {
         Log(MyLogLevel.INFO, source, message);
@@ -459,7 +463,7 @@ class MyLog
         string line = string.Format("[MyMod] [%1] [%2] %3", levelName, source, message);
         Print(line);
 
-        // Also write to file if level meets file threshold
+        // 如果级别满足文件阈值，也写入文件
         if (level >= s_FileMinLevel)
         {
             WriteToFile(line);
@@ -468,50 +472,50 @@ class MyLog
 
     private static void WriteToFile(string line)
     {
-        // File I/O implementation...
+        // 文件 I/O 实现...
     }
 }
 ```
 
-Usage across multiple modules:
+跨多个模块使用：
 
 ```c
-MyLog.Info("MissionServer", "MyFramework initialized (server)");
+MyLog.Info("MissionServer", "MyMod Core initialized (server)");
 MyLog.Warning("ServerWebhooksRPC", "Unauthorized request from: " + sender.GetName());
 MyLog.Error("ConfigManager", "Failed to load config: " + path);
 ```
 
 ---
 
-## 实际示例
+## 真实案例
 
-### 带多重守卫的安全函数
+### 带多个守卫的安全函数
 
 ```c
 void HealPlayer(PlayerBase player, float amount, string healerName)
 {
-    // Guard: null player
+    // 守卫：空玩家
     if (!player)
     {
         MyLog.Error("HealSystem", "HealPlayer called with null player");
         return;
     }
 
-    // Guard: player alive
+    // 守卫：玩家存活
     if (!player.IsAlive())
     {
         MyLog.Warning("HealSystem", "Cannot heal dead player: " + player.GetIdentity().GetName());
         return;
     }
 
-    // Guard: valid amount
+    // 守卫：有效数量
     if (amount <= 0)
     {
         MyLog.Warning("HealSystem", "Invalid heal amount: " + amount.ToString());
         return;
     }
 
-    // Guard: not already at full health
+    // 守卫：未满血
     float currentHP = player.GetHealth("", "Health");
     float maxHP = player.GetMaxHealth("", "Health");
     if (currentHP >= maxHP)
@@ -520,7 +524,7 @@ void HealPlayer(PlayerBase player, float amount, string healerName)
         return;
     }
 
-    // All guards passed — perform the heal
+    // 所有守卫通过——执行治疗
     float newHP = Math.Min(currentHP + amount, maxHP);
     player.SetHealth("", "Health", newHP);
 
@@ -534,7 +538,7 @@ void HealPlayer(PlayerBase player, float amount, string healerName)
 }
 ```
 
-### 安全配置加载
+### 安全的配置加载
 
 ```c
 class MyConfig
@@ -546,7 +550,7 @@ class MyConfig
 
 static MyConfig LoadConfigSafe(string path)
 {
-    // Guard: file exists
+    // 守卫：文件存在
     if (!FileExist(path))
     {
         Print("[Config] File not found: " + path + " — creating defaults");
@@ -555,18 +559,18 @@ static MyConfig LoadConfigSafe(string path)
         return defaults;
     }
 
-    // Attempt load (no try/catch, so we validate after)
+    // 尝试加载（没有 try/catch，所以之后验证）
     MyConfig cfg = new MyConfig();
     JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);
 
-    // Guard: loaded object is valid
+    // 守卫：加载的对象有效
     if (!cfg)
     {
         Print("[Config] ERROR: Failed to parse " + path + " — using defaults");
         return new MyConfig();
     }
 
-    // Guard: validate values
+    // 守卫：验证值
     if (cfg.MaxPlayers < 1 || cfg.MaxPlayers > 128)
     {
         Print("[Config] WARN: MaxPlayers out of range (" + cfg.MaxPlayers.ToString() + "), clamping");
@@ -583,23 +587,23 @@ static MyConfig LoadConfigSafe(string path)
 }
 ```
 
-### 安全 RPC 处理器
+### 安全的 RPC 处理器
 
 ```c
 void RPC_SpawnItem(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
 {
-    // Guard: server only
+    // 守卫：仅服务器
     if (type != CallType.Server)
         return;
 
-    // Guard: valid sender
+    // 守卫：有效的发送者
     if (!sender)
     {
         Print("[RPC] SpawnItem: null sender identity");
         return;
     }
 
-    // Guard: read params
+    // 守卫：读取参数
     Param2<string, vector> data;
     if (!ctx.Read(data))
     {
@@ -610,21 +614,21 @@ void RPC_SpawnItem(CallType type, ParamsReadContext ctx, PlayerIdentity sender, 
     string className = data.param1;
     vector position = data.param2;
 
-    // Guard: valid class name
+    // 守卫：有效的类名
     if (className == "")
     {
         Print("[RPC] SpawnItem: empty className from " + sender.GetName());
         return;
     }
 
-    // Guard: permission check
+    // 守卫：权限检查
     if (!HasPermission(sender.GetPlainId(), "SpawnItem"))
     {
         Print("[RPC] SpawnItem: unauthorized by " + sender.GetName());
         return;
     }
 
-    // All guards passed — execute
+    // 所有守卫通过——执行
     Object obj = GetGame().CreateObjectEx(className, position, ECE_PLACE_ON_SURFACE);
     if (!obj)
     {
@@ -636,31 +640,31 @@ void RPC_SpawnItem(CallType type, ParamsReadContext ctx, PlayerIdentity sender, 
 }
 ```
 
-### 安全物品栏操作
+### 安全的物品栏操作
 
 ```c
 bool TransferItem(PlayerBase fromPlayer, PlayerBase toPlayer, EntityAI item)
 {
-    // Guard: all references valid
+    // 守卫：所有引用有效
     if (!fromPlayer || !toPlayer || !item)
     {
         Print("[Inventory] TransferItem: null reference");
         return false;
     }
 
-    // Guard: both players alive
+    // 守卫：两个玩家都存活
     if (!fromPlayer.IsAlive() || !toPlayer.IsAlive())
     {
         Print("[Inventory] TransferItem: one or both players are dead");
         return false;
     }
 
-    // Guard: source actually has the item
+    // 守卫：源确实有该物品
     EntityAI checkItem = fromPlayer.GetInventory().FindAttachment(
         fromPlayer.GetInventory().FindUserReservedLocationIndex(item)
     );
 
-    // Guard: target has space
+    // 守卫：目标有空间
     InventoryLocation il = new InventoryLocation();
     if (!toPlayer.GetInventory().FindFreeLocationFor(item, FindInventoryLocationType.ANY, il))
     {
@@ -668,39 +672,72 @@ bool TransferItem(PlayerBase fromPlayer, PlayerBase toPlayer, EntityAI item)
         return false;
     }
 
-    // Execute transfer
+    // 执行转移
     return toPlayer.GetInventory().TakeEntityToInventory(InventoryMode.SERVER, FindInventoryLocationType.ANY, item);
 }
 ```
 
 ---
 
-## 防御性编程模式总结
+## 防御性模式总结
 
 | 模式 | 用途 | 示例 |
 |---------|---------|---------|
-| Guard clause | Early return on invalid input | `if (!player) return;` |
-| Null check | Prevent null dereference | `if (obj) obj.DoThing();` |
-| Cast + check | Safe downcast | `if (Class.CastTo(p, obj))` |
-| Validate after load | Check data after JSON load | `if (cfg.Value < 0) cfg.Value = default;` |
-| Validate before use | Range/bounds check | `if (arr.IsValidIndex(i))` |
-| Log on failure | Trace where things went wrong | `Print("[Tag] Error: " + context);` |
-| ErrorEx for engine | Write to .RPT file | `ErrorEx("msg", ErrorExSeverity.WARNING);` |
-| DumpStackString | Capture call stack | `Print(DumpStackString());` |
+| 守卫子句 | 无效输入时提前返回 | `if (!player) return;` |
+| 空值检查 | 防止空引用 | `if (obj) obj.DoThing();` |
+| 类型转换 + 检查 | 安全的向下转换 | `if (Class.CastTo(p, obj))` |
+| 加载后验证 | JSON 加载后检查数据 | `if (cfg.Value < 0) cfg.Value = default;` |
+| 使用前验证 | 范围/边界检查 | `if (arr.IsValidIndex(i))` |
+| 失败时记录 | 追踪出错位置 | `Print("[Tag] Error: " + context);` |
+| ErrorEx 用于引擎 | 写入 .RPT 文件 | `ErrorEx("msg", ErrorExSeverity.WARNING);` |
+| DumpStackString | 捕获调用堆栈 | `Print(DumpStackString());` |
+
+---
+
+## 最佳实践
+
+- 在每个函数顶部使用扁平的守卫子句（`if (!x) return;`），而不是深度嵌套的 `if` 块——它保持代码可读且正常路径不嵌套。
+- 始终在守卫子句中记录消息——静默的 `return` 使失败不可见且极难调试。
+- 对应该出现在 `.RPT` 日志中的消息使用带有适当严重级别（`INFO`、`WARNING`、`ERROR`）的 `ErrorEx`；对脚本日志输出使用 `Print`。
+- 将大量调试日志包裹在 `#ifdef DIAG_DEVELOPER` 或自定义定义中，使其在发布版本中被编译排除且不影响性能。
+- 使用 `JsonFileLoader` 加载后验证配置数据——它返回 `void` 并在解析失败时静默保留默认值。
+
+---
+
+## 真实模组中的观察
+
+> 通过研究专业 DayZ 模组源代码确认的模式。
+
+| 模式 | 模组 | 细节 |
+|---------|-----|--------|
+| 带日志消息的堆叠守卫子句 | COT / VPP | 每个 RPC 处理器检查发送者、参数、权限，并在每次失败时记录 |
+| 带级别过滤的静态日志类 | Expansion / Dabs | 单个 `Log` 类将 `Info`/`Warning`/`Error` 路由到控制台、文件和可选的 Discord |
+| 在关键守卫中使用 `DumpStackString()` | COT Admin | 在意外的 null 上捕获调用堆栈以追踪哪个调用者传递了错误数据 |
+| 调试打印周围使用 `#ifdef DIAG_DEVELOPER` | Vanilla DayZ / Expansion | 所有逐帧调试输出都被包裹，使其永远不会在发布版本中运行 |
+
+---
+
+## 理论与实践
+
+| 概念 | 理论 | 现实 |
+|---------|--------|---------|
+| `try`/`catch` | 大多数语言的标准 | 在 Enforce Script 中不存在——每个失败点都必须手动守卫 |
+| `JsonFileLoader.JsonLoadFile` | 期望返回成功/失败 | 返回 `void`；在 JSON 无效时对象保留其默认值，没有错误 |
+| `ErrorEx` | 听起来像抛出错误 | 它只写入 `.RPT` 日志——执行正常继续 |
 
 ---
 
 ## 常见错误
 
-### 1. Assuming a function ran successfully
+### 1. 假设函数成功运行
 
 ```c
-// WRONG — JsonLoadFile returns void, not a success indicator
+// 错误——JsonLoadFile 返回 void，不是成功指示器
 MyConfig cfg = new MyConfig();
 JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);
-// If the file has bad JSON, cfg still has default values — no error
+// 如果文件有无效的 JSON，cfg 仍然有默认值——没有错误
 
-// CORRECT — validate after loading
+// 正确——加载后验证
 JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);
 if (cfg.SomeCriticalField == 0)
 {
@@ -708,10 +745,10 @@ if (cfg.SomeCriticalField == 0)
 }
 ```
 
-### 2. Deeply nested null checks instead of guards
+### 2. 深度嵌套的空值检查而非守卫
 
 ```c
-// WRONG — pyramid of doom
+// 错误——厄运金字塔
 void Process(PlayerBase player)
 {
     if (player)
@@ -720,30 +757,30 @@ void Process(PlayerBase player)
         {
             if (player.IsAlive())
             {
-                // Finally do something
+                // 终于可以做些事情
             }
         }
     }
 }
 
-// CORRECT — flat guard clauses
+// 正确——扁平的守卫子句
 void Process(PlayerBase player)
 {
     if (!player) return;
     if (!player.GetIdentity()) return;
     if (!player.IsAlive()) return;
 
-    // Do something
+    // 做些事情
 }
 ```
 
-### 3. Forgetting to log in guard clauses
+### 3. 忘记在守卫子句中记录
 
 ```c
-// WRONG — silent failure, impossible to debug
+// 错误——静默失败，无法调试
 if (!player) return;
 
-// CORRECT — leaves a trail
+// 正确——留下踪迹
 if (!player)
 {
     Print("[MyMod] Process: null player");
@@ -751,16 +788,16 @@ if (!player)
 }
 ```
 
-### 4. Using Print in hot paths
+### 4. 在热路径中使用 Print
 
 ```c
-// WRONG — Print every frame kills performance
+// 错误——每帧 Print 会影响性能
 override void OnUpdate(float timeslice)
 {
-    Print("Updating...");  // Called every frame!
+    Print("Updating...");  // 每帧调用！
 }
 
-// CORRECT — use debug guards or rate-limit
+// 正确——使用调试守卫或限制频率
 override void OnUpdate(float timeslice)
 {
     #ifdef DIAG_DEVELOPER
@@ -780,16 +817,16 @@ override void OnUpdate(float timeslice)
 
 | 工具 | 用途 | 语法 |
 |------|---------|--------|
-| Guard clause | Early return on failure | `if (!x) return;` |
-| Null check | Prevent crash | `if (obj) obj.Method();` |
-| ErrorEx | Write to .RPT log | `ErrorEx("msg", ErrorExSeverity.WARNING);` |
-| DumpStackString | Get call stack | `string s = DumpStackString();` |
-| Print | Write to script log | `Print("message");` |
-| string.Format | Formatted logging | `string.Format("P %1 at %2", a, b)` |
-| #ifdef guard | Compile-time debug switch | `#ifdef DIAG_DEVELOPER` |
-| notnull | Compiler null check | `void Fn(notnull Class obj)` |
+| 守卫子句 | 失败时提前返回 | `if (!x) return;` |
+| 空值检查 | 防止崩溃 | `if (obj) obj.Method();` |
+| ErrorEx | 写入 .RPT 日志 | `ErrorEx("msg", ErrorExSeverity.WARNING);` |
+| DumpStackString | 获取调用堆栈 | `string s = DumpStackString();` |
+| Print | 写入脚本日志 | `Print("message");` |
+| string.Format | 格式化日志 | `string.Format("P %1 at %2", a, b)` |
+| #ifdef 守卫 | 编译时调试开关 | `#ifdef DIAG_DEVELOPER` |
+| notnull | 编译器空值检查 | `void Fn(notnull Class obj)` |
 
-**The golden rule:** In Enforce Script, assume everything can be null and every operation can fail. Check first, act second, log always.
+**黄金法则：**在 Enforce Script 中，假设一切都可能是 null，每个操作都可能失败。先检查，后操作，始终记录。
 
 ---
 

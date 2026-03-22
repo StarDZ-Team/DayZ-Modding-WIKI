@@ -1,60 +1,66 @@
-# Chapter 2.6: Server vs Client Architecture
+# Глава 2.6: Архитектура сервер-клиент
 
-[Home](../../README.md) | [<< Previous: File Organization](05-file-organization.md) | **Server vs Client Architecture**
+[Главная](../../README.md) | [<< Назад: Организация файлов](05-file-organization.md) | **Архитектура сервер-клиент**
+
+---
+
+> **Краткое описание:** DayZ -- клиент-серверная игра. Каждая строка кода, которую вы пишете, выполняется в определённом контексте -- сервер, клиент или оба. Понимание этого разделения необходимо для написания безопасных и функциональных модов. Эта глава объясняет, где выполняется код, как определить, на какой стороне вы находитесь, как структурировать моды из нескольких пакетов, и паттерны, которые обеспечивают правильное разделение серверного и клиентского кода.
 
 ---
 
 ## Содержание
 
-- [The Fundamental Split](#the-fundamental-split)
-- [The Three Execution Contexts](#the-three-execution-contexts)
-- [Checking Where Your Code Выполняется](#checking-where-your-code-runs)
-- [The mod.cpp type Field](#the-modcpp-type-field)
-- [The config.cpp type Field](#the-configcpp-type-field)
-- [Multi-Package Mod Architecture](#multi-package-mod-architecture)
-- [The Golden Rules](#the-golden-rules)
-- [Script Layer and Side Matrix](#script-layer-and-side-matrix)
-- [Preprocessor Guards](#preprocessor-guards)
-- [Common Server-Client Patterns](#common-server-client-patterns)
-- [Listen Server Gotchas](#listen-server-gotchas)
-- [Dependency Between Split Mods](#dependency-between-split-mods)
-- [Real-World Split Examples](#real-world-split-examples)
-- [Common Mistakes](#common-mistakes)
-- [Decision Flowchart](#decision-flowchart)
-- [Summary Checklist](#summary-checklist)
+- [Фундаментальное разделение](#фундаментальное-разделение)
+- [Три контекста выполнения](#три-контекста-выполнения)
+- [Проверка места выполнения кода](#проверка-места-выполнения-кода)
+- [Поле type в mod.cpp](#поле-type-в-modcpp)
+- [Поле type в config.cpp](#поле-type-в-configcpp)
+- [Архитектура мода из нескольких пакетов](#архитектура-мода-из-нескольких-пакетов)
+- [Золотые правила](#золотые-правила)
+- [Матрица скриптовых слоёв и сторон](#матрица-скриптовых-слоёв-и-сторон)
+- [Директивы препроцессора](#директивы-препроцессора)
+- [Распространённые паттерны сервер-клиент](#распространённые-паттерны-сервер-клиент)
+- [Подводные камни Listen Server](#подводные-камни-listen-server)
+- [Зависимости между разделёнными модами](#зависимости-между-разделёнными-модами)
+- [Реальные примеры разделения](#реальные-примеры-разделения)
+- [Распространённые ошибки](#распространённые-ошибки)
+- [Блок-схема принятия решений](#блок-схема-принятия-решений)
+- [Контрольный список](#контрольный-список)
 
 ---
 
 ## Фундаментальное разделение
 
-DayZ использует модель **выделенного сервера**. Сервер и клиент --- это отдельные процессы, запускающие отдельные исполняемые файлы. Они общаются по сети, а движок обеспечивает синхронизацию сущностей, переменных и RPC.
+DayZ использует модель **выделенного сервера**. Сервер и клиент -- это отдельные процессы, запускающие отдельные исполняемые файлы. Они обмениваются данными по сети, а движок обрабатывает синхронизацию сущностей, переменных и RPC.
 
-Это означает, что код вашего мода выполняется в одном из трех контекстов, и правила для каждого принципиально различаются.
+Это означает, что код вашего мода выполняется в одном из трёх контекстов, и правила для каждого фундаментально различны.
 
 ```
 +------------------------------------------------------------------+
 |                                                                  |
-|   DEDICATED SERVER                                               |
-|   - Headless process (no window, no GPU)                         |
-|   - Authoritative: owns the game state                           |
-|   - Spawns entities, applies damage, saves data                  |
-|   - Has NO player, NO UI, NO keyboard input                      |
-|   - Runs: MissionServer                                          |
+|   ВЫДЕЛЕННЫЙ СЕРВЕР                                              |
+|   - Безголовый процесс (без окна, без GPU)                       |
+|   - Авторитетный: владеет состоянием игры                        |
+|   - Спавнит сущности, наносит урон, сохраняет данные             |
+|   - НЕТ игрока, НЕТ UI, НЕТ ввода с клавиатуры                 |
+|   - Выполняет: MissionServer                                     |
 |                                                                  |
 +------------------------------------------------------------------+
 
           ^                                         ^
-          |          NETWORK (RPCs, sync vars)       |
+          |          СЕТЬ (RPC, синхронизируемые     |
+          |          переменные)                     |
           v                                         v
 
 +---------------------------+     +---------------------------+
 |                           |     |                           |
-|   CLIENT 1                |     |   CLIENT 2                |
-|   - Has a window, GPU     |     |   - Has a window, GPU     |
-|   - Renders the world     |     |   - Renders the world     |
-|   - Handles player input  |     |   - Handles player input  |
-|   - Shows UI and HUD      |     |   - Shows UI and HUD      |
-|   - Runs: MissionGameplay |     |   - Runs: MissionGameplay |
+|   КЛИЕНТ 1                |     |   КЛИЕНТ 2                |
+|   - Имеет окно, GPU       |     |   - Имеет окно, GPU       |
+|   - Рендерит мир           |     |   - Рендерит мир           |
+|   - Обрабатывает ввод      |     |   - Обрабатывает ввод      |
+|   - Показывает UI и HUD    |     |   - Показывает UI и HUD    |
+|   - Выполняет:             |     |   - Выполняет:             |
+|     MissionGameplay        |     |     MissionGameplay        |
 |                           |     |                           |
 +---------------------------+     +---------------------------+
 ```
@@ -65,124 +71,124 @@ DayZ использует модель **выделенного сервера**
 
 ### 1. Выделенный сервер
 
-Выделенный сервер --- это **безголовый процесс**. У него нет окна, нет вывода на видеокарту, нет монитора, клавиатуры или мыши. Он существует только для выполнения игровой логики.
+Выделенный сервер -- это **безголовый процесс**. У него нет окна, нет вывода видеокарты, нет монитора, нет клавиатуры, нет мыши. Он существует только для выполнения игровой логики.
 
 Ключевые характеристики:
-- **Authoritative** ---  server's state is the truth. If the server says a player has 50 health, the player has 50 health.
-- **No player object** -- `GetGame().GetPlayer()` always returns `null` on a dedicated server. The server manages ALL players but IS none of them.
-- **No UI** --- ny code that creates widgets, shows menus, or renders HUD elements will crash or silently fail.
-- **No input** --- re is no keyboard or mouse. Input-handling code is meaningless here.
-- **File system access** ---  server can read and write files to its profile directory (`$profile:`), which is where configs, player data, and logs are stored.
-- **Mission class** ---  server instantiates `MissionServer`, not `MissionGameplay`.
+- **Авторитетный** -- состояние сервера является истиной. Если сервер говорит, что у игрока 50 здоровья, у игрока 50 здоровья.
+- **Нет объекта игрока** -- `GetGame().GetPlayer()` всегда возвращает `null` на выделенном сервере. Сервер управляет ВСЕМИ игроками, но не ЯВЛЯЕТСЯ ни одним из них.
+- **Нет UI** -- любой код, создающий виджеты, показывающий меню или рендерящий элементы HUD, вызовет вылет или молча не сработает.
+- **Нет ввода** -- нет клавиатуры или мыши. Код обработки ввода здесь бессмыслен.
+- **Доступ к файловой системе** -- сервер может читать и записывать файлы в свою директорию профиля (`$profile:`), где хранятся конфигурации, данные игроков и логи.
+- **Класс миссии** -- сервер создаёт экземпляр `MissionServer`, а не `MissionGameplay`.
 
 ### 2. Клиент
 
-Клиент --- это игра игрока. У него есть окно, он рендерит 3D-графику, воспроизводит звук и обрабатывает ввод.
+Клиент -- это игра игрока. Он имеет окно, рендерит 3D-графику, воспроизводит аудио и обрабатывает ввод.
 
 Ключевые характеристики:
-- **Presentation layer** ---  client renders what the server tells it to render. It does not decide what exists in the world.
-- **Has a player** -- `GetGame().GetPlayer()` returns the local player's `PlayerBase` instance.
-- **UI and HUD** --- ll widget creation, layout loading, and menu code runs here.
-- **Input** -- keyboard, mouse, and gamepad input is processed here.
-- **Limited authority** ---  client can REQUEST actions (via RPC), but the server DECIDES whether they happen.
-- **Mission class** ---  client instantiates `MissionGameplay`, not `MissionServer`.
+- **Уровень представления** -- клиент рендерит то, что сервер указывает рендерить. Он не решает, что существует в мире.
+- **Имеет игрока** -- `GetGame().GetPlayer()` возвращает экземпляр `PlayerBase` локального игрока.
+- **UI и HUD** -- всё создание виджетов, загрузка макетов и код меню выполняются здесь.
+- **Ввод** -- ввод с клавиатуры, мыши и геймпада обрабатывается здесь.
+- **Ограниченная авторитетность** -- клиент может ЗАПРАШИВАТЬ действия (через RPC), но РЕШАЕТ, произойдут ли они, сервер.
+- **Класс миссии** -- клиент создаёт экземпляр `MissionGameplay`, а не `MissionServer`.
 
-### 3. Listen Server (Разработка/Тестирование)
+### 3. Listen Server (разработка/тестирование)
 
-Listen server --- это одновременно сервер И клиент в одном процессе. Это то, что вы получаете при запуске DayZ через Workbench или при использовании параметра запуска `-server` с локальной игрой.
+Listen server -- это одновременно и сервер, И клиент в одном процессе. Это то, что вы получаете при запуске DayZ через Workbench или с параметром запуска `-server` для локальной игры.
 
 Ключевые характеристики:
-- **Both `IsServer()` and `IsClient()` return true** --- это is the critical difference from dedicated servers.
-- **Has a player AND manages all players** -- `GetGame().GetPlayer()` returns the host player.
-- **Both `MissionServer` and `MissionGameplay` hooks run** --- выr modded classes for both will execute.
-- **Used for development only** -- production servers are always dedicated.
-- **Can mask bugs** -- code that works on a listen server may break on dedicated because the listen server has access to both server and client types.
+- **И `IsServer()`, и `IsClient()` возвращают true** -- это критическое отличие от выделенных серверов.
+- **Имеет игрока И управляет всеми игроками** -- `GetGame().GetPlayer()` возвращает хост-игрока.
+- **Выполняются хуки и `MissionServer`, и `MissionGameplay`** -- ваши modded классы для обоих будут выполняться.
+- **Используется только для разработки** -- продакшн-серверы всегда выделенные.
+- **Может скрывать ошибки** -- код, который работает на listen server, может сломаться на выделенном, потому что listen server имеет доступ к типам и сервера, и клиента.
 
 ---
 
-## Проверка контекста выполнения кода
+## Проверка места выполнения кода
 
-The `GetGame()` global function returns the game instance, which provides methods to detect the execution context:
+Глобальная функция `GetGame()` возвращает экземпляр игры, который предоставляет методы для определения контекста выполнения:
 
 ```c
 // ---------------------------------------------------------------
-// Runtime context checks
+// Проверки контекста выполнения
 // ---------------------------------------------------------------
 
 if (GetGame().IsServer())
 {
-    // TRUE on: dedicated server, listen server
-    // FALSE on: client connected to a remote server
-    // Use for: server-side logic (spawning, damage, saving)
+    // TRUE на: выделенном сервере, listen server
+    // FALSE на: клиенте, подключённом к удалённому серверу
+    // Используйте для: серверной логики (спавн, урон, сохранение)
 }
 
 if (GetGame().IsClient())
 {
-    // TRUE on: client connected to a remote server, listen server
-    // FALSE on: dedicated server
-    // Use for: UI code, input handling, visual effects
+    // TRUE на: клиенте, подключённом к удалённому серверу, listen server
+    // FALSE на: выделенном сервере
+    // Используйте для: UI-кода, обработки ввода, визуальных эффектов
 }
 
 if (GetGame().IsDedicatedServer())
 {
-    // TRUE on: dedicated server ONLY
-    // FALSE on: client, listen server
-    // Use for: code that must NEVER run on a listen server
+    // TRUE на: только выделенном сервере
+    // FALSE на: клиенте, listen server
+    // Используйте для: кода, который НИКОГДА не должен выполняться на listen server
 }
 
 if (GetGame().IsMultiplayer())
 {
-    // TRUE on: any multiplayer session (dedicated server, remote client)
-    // FALSE on: singleplayer/offline mode
-    // Use for: disabling features in offline testing
+    // TRUE на: любой мультиплеерной сессии (выделенный сервер, удалённый клиент)
+    // FALSE на: одиночной/офлайн-игре
+    // Используйте для: отключения функций в офлайн-тестировании
 }
 ```
 
 ### Таблица истинности
 
-| Метод | Выделенный сервер | Клиент (удаленный) | Listen Server |
+| Метод | Выделенный сервер | Клиент (удалённый) | Listen Server |
 |--------|:---:|:---:|:---:|
 | `IsServer()` | true | false | true |
 | `IsClient()` | false | true | true |
 | `IsDedicatedServer()` | true | false | false |
 | `IsMultiplayer()` | true | true | false |
-| `GetPlayer()` returns | null | PlayerBase | PlayerBase |
+| `GetPlayer()` возвращает | null | PlayerBase | PlayerBase |
 
-### Распространенные паттерны
+### Распространённые паттерны
 
 ```c
-// Guard: server-only logic
+// Защита: только серверная логика
 void SpawnLoot(vector position)
 {
     if (!GetGame().IsServer())
         return;
 
-    // Only the server creates entities
+    // Только сервер создаёт сущности
     EntityAI item = EntityAI.Cast(GetGame().CreateObjectEx("AK101", position, ECE_PLACE_ON_SURFACE));
 }
 
-// Guard: client-only logic
+// Защита: только клиентская логика
 void ShowNotification(string text)
 {
     if (!GetGame().IsClient())
         return;
 
-    // Only the client can display UI
+    // Только клиент может отображать UI
     NotificationSystem.AddNotification(text, "set:dayz_gui image:icon_pin");
 }
 
-// Guard: handle both sides correctly
+// Защита: корректная обработка обеих сторон
 void OnPlayerAction(PlayerBase player, int actionID)
 {
     if (GetGame().IsServer())
     {
-        // Validate and execute the action
+        // Проверить и выполнить действие
         ValidateAndApply(player, actionID);
     }
 
     if (GetGame().IsClient())
     {
-        // Play a local sound effect
+        // Воспроизвести локальный звуковой эффект
         PlayActionSound(actionID);
     }
 }
@@ -190,22 +196,22 @@ void OnPlayerAction(PlayerBase player, int actionID)
 
 ---
 
-## The mod.cpp type Field
+## Поле type в mod.cpp
 
-The `mod.cpp` file at the root of your mod folder contains a `type` field that controls WHERE the mod is loaded:
+Файл `mod.cpp` в корне папки вашего мода содержит поле `type`, которое управляет тем, ГДЕ мод загружается:
 
-### type = "mod" (Both Sides)
+### type = "mod" (обе стороны)
 
 ```
 name = "My Mod";
 type = "mod";
 ```
 
-The mod is loaded on **both server and client**. The server loads it, clients download and load it. Both sides compile and execute the scripts.
+Мод загружается и **на сервере, и на клиенте**. Сервер загружает его, клиенты скачивают и загружают его. Обе стороны компилируют и выполняют скрипты.
 
-**Когда использовать:** Most mods use this. Any mod that has shared types (entity definitions, config classes, RPC data structures) needs to be `type = "mod"` so both sides know about the same types.
+**Когда использовать:** Большинство модов используют это. Любой мод, имеющий общие типы (определения сущностей, классы конфигурации, структуры данных RPC), должен быть `type = "mod"`, чтобы обе стороны знали одинаковые типы.
 
-**Пример:** The StarDZ AI client mod uses `type = "mod"` because both server and client need the AI entity class definitions, RPC constants, and sync data structures:
+**Пример:** Клиентский мод StarDZ AI использует `type = "mod"`, потому что и серверу, и клиенту нужны определения классов сущностей AI, RPC-константы и структуры данных синхронизации:
 
 ```
 // StarDZ_AI/mod.cpp
@@ -213,23 +219,23 @@ name = "StarDZ AI";
 type = "mod";
 ```
 
-### type = "servermod" (Server Only)
+### type = "servermod" (только сервер)
 
 ```
 name = "My Mod Server";
 type = "servermod";
 ```
 
-The mod is loaded on the **server only**. Clients never see it, never download it, never know it exists. The server does not send it in the mod list.
+Мод загружается **только на сервере**. Клиенты никогда его не видят, не скачивают, не знают о его существовании. Сервер не отправляет его в списке модов.
 
-**Когда использовать:** Server-side logic that clients should never have access to. This includes:
-- Spawn algorithms (prevents players from predicting loot)
-- AI brain logic (prevents exploit analysis)
-- Admin commands and server management
-- Database connections and external API calls
-- Anti-cheat validation logic
+**Когда использовать:** Серверная логика, к которой клиенты никогда не должны иметь доступ. Это включает:
+- Алгоритмы спавна (предотвращает предсказание лута игроками)
+- Логику мозга AI (предотвращает анализ эксплойтов)
+- Админ-команды и управление сервером
+- Подключения к базам данных и внешние API
+- Логику валидации античита
 
-**Пример:** The StarDZ AI Server mod uses `type = "servermod"` because clients should never см. AI brain, perception, combat, or spawning logic:
+**Пример:** Серверный мод StarDZ AI использует `type = "servermod"`, потому что клиенты не должны видеть мозг AI, восприятие, боевую логику или логику спавна:
 
 ```
 // StarDZ_AI_Server/mod.cpp
@@ -239,28 +245,28 @@ type = "servermod";
 
 ### Почему это важно для безопасности
 
-If your spawn logic is in a `type = "mod"` package, **every player downloads it**. They can decompile the PBO and read your spawn algorithms, loot tables, admin passwords, or anti-cheat logic. Always put sensitive server logic in a `type = "servermod"` package.
+Если ваша логика спавна находится в пакете `type = "mod"`, **каждый игрок скачивает её**. Они могут декомпилировать PBO и прочитать ваши алгоритмы спавна, таблицы лута, пароли администратора или логику античита. Всегда размещайте чувствительную серверную логику в пакете `type = "servermod"`.
 
 ---
 
-## The config.cpp type Field
+## Поле type в config.cpp
 
-Inside `config.cpp` (in the `CfgMods` section), there is also a `type` field. This one controls how the engine treats the mod internally:
+Внутри `config.cpp` (в секции `CfgMods`) также есть поле `type`. Оно управляет тем, как движок обрабатывает мод внутренне:
 
 ```cpp
 class CfgMods
 {
     class MyMod
     {
-        type = "mod";          // or "servermod"
+        type = "mod";          // или "servermod"
         // ...
     };
 };
 ```
 
-This field should match your `mod.cpp` type field. If they disagree, you get unpredictable behavior. Keep them consistent.
+Это поле должно совпадать с полем `type` в вашем `mod.cpp`. Если они не совпадают, вы получите непредсказуемое поведение. Поддерживайте их согласованными.
 
-The `config.cpp` also contains the `defines[]` array, which is how you enable preprocessor symbols for cross-mod detection:
+`config.cpp` также содержит массив `defines[]`, который определяет, как включаются символы препроцессора для межмодового обнаружения:
 
 ```cpp
 class CfgMods
@@ -268,7 +274,7 @@ class CfgMods
     class StarDZ_AI
     {
         type = "mod";
-        defines[] = { "STARDZ_AI" };    // Other mods can use #ifdef STARDZ_AI
+        defines[] = { "STARDZ_AI" };    // Другие моды могут использовать #ifdef STARDZ_AI
     };
 };
 
@@ -277,146 +283,146 @@ class CfgMods
     class StarDZ_AIServer
     {
         type = "servermod";
-        defines[] = { "STARDZ_AI", "STARDZ_AISERVER" };  // Both defines available
+        defines[] = { "STARDZ_AI", "STARDZ_AISERVER" };  // Оба определения доступны
     };
 };
 ```
 
-Notice that the server mod defines both `STARDZ_AI` and `STARDZ_AISERVER`. Это позволяет server-side code to detect whether just the client mod is present or the full server package is loaded.
+Обратите внимание, что серверный мод определяет и `STARDZ_AI`, и `STARDZ_AISERVER`. Это позволяет серверному коду определить, загружен ли только клиентский мод или полный серверный пакет.
 
 ---
 
-## Многопакетная архитектура мода
+## Архитектура мода из нескольких пакетов
 
 ### Зачем разделять на несколько пакетов?
 
-A single mod folder with `type = "mod"` ships everything to clients. For many mods, this is fine. But for mods with sensitive server logic, you need to split:
+Одна папка мода с `type = "mod"` отправляет всё клиентам. Для многих модов это нормально. Но для модов с чувствительной серверной логикой необходимо разделение:
 
 ```
-@MyMod/                          <-- Client package (type = "mod")
+@MyMod/                          <-- Клиентский пакет (type = "mod")
   mod.cpp                        <-- type = "mod"
   Addons/
-    MyMod_Scripts.pbo            <-- Shared: RPCs, config classes, entity defs
-    MyMod_Data.pbo               <-- Shared: models, textures
-    MyMod_GUI.pbo                <-- Client-only: layouts, imagesets
+    MyMod_Scripts.pbo            <-- Общее: RPC, классы конфигурации, определения сущностей
+    MyMod_Data.pbo               <-- Общее: модели, текстуры
+    MyMod_GUI.pbo                <-- Только клиент: макеты, наборы изображений
 
-@MyModServer/                    <-- Server package (type = "servermod")
+@MyModServer/                    <-- Серверный пакет (type = "servermod")
   mod.cpp                        <-- type = "servermod"
   Addons/
-    MyModServer_Scripts.pbo      <-- Server-only: spawning, brain, admin
+    MyModServer_Scripts.pbo      <-- Только сервер: спавн, мозг, админ
 ```
 
-The server loads BOTH `@MyMod` and `@MyModServer`. Clients only load `@MyMod`.
+Сервер загружает ОБА -- `@MyMod` и `@MyModServer`. Клиенты загружают только `@MyMod`.
 
 ### Что куда помещать
 
-**Client package** (`type = "mod"`) contains:
-- Entity class definitions (both sides need to know the class exists)
-- RPC ID constants and data structures (both sides send/receive)
-- Config classes for settings that affect client display
-- GUI layouts, imagesets, and styles
-- Client-side UI code (wrapped in `#ifndef SERVER`)
-- Модели, textures, sounds
-- `stringtable.csv` for localization
+**Клиентский пакет** (`type = "mod"`) содержит:
+- Определения классов сущностей (обе стороны должны знать, что класс существует)
+- Константы RPC ID и структуры данных (обе стороны отправляют/получают)
+- Классы конфигурации для настроек, влияющих на клиентское отображение
+- Макеты GUI, наборы изображений и стили
+- Клиентский UI-код (обёрнутый в `#ifndef SERVER`)
+- Модели, текстуры, звуки
+- `stringtable.csv` для локализации
 
-**Server package** (`type = "servermod"`) contains:
-- Manager/controller classes (spawn logic, AI brains)
-- Server-side validation and anti-cheat
-- Config loading and file I/O (JSON configs, player data)
-- Admin command handlers
-- External service integration (webhooks, APIs)
-- `MissionServer` hooks
+**Серверный пакет** (`type = "servermod"`) содержит:
+- Классы менеджеров/контроллеров (логика спавна, мозги AI)
+- Серверную валидацию и античит
+- Загрузку конфигураций и файловый I/O (JSON-конфигурации, данные игроков)
+- Обработчики админ-команд
+- Интеграцию с внешними сервисами (вебхуки, API)
+- Хуки `MissionServer`
 
 ### Цепочка зависимостей
 
-The server package depends on the client package, never the other way around:
+Серверный пакет зависит от клиентского, никогда наоборот:
 
 ```cpp
-// Client mod: config.cpp
+// Клиентский мод: config.cpp
 class CfgPatches
 {
     class MyMod_Scripts
     {
-        requiredAddons[] = { "DZ_Scripts" };  // No dependency on server
+        requiredAddons[] = { "DZ_Scripts" };  // Нет зависимости от сервера
     };
 };
 
-// Server mod: config.cpp
+// Серверный мод: config.cpp
 class CfgPatches
 {
     class MyModServer_Scripts
     {
-        requiredAddons[] = { "DZ_Scripts", "MyMod_Scripts" };  // Depends on client
+        requiredAddons[] = { "DZ_Scripts", "MyMod_Scripts" };  // Зависит от клиента
     };
 };
 ```
 
-Это обеспечивает the client package compiles first, and the server package can reference all types defined in the client package.
+Это гарантирует, что клиентский пакет компилируется первым, и серверный пакет может ссылаться на все типы, определённые в клиентском пакете.
 
 ---
 
 ## Золотые правила
 
-Эти правила определяют каждое решение о том, где должен находиться код:
+Эти правила управляют каждым решением о том, куда помещать код:
 
 ### Правило 1: Сервер АВТОРИТЕТЕН
 
-Сервер владеет состоянием игры. Он решает, что существует, где это находится и что с этим происходит. Никогда не позволяйте клиенту принимать авторитетные решения.
+Сервер владеет состоянием игры. Он решает, что существует, где это существует и что с этим происходит. Никогда не позволяйте клиенту принимать авторитетные решения.
 
-### Правило 2: Клиент отвечает за ОТОБРАЖЕНИЕ
+### Правило 2: Клиент обрабатывает ПРЕДСТАВЛЕНИЕ
 
-Клиент рендерит мир, воспроизводит звуки, показывает интерфейс и собирает ввод. Он не определяет результаты игры.
+Клиент рендерит мир, воспроизводит звуки, показывает UI и собирает ввод. Он не решает исходы игры.
 
-### Правило 3: RPC --- это МОСТ
+### Правило 3: RPC -- это МОСТ
 
-Удаленные вызовы процедур (RPC) --- единственный структурированный способ коммуникации между сервером и клиентом. Клиент отправляет запросы, сервер отправляет ответы и обновления состояния.
+Удалённые вызовы процедур (RPC) -- единственный структурированный способ коммуникации между сервером и клиентом. Клиент отправляет запросы, сервер отправляет ответы и обновления состояния.
 
 ### Правило 4: Никогда не доверяйте клиенту
 
-Любые данные от клиента могут быть подделаны. Всегда проверяйте на сервере.
+Любые данные от клиента могут быть подделаны. Всегда валидируйте на сервере.
 
 ### Дерево решений
 
 ```mermaid
 flowchart TD
-    A[Where does this code run?] --> B{Modifies game state?}
-    B -->|Yes| C{Affects world/items/players?}
-    C -->|Yes| D[SERVER - authoritative]
-    C -->|No| E{UI or visual only?}
-    E -->|Yes| F[CLIENT]
-    E -->|No| D
-    B -->|No| G{Reads input or shows UI?}
-    G -->|Yes| F
-    G -->|No| H{Shared data class?}
-    H -->|Yes| I[3_Game - both sides]
-    H -->|No| D
+    A[Где выполняется этот код?] --> B{Изменяет состояние игры?}
+    B -->|Да| C{Влияет на мир/предметы/игроков?}
+    C -->|Да| D[СЕРВЕР - авторитетный]
+    C -->|Нет| E{Только UI или визуал?}
+    E -->|Да| F[КЛИЕНТ]
+    E -->|Нет| D
+    B -->|Нет| G{Читает ввод или показывает UI?}
+    G -->|Да| F
+    G -->|Нет| H{Общий класс данных?}
+    H -->|Да| I[3_Game - обе стороны]
+    H -->|Нет| D
 ```
 
 ### Матрица ответственности
 
 | Задача | Где | Почему |
 |------|-------|-----|
-| Spawn entities | Server | Предотвращает дублирование предметов |
-| Apply damage | Server | Предотвращает читы бессмертия |
-| Delete entities | Server | Предотвращает гриф-эксплойты |
-| Сохранить player data | Server | Персистентное серверное хранилище |
-| Load configs | Server | Сервер контролирует правила игры |
-| Validate actions | Server | Обеспечение анти-чита |
-| Check permissions | Server | Клиент не может самоавторизоваться |
-| Show UI panels | Client | У сервера нет дисплея |
-| Read keyboard/mouse | Client | У сервера нет устройств ввода |
-| Play sounds | Client | У сервера нет аудиовыхода |
-| Render effects | Client | У сервера нет GPU |
-| Display notifications | Client | Визуальная обратная связь для игрока |
-| Send chat messages | Both | Клиент отправляет, сервер транслирует |
-| Sync config to client | Both | Сервер отправляет, клиент сохраняет локально |
-| Track nearby entities | Both | Сервер спавнит, клиент рендерит |
+| Спавн сущностей | Сервер | Предотвращает дублирование предметов |
+| Нанесение урона | Сервер | Предотвращает читы на бессмертие |
+| Удаление сущностей | Сервер | Предотвращает эксплойты гриферства |
+| Сохранение данных игроков | Сервер | Постоянное серверное хранилище |
+| Загрузка конфигурации | Сервер | Сервер контролирует правила игры |
+| Валидация действий | Сервер | Обеспечение античита |
+| Проверка прав | Сервер | Клиент не может самоавторизоваться |
+| Показ панелей UI | Клиент | У сервера нет дисплея |
+| Чтение клавиатуры/мыши | Клиент | У сервера нет устройств ввода |
+| Воспроизведение звуков | Клиент | У сервера нет аудиовыхода |
+| Рендер эффектов | Клиент | У сервера нет GPU |
+| Отображение уведомлений | Клиент | Визуальная обратная связь для игрока |
+| Отправка сообщений чата | Оба | Клиент отправляет, сервер рассылает |
+| Синхронизация конфигурации клиенту | Оба | Сервер отправляет, клиент хранит локально |
+| Отслеживание ближайших сущностей | Оба | Сервер спавнит, клиент рендерит |
 
 ---
 
-## Матрица слоев скриптов и сторон
+## Матрица скриптовых слоёв и сторон
 
-The 5-layer hierarchy (Chapter 2.1) intersects with the server-client split. Not all layers run on all sides in the same way:
+5-уровневая иерархия (Глава 2.1) пересекается с разделением сервер-клиент. Не все уровни работают на всех сторонах одинаково:
 
 ### Полная матрица
 
@@ -427,37 +433,37 @@ The 5-layer hierarchy (Chapter 2.1) intersects with the server-client split. Not
 | `3_Game` | Компилируется | Компилируется | Компилируется | Общие типы, конфигурации, RPC |
 | `4_World` | Компилируется | Компилируется | Компилируется | Сущности существуют на обеих сторонах |
 | `5_Mission` (MissionServer) | Выполняется | Пропускается | Выполняется | Запуск/остановка сервера |
-| `5_Mission` (MissionGameplay) | Пропускается | Выполняется | Выполняется | Инициализация UI/HUD клиента |
+| `5_Mission` (MissionGameplay) | Пропускается | Выполняется | Выполняется | Инициализация клиентского UI/HUD |
 
 ### Что это означает на практике
 
-Layers 1 through 4 compile and run on **all sides**. The code is the same. This is why entity class definitions, config classes, and RPC constants all live in `3_Game` or `4_World` --- оба sides need them.
+Слои с 1 по 4 компилируются и выполняются на **всех сторонах**. Код одинаковый. Поэтому определения классов сущностей, классы конфигурации и константы RPC находятся в `3_Game` или `4_World` -- обеим сторонам они нужны.
 
-Layer 5 (`5_Mission`) is where the split becomes explicit:
-- `MissionServer` is a class that only exists on the server (and listen server). It handles server-side initialization, update loops, and cleanup.
-- `MissionGameplay` is a class that only exists on the client (and listen server). It handles client-side UI, HUD, and player-facing features.
+Слой 5 (`5_Mission`) -- это место, где разделение становится явным:
+- `MissionServer` -- класс, который существует только на сервере (и listen server). Он обрабатывает серверную инициализацию, циклы обновления и очистку.
+- `MissionGameplay` -- класс, который существует только на клиенте (и listen server). Он обрабатывает клиентский UI, HUD и функции, обращённые к игроку.
 
-When you write `modded class MissionServer`, that code runs on the dedicated server. When you write `modded class MissionGameplay`, that code runs on the client.
+Когда вы пишете `modded class MissionServer`, этот код выполняется на выделенном сервере. Когда вы пишете `modded class MissionGameplay`, этот код выполняется на клиенте.
 
 ```c
-// Server-side mission hook -- runs on dedicated server and listen server
+// Серверный хук миссии -- выполняется на выделенном сервере и listen server
 modded class MissionServer
 {
     override void OnInit()
     {
         super.OnInit();
-        // Initialize server-side managers
+        // Инициализировать серверные менеджеры
         Print("Server starting up");
     }
 };
 
-// Client-side mission hook -- runs on client and listen server
+// Клиентский хук миссии -- выполняется на клиенте и listen server
 modded class MissionGameplay
 {
     override void OnInit()
     {
         super.OnInit();
-        // Initialize client-side UI
+        // Инициализировать клиентский UI
         Print("Client starting up");
     }
 };
@@ -467,41 +473,41 @@ modded class MissionGameplay
 
 ## Директивы препроцессора
 
-Enforce Script supports preprocessor directives that let you conditionally compile code based on the execution context.
+Enforce Script поддерживает директивы препроцессора, которые позволяют условно компилировать код на основе контекста выполнения.
 
-### The SERVER Define
+### Определение SERVER
 
-The engine automatically defines `SERVER` when compiling for a dedicated server. This is a **compile-time** check, not a runtime check:
+Движок автоматически определяет `SERVER` при компиляции для выделенного сервера. Это проверка **времени компиляции**, а не времени выполнения:
 
 ```c
 #ifdef SERVER
-    // This code is ONLY compiled on the server
-    // It does not exist in the client binary at all
+    // Этот код компилируется ТОЛЬКО на сервере
+    // Он не существует в клиентском бинарном файле вообще
 #endif
 
 #ifndef SERVER
-    // This code is ONLY compiled on the client
-    // The server will not see this code
+    // Этот код компилируется ТОЛЬКО на клиенте
+    // Сервер не увидит этот код
 #endif
 ```
 
-### When to Use Preprocessor Guards vs Runtime Checks
+### Когда использовать директивы препроцессора vs проверки времени выполнения
 
 | Подход | Когда использовать | Пример |
 |----------|-------------|---------|
-| `#ifndef SERVER` | Wrapping entire class definitions that should only exist on client | `modded class MissionGameplay` in a shared mod |
-| `#ifdef SERVER` | Wrapping entire class definitions that should only exist on server | Server-only helper classes |
-| `GetGame().IsServer()` | Runtime branching within code that runs on both sides | Entity update logic that differs per side |
-| `GetGame().IsClient()` | Runtime branching within code that runs on both sides | Playing effects only on client |
+| `#ifndef SERVER` | Обёртка целых определений классов, которые должны существовать только на клиенте | `modded class MissionGameplay` в общем моде |
+| `#ifdef SERVER` | Обёртка целых определений классов, которые должны существовать только на сервере | Вспомогательные классы только для сервера |
+| `GetGame().IsServer()` | Ветвление во время выполнения в коде, работающем на обеих сторонах | Логика обновления сущности, различающаяся на сторонах |
+| `GetGame().IsClient()` | Ветвление во время выполнения в коде, работающем на обеих сторонах | Воспроизведение эффектов только на клиенте |
 
-### Real Example: Client Mission Hook in a Shared Mod
+### Реальный пример: клиентский хук миссии в общем моде
 
-When your client mod (`type = "mod"`) contains a `modded class MissionGameplay`, you MUST wrap it in `#ifndef SERVER`. Otherwise, the dedicated server will try to compile it and fail because `MissionGameplay` does not exist on the server:
+Когда ваш клиентский мод (`type = "mod"`) содержит `modded class MissionGameplay`, вы ДОЛЖНЫ обернуть его в `#ifndef SERVER`. Иначе выделенный сервер попытается скомпилировать его и потерпит неудачу, потому что `MissionGameplay` не существует на сервере:
 
 ```c
-// In the shared client mod (type = "mod")
-// This file is compiled on BOTH server and client
-// Without the guard, the server would crash on the undefined MissionGameplay class
+// В общем клиентском моде (type = "mod")
+// Этот файл компилируется и на сервере, и на клиенте
+// Без защиты сервер вылетит из-за неопределённого класса MissionGameplay
 
 #ifndef SERVER
 modded class MissionGameplay
@@ -524,12 +530,12 @@ modded class MissionGameplay
 #endif
 ```
 
-### Комбинирование директив для необязательных зависимостей
+### Комбинирование директив для опциональных зависимостей
 
-You can stack preprocessor guards for fine-grained control:
+Вы можете стекировать директивы препроцессора для детального контроля:
 
 ```c
-// Only compile if StarDZ Core is loaded AND we are on the client
+// Компилировать только если загружен StarDZ Core И мы на клиенте
 #ifdef STARDZ_CORE
 #ifndef SERVER
 modded class MissionGameplay
@@ -537,7 +543,7 @@ modded class MissionGameplay
     override void OnInit()
     {
         super.OnInit();
-        // Register with Core's admin panel -- client side only
+        // Регистрация в админ-панели Core -- только клиентская сторона
         StarDZCore core = StarDZCore.GetInstance();
         if (core)
         {
@@ -552,20 +558,20 @@ modded class MissionGameplay
 
 ---
 
-## Распространенные паттерны сервер-клиент
+## Распространённые паттерны сервер-клиент
 
-### Паттерн 1: Server-Side Validation with Client Feedback
+### Паттерн 1: Серверная валидация с обратной связью клиенту
 
-The most fundamental pattern in multiplayer game modding. The client requests an action, the server validates it, and sends back the result.
+Самый фундаментальный паттерн в мультиплеерном моддинге. Клиент запрашивает действие, сервер валидирует его и отправляет обратно результат.
 
 ```c
 // ---------------------------------------------------------------
-// 3_Game: Shared RPC constants and data (both sides need these)
+// 3_Game: Общие RPC-константы и данные (обеим сторонам нужны)
 // ---------------------------------------------------------------
 class MyRPC
 {
-    static const int REQUEST_ACTION  = 85001;  // Client -> Server
-    static const int ACTION_RESULT   = 85002;  // Server -> Client
+    static const int REQUEST_ACTION  = 85001;  // Клиент -> Сервер
+    static const int ACTION_RESULT   = 85002;  // Сервер -> Клиент
 }
 
 class MyActionData
@@ -578,7 +584,7 @@ class MyActionData
 
 ```c
 // ---------------------------------------------------------------
-// Client side: Send request, handle response
+// Клиентская сторона: Отправить запрос, обработать ответ
 // ---------------------------------------------------------------
 class MyClientHandler
 {
@@ -587,7 +593,7 @@ class MyClientHandler
         if (!GetGame().IsClient())
             return;
 
-        // Send request to server
+        // Отправить запрос серверу
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(actionID);
         rpc.Send(null, MyRPC.REQUEST_ACTION, true);
@@ -613,7 +619,7 @@ class MyClientHandler
 
 ```c
 // ---------------------------------------------------------------
-// Server side: Validate and respond
+// Серверная сторона: Валидация и ответ
 // ---------------------------------------------------------------
 class MyServerHandler
 {
@@ -625,14 +631,14 @@ class MyServerHandler
         int actionID;
         ctx.Read(actionID);
 
-        // VALIDATE -- never trust client data
+        // ВАЛИДАЦИЯ -- никогда не доверяйте данным клиента
         bool allowed = ValidateAction(sender, actionID);
 
-        // Execute if valid
+        // Выполнить если валидно
         if (allowed)
             ExecuteAction(sender, actionID);
 
-        // Send result back to client
+        // Отправить результат обратно клиенту
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(actionID);
         rpc.Write(allowed);
@@ -642,13 +648,13 @@ class MyServerHandler
 }
 ```
 
-### Паттерн 2: Config Sync (Server to Client)
+### Паттерн 2: Синхронизация конфигурации (сервер к клиенту)
 
-The server owns the configuration. When a player connects, the server sends relevant settings to the client so the client can adjust its display accordingly.
+Сервер владеет конфигурацией. Когда игрок подключается, сервер отправляет соответствующие настройки клиенту, чтобы клиент мог соответствующим образом настроить отображение.
 
 ```c
 // ---------------------------------------------------------------
-// Server: Send config on player connect
+// Сервер: Отправить конфигурацию при подключении игрока
 // ---------------------------------------------------------------
 modded class MissionServer
 {
@@ -658,7 +664,7 @@ modded class MissionServer
         if (!identity)
             return;
 
-        // Send display settings to client
+        // Отправить настройки отображения клиенту
         ScriptRPC rpc = new ScriptRPC();
         rpc.Write(m_Config.m_ShowHUD);
         rpc.Write(m_Config.m_HUDColor);
@@ -670,7 +676,7 @@ modded class MissionServer
 
 ```c
 // ---------------------------------------------------------------
-// Client: Receive and apply config
+// Клиент: Получить и применить конфигурацию
 // ---------------------------------------------------------------
 #ifndef SERVER
 class MyClientConfig
@@ -685,20 +691,20 @@ class MyClientConfig
         ctx.Read(m_HUDColor);
         ctx.Read(m_MaxDistance);
 
-        // Apply to local UI
+        // Применить к локальному UI
         UpdateHUDVisibility();
     }
 }
 #endif
 ```
 
-### Паттерн 3: Entity State Sync
+### Паттерн 3: Синхронизация состояния сущности
 
-Entities that exist on both server and client often need to synchronize custom state. The server computes the state, then sends it to nearby clients via RPC.
+Сущности, существующие на обеих сторонах, часто нуждаются в синхронизации пользовательского состояния. Сервер вычисляет состояние, затем отправляет его ближайшим клиентам через RPC.
 
 ```c
 // ---------------------------------------------------------------
-// Server: Broadcast AI state to nearby players
+// Сервер: Рассылка состояния AI ближайшим игрокам
 // ---------------------------------------------------------------
 void SyncStateToClients(SDZ_AIEntity ai)
 {
@@ -710,14 +716,14 @@ void SyncStateToClients(SDZ_AIEntity ai)
     rpc.Write(ai.GetBehaviorState());
     rpc.Write(ai.IsInCombat());
 
-    // Send to all clients within 200m
+    // Отправить всем клиентам в радиусе 200м
     rpc.Send(ai, MyRPC.SYNC_STATE, true);
 }
 ```
 
 ```c
 // ---------------------------------------------------------------
-// Client: Receive and display AI state
+// Клиент: Получение и отображение состояния AI
 // ---------------------------------------------------------------
 void OnStateReceived(SDZ_AIEntity ai, ParamsReadContext ctx)
 {
@@ -731,19 +737,19 @@ void OnStateReceived(SDZ_AIEntity ai, ParamsReadContext ctx)
     ctx.Read(behaviorState);
     ctx.Read(inCombat);
 
-    // Update client-side visual state
+    // Обновить клиентское визуальное состояние
     ai.SetClientBehaviorState(behaviorState);
     ai.SetClientCombatIndicator(inCombat);
 }
 ```
 
-### Паттерн 4: Permission Checking
+### Паттерн 4: Проверка прав
 
-Permissions are always checked on the server. The client may cache permission data for UI purposes (e.g., graying out buttons), but the server is the final authority.
+Права всегда проверяются на сервере. Клиент может кэшировать данные о правах для целей UI (например, затемнение кнопок), но сервер является окончательным авторитетом.
 
 ```c
 // ---------------------------------------------------------------
-// Server: Check permission before executing admin command
+// Сервер: Проверка прав перед выполнением админ-команды
 // ---------------------------------------------------------------
 void OnAdminCommand(PlayerIdentity sender, ParamsReadContext ctx)
 {
@@ -753,7 +759,7 @@ void OnAdminCommand(PlayerIdentity sender, ParamsReadContext ctx)
     string command;
     ctx.Read(command);
 
-    // Server-side permission check -- the ONLY check that matters
+    // Серверная проверка прав -- ЕДИНСТВЕННАЯ проверка, которая имеет значение
     if (!HasPermission(sender.GetId(), "admin.commands." + command))
     {
         SendDenied(sender, "Insufficient permissions");
@@ -768,59 +774,59 @@ void OnAdminCommand(PlayerIdentity sender, ParamsReadContext ctx)
 
 ## Подводные камни Listen Server
 
-The listen server is the most treacherous environment because it blurs the line between server and client. Here are the pitfalls:
+Listen server -- это самая коварная среда, потому что размывает границу между сервером и клиентом. Вот подводные камни:
 
-### 1. Оба IsServer() и IsClient() возвращают True
+### 1. И IsServer(), и IsClient() возвращают True
 
 ```c
 void MyFunction()
 {
     if (GetGame().IsServer())
     {
-        // This runs on listen server
+        // Это выполняется на listen server
         DoServerThing();
     }
 
     if (GetGame().IsClient())
     {
-        // This ALSO runs on listen server
+        // Это ТОЖЕ выполняется на listen server
         DoClientThing();
     }
 
-    // On listen server, BOTH branches execute!
+    // На listen server выполняются ОБЕ ветки!
 }
 ```
 
-**Решение:** If you need exclusive branches, use `else if` or check `IsDedicatedServer()`:
+**Исправление:** Если нужны исключающие ветки, используйте `else if` или проверяйте `IsDedicatedServer()`:
 
 ```c
 void MyFunction()
 {
     if (GetGame().IsDedicatedServer())
     {
-        // Dedicated server only
+        // Только выделенный сервер
         DoServerOnlyThing();
     }
     else if (GetGame().IsClient())
     {
-        // Client OR listen server
+        // Клиент ИЛИ listen server
         DoClientThing();
     }
 }
 ```
 
-### 2. И MissionServer, И MissionGameplay выполняются
+### 2. И MissionServer, и MissionGameplay выполняются
 
-On a listen server, both `modded class MissionServer` and `modded class MissionGameplay` execute their hooks. If you initialize the same manager in both, you get two instances:
+На listen server выполняются хуки и `modded class MissionServer`, и `modded class MissionGameplay`. Если вы инициализируете один и тот же менеджер в обоих, получите два экземпляра:
 
 ```c
-// BAD: Creates two instances on listen server
+// ПЛОХО: Создаёт два экземпляра на listen server
 modded class MissionServer
 {
     override void OnInit()
     {
         super.OnInit();
-        m_Manager = new MyManager();  // Instance 1
+        m_Manager = new MyManager();  // Экземпляр 1
     }
 }
 
@@ -829,12 +835,12 @@ modded class MissionGameplay
     override void OnInit()
     {
         super.OnInit();
-        m_Manager = new MyManager();  // Instance 2 on listen server!
+        m_Manager = new MyManager();  // Экземпляр 2 на listen server!
     }
 }
 ```
 
-**Решение:** Use server/client specific subclasses or guard with context checks:
+**Исправление:** Используйте специфичные для сервера/клиента подклассы или защиту проверками контекста:
 
 ```c
 modded class MissionServer
@@ -842,7 +848,7 @@ modded class MissionServer
     override void OnInit()
     {
         super.OnInit();
-        m_ServerManager = new MyServerManager();  // Server-side only
+        m_ServerManager = new MyServerManager();  // Только серверная сторона
     }
 }
 
@@ -852,7 +858,7 @@ modded class MissionGameplay
     override void OnInit()
     {
         super.OnInit();
-        m_ClientUI = new MyClientUI();  // Client-side only
+        m_ClientUI = new MyClientUI();  // Только клиентская сторона
     }
 }
 #endif
@@ -860,18 +866,18 @@ modded class MissionGameplay
 
 ### 3. GetGame().GetPlayer() работает на Listen Server
 
-On a dedicated server, `GetGame().GetPlayer()` always returns null. On a listen server, it returns the host player. Code that accidentally relies on this will work during testing but crash on a real server:
+На выделенном сервере `GetGame().GetPlayer()` всегда возвращает null. На listen server он возвращает хост-игрока. Код, случайно опирающийся на это, будет работать при тестировании, но вылетит на реальном сервере:
 
 ```c
-// BAD: Works on listen server, crashes on dedicated
+// ПЛОХО: Работает на listen server, вылетает на выделенном
 void DoServerThing()
 {
     PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
-    // player is null on dedicated server!
-    player.SetHealth(100);  // NULL REFERENCE CRASH
+    // player равен null на выделенном сервере!
+    player.SetHealth(100);  // ВЫЛЕТ ИЗ-ЗА NULL-ССЫЛКИ
 }
 
-// GOOD: Get the player through proper server-side methods
+// ХОРОШО: Получить игрока через правильные серверные методы
 void DoServerThing(PlayerBase player)
 {
     if (!player)
@@ -881,26 +887,26 @@ void DoServerThing(PlayerBase player)
 }
 ```
 
-### 4. Тестирование на Listen Server скрывает ошибки
+### 4. Тестирование на Listen Server маскирует ошибки
 
-A common trap: you test your mod on a listen server, everything works, you publish it, and it crashes on every dedicated server. This happens because:
+Распространённая ловушка: вы тестируете мод на listen server, всё работает, вы публикуете его, и он вылетает на каждом выделенном сервере. Это происходит потому что:
 
-- Types that exist only in `MissionGameplay` are available on listen server
-- `GetPlayer()` returns a value on listen server
-- Both server and client code paths run in the same process, so missing RPCs do not show errors (the data is already local)
+- Типы, существующие только в `MissionGameplay`, доступны на listen server
+- `GetPlayer()` возвращает значение на listen server
+- Код и серверной, и клиентской стороны выполняется в одном процессе, поэтому отсутствующие RPC не показывают ошибок (данные уже локальные)
 
-**Always test on a dedicated server before publishing.** Listen server testing is useful for rapid iteration, but it is not a substitute for proper dedicated server testing.
+**Всегда тестируйте на выделенном сервере перед публикацией.** Тестирование на listen server полезно для быстрой итерации, но не заменяет правильное тестирование на выделенном сервере.
 
 ---
 
-## Зависимости между разделенными модами
+## Зависимости между разделёнными модами
 
-### requiredAddons[] Controls Load Order
+### requiredAddons[] управляет порядком загрузки
 
-When you split a mod into client and server packages, the server package MUST declare the client package as a dependency:
+Когда вы разделяете мод на клиентский и серверный пакеты, серверный пакет ДОЛЖЕН объявить клиентский пакет как зависимость:
 
 ```cpp
-// Client package: config.cpp
+// Клиентский пакет: config.cpp
 class CfgPatches
 {
     class SDZ_AI_Scripts
@@ -909,243 +915,243 @@ class CfgPatches
     };
 };
 
-// Server package: config.cpp
+// Серверный пакет: config.cpp
 class CfgPatches
 {
     class SDZA_Scripts
     {
         requiredAddons[] = { "DZ_Scripts", "SDZ_AI_Scripts", "SDZ_Core_Scripts" };
         //                                 ^^^^^^^^^^^^^^^^
-        //                     Server depends on client package
+        //                     Сервер зависит от клиентского пакета
     };
 };
 ```
 
 Это обеспечивает:
-1. The client package compiles first
-2. The server package can reference all types from the client package
-3. Entity class definitions from the client package are available to server logic
+1. Клиентский пакет компилируется первым
+2. Серверный пакет может ссылаться на все типы из клиентского пакета
+3. Определения классов сущностей из клиентского пакета доступны серверной логике
 
-### defines[] for Optional Dependency Detection
+### defines[] для обнаружения опциональных зависимостей
 
-The `defines[]` array in `CfgMods` creates preprocessor symbols that other mods can check with `#ifdef`:
+Массив `defines[]` в `CfgMods` создаёт символы препроцессора, которые другие моды могут проверять с помощью `#ifdef`:
 
 ```cpp
-// StarDZ_AI client mod defines:
+// Клиентский мод StarDZ_AI определяет:
 defines[] = { "STARDZ_AI" };
 
-// StarDZ_AI server mod defines:
+// Серверный мод StarDZ_AI определяет:
 defines[] = { "STARDZ_AI", "STARDZ_AISERVER" };
 ```
 
-Other mods can then conditionally compile code:
+Другие моды могут условно компилировать код:
 
 ```c
-// In another mod that optionally integrates with StarDZ AI
+// В другом моде, опционально интегрирующемся с StarDZ AI
 #ifdef STARDZ_AI
-    // AI mod is loaded -- enable integration features
+    // Мод AI загружен -- включить функции интеграции
     void OnAIEntitySpawned(SDZ_AIEntity ai)
     {
-        // React to AI spawns
+        // Реагировать на спавн AI
     }
 #endif
 ```
 
-### Мягкие и жесткие зависимости
+### Мягкие vs жёсткие зависимости
 
-**Hard dependency:** Listed in `requiredAddons[]`. The engine will not load your mod if the dependency is missing. Use for mods that MUST be present.
+**Жёсткая зависимость:** указана в `requiredAddons[]`. Движок не загрузит ваш мод, если зависимость отсутствует. Используйте для модов, которые ДОЛЖНЫ быть установлены.
 
 ```cpp
 requiredAddons[] = { "DZ_Scripts", "SDZ_Core_Scripts" };
-// If SDZ_Core_Scripts is missing, this mod will not load
+// Если SDZ_Core_Scripts отсутствует, этот мод не загрузится
 ```
 
-**Soft dependency:** Detected via `#ifdef` at compile time. The mod loads regardless, but enables extra features when the dependency is present.
+**Мягкая зависимость:** определяется через `#ifdef` во время компиляции. Мод загружается в любом случае, но включает дополнительные функции, когда зависимость присутствует.
 
 ```c
-// Soft dependency on StarDZ Core
+// Мягкая зависимость от StarDZ Core
 #ifdef STARDZ_CORE
 class SDZ_AIAdminConfig : StarDZConfigBase
 {
-    // Only exists if Core is loaded
+    // Существует только если Core загружен
 };
 #endif
 
-// Fallback when Core is not available
+// Запасной вариант когда Core недоступен
 #ifndef STARDZ_CORE
 class SDZ_AIAdminConfig
 {
-    // Standalone version without Core integration
+    // Автономная версия без интеграции Core
 };
 #endif
 ```
 
 ---
 
-## Примеры разделения из реальных проектов
+## Реальные примеры разделения
 
-### Пример 1: StarDZ AI (Client + Server)
+### Пример 1: StarDZ AI (клиент + сервер)
 
-StarDZ AI splits into two packages with clear separation of concerns:
+StarDZ AI разделён на два пакета с чётким разделением ответственности:
 
 ```
-StarDZ_AI/                              <-- Development root
-  StarDZ_AI/                            <-- Client package (type = "mod")
+StarDZ_AI/                              <-- Корень разработки
+  StarDZ_AI/                            <-- Клиентский пакет (type = "mod")
     mod.cpp
     stringtable.csv
     GUI/
       layouts/
-        sdz_ai_interact_prompt.layout   <-- Client-only: interaction UI
-        sdz_ai_voice_bubble.layout      <-- Client-only: speech bubble
+        sdz_ai_interact_prompt.layout   <-- Только клиент: UI взаимодействия
+        sdz_ai_voice_bubble.layout      <-- Только клиент: пузырёк речи
     Scripts/
       config.cpp                        <-- defines[] = { "STARDZ_AI" }
       3_Game/StarDZ_AI/
-        SDZ_AI_Config.c                 <-- Shared config class
-        SDZ_AIConstants.c               <-- Shared constants
-        SDZ_AIRPC.c                     <-- Shared RPC IDs + data structs
+        SDZ_AI_Config.c                 <-- Общий класс конфигурации
+        SDZ_AIConstants.c               <-- Общие константы
+        SDZ_AIRPC.c                     <-- Общие RPC ID + структуры данных
       4_World/StarDZ_AI/
-        SDZ_AIEntity.c                  <-- Entity definition (both sides)
-        SDZ_AIPlayerPatches.c           <-- Player interaction patches
+        SDZ_AIEntity.c                  <-- Определение сущности (обе стороны)
+        SDZ_AIPlayerPatches.c           <-- Патчи взаимодействия игрока
       5_Mission/StarDZ_AI/
-        SDZ_AI_Register.c              <-- Core registration (guarded)
-        SDZ_AIClientMission.c           <-- Client UI (#ifndef SERVER)
-        SDZ_AIClientUI.c               <-- UI management
+        SDZ_AI_Register.c              <-- Регистрация в Core (с защитой)
+        SDZ_AIClientMission.c           <-- Клиентский UI (#ifndef SERVER)
+        SDZ_AIClientUI.c               <-- Управление UI
 
-  StarDZ_AI_Server/                     <-- Server package (type = "servermod")
+  StarDZ_AI_Server/                     <-- Серверный пакет (type = "servermod")
     mod.cpp
     Scripts/
-      config.cpp                        <-- depends on SDZ_AI_Scripts
+      config.cpp                        <-- зависит от SDZ_AI_Scripts
       3_Game/StarDZ_AIServer/
-        SDZ_AIAdminConfig.c             <-- Admin panel config bridge
-        SDZ_AIConfig.c                  <-- Server config loading
-        SDZ_AILoadout.c                 <-- Loadout definitions
+        SDZ_AIAdminConfig.c             <-- Мост конфигурации админ-панели
+        SDZ_AIConfig.c                  <-- Загрузка серверной конфигурации
+        SDZ_AILoadout.c                 <-- Определения экипировки
       4_World/StarDZ_AIServer/
-        SDZ_AIAPI.c                     <-- Developer API
-        SDZ_AIBrain.c                   <-- AI decision making
-        SDZ_AICombat.c                  <-- Combat behavior
-        SDZ_AIEvents.c                  <-- Event handling
-        SDZ_AIGOAP.c                    <-- Goal-oriented action planning
-        SDZ_AIGroup.c                   <-- Group coordination
-        SDZ_AIInteraction.c             <-- Player interaction handling
-        SDZ_AILogger.c                  <-- Server-side logging
-        SDZ_AIManager.c                 <-- Main AI manager
-        SDZ_AIMemory.c                  <-- Memory/knowledge base
-        SDZ_AIMovement.c               <-- Navigation
-        SDZ_AINavmesh.c                <-- Pathfinding
-        SDZ_AIPerception.c             <-- Sight/hearing/awareness
-        SDZ_AISoundPropagation.c       <-- Sound detection
-        SDZ_AISpawner.c                <-- Spawn logic
+        SDZ_AIAPI.c                     <-- API для разработчиков
+        SDZ_AIBrain.c                   <-- Принятие решений AI
+        SDZ_AICombat.c                  <-- Боевое поведение
+        SDZ_AIEvents.c                  <-- Обработка событий
+        SDZ_AIGOAP.c                    <-- Целеориентированное планирование действий
+        SDZ_AIGroup.c                   <-- Координация группы
+        SDZ_AIInteraction.c             <-- Обработка взаимодействия с игроком
+        SDZ_AILogger.c                  <-- Серверное логирование
+        SDZ_AIManager.c                 <-- Главный менеджер AI
+        SDZ_AIMemory.c                  <-- Память/база знаний
+        SDZ_AIMovement.c               <-- Навигация
+        SDZ_AINavmesh.c                <-- Поиск пути
+        SDZ_AIPerception.c             <-- Зрение/слух/осведомлённость
+        SDZ_AISoundPropagation.c       <-- Обнаружение звуков
+        SDZ_AISpawner.c                <-- Логика спавна
       5_Mission/StarDZ_AIServer/
-        SDZ_AIServerMission.c           <-- MissionServer hook
+        SDZ_AIServerMission.c           <-- Хук MissionServer
 ```
 
 Обратите внимание на паттерн:
-- **Client package** has 7 script files: constants, RPCs, entity definitions, UI
-- **Server package** has 19 script files: the entire AI brain, perception, combat system
-- The bulk of the logic is server-side and invisible to players
+- **Клиентский пакет** содержит 7 файлов скриптов: константы, RPC, определения сущностей, UI
+- **Серверный пакет** содержит 19 файлов скриптов: весь мозг AI, восприятие, боевая система
+- Основная часть логики находится на серверной стороне и невидима для игроков
 
 ### Пример 2: DayZ Expansion AI
 
-Expansion uses a different structure --- ll scripts in one directory tree, but split into multiple PBOs:
+Expansion использует другую структуру -- все скрипты в одном дереве директорий, но разделены на несколько PBO:
 
 ```
 DayZExpansion/AI/
-  Animations/config.cpp          <-- Animation overrides PBO
-  DebugWeapons/config.cpp        <-- Debug weapons PBO
-  Gear/config.cpp                <-- AI gear/clothing PBO
-  GUI/                           <-- GUI resources PBO
+  Animations/config.cpp          <-- PBO переопределений анимаций
+  DebugWeapons/config.cpp        <-- PBO отладочного оружия
+  Gear/config.cpp                <-- PBO экипировки/одежды AI
+  GUI/                           <-- PBO ресурсов GUI
     layouts/
     config.cpp
-  Scripts/                       <-- Main scripts PBO
+  Scripts/                       <-- Основной PBO скриптов
     config.cpp
-    1_Core/                      <-- Engine-level AI foundations
-    3_Game/                      <-- Shared types
-    4_World/                     <-- Entity and behavior code
-    5_Mission/                   <-- Mission hooks
-    AI/                          <-- AI-specific subfolder
-    Common/                      <-- Shared across all layers
-    Data/                        <-- Data files
-    FSM/                         <-- Finite state machine definitions
-    inputs.xml                   <-- Input bindings
-  Sounds/                        <-- Audio PBO
+    1_Core/                      <-- Основы AI на уровне движка
+    3_Game/                      <-- Общие типы
+    4_World/                     <-- Код сущностей и поведения
+    5_Mission/                   <-- Хуки миссий
+    AI/                          <-- Подпапка, специфичная для AI
+    Common/                      <-- Общее для всех слоёв
+    Data/                        <-- Файлы данных
+    FSM/                         <-- Определения конечных автоматов
+    inputs.xml                   <-- Привязки ввода
+  Sounds/                        <-- PBO аудио
 ```
 
-Expansion keeps everything in one `type = "mod"` package but uses internal `#ifdef` guards to separate server and client code paths. This is an alternative approach -- less secure (clients can decompile everything) but simpler to manage.
+Expansion хранит всё в одном пакете `type = "mod"`, но использует внутренние защиты `#ifdef` для разделения серверного и клиентского путей кода. Это альтернативный подход -- менее безопасный (клиенты могут декомпилировать всё), но проще в управлении.
 
-### Пример 3: StarDZ Missions (Client + Server)
+### Пример 3: StarDZ Missions (клиент + сервер)
 
 ```
 StarDZ_Missions/
-  StarDZ_Missions/                      <-- Client (type = "mod")
+  StarDZ_Missions/                      <-- Клиент (type = "mod")
     Scripts/
       3_Game/StarDZ_Missions/
-        SDZ_Constants.c                 <-- Mission type enums, RPC IDs
-        SDZ_MissionsConfig.c            <-- Display settings
-        SDZ_RPC.c                       <-- RPC definitions
+        SDZ_Constants.c                 <-- Перечисления типов миссий, RPC ID
+        SDZ_MissionsConfig.c            <-- Настройки отображения
+        SDZ_RPC.c                       <-- Определения RPC
       4_World/StarDZ_Missions/
-        SDZ_RadioHelper.c               <-- Radio proximity helper
+        SDZ_RadioHelper.c               <-- Помощник по близости радио
       5_Mission/StarDZ_Missions/
-        SDZ_ClientHandler.c             <-- Client UI for missions
-        SDZ_MissionsAdminModule.c       <-- Admin panel module
+        SDZ_ClientHandler.c             <-- Клиентский UI миссий
+        SDZ_MissionsAdminModule.c       <-- Модуль админ-панели
 
-  StarDZ_Missions_Server/              <-- Server (type = "servermod")
+  StarDZ_Missions_Server/              <-- Сервер (type = "servermod")
     Scripts/
       3_Game/StarDZ_MissionsServer/
-        SDZ_Config.c                    <-- Server config loader
-        SDZ_Logger.c                    <-- Server-side mission logging
-        SDZ_MissionData.c               <-- Mission data structures
+        SDZ_Config.c                    <-- Загрузчик серверной конфигурации
+        SDZ_Logger.c                    <-- Серверное логирование миссий
+        SDZ_MissionData.c               <-- Структуры данных миссий
       4_World/StarDZ_MissionsServer/
-        SDZ_Instance.c                  <-- Active mission instance
-        SDZ_Spawner.c                   <-- Loot and objective spawning
+        SDZ_Instance.c                  <-- Экземпляр активной миссии
+        SDZ_Spawner.c                   <-- Спавн лута и целей
       5_Mission/StarDZ_MissionsServer/
-        SDZ_ServerMission.c             <-- MissionServer hook
+        SDZ_ServerMission.c             <-- Хук MissionServer
 ```
 
 ---
 
-## Типичные ошибки
+## Распространённые ошибки
 
-### Ошибка 1: Running Server Logic on Client
+### Ошибка 1: Запуск серверной логики на клиенте
 
 ```c
-// WRONG: This runs on the client -- any player can spawn items!
+// НЕПРАВИЛЬНО: Выполняется на клиенте -- любой игрок может спавнить предметы!
 void OnButtonClick()
 {
     GetGame().CreateObjectEx("M4A1", GetGame().GetPlayer().GetPosition(), ECE_PLACE_ON_SURFACE);
 }
 
-// RIGHT: Client requests, server validates and spawns
+// ПРАВИЛЬНО: Клиент запрашивает, сервер валидирует и спавнит
 void OnButtonClick()
 {
-    // Client sends request
+    // Клиент отправляет запрос
     ScriptRPC rpc = new ScriptRPC();
     rpc.Write("M4A1");
     rpc.Send(null, MyRPC.SPAWN_REQUEST, true);
 }
 
-// Server handler
+// Серверный обработчик
 void OnSpawnRequest(PlayerIdentity sender, ParamsReadContext ctx)
 {
     if (!GetGame().IsServer())
         return;
 
-    // Validate: is this player an admin?
+    // Валидация: является ли этот игрок администратором?
     if (!IsAdmin(sender.GetId()))
         return;
 
     string className;
     ctx.Read(className);
 
-    // Server spawns the item
+    // Сервер спавнит предмет
     GetGame().CreateObjectEx(className, GetPlayerPosition(sender), ECE_PLACE_ON_SURFACE);
 }
 ```
 
-### Ошибка 2: UI Code in Server-Only Mod
+### Ошибка 2: UI-код в серверном моде
 
 ```c
-// WRONG: This is in a type = "servermod" package
-// The server has no display -- widget creation fails silently or crashes
+// НЕПРАВИЛЬНО: Это в пакете type = "servermod"
+// У сервера нет дисплея -- создание виджетов молча не сработает или вызовет вылет
 class MyServerPanel
 {
     Widget m_Root;
@@ -1153,30 +1159,30 @@ class MyServerPanel
     void Show()
     {
         m_Root = GetGame().GetWorkspace().CreateWidgets("MyMod/GUI/layouts/panel.layout");
-        // CRASH: GetWorkspace() returns null on dedicated server
+        // ВЫЛЕТ: GetWorkspace() возвращает null на выделенном сервере
     }
 }
 ```
 
-**Решение:** All UI code belongs in the client package (`type = "mod"`), wrapped in `#ifndef SERVER`.
+**Исправление:** Весь UI-код принадлежит клиентскому пакету (`type = "mod"`), обёрнутому в `#ifndef SERVER`.
 
-### Ошибка 3: GetGame().GetPlayer() on Server
+### Ошибка 3: GetGame().GetPlayer() на сервере
 
 ```c
-// WRONG: GetPlayer() is ALWAYS null on dedicated server
+// НЕПРАВИЛЬНО: GetPlayer() ВСЕГДА null на выделенном сервере
 modded class MissionServer
 {
     override void OnInit()
     {
         super.OnInit();
         PlayerBase player = PlayerBase.Cast(GetGame().GetPlayer());
-        // player is null on dedicated!
-        string name = player.GetIdentity().GetName();  // NULL CRASH
+        // player равен null на выделенном!
+        string name = player.GetIdentity().GetName();  // ВЫЛЕТ ИЗ-ЗА NULL
     }
 }
 ```
 
-**Решение:** On the server, players are passed to you through events, RPCs, or iteration:
+**Исправление:** На сервере игроки передаются вам через события, RPC или итерацию:
 
 ```c
 modded class MissionServer
@@ -1184,30 +1190,30 @@ modded class MissionServer
     override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)
     {
         super.InvokeOnConnect(player, identity);
-        // 'player' and 'identity' are provided by the engine
+        // 'player' и 'identity' предоставляются движком
         if (identity)
             Print("Player connected: " + identity.GetName());
     }
 }
 ```
 
-### Ошибка 4: Forgetting Listen Server Compatibility
+### Ошибка 4: Забывание совместимости с Listen Server
 
 ```c
-// WRONG: Assumes IsServer() and IsClient() are mutually exclusive
+// НЕПРАВИЛЬНО: Предполагает, что IsServer() и IsClient() взаимоисключающие
 void OnEntityCreated(EntityAI entity)
 {
     if (GetGame().IsServer())
     {
         RegisterEntity(entity);
-        return;  // Early return skips client code
+        return;  // Ранний выход пропускает клиентский код
     }
 
-    // On listen server, this never runs because IsServer() was true
+    // На listen server это никогда не выполнится, потому что IsServer() вернул true
     UpdateClientDisplay(entity);
 }
 
-// RIGHT: Handle both sides independently
+// ПРАВИЛЬНО: Обработать обе стороны независимо
 void OnEntityCreated(EntityAI entity)
 {
     if (GetGame().IsServer())
@@ -1222,20 +1228,20 @@ void OnEntityCreated(EntityAI entity)
 }
 ```
 
-### Ошибка 5: Not Using #ifdef for Optional Mod Detection
+### Ошибка 5: Неиспользование #ifdef для обнаружения опциональных модов
 
 ```c
-// WRONG: Crashes if StarDZ Core is not loaded
+// НЕПРАВИЛЬНО: Вылет если StarDZ Core не загружен
 class MyModInit
 {
     void Init()
     {
-        StarDZCore core = StarDZCore.GetInstance();  // COMPILE ERROR if Core not present
+        StarDZCore core = StarDZCore.GetInstance();  // ОШИБКА КОМПИЛЯЦИИ если Core отсутствует
         core.RegisterMod(info);
     }
 }
 
-// RIGHT: Guard with preprocessor directive
+// ПРАВИЛЬНО: Защита директивой препроцессора
 class MyModInit
 {
     void Init()
@@ -1252,97 +1258,99 @@ class MyModInit
 }
 ```
 
-### Ошибка 6: Putting Shared Types Only in the Server Package
+### Ошибка 6: Размещение общих типов только в серверном пакете
 
 ```c
-// WRONG: RPC data class defined only in servermod
-// Client cannot deserialize the RPC because it does not know the class
+// НЕПРАВИЛЬНО: Класс данных RPC определён только в servermod
+// Клиент не может десериализовать RPC, потому что не знает этот класс
 
-// In MyModServer (type = "servermod"):
-class MyStateData  // Client has never heard of this class
+// В MyModServer (type = "servermod"):
+class MyStateData  // Клиент никогда не слышал об этом классе
 {
     int m_State;
     float m_Value;
 }
 ```
 
-**Решение:** Shared data structures (RPC data, entity definitions, config classes) go in the client package (`type = "mod"`) so both sides have them:
+**Исправление:** Общие структуры данных (данные RPC, определения сущностей, классы конфигурации) размещаются в клиентском пакете (`type = "mod"`), чтобы обе стороны их имели:
 
 ```c
-// In MyMod (type = "mod") -- 3_Game layer:
-class MyStateData  // Now both server and client know this class
+// В MyMod (type = "mod") -- слой 3_Game:
+class MyStateData  // Теперь и сервер, и клиент знают этот класс
 {
     int m_State;
     float m_Value;
 }
 ```
 
-### Ошибка 7: Hardcoded Server File Paths on Client
+### Ошибка 7: Жёстко закодированные серверные пути файлов на клиенте
 
 ```c
-// WRONG: Client cannot access server's profile directory
+// НЕПРАВИЛЬНО: Клиент не может получить доступ к директории профиля сервера
 void LoadConfig()
 {
     string path = "$profile:MyMod/config.json";
-    // On client, $profile: points to the CLIENT's profile, not the server's
-    // The config file does not exist there
+    // На клиенте $profile: указывает на профиль КЛИЕНТА, а не сервера
+    // Файл конфигурации там не существует
 }
 ```
 
-**Решение:** The server loads configs and sends relevant data to clients via RPC. Clients never read server config files directly.
+**Исправление:** Сервер загружает конфигурации и отправляет соответствующие данные клиентам через RPC. Клиенты никогда не читают файлы конфигурации сервера напрямую.
 
 ---
 
 ## Блок-схема принятия решений
 
-Используйте это для определения, где должен находиться фрагмент кода:
+Используйте это для определения, куда относится тот или иной код:
 
 ```
-                Does it create/destroy entities?
+                Создаёт/уничтожает сущности?
                        /              \
-                     YES               NO
+                     ДА               НЕТ
                       |                 |
-              Does it show UI?     Does it show UI?
+              Показывает UI?      Показывает UI?
                 /        \           /          \
-              YES        NO        YES           NO
+              ДА         НЕТ       ДА            НЕТ
                |          |         |             |
-           ERROR!     SERVER    CLIENT        Is it a data class
-        (entities =              only         or RPC constant?
-         server,                               /          \
-         UI = client                         YES           NO
-         -- redesign)                         |             |
-                                          SHARED        Does it read/write
-                                       (client mod)     files or validate?
+           ОШИБКА!     СЕРВЕР    КЛИЕНТ        Это класс данных
+        (сущности =              только        или RPC-константа?
+         сервер,                               /          \
+         UI = клиент                         ДА           НЕТ
+         -- перепроек-                        |             |
+         тируйте)                          ОБЩИЙ        Читает/записывает
+                                        (клиентский      файлы или
+                                           мод)          валидирует?
                                                          /          \
-                                                       YES           NO
+                                                       ДА           НЕТ
                                                         |             |
-                                                     SERVER        SHARED
-                                                  (servermod)   (client mod,
-                                                                 guard with
+                                                     СЕРВЕР        ОБЩИЙ
+                                                  (servermod)   (клиентский
+                                                                 мод,
+                                                                 с защитой
                                                                  IsServer/
                                                                  IsClient)
 ```
 
 ---
 
-## Итоги Checklist
+## Контрольный список
 
-Перед публикацией разделенного мода проверьте:
+Перед публикацией разделённого мода проверьте:
 
-- [ ] Client package uses `type = "mod"` in both `mod.cpp` and `config.cpp`
-- [ ] Server package uses `type = "servermod"` in both `mod.cpp` and `config.cpp`
-- [ ] Server `config.cpp` lists client package in `requiredAddons[]`
-- [ ] All shared types (RPC data, entity classes, enums) are in the client package
-- [ ] All server logic (spawning, validation, AI brains) is in the server package
-- [ ] `MissionGameplay` modded classes are wrapped in `#ifndef SERVER`
-- [ ] No `GetGame().GetPlayer()` calls on server without null checks
-- [ ] No UI/widget code in the server package
-- [ ] Optional dependencies use `#ifdef` guards, not direct references
-- [ ] `defines[]` array matches between `mod.cpp` and `config.cpp`
-- [ ] Tested on a **dedicated server**, not just a listen server
-- [ ] Server config files are loaded server-side and synced via RPC, not read by clients
+- [ ] Клиентский пакет использует `type = "mod"` и в `mod.cpp`, и в `config.cpp`
+- [ ] Серверный пакет использует `type = "servermod"` и в `mod.cpp`, и в `config.cpp`
+- [ ] Серверный `config.cpp` указывает клиентский пакет в `requiredAddons[]`
+- [ ] Все общие типы (данные RPC, классы сущностей, перечисления) находятся в клиентском пакете
+- [ ] Вся серверная логика (спавн, валидация, мозги AI) находится в серверном пакете
+- [ ] Modded-классы `MissionGameplay` обёрнуты в `#ifndef SERVER`
+- [ ] Нет вызовов `GetGame().GetPlayer()` на сервере без проверки на null
+- [ ] Нет UI/виджетного кода в серверном пакете
+- [ ] Опциональные зависимости используют защиту `#ifdef`, а не прямые ссылки
+- [ ] Массив `defines[]` согласован между `mod.cpp` и `config.cpp`
+- [ ] Протестировано на **выделенном сервере**, а не только на listen server
+- [ ] Серверные файлы конфигурации загружаются на серверной стороне и синхронизируются через RPC, а не читаются клиентами
 
 ---
 
-**Previous:** [Chapter 2.5: File Organization Best Practices](05-file-organization.md)
-**Next:** [Part 3: GUI & Layout System](../03-gui-system/01-widget-types.md)
+**Предыдущая:** [Глава 2.5: Лучшие практики организации файлов](05-file-organization.md)
+**Далее:** [Часть 3: Система GUI и макетов](../03-gui-system/01-widget-types.md)

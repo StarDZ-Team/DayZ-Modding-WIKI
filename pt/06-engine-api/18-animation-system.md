@@ -1,20 +1,20 @@
-# Chapter 6.18: Animation System
+# Capítulo 6.18: Sistema de Animação
 
-[Home](../../README.md) | [<< Previous: Construction System](17-construction-system.md) | **Animation System** | [Next: Terrain & World Queries >>](19-terrain-queries.md)
+[Início](../../README.md) | [<< Anterior: Sistema de Construção](17-construction-system.md) | **Sistema de Animação** | [Próximo: Consultas de Terreno e Mundo >>](19-terrain-queries.md)
 
 ---
 
 ## Introdução
 
-DayZ uses a state-machine-driven animation system built into the Enfusion engine. Player animations are controlled by a hierarchy of `HumanCommand` classes -- movement, actions, climbing, swimming, vehicles, falling, death, and unconsciousness each have their own dedicated command. Object animations (doors, lids, deployables) are driven through `model.cfg` AnimationSources and controlled from script via `SetAnimationPhase()`.
+DayZ utiliza um sistema de animação baseado em máquina de estados integrado ao motor Enfusion. As animações do jogador são controladas por uma hierarquia de classes `HumanCommand` -- movimento, ações, escalada, natação, veículos, queda, morte e inconsciência, cada um com seu próprio comando dedicado. Animações de objetos (portas, tampas, construções implantáveis) são controladas por `AnimationSources` no `model.cfg` e gerenciadas via script com `SetAnimationPhase()`.
 
-This chapter covers the full animation API: the player movement state machine, the human command system, the gesture/emote pipeline, object animation sources, action callbacks with animation events, and the key constants from `DayZPlayerConstantes` that modders interact with daily. All method signatures and constants are taken directly from the vanilla script source.
+Este capítulo cobre a API completa de animação: a máquina de estados de movimento do jogador, o sistema de comandos humanos, o pipeline de gestos/emotes, fontes de animação de objetos, callbacks de ação com eventos de animação, e as constantes-chave de `DayZPlayerConstants` com as quais modders interagem diariamente. Todas as assinaturas de métodos e constantes foram extraídas diretamente do código-fonte vanilla.
 
 ---
 
-## Player Movement State Machine
+## Máquina de Estados de Movimento do Jogador
 
-### Stance Transitions
+### Transições de Postura
 
 ```mermaid
 stateDiagram-v2
@@ -33,26 +33,26 @@ stateDiagram-v2
 
 ### HumanMovementState
 
-The engine exposes the player's current animation state through `HumanMovementState`. Retrieve it by calling `GetMovementState()` on any `Human` (or subclass):
+O motor expõe o estado atual de animação do jogador através de `HumanMovementState`. Recupere-o chamando `GetMovementState()` em qualquer `Human` (ou subclasse):
 
 ```csharp
-// Source: scripts/3_game/human.c
+// Fonte: scripts/3_game/human.c
 class HumanMovementState
 {
-    int     m_CommandTypeId;   // current command ID (COMMANDID_MOVE, COMMANDID_ACTION, etc.)
-    int     m_iStanceIdx;      // current stance (STANCEIDX_ERECT, STANCEIDX_CROUCH, etc.)
-    int     m_iMovement;       // 0=idle, 1=walk, 2=run, 3=sprint
-    float   m_fLeaning;        // leaning offset, 0 when not leaning
+    int     m_CommandTypeId;   // ID do comando atual (COMMANDID_MOVE, COMMANDID_ACTION, etc.)
+    int     m_iStanceIdx;      // postura atual (STANCEIDX_ERECT, STANCEIDX_CROUCH, etc.)
+    int     m_iMovement;       // 0=parado, 1=andando, 2=correndo, 3=sprint
+    float   m_fLeaning;        // deslocamento de inclinação, 0 quando não inclinado
 
-    bool IsRaised();           // true when stance >= STANCEIDX_RAISEDERECT
-    bool IsRaisedInProne();    // true when STANCEIDX_RAISEDPRONE
-    bool IsInProne();          // true when STANCEIDX_PRONE
-    bool IsInRaisedProne();    // true when STANCEIDX_RAISEDPRONE
-    bool IsLeaning();          // true when m_fLeaning != 0
+    bool IsRaised();           // true quando postura >= STANCEIDX_RAISEDERECT
+    bool IsRaisedInProne();    // true quando STANCEIDX_RAISEDPRONE
+    bool IsInProne();          // true quando STANCEIDX_PRONE
+    bool IsInRaisedProne();    // true quando STANCEIDX_RAISEDPRONE
+    bool IsLeaning();          // true quando m_fLeaning != 0
 }
 ```
 
-Usage pattern:
+Padrão de uso:
 
 ```csharp
 HumanMovementState state = new HumanMovementState();
@@ -60,143 +60,143 @@ player.GetMovementState(state);
 
 if (state.m_iStanceIdx == DayZPlayerConstants.STANCEIDX_PRONE)
 {
-    // player is prone
+    // jogador está deitado
 }
 
 if (state.m_iMovement >= 2)
 {
-    // player is running or sprinting
+    // jogador está correndo ou em sprint
 }
 ```
 
-### Stance Indices
+### Índices de Postura
 
-These constants identify the player's current body posture. Defined in `DayZPlayerConstantes` (scripts/3_game/dayzplayer.c):
+Essas constantes identificam a postura corporal atual do jogador. Definidas em `DayZPlayerConstants` (scripts/3_game/dayzplayer.c):
 
 | Constante | Valor | Descrição |
 |----------|-------|-------------|
-| `STANCEIDX_ERECT` | 0 | Standing upright |
-| `STANCEIDX_CROUCH` | 1 | Crouching |
-| `STANCEIDX_PRONE` | 2 | Lying down |
-| `STANCEIDX_RAISEDERECT` | 3 | Standing with weapon raised |
-| `STANCEIDX_RAISEDCROUCH` | 4 | Crouching with weapon raised |
-| `STANCEIDX_RAISEDPRONE` | 5 | Prone with weapon raised |
-| `STANCEIDX_RAISED` | 3 | Offset -- add to base stance to get raised variant |
+| `STANCEIDX_ERECT` | 0 | Em pé |
+| `STANCEIDX_CROUCH` | 1 | Agachado |
+| `STANCEIDX_PRONE` | 2 | Deitado |
+| `STANCEIDX_RAISEDERECT` | 3 | Em pé com arma levantada |
+| `STANCEIDX_RAISEDCROUCH` | 4 | Agachado com arma levantada |
+| `STANCEIDX_RAISEDPRONE` | 5 | Deitado com arma levantada |
+| `STANCEIDX_RAISED` | 3 | Offset -- adicione à postura base para obter a variante levantada |
 
-The relationship: `STANCEIDX_ERECT + STANCEIDX_RAISED = STANCEIDX_RAISEDERECT`.
+A relação: `STANCEIDX_ERECT + STANCEIDX_RAISED = STANCEIDX_RAISEDERECT`.
 
-### Stance Masks
+### Máscaras de Postura
 
-Bitmask flags used by `IsPlayerInStance()` and `StartCommand_Ação()` to specify which stances an animation supports:
+Flags de bitmask usadas por `IsPlayerInStance()` e `StartCommand_Action()` para especificar quais posturas uma animação suporta:
 
 | Constante | Descrição |
 |----------|-------------|
-| `STANCEMASK_ERECT` | Standing |
-| `STANCEMASK_CROUCH` | Crouching |
-| `STANCEMASK_PRONE` | Prone |
-| `STANCEMASK_RAISEDERECT` | Standing raised |
-| `STANCEMASK_RAISEDCROUCH` | Crouching raised |
-| `STANCEMASK_RAISEDPRONE` | Prone raised |
-| `STANCEMASK_ALL` | All stances combined |
+| `STANCEMASK_ERECT` | Em pé |
+| `STANCEMASK_CROUCH` | Agachado |
+| `STANCEMASK_PRONE` | Deitado |
+| `STANCEMASK_RAISEDERECT` | Em pé levantado |
+| `STANCEMASK_RAISEDCROUCH` | Agachado levantado |
+| `STANCEMASK_RAISEDPRONE` | Deitado levantado |
+| `STANCEMASK_ALL` | Todas as posturas combinadas |
 | `STANCEMASK_NOTRAISED` | `ERECT \| CROUCH \| PRONE` |
 | `STANCEMASK_RAISED` | `RAISEDERECT \| RAISEDCROUCH \| RAISEDPRONE` |
 
 ```csharp
-// DayZPlayer method:
+// Método de DayZPlayer:
 proto native bool IsPlayerInStance(int pStanceMask);
 
-// Example: check if standing or crouching (not raised)
+// Exemplo: verificar se está em pé ou agachado (sem arma levantada)
 if (player.IsPlayerInStance(DayZPlayerConstants.STANCEMASK_ERECT | DayZPlayerConstants.STANCEMASK_CROUCH))
 {
-    // player is in erect or crouch, weapon lowered
+    // jogador está em pé ou agachado, arma abaixada
 }
 ```
 
-### Movement Indices
+### Índices de Movimento
 
 | Constante | Valor | Descrição |
 |----------|-------|-------------|
-| `MOVEMENTIDX_SLIDE` | -2 | Sliding |
-| `MOVEMENTIDX_IDLE` | 0 | Stationary |
-| `MOVEMENTIDX_WALK` | 1 | Walking |
-| `MOVEMENTIDX_RUN` | 2 | Jogging |
-| `MOVEMENTIDX_SPRINT` | 3 | Sprinting |
-| `MOVEMENTIDX_CROUCH_RUN` | 4 | Crouch running |
+| `MOVEMENTIDX_SLIDE` | -2 | Deslizando |
+| `MOVEMENTIDX_IDLE` | 0 | Parado |
+| `MOVEMENTIDX_WALK` | 1 | Andando |
+| `MOVEMENTIDX_RUN` | 2 | Correndo |
+| `MOVEMENTIDX_SPRINT` | 3 | Em sprint |
+| `MOVEMENTIDX_CROUCH_RUN` | 4 | Correndo agachado |
 
-The `m_iMovement` field in `HumanMovementState` uses these values.
+O campo `m_iMovement` em `HumanMovementState` usa esses valores.
 
 ---
 
-## Human Command System
+## Sistema de Comandos Humanos
 
-At any given moment, exactly one **main command** controls the player's animation state. The engine provides getter methods that return `null` when that command is not the active one. Only the currently active command returns a valid object.
+A qualquer momento, exatamente um **comando principal** controla o estado de animação do jogador. O motor fornece métodos getter que retornam `null` quando aquele comando não é o ativo. Apenas o comando atualmente ativo retorna um objeto válido.
 
-### Command Hierarchy
+### Hierarquia de Comandos
 
-| Getter | Class | Descrição |
+| Getter | Classe | Descrição |
 |--------|-------|-------------|
-| `GetCommand_Move()` | `HumanCommandMove` | Normal locomotion (idle, walk, run, sprint) |
-| `GetCommand_Ação()` | `HumanCommandAçãoCallback` | Full-body action animations |
-| `GetCommand_Melee()` | `HumanCommandMelee` | Legacy melee |
-| `GetCommand_Melee2()` | `HumanCommandMelee2` | Light/heavy melee system |
-| `GetCommand_Fall()` | `HumanCommandFall` | Falling/jumping |
-| `GetCommand_Ladder()` | `HumanCommandLadder` | Climbing ladders |
-| `GetCommand_Swim()` | `HumanCommandSwim` | Swimming |
-| `GetCommand_Vehicle()` | `HumanCommandVehicle` | Seated in vehicle |
-| `GetCommand_Climb()` | `HumanCommandClimb` | Climbing over obstacles |
-| `GetCommand_Death()` | `HumanCommandDeathCallback` | Death animation |
-| `GetCommand_Unconscious()` | `HumanCommandUnconscious` | Unconscious state |
-| `GetCommand_Damage()` | `HumanCommandFullBodyDamage` | Full-body damage reaction |
-| `GetCommand_Script()` | `HumanCommandScript` | Fully scriptable custom command |
+| `GetCommand_Move()` | `HumanCommandMove` | Locomoção normal (parado, andando, correndo, sprint) |
+| `GetCommand_Action()` | `HumanCommandActionCallback` | Animações de ação de corpo inteiro |
+| `GetCommand_Melee()` | `HumanCommandMelee` | Corpo-a-corpo legado |
+| `GetCommand_Melee2()` | `HumanCommandMelee2` | Sistema de corpo-a-corpo leve/pesado |
+| `GetCommand_Fall()` | `HumanCommandFall` | Queda/salto |
+| `GetCommand_Ladder()` | `HumanCommandLadder` | Subindo escadas |
+| `GetCommand_Swim()` | `HumanCommandSwim` | Nadando |
+| `GetCommand_Vehicle()` | `HumanCommandVehicle` | Sentado em veículo |
+| `GetCommand_Climb()` | `HumanCommandClimb` | Escalando obstáculos |
+| `GetCommand_Death()` | `HumanCommandDeathCallback` | Animação de morte |
+| `GetCommand_Unconscious()` | `HumanCommandUnconscious` | Estado inconsciente |
+| `GetCommand_Damage()` | `HumanCommandFullBodyDamage` | Reação de dano de corpo inteiro |
+| `GetCommand_Script()` | `HumanCommandScript` | Comando customizado totalmente scriptável |
 
-Each command also has a corresponding `StartCommand_*()` method on the `Human` class.
+Cada comando também possui um método `StartCommand_*()` correspondente na classe `Human`.
 
-### Command IDs
+### IDs de Comando
 
-Every command type has a unique integer ID stored in `HumanMovementState.m_CommandTypeId`. Also returned by `GetCurrentCommandID()`:
-
-| Constante | Descrição |
-|----------|-------------|
-| `COMMANDID_NONE` | No command (invalid) |
-| `COMMANDID_MOVE` | Normal movement |
-| `COMMANDID_ACTION` | Full-body action |
-| `COMMANDID_MELEE` | Melee (legacy) |
-| `COMMANDID_MELEE2` | Melee light/heavy |
-| `COMMANDID_FALL` | Falling |
-| `COMMANDID_DEATH` | Dead |
-| `COMMANDID_DAMAGE` | Full-body damage |
-| `COMMANDID_LADDER` | On ladder |
-| `COMMANDID_UNCONSCIOUS` | Unconscious |
-| `COMMANDID_SWIM` | Swimming |
-| `COMMANDID_VEHICLE` | In vehicle |
-| `COMMANDID_CLIMB` | Climbing |
-| `COMMANDID_SCRIPT` | Scripted command |
-
-Modificador command IDs (additive, always-on):
+Cada tipo de comando possui um ID inteiro único armazenado em `HumanMovementState.m_CommandTypeId`. Também retornado por `GetCurrentCommandID()`:
 
 | Constante | Descrição |
 |----------|-------------|
-| `COMMANDID_MOD_LOOKAT` | Head look-at (always active) |
-| `COMMANDID_MOD_WEAPONS` | Weapon handling (always active) |
-| `COMMANDID_MOD_ACTION` | Additive action overlay |
-| `COMMANDID_MOD_DAMAGE` | Additive damage reaction |
+| `COMMANDID_NONE` | Nenhum comando (inválido) |
+| `COMMANDID_MOVE` | Movimento normal |
+| `COMMANDID_ACTION` | Ação de corpo inteiro |
+| `COMMANDID_MELEE` | Corpo-a-corpo (legado) |
+| `COMMANDID_MELEE2` | Corpo-a-corpo leve/pesado |
+| `COMMANDID_FALL` | Queda |
+| `COMMANDID_DEATH` | Morto |
+| `COMMANDID_DAMAGE` | Dano de corpo inteiro |
+| `COMMANDID_LADDER` | Na escada |
+| `COMMANDID_UNCONSCIOUS` | Inconsciente |
+| `COMMANDID_SWIM` | Nadando |
+| `COMMANDID_VEHICLE` | Em veículo |
+| `COMMANDID_CLIMB` | Escalando |
+| `COMMANDID_SCRIPT` | Comando scriptado |
+
+IDs de comando modificador (aditivos, sempre ativos):
+
+| Constante | Descrição |
+|----------|-------------|
+| `COMMANDID_MOD_LOOKAT` | Direção do olhar da cabeça (sempre ativo) |
+| `COMMANDID_MOD_WEAPONS` | Manuseio de arma (sempre ativo) |
+| `COMMANDID_MOD_ACTION` | Sobreposição de ação aditiva |
+| `COMMANDID_MOD_DAMAGE` | Reação de dano aditiva |
 
 ### HumanCommandMove
 
-The default locomotion command. Available methods:
+O comando de locomoção padrão. Métodos disponíveis:
 
 ```csharp
 class HumanCommandMove
 {
-    proto native float GetCurrentMovementAngle();    // -180..180 degrees
-    proto bool         GetCurrentInputAngle(out float pAngle);  // raw input
-    proto native float GetCurrentMovementSpeed();    // 0=idle, 1=walk, 2=run, 3=sprint
+    proto native float GetCurrentMovementAngle();    // -180..180 graus
+    proto bool         GetCurrentInputAngle(out float pAngle);  // entrada bruta
+    proto native float GetCurrentMovementSpeed();    // 0=parado, 1=andando, 2=correndo, 3=sprint
     proto native bool  IsChangingStance();
-    proto native bool  IsOnBack();                   // prone on back
-    proto native bool  IsInRoll();                   // barrel rolling
+    proto native bool  IsOnBack();                   // deitado de costas
+    proto native bool  IsInRoll();                   // rolando
     proto native bool  IsLeavingUncon();
-    proto native void  ForceStance(int pStanceIdx);  // force stance, -1 to release
-    proto native void  ForceStanceUp(int pStanceIdx); // force stand up
+    proto native void  ForceStance(int pStanceIdx);  // forçar postura, -1 para liberar
+    proto native void  ForceStanceUp(int pStanceIdx); // forçar levantar
     proto native void  SetMeleeBlock(bool pBlock);
     proto native void  StartMeleeEvade();
 }
@@ -212,9 +212,9 @@ class HumanCommandFall
     static const int LANDTYPE_MEDIUM = 2;
     static const int LANDTYPE_HEAVY  = 3;
 
-    proto native bool PhysicsLanded();   // true when physically touched ground
+    proto native bool PhysicsLanded();   // true quando tocou fisicamente o chão
     proto native void Land(int pLandType);
-    proto native bool IsLanding();       // true during landing animation
+    proto native bool IsLanding();       // true durante a animação de aterrissagem
 }
 ```
 
@@ -240,11 +240,11 @@ class HumanCommandVehicle
 ```csharp
 class HumanCommandClimb
 {
-    proto native int    GetState();  // returns ClimbStates enum value
+    proto native int    GetState();  // retorna valor do enum ClimbStates
     proto native vector GetGrabPointWS();
     proto native vector GetClimbOverStandPointWS();
 
-    // Static tests -- use before starting a climb
+    // Testes estáticos -- use antes de iniciar uma escalada
     proto native static bool DoClimbTest(Human pHuman, SHumanCommandClimbResult pResult, int pDebugDrawLevel);
     proto native static bool DoPerformClimbTest(Human pHuman, SHumanCommandClimbResult pResult, int pDebugDrawLevel);
 }
@@ -273,72 +273,72 @@ class HumanCommandUnconscious
 
 ---
 
-## Gesture / Emote System
+## Sistema de Gestos / Emotes
 
-DayZ's gesture system lets players perform social animations (wave, point, sit, dance, surrender, suicide, etc.). It is built on three layers: `EmoteConstantes` (IDs), `EmoteBase` (per-emote configuration), and `EmoteManager` (playback orchestration).
+O sistema de gestos do DayZ permite que os jogadores realizem animações sociais (acenar, apontar, sentar, dançar, render-se, suicídio, etc.). Ele é construído em três camadas: `EmoteConstants` (IDs), `EmoteBase` (configuração por emote) e `EmoteManager` (orquestração de reprodução).
 
-### EmoteConstantes
+### EmoteConstants
 
-All emote IDs are defined in `EmoteConstantes` (scripts/3_game/constants.c):
+Todos os IDs de emotes são definidos em `EmoteConstants` (scripts/3_game/constants.c):
 
 | Constante | ID | Notas |
 |----------|----|-------|
-| `ID_EMOTE_GREETING` | 1 | Wave/greeting |
-| `ID_EMOTE_SOS` | 2 | Full-body SOS signal |
-| `ID_EMOTE_HEART` | 3 | Heart gesture |
-| `ID_EMOTE_TAUNT` | 4 | Taunt |
-| `ID_EMOTE_LYINGDOWN` | 5 | Lie down |
-| `ID_EMOTE_TAUNTKISS` | 6 | Blow kiss taunt |
+| `ID_EMOTE_GREETING` | 1 | Acenar/saudação |
+| `ID_EMOTE_SOS` | 2 | Sinal de SOS de corpo inteiro |
+| `ID_EMOTE_HEART` | 3 | Gesto de coração |
+| `ID_EMOTE_TAUNT` | 4 | Provocação |
+| `ID_EMOTE_LYINGDOWN` | 5 | Deitar-se |
+| `ID_EMOTE_TAUNTKISS` | 6 | Provocação com beijo |
 | `ID_EMOTE_FACEPALM` | 7 | Facepalm |
-| `ID_EMOTE_TAUNTELBOW` | 8 | Elbow taunt |
-| `ID_EMOTE_THUMB` | 9 | Thumbs up |
-| `ID_EMOTE_THROAT` | 10 | Throat cut |
-| `ID_EMOTE_SUICIDE` | 11 | Suicide (full-body) |
-| `ID_EMOTE_DANCE` | 12 | Dance |
-| `ID_EMOTE_CAMPFIRE` | 13 | Sit by campfire |
-| `ID_EMOTE_SITA` | 14 | Sit variant A |
-| `ID_EMOTE_SITB` | 15 | Sit variant B |
-| `ID_EMOTE_THUMBDOWN` | 16 | Thumbs down |
+| `ID_EMOTE_TAUNTELBOW` | 8 | Provocação com cotovelo |
+| `ID_EMOTE_THUMB` | 9 | Polegar para cima |
+| `ID_EMOTE_THROAT` | 10 | Cortar a garganta |
+| `ID_EMOTE_SUICIDE` | 11 | Suicídio (corpo inteiro) |
+| `ID_EMOTE_DANCE` | 12 | Dançar |
+| `ID_EMOTE_CAMPFIRE` | 13 | Sentar perto da fogueira |
+| `ID_EMOTE_SITA` | 14 | Sentar variante A |
+| `ID_EMOTE_SITB` | 15 | Sentar variante B |
+| `ID_EMOTE_THUMBDOWN` | 16 | Polegar para baixo |
 | `ID_EMOTE_DABBING` | 32 | Dab |
-| `ID_EMOTE_TIMEOUT` | 35 | Timeout signal |
-| `ID_EMOTE_CLAP` | 39 | Clapping |
-| `ID_EMOTE_POINT` | 40 | Point at something |
-| `ID_EMOTE_SILENT` | 43 | Silence gesture |
-| `ID_EMOTE_SALUTE` | 44 | Military salute |
-| `ID_EMOTE_RPS` | 45 | Rock-Paper-Scissors |
-| `ID_EMOTE_WATCHING` | 46 | Watching gesture |
-| `ID_EMOTE_HOLD` | 47 | Hold position |
-| `ID_EMOTE_LISTENING` | 48 | Listening |
-| `ID_EMOTE_POINTSELF` | 49 | Point at self |
-| `ID_EMOTE_LOOKATME` | 50 | Look at me |
-| `ID_EMOTE_TAUNTTHINK` | 51 | Thinking taunt |
-| `ID_EMOTE_MOVE` | 52 | Move out signal |
-| `ID_EMOTE_DOWN` | 53 | Get down signal |
-| `ID_EMOTE_COME` | 54 | Come here |
-| `ID_EMOTE_NOD` | 58 | Nod yes |
-| `ID_EMOTE_SHAKE` | 59 | Shake no |
-| `ID_EMOTE_SHRUG` | 60 | Shrug |
-| `ID_EMOTE_SURRENDER` | 61 | Surrender |
-| `ID_EMOTE_VOMIT` | 62 | Vomit |
+| `ID_EMOTE_TIMEOUT` | 35 | Sinal de tempo |
+| `ID_EMOTE_CLAP` | 39 | Aplaudir |
+| `ID_EMOTE_POINT` | 40 | Apontar para algo |
+| `ID_EMOTE_SILENT` | 43 | Gesto de silêncio |
+| `ID_EMOTE_SALUTE` | 44 | Saudação militar |
+| `ID_EMOTE_RPS` | 45 | Pedra-Papel-Tesoura |
+| `ID_EMOTE_WATCHING` | 46 | Gesto de observação |
+| `ID_EMOTE_HOLD` | 47 | Manter posição |
+| `ID_EMOTE_LISTENING` | 48 | Escutando |
+| `ID_EMOTE_POINTSELF` | 49 | Apontar para si mesmo |
+| `ID_EMOTE_LOOKATME` | 50 | Olhe para mim |
+| `ID_EMOTE_TAUNTTHINK` | 51 | Provocação pensativa |
+| `ID_EMOTE_MOVE` | 52 | Sinal de avançar |
+| `ID_EMOTE_DOWN` | 53 | Sinal de abaixar |
+| `ID_EMOTE_COME` | 54 | Venha aqui |
+| `ID_EMOTE_NOD` | 58 | Acenar com a cabeça (sim) |
+| `ID_EMOTE_SHAKE` | 59 | Balançar a cabeça (não) |
+| `ID_EMOTE_SHRUG` | 60 | Dar de ombros |
+| `ID_EMOTE_SURRENDER` | 61 | Render-se |
+| `ID_EMOTE_VOMIT` | 62 | Vomitar |
 
-### EmoteBase Class
+### Classe EmoteBase
 
-Each emote is a class extending `EmoteBase` (scripts/4_world/classes/emoteclasses/emotebase.c). It defines stance requirements, animation callback IDs, and optional conditions:
+Cada emote é uma classe que estende `EmoteBase` (scripts/4_world/classes/emoteclasses/emotebase.c). Ela define requisitos de postura, IDs de callback de animação e condições opcionais:
 
 ```csharp
 class EmoteBase
 {
-    protected int    m_ID;                    // EmoteConstants ID
-    protected string m_InputActionName;       // input action name (e.g. "EmoteGreeting")
-    protected int    m_StanceMaskAdditive;    // stances for additive (overlay) playback
-    protected int    m_StanceMaskFullbody;    // stances for full-body playback
-    protected int    m_AdditiveCallbackUID;   // CMD_GESTUREMOD_* constant
-    protected int    m_FullbodyCallbackUID;   // CMD_GESTUREFB_* constant
-    protected bool   m_HideItemInHands;       // hide held item during emote
+    protected int    m_ID;                    // ID de EmoteConstants
+    protected string m_InputActionName;       // nome da ação de entrada (ex.: "EmoteGreeting")
+    protected int    m_StanceMaskAdditive;    // posturas para reprodução aditiva (sobreposição)
+    protected int    m_StanceMaskFullbody;    // posturas para reprodução de corpo inteiro
+    protected int    m_AdditiveCallbackUID;   // constante CMD_GESTUREMOD_*
+    protected int    m_FullbodyCallbackUID;   // constante CMD_GESTUREFB_*
+    protected bool   m_HideItemInHands;       // esconder item nas mãos durante o emote
 
-    bool EmoteCondition(int stancemask);      // override for custom preconditions
+    bool EmoteCondition(int stancemask);      // sobrescreva para pré-condições customizadas
     bool CanBeCanceledNormally(notnull EmoteCB callback);
-    bool EmoteFBStanceCheck(int stancemask);  // validates full-body stance
+    bool EmoteFBStanceCheck(int stancemask);  // valida postura de corpo inteiro
     bool DetermineOverride(out int callback_ID, out int stancemask, out bool is_fullbody);
     void OnBeforeStandardCallbackCreated(int callback_ID, int stancemask, bool is_fullbody);
     void OnCallbackEnd();
@@ -346,7 +346,7 @@ class EmoteBase
 }
 ```
 
-Exemplo -- the greeting emote supports additive playback in erect/crouch and full-body in prone:
+Exemplo -- o emote de saudação suporta reprodução aditiva em pé/agachado e corpo inteiro deitado:
 
 ```csharp
 class EmoteGreeting extends EmoteBase
@@ -364,7 +364,7 @@ class EmoteGreeting extends EmoteBase
 }
 ```
 
-Some emotes require empty hands (dance, SOS, salute, clap) via `EmoteCondition`:
+Alguns emotes requerem mãos vazias (dança, SOS, saudação, aplauso) via `EmoteCondition`:
 
 ```csharp
 class EmoteDance extends EmoteBase
@@ -373,7 +373,7 @@ class EmoteDance extends EmoteBase
     {
         m_ID = EmoteConstants.ID_EMOTE_DANCE;
         m_InputActionName = "EmoteDance";
-        m_StanceMaskAdditive = 0;                    // no additive variant
+        m_StanceMaskAdditive = 0;                    // sem variante aditiva
         m_StanceMaskFullbody = DayZPlayerConstants.STANCEMASK_ERECT;
         m_FullbodyCallbackUID = DayZPlayerConstants.CMD_GESTUREFB_DANCE;
         m_HideItemInHands = true;
@@ -388,64 +388,64 @@ class EmoteDance extends EmoteBase
 }
 ```
 
-### Additive vs Full-Body Emotes
+### Emotes Aditivos vs Corpo Inteiro
 
-Emotes have two playback modes, selected automatically by `EmoteManager.DetermineEmoteData()`:
+Emotes possuem dois modos de reprodução, selecionados automaticamente por `EmoteManager.DetermineEmoteData()`:
 
-- **Additive (modifier):** Overlaid on top of locomotion. Player can still move. Uses `AddCommandModificador_Ação()`. Triggered when the player is in a stance matching `m_StanceMaskAdditive`.
-- **Full-body:** Takes over the entire animation state. Player cannot move. Uses `StartCommand_Ação()`. Triggered when the player is in a stance matching `m_StanceMaskFullbody`.
+- **Aditivo (modificador):** Sobreposto à locomoção. O jogador ainda pode se mover. Usa `AddCommandModifier_Action()`. Ativado quando o jogador está em uma postura que corresponde a `m_StanceMaskAdditive`.
+- **Corpo inteiro:** Assume todo o estado de animação. O jogador não pode se mover. Usa `StartCommand_Action()`. Ativado quando o jogador está em uma postura que corresponde a `m_StanceMaskFullbody`.
 
-The `CMD_GESTUREMOD_*` constants map to additive versions; `CMD_GESTUREFB_*` constants map to full-body versions.
+As constantes `CMD_GESTUREMOD_*` mapeiam para versões aditivas; constantes `CMD_GESTUREFB_*` mapeiam para versões de corpo inteiro.
 
 ### EmoteManager
 
-`EmoteManager` (scripts/4_world/classes/emotemanager.c) orchestrates emote playback. It is created per-player and ticked each frame from the player's `CommandHandler`:
+`EmoteManager` (scripts/4_world/classes/emotemanager.c) orquestra a reprodução de emotes. É criado por jogador e atualizado a cada frame pelo `CommandHandler` do jogador:
 
-Key responsibilities:
-- Registers all emotes via `EmoteConstructor.ConstructEmotes()`
-- Detects emote input via `DetermineGestureIndex()` (checks keybinds)
-- Selects additive vs full-body based on current stance
-- Creates the `EmoteCB` callback and manages its lifecycle
-- Handles interrupt conditions (movement input, water depth, weapon raise)
-- Manages surrender state and suicide emote logic
+Responsabilidades principais:
+- Registra todos os emotes via `EmoteConstructor.ConstructEmotes()`
+- Detecta entrada de emote via `DetermineGestureIndex()` (verifica keybinds)
+- Seleciona aditivo vs corpo inteiro baseado na postura atual
+- Cria o callback `EmoteCB` e gerencia seu ciclo de vida
+- Lida com condições de interrupção (entrada de movimento, profundidade da água, levantar arma)
+- Gerencia o estado de rendição e a lógica do emote de suicídio
 
 ### EmoteLauncher
 
-`EmoteLauncher` is a request object used to queue emotes from script (e.g., from the gesture menu or forced server-side):
+`EmoteLauncher` é um objeto de requisição usado para enfileirar emotes via script (por exemplo, do menu de gestos ou forçado pelo servidor):
 
 ```csharp
 class EmoteLauncher
 {
-    static const int FORCE_NONE      = 0;  // normal playback
-    static const int FORCE_DIFFERENT = 1;  // force if different from current
-    static const int FORCE_ALL       = 2;  // force always
+    static const int FORCE_NONE      = 0;  // reprodução normal
+    static const int FORCE_DIFFERENT = 1;  // forçar se diferente do atual
+    static const int FORCE_ALL       = 2;  // forçar sempre
 
     void EmoteLauncher(int emoteID, bool interrupts_same);
     void SetForced(int mode);
-    void SetStartGuaranteed(bool guaranteed);  // remains queued until played
+    void SetStartGuaranteed(bool guaranteed);  // permanece na fila até ser reproduzido
 }
 ```
 
-### Playing Emotes from Script
+### Reproduzindo Emotes via Script
 
-To play an emote programmatically, use the `EmoteManager`:
+Para reproduzir um emote programaticamente, use o `EmoteManager`:
 
 ```csharp
-// Get the player's emote manager
+// Obter o gerenciador de emotes do jogador
 EmoteManager emoteManager = player.GetEmoteManager();
 
-// Create a launcher for the greeting emote
+// Criar um launcher para o emote de saudação
 EmoteLauncher launcher = new EmoteLauncher(EmoteConstants.ID_EMOTE_GREETING, true);
 launcher.SetForced(EmoteLauncher.FORCE_ALL);
 
-// Queue it (the manager processes it in its Update)
+// Enfileirar (o gerenciador processa no seu Update)
 emoteManager.CreateEmoteCBFromMenu(EmoteConstants.ID_EMOTE_GREETING);
 ```
 
-Alternatively, for direct action-level control (used in camera tools and debug):
+Alternativamente, para controle direto no nível de ação (usado em ferramentas de câmera e debug):
 
 ```csharp
-// Full-body gesture directly via StartCommand_Action
+// Gesto de corpo inteiro diretamente via StartCommand_Action
 EmoteCB cb = EmoteCB.Cast(
     player.StartCommand_Action(
         DayZPlayerConstants.CMD_GESTUREFB_DANCE,
@@ -455,9 +455,9 @@ EmoteCB cb = EmoteCB.Cast(
 );
 ```
 
-### EmoteConstructor and Registration
+### EmoteConstructor e Registro
 
-`EmoteConstructor` (scripts/4_world/classes/emoteconstructor.c) registers all vanilla emotes. Modders can override `RegisterEmotes()` via `modded class` to add custom entries:
+`EmoteConstructor` (scripts/4_world/classes/emoteconstructor.c) registra todos os emotes vanilla. Modders podem sobrescrever `RegisterEmotes()` via `modded class` para adicionar entradas customizadas:
 
 ```csharp
 modded class EmoteConstructor
@@ -472,41 +472,41 @@ modded class EmoteConstructor
 
 ---
 
-## Object Animations (model.cfg)
+## Animações de Objetos (model.cfg)
 
-Objects like doors, barrels, tents, and deployables use a separate animation system defined in `model.cfg`. Script drives these animations through `SetAnimationPhase()`.
+Objetos como portas, barris, tendas e construções implantáveis usam um sistema de animação separado definido no `model.cfg`. O script controla essas animações através de `SetAnimationPhase()`.
 
-### Animation API on Entity
+### API de Animação em Entity
 
-These methods are defined on `Entity` (scripts/3_game/entities/entity.c) and available on every entity in the game:
+Esses métodos são definidos em `Entity` (scripts/3_game/entities/entity.c) e estão disponíveis em toda entidade do jogo:
 
 ```csharp
 class Entity extends ObjectTyped
 {
-    // Get current phase (0.0 to 1.0) of a named animation source
+    // Obter fase atual (0.0 a 1.0) de uma fonte de animação nomeada
     proto native float GetAnimationPhase(string animation);
 
-    // Set the target phase -- engine interpolates toward it
+    // Definir a fase alvo -- o motor interpola até ela
     proto native void  SetAnimationPhase(string animation, float phase);
 
-    // Set phase immediately, no interpolation
+    // Definir fase imediatamente, sem interpolação
     void SetAnimationPhaseNow(string animation, float phase);
 
-    // Reset internal animation state
+    // Resetar estado interno de animação
     proto native void  ResetAnimationPhase(string animation, float phase);
 
-    // Enumerate user-defined animation sources
+    // Enumerar fontes de animação definidas pelo usuário
     proto int    GetNumUserAnimationSourceNames();
     proto string GetUserAnimationSourceName(int index);
 }
 ```
 
-### model.cfg AnimationSources
+### AnimationSources no model.cfg
 
-In `model.cfg`, each animated model declares `AnimationSources` (the drivers) and `Animations` (what they move). The `source` field in an animation entry links it to a named `AnimationSource`.
+No `model.cfg`, cada modelo animado declara `AnimationSources` (os controladores) e `Animations` (o que eles movem). O campo `source` em uma entrada de animação a vincula a uma `AnimationSource` nomeada.
 
 ```cpp
-// model.cfg example for a barrel with a lid
+// Exemplo de model.cfg para um barril com tampa
 class CfgModels
 {
     class MyBarrel
@@ -515,9 +515,9 @@ class CfgModels
         {
             class Lid
             {
-                source = "user";     // driven by script
-                animPeriod = 0.5;    // seconds for 0->1 transition
-                initPhase = 0;       // starting phase
+                source = "user";     // controlado por script
+                animPeriod = 0.5;    // segundos para transição 0->1
+                initPhase = 0;       // fase inicial
             };
         };
 
@@ -526,71 +526,71 @@ class CfgModels
             class Lid_rot
             {
                 type = "rotation";
-                source = "Lid";           // links to AnimationSource above
-                selection = "lid";        // named selection in the model
-                axis = "lid_axis";        // memory point axis
+                source = "Lid";           // vincula à AnimationSource acima
+                selection = "lid";        // seleção nomeada no modelo
+                axis = "lid_axis";        // eixo do ponto de memória
                 minValue = 0;
                 maxValue = 1;
-                angle0 = 0;              // radians at phase 0
-                angle1 = 1.5708;         // radians at phase 1 (90 degrees)
+                angle0 = 0;              // radianos na fase 0
+                angle1 = 1.5708;         // radianos na fase 1 (90 graus)
             };
         };
     };
 };
 ```
 
-### Source Types
+### Tipos de Fonte
 
-| Source Type | Descrição |
+| Tipo de Fonte | Descrição |
 |-------------|-------------|
-| `user` | Driven entirely by script via `SetAnimationPhase()` |
-| `hit` | Driven by damage system (destruction animations) |
-| `door` | Driven by door opening system |
-| `reload` | Weapon reload cycle |
+| `user` | Controlado inteiramente por script via `SetAnimationPhase()` |
+| `hit` | Controlado pelo sistema de dano (animações de destruição) |
+| `door` | Controlado pelo sistema de abertura de portas |
+| `reload` | Ciclo de recarga de arma |
 
-For modding, `user` is the most common. You control it from Enforce Script.
+Para modding, `user` é o mais comum. Você o controla pelo Enforce Script.
 
-### Animation Types in model.cfg
+### Tipos de Animação no model.cfg
 
-| Type | Descrição |
+| Tipo | Descrição |
 |------|-------------|
-| `rotation` | Rotates a selection around an axis |
-| `rotationX/Y/Z` | Rotates around a specific world axis |
-| `translation` | Translates a selection along an axis |
-| `translationX/Y/Z` | Translates along a specific world axis |
-| `hide` | Hides/shows a selection (threshold-based) |
+| `rotation` | Rotaciona uma seleção ao redor de um eixo |
+| `rotationX/Y/Z` | Rotaciona ao redor de um eixo mundial específico |
+| `translation` | Translada uma seleção ao longo de um eixo |
+| `translationX/Y/Z` | Translada ao longo de um eixo mundial específico |
+| `hide` | Esconde/mostra uma seleção (baseado em limiar) |
 
-### Script-Driven Object Animation Exemplo
+### Exemplo de Animação de Objeto Controlada por Script
 
-Vanilla barrel lid (scripts/4_world/entities/itembase/barrel_colorbase.c):
+Tampa de barril vanilla (scripts/4_world/entities/itembase/barrel_colorbase.c):
 
 ```csharp
-// Open the barrel -- Lid selection rotates, Lid2 hides
-SetAnimationPhase("Lid", 1);    // rotates lid open
-SetAnimationPhase("Lid2", 0);   // shows open-state geometry
+// Abrir o barril -- seleção Lid rotaciona, Lid2 esconde
+SetAnimationPhase("Lid", 1);    // rotaciona a tampa para aberta
+SetAnimationPhase("Lid2", 0);   // mostra a geometria do estado aberto
 
-// Close the barrel
-SetAnimationPhase("Lid", 0);    // rotates lid closed
-SetAnimationPhase("Lid2", 1);   // hides open-state geometry
+// Fechar o barril
+SetAnimationPhase("Lid", 0);    // rotaciona a tampa para fechada
+SetAnimationPhase("Lid2", 1);   // esconde a geometria do estado aberto
 ```
 
-Base building parts (scripts/4_world/entities/itembase/basebuildingbase.c):
+Partes de construção de base (scripts/4_world/entities/itembase/basebuildingbase.c):
 
 ```csharp
-// Show a built part
-SetAnimationPhase(ANIMATION_DEPLOYED, 0);   // phase 0 = visible
+// Mostrar uma parte construída
+SetAnimationPhase(ANIMATION_DEPLOYED, 0);   // fase 0 = visível
 
-// Hide it
-SetAnimationPhase(ANIMATION_DEPLOYED, 1);   // phase 1 = hidden
+// Escondê-la
+SetAnimationPhase(ANIMATION_DEPLOYED, 1);   // fase 1 = oculto
 ```
 
 ---
 
-## Ação Callbacks
+## Callbacks de Ação
 
-### HumanCommandAçãoCallback
+### HumanCommandActionCallback
 
-All player actions (eating, bandaging, crafting, emotes) use animation callbacks. `HumanCommandAçãoCallback` (scripts/3_game/human.c) is the base class:
+Todas as ações do jogador (comer, bandar, craftar, emotes) usam callbacks de animação. `HumanCommandActionCallback` (scripts/3_game/human.c) é a classe base:
 
 ```csharp
 class HumanCommandActionCallback
@@ -604,50 +604,50 @@ class HumanCommandActionCallback
     proto native bool  DefaultCancelCondition();
     proto native void  RegisterAnimationEvent(string pAnimationEventStr, int pId);
     proto native void  EnableStateChangeCallback();
-    proto native int   GetState();  // returns STATE_* constant
+    proto native int   GetState();  // retorna constante STATE_*
 
-    // Callback overrides
+    // Sobrescritas de callback
     void OnAnimationEvent(int pEventID);
     void OnFinish(bool pCanceled);
     void OnStateChange(int pOldState, int pCurrentState);
 
-    // Type identification
+    // Identificação de tipo
     bool IsUserActionCallback();
     bool IsGestureCallback();
     bool IsSymptomCallback();
 }
 ```
 
-### Ação States
+### Estados de Ação
 
-Açãos go through defined states accessible via `GetState()`:
-
-| Constante | Valor | Descrição |
-|----------|-------|-------------|
-| `STATE_NONE` | 0 | Not running |
-| `STATE_LOOP_IN` | 1 | Entering loop |
-| `STATE_LOOP_LOOP` | 2 | In main loop |
-| `STATE_LOOP_END` | 3 | Exiting loop (primary end) |
-| `STATE_LOOP_END2` | 4 | Exiting loop (secondary end) |
-| `STATE_LOOP_LOOP2` | 5 | Secondary loop |
-| `STATE_LOOP_ACTION` | 6 | Ação within loop |
-| `STATE_NORMAL` | 7 | One-time (non-looping) action |
-
-### Internal Ação Commands
-
-Use `InternalCommand()` to control action flow:
+Ações passam por estados definidos acessíveis via `GetState()`:
 
 | Constante | Valor | Descrição |
 |----------|-------|-------------|
-| `CMD_ACTIONINT_INTERRUPT` | -2 | Hard cancel, no exit animation |
-| `CMD_ACTIONINT_FINISH` | -1 | Secondary ending (e.g., ran out of water) |
-| `CMD_ACTIONINT_END` | 0 | Normal end (all actions support this) |
-| `CMD_ACTIONINT_ACTION` | 1 | Trigger secondary action (e.g., thumb up/down toggle) |
-| `CMD_ACTIONINT_ACTIONLOOP` | 2 | Loop secondary action |
+| `STATE_NONE` | 0 | Não executando |
+| `STATE_LOOP_IN` | 1 | Entrando no loop |
+| `STATE_LOOP_LOOP` | 2 | No loop principal |
+| `STATE_LOOP_END` | 3 | Saindo do loop (fim primário) |
+| `STATE_LOOP_END2` | 4 | Saindo do loop (fim secundário) |
+| `STATE_LOOP_LOOP2` | 5 | Loop secundário |
+| `STATE_LOOP_ACTION` | 6 | Ação dentro do loop |
+| `STATE_NORMAL` | 7 | Ação única (sem loop) |
 
-### Registering Animation Events
+### Comandos Internos de Ação
 
-Animation events are named triggers embedded in animation files. Register them to receive callbacks:
+Use `InternalCommand()` para controlar o fluxo da ação:
+
+| Constante | Valor | Descrição |
+|----------|-------|-------------|
+| `CMD_ACTIONINT_INTERRUPT` | -2 | Cancelamento forçado, sem animação de saída |
+| `CMD_ACTIONINT_FINISH` | -1 | Finalização secundária (ex.: ficou sem água) |
+| `CMD_ACTIONINT_END` | 0 | Fim normal (todas as ações suportam) |
+| `CMD_ACTIONINT_ACTION` | 1 | Disparar ação secundária (ex.: alternância de polegar para cima/baixo) |
+| `CMD_ACTIONINT_ACTIONLOOP` | 2 | Loop de ação secundária |
+
+### Registrando Eventos de Animação
+
+Eventos de animação são gatilhos nomeados embutidos em arquivos de animação. Registre-os para receber callbacks:
 
 ```csharp
 class EmoteCB extends HumanCommandActionCallback
@@ -675,67 +675,67 @@ class EmoteCB extends HumanCommandActionCallback
 }
 ```
 
-Custom animation event constants for emotes:
+Constantes de eventos de animação customizados para emotes:
 
 | Constante | Valor | Descrição |
 |----------|-------|-------------|
-| `EMOTE_SUICIDE_DEATH` | 1 | Player dies (server-side) |
-| `EMOTE_SUICIDE_BLEED` | 2 | Bleeding effect starts |
-| `EMOTE_SUICIDE_SIMULATION_END` | 3 | Simulation ends, physics takeover |
-| `UA_ANIM_EVENT` | 11 | Generic user action animation event |
+| `EMOTE_SUICIDE_DEATH` | 1 | Jogador morre (lado servidor) |
+| `EMOTE_SUICIDE_BLEED` | 2 | Efeito de sangramento começa |
+| `EMOTE_SUICIDE_SIMULATION_END` | 3 | Simulação termina, física assume |
+| `UA_ANIM_EVENT` | 11 | Evento genérico de animação de ação do usuário |
 
-### Starting Açãos with Animations
+### Iniciando Ações com Animações
 
-Full-body actions use `StartCommand_Ação()`, additive actions use `AddCommandModificador_Ação()`:
+Ações de corpo inteiro usam `StartCommand_Action()`, ações aditivas usam `AddCommandModifier_Action()`:
 
 ```csharp
-// Full-body action (takes over entire character animation)
+// Ação de corpo inteiro (assume toda a animação do personagem)
 HumanCommandActionCallback callback = player.StartCommand_Action(
-    DayZPlayerConstants.CMD_ACTIONFB_BANDAGE,   // animation ID
-    ActionBandageCB,                             // callback typename
-    DayZPlayerConstants.STANCEMASK_CROUCH        // valid stances
+    DayZPlayerConstants.CMD_ACTIONFB_BANDAGE,   // ID da animação
+    ActionBandageCB,                             // typename do callback
+    DayZPlayerConstants.STANCEMASK_CROUCH        // posturas válidas
 );
 
-// Additive action (overlaid on locomotion)
+// Ação aditiva (sobreposta à locomoção)
 HumanCommandActionCallback callback = player.AddCommandModifier_Action(
-    DayZPlayerConstants.CMD_ACTIONMOD_DRINK,     // animation ID
-    ActionDrinkCB                                // callback typename
+    DayZPlayerConstants.CMD_ACTIONMOD_DRINK,     // ID da animação
+    ActionDrinkCB                                // typename do callback
 );
 ```
 
 ---
 
-## HumanCommandScript -- Fully Custom Animations
+## HumanCommandScript -- Animações Totalmente Customizadas
 
-`HumanCommandScript` (scripts/3_game/human.c) provides complete script-level control over character animation. It is the most powerful but also the most complex approach:
+`HumanCommandScript` (scripts/3_game/human.c) fornece controle completo em nível de script sobre a animação do personagem. É a abordagem mais poderosa, mas também a mais complexa:
 
 ```csharp
 class HumanCommandScript
 {
-    // Lifecycle
+    // Ciclo de vida
     void OnActivate();
     void OnDeactivate();
     proto native void SetFlagFinished(bool pFinished);
 
-    // Heading control
+    // Controle de direção
     proto native void SetHeading(float yawAngle, float filterDt, float maxYawSpeed);
 
-    // Override for state reporting
-    int GetCurrentStance();    // default: STANCEIDX_ERECT
-    int GetCurrentMovement();  // default: MOVEMENT_IDLE
+    // Sobrescritas para relatório de estado
+    int GetCurrentStance();    // padrão: STANCEIDX_ERECT
+    int GetCurrentMovement();  // padrão: MOVEMENT_IDLE
 
-    // Animation update phases
-    void PreAnimUpdate(float pDt);        // set animation variables here
-    void PrePhysUpdate(float pDt);        // after animation, before physics
-    bool PostPhysUpdate(float pDt);       // after physics, return false to end
+    // Fases de atualização de animação
+    void PreAnimUpdate(float pDt);        // defina variáveis de animação aqui
+    void PrePhysUpdate(float pDt);        // após animação, antes da física
+    bool PostPhysUpdate(float pDt);       // após física, retorne false para encerrar
 
-    // PreAnimUpdate helpers
+    // Auxiliares de PreAnimUpdate
     proto native void PreAnim_CallCommand(int pCommand, int pParamInt, float pParamFloat);
     proto native void PreAnim_SetFloat(int pVar, float pFlt);
     proto native void PreAnim_SetInt(int pVar, int pInt);
     proto native void PreAnim_SetBool(int pVar, bool pBool);
 
-    // PrePhysUpdate helpers
+    // Auxiliares de PrePhysUpdate
     proto native bool PrePhys_IsEvent(int pEvent);
     proto native bool PrePhys_IsTag(int pTag);
     proto native bool PrePhys_GetTranslation(out vector pOutTransl);
@@ -743,7 +743,7 @@ class HumanCommandScript
     proto native void PrePhys_SetTranslation(vector pInTransl);
     proto native void PrePhys_SetRotation(float pInRot[4]);
 
-    // PostPhysUpdate helpers
+    // Auxiliares de PostPhysUpdate
     proto native void PostPhys_GetPosition(out vector pOutTransl);
     proto native void PostPhys_GetRotation(out float pOutRot[4]);
     proto native void PostPhys_SetPosition(vector pInTransl);
@@ -752,20 +752,20 @@ class HumanCommandScript
 }
 ```
 
-Start a scripted command:
+Iniciar um comando scriptado:
 
 ```csharp
-// From typename (engine creates the instance)
+// A partir do typename (o motor cria a instância)
 HumanCommandScript cmd = player.StartCommand_ScriptInst(MyCustomCommand);
 
-// From instance (you create it)
+// A partir de uma instância (você a cria)
 MyCustomCommand cmd = new MyCustomCommand(player);
 player.StartCommand_Script(cmd);
 ```
 
 ### HumanAnimInterface
 
-To interact with animation graph variables from `HumanCommandScript`, use `HumanAnimInterface`:
+Para interagir com variáveis do grafo de animação a partir de `HumanCommandScript`, use `HumanAnimInterface`:
 
 ```csharp
 class HumanAnimInterface
@@ -779,13 +779,13 @@ class HumanAnimInterface
 }
 ```
 
-Access via `player.GetAnimInterface()`.
+Acesso via `player.GetAnimInterface()`.
 
 ---
 
-## Command Modificador: Additives
+## Modificador de Comando: Aditivos
 
-`HumanCommandAdditives` provides ambient animation overlays that run continuously alongside the main command:
+`HumanCommandAdditives` fornece sobreposições de animação ambiente que executam continuamente junto com o comando principal:
 
 ```csharp
 class HumanCommandAdditives
@@ -799,42 +799,42 @@ class HumanCommandAdditives
 }
 ```
 
-Access via `player.GetCommandModificador_Additives()`. These are always active and blend on top of whatever command is running.
+Acesso via `player.GetCommandModifier_Additives()`. Estes estão sempre ativos e se misturam por cima de qualquer comando em execução.
 
 ---
 
-## DayZPlayerConstantes Referência Rápida
+## Referência Rápida de DayZPlayerConstants
 
-### Common Ação Animation IDs
+### IDs de Animação de Ação Comuns
 
-**Additive (CMD_ACTIONMOD_*)** -- played while standing/crouching:
-
-| Constante | ID | Descrição |
-|----------|----|-------------|
-| `CMD_ACTIONMOD_DRINK` | 0 | Drinking |
-| `CMD_ACTIONMOD_EAT` | 1 | Eating |
-| `CMD_ACTIONMOD_CRAFTING` | 22 | Crafting |
-| `CMD_ACTIONMOD_PICKUP_HANDS` | 500 | Pick up to hands |
-| `CMD_ACTIONMOD_ITEM_ON` | 509 | Turn item on |
-| `CMD_ACTIONMOD_ITEM_OFF` | 510 | Turn item off |
-| `CMD_ACTIONMOD_STARTENGINE` | 300 | Vehicle start engine |
-| `CMD_ACTIONMOD_SHIFTGEAR` | 405 | Vehicle shift gear |
-
-**Full-body (CMD_ACTIONFB_*)** -- played in prone or special stances:
+**Aditivos (CMD_ACTIONMOD_*)** -- reproduzidos em pé/agachado:
 
 | Constante | ID | Descrição |
 |----------|----|-------------|
-| `CMD_ACTIONFB_DRINK` | 0 | Drinking (prone) |
-| `CMD_ACTIONFB_BANDAGE` | 58 | Bandaging |
-| `CMD_ACTIONFB_CRAFTING` | 59 | Crafting (crouching) |
-| `CMD_ACTIONFB_DIG` | 88 | Digging |
-| `CMD_ACTIONFB_ANIMALSKINNING` | 66 | Skinning animal |
-| `CMD_ACTIONFB_STARTFIRE` | 65 | Starting fire |
-| `CMD_ACTIONFB_PICKUP_HEAVY` | 519 | Pick up heavy item |
+| `CMD_ACTIONMOD_DRINK` | 0 | Beber |
+| `CMD_ACTIONMOD_EAT` | 1 | Comer |
+| `CMD_ACTIONMOD_CRAFTING` | 22 | Craftar |
+| `CMD_ACTIONMOD_PICKUP_HANDS` | 500 | Pegar com as mãos |
+| `CMD_ACTIONMOD_ITEM_ON` | 509 | Ligar item |
+| `CMD_ACTIONMOD_ITEM_OFF` | 510 | Desligar item |
+| `CMD_ACTIONMOD_STARTENGINE` | 300 | Ligar motor do veículo |
+| `CMD_ACTIONMOD_SHIFTGEAR` | 405 | Trocar marcha do veículo |
 
-### Gesture Command IDs
+**Corpo inteiro (CMD_ACTIONFB_*)** -- reproduzidos deitado ou em posturas especiais:
 
-**Additive gestures (CMD_GESTUREMOD_*)** -- used in erect/crouch:
+| Constante | ID | Descrição |
+|----------|----|-------------|
+| `CMD_ACTIONFB_DRINK` | 0 | Beber (deitado) |
+| `CMD_ACTIONFB_BANDAGE` | 58 | Bandar |
+| `CMD_ACTIONFB_CRAFTING` | 59 | Craftar (agachado) |
+| `CMD_ACTIONFB_DIG` | 88 | Cavar |
+| `CMD_ACTIONFB_ANIMALSKINNING` | 66 | Esfolar animal |
+| `CMD_ACTIONFB_STARTFIRE` | 65 | Acender fogueira |
+| `CMD_ACTIONFB_PICKUP_HEAVY` | 519 | Pegar item pesado |
+
+### IDs de Comando de Gesto
+
+**Gestos aditivos (CMD_GESTUREMOD_*)** -- usados em pé/agachado:
 
 | Constante | ID |
 |----------|----|
@@ -847,64 +847,64 @@ Access via `player.GetCommandModificador_Additives()`. These are always active a
 | `CMD_GESTUREMOD_CLAP` | 1101 |
 | `CMD_GESTUREMOD_SURRENDER` | 1112 |
 
-**Full-body gestures (CMD_GESTUREFB_*)** -- used in prone or exclusive stances:
+**Gestos de corpo inteiro (CMD_GESTUREFB_*)** -- usados deitado ou em posturas exclusivas:
 
-| Constante | ID | Stance |
+| Constante | ID | Postura |
 |----------|----|--------|
-| `CMD_GESTUREFB_SOS` | 1053 | erect |
-| `CMD_GESTUREFB_SALUTE` | 1050 | erect |
-| `CMD_GESTUREFB_CAMPFIRE` | 1051 | crouch |
-| `CMD_GESTUREFB_SITA` | 1054 | crouch |
-| `CMD_GESTUREFB_SITB` | 1055 | crouch |
-| `CMD_GESTUREFB_LYINGDOWN` | 1052 | crouch |
-| `CMD_GESTUREFB_DANCE` | 1109 | erect |
-| `CMD_GESTUREFB_SURRENDERIN` | 1113 | crouch/prone |
+| `CMD_GESTUREFB_SOS` | 1053 | em pé |
+| `CMD_GESTUREFB_SALUTE` | 1050 | em pé |
+| `CMD_GESTUREFB_CAMPFIRE` | 1051 | agachado |
+| `CMD_GESTUREFB_SITA` | 1054 | agachado |
+| `CMD_GESTUREFB_SITB` | 1055 | agachado |
+| `CMD_GESTUREFB_LYINGDOWN` | 1052 | agachado |
+| `CMD_GESTUREFB_DANCE` | 1109 | em pé |
+| `CMD_GESTUREFB_SURRENDERIN` | 1113 | agachado/deitado |
 
 ---
 
-## Practical Exemplos
+## Exemplos Práticos
 
-### Checking Player Stance
+### Verificando Postura do Jogador
 
 ```csharp
-// Method 1: Via movement state
+// Método 1: Via estado de movimento
 HumanMovementState hms = new HumanMovementState();
 player.GetMovementState(hms);
 
 if (hms.m_iStanceIdx == DayZPlayerConstants.STANCEIDX_CROUCH)
-    Print("Player is crouching");
+    Print("Jogador está agachado");
 
 if (hms.IsRaised())
-    Print("Weapon is raised");
+    Print("Arma está levantada");
 
-// Method 2: Via stance mask (preferred for multi-stance checks)
+// Método 2: Via máscara de postura (preferido para verificações multi-postura)
 if (player.IsPlayerInStance(DayZPlayerConstants.STANCEMASK_PRONE | DayZPlayerConstants.STANCEMASK_RAISEDPRONE))
-    Print("Player is in some prone stance");
+    Print("Jogador está em alguma postura deitada");
 
-// Method 3: Check current command
+// Método 3: Verificar comando atual
 int cmdID = player.GetCurrentCommandID();
 if (cmdID == DayZPlayerConstants.COMMANDID_SWIM)
-    Print("Player is swimming");
+    Print("Jogador está nadando");
 ```
 
-### Forcing a Stance Change
+### Forçando Mudança de Postura
 
 ```csharp
 HumanCommandMove cmdMove = player.GetCommand_Move();
 if (cmdMove)
 {
-    // Force player to stand up
+    // Forçar jogador a ficar em pé
     cmdMove.ForceStance(DayZPlayerConstants.STANCEIDX_ERECT);
 
-    // Release the force (let player control stance again)
+    // Liberar a força (deixar jogador controlar a postura novamente)
     // cmdMove.ForceStance(-1);
 }
 ```
 
-### Animating a Custom Object (Door / Lever)
+### Animando um Objeto Customizado (Porta / Alavanca)
 
 ```csharp
-// In your custom item class
+// Na sua classe de item customizado
 class MyLever extends ItemBase
 {
     protected bool m_IsActivated;
@@ -915,12 +915,12 @@ class MyLever extends ItemBase
 
         if (m_IsActivated)
         {
-            // Animate lever to "on" position (phase 1)
+            // Animar alavanca para posição "ligado" (fase 1)
             SetAnimationPhase("lever_source", 1);
         }
         else
         {
-            // Animate lever to "off" position (phase 0)
+            // Animar alavanca para posição "desligado" (fase 0)
             SetAnimationPhase("lever_source", 0);
         }
     }
@@ -932,7 +932,7 @@ class MyLever extends ItemBase
 }
 ```
 
-The corresponding `model.cfg` would define:
+O `model.cfg` correspondente definiria:
 
 ```cpp
 class AnimationSources
@@ -956,34 +956,34 @@ class Animations
         minValue = 0;
         maxValue = 1;
         angle0 = 0;
-        angle1 = -1.5708;   // -90 degrees in radians
+        angle1 = -1.5708;   // -90 graus em radianos
     };
 };
 ```
 
-### Detecting Active Animation Command
+### Detectando Comando de Animação Ativo
 
 ```csharp
-// Check what the player is currently doing
+// Verificar o que o jogador está fazendo atualmente
 if (player.GetCommand_Vehicle())
 {
     HumanCommandVehicle vehCmd = player.GetCommand_Vehicle();
-    Print("In vehicle seat: " + vehCmd.GetVehicleSeat());
+    Print("No assento do veículo: " + vehCmd.GetVehicleSeat());
 }
 else if (player.GetCommand_Swim())
 {
-    Print("Player is swimming");
+    Print("Jogador está nadando");
 }
 else if (player.GetCommand_Fall())
 {
     HumanCommandFall fallCmd = player.GetCommand_Fall();
     if (fallCmd.PhysicsLanded())
-        Print("Just landed");
+        Print("Acabou de aterrissar");
 }
 else if (player.GetCommand_Action())
 {
     HumanCommandActionCallback actionCB = player.GetCommand_Action();
-    Print("Action state: " + actionCB.GetStateString());
+    Print("Estado da ação: " + actionCB.GetStateString());
 }
 ```
 
@@ -991,77 +991,77 @@ else if (player.GetCommand_Action())
 
 ## Boas Práticas
 
-1. **Always null-check command getters.** `GetCommand_Move()` returns `null` when the player is not in the move command. Every command getter can return null.
+1. **Sempre verifique null nos getters de comando.** `GetCommand_Move()` retorna `null` quando o jogador não está no comando de movimento. Cada getter de comando pode retornar null.
 
-2. **Use stance masks, not stance indices, for multi-stance checks.** `IsPlayerInStance()` with bitmask flags is cleaner than comparing `m_iStanceIdx` against multiple values.
+2. **Use máscaras de postura, não índices de postura, para verificações multi-postura.** `IsPlayerInStance()` com flags de bitmask é mais limpo do que comparar `m_iStanceIdx` contra múltiplos valores.
 
-3. **Prefer `SetAnimationPhase()` over `SetAnimationPhaseNow()`.** The interpolated version looks smoother. Use `SetAnimationPhaseNow()` only when you need instant state changes (loading from persistence, initialization).
+3. **Prefira `SetAnimationPhase()` ao invés de `SetAnimationPhaseNow()`.** A versão interpolada fica mais suave. Use `SetAnimationPhaseNow()` apenas quando precisar de mudanças de estado instantâneas (carregando da persistência, inicialização).
 
-4. **Keep animation phase values between 0.0 and 1.0.** The engine interpolates between `minValor` and `maxValor` defined in `model.cfg`. The phase is always normalized.
+4. **Mantenha os valores de fase de animação entre 0.0 e 1.0.** O motor interpola entre `minValue` e `maxValue` definidos no `model.cfg`. A fase é sempre normalizada.
 
-5. **Do not call `StartCommand_*()` from arbitrary code.** Commands should be started from `CommandHandler` or in response to validated conditions. Starting commands at wrong times can cause animation state corruption.
+5. **Não chame `StartCommand_*()` de código arbitrário.** Comandos devem ser iniciados a partir do `CommandHandler` ou em resposta a condições validadas. Iniciar comandos em momentos errados pode causar corrupção do estado de animação.
 
-6. **For emotes, go through EmoteManager.** Direct `StartCommand_Ação()` with gesture IDs works in debug tools but bypasses the sync, interrupt, and state management logic that `EmoteManager` provides.
+6. **Para emotes, use o EmoteManager.** `StartCommand_Action()` direto com IDs de gesto funciona em ferramentas de debug, mas ignora a sincronização, interrupção e lógica de gerenciamento de estado que o `EmoteManager` fornece.
 
 ---
 
-## Observed in Real Mods
+## Observado em Mods Reais
 
-- **Expansion mod** uses `HumanCommandScript` for custom vehicle entry/exit animations and party member position syncing.
-- **COT (Community Online Tools)** uses `StartCommand_Ação()` directly in its camera/cinematic tools to force gesture animations on players for screenshots.
-- **Base building mods** (BuilderItems, BuildAnywhere) make heavy use of `SetAnimationPhase()` to show/hide construction stages on custom structures.
-- **Vanilla barrel** toggles `SetAnimationPhase("Lid", 0/1)` for open/close, demonstrating the standard pattern for binary state objects.
+- **Mod Expansion** usa `HumanCommandScript` para animações customizadas de entrada/saída de veículos e sincronização de posição de membros de grupo.
+- **COT (Community Online Tools)** usa `StartCommand_Action()` diretamente em suas ferramentas de câmera/cinemáticas para forçar animações de gestos em jogadores para capturas de tela.
+- **Mods de construção de base** (BuilderItems, BuildAnywhere) fazem uso intenso de `SetAnimationPhase()` para mostrar/ocultar estágios de construção em estruturas customizadas.
+- **Barril vanilla** alterna `SetAnimationPhase("Lid", 0/1)` para abrir/fechar, demonstrando o padrão standard para objetos de estado binário.
 
 ---
 
 ## Teoria vs Prática
 
-**Teoria:** `HumanCommandScript` lets you create entirely custom animation commands with full physics control.
-**Practice:** Most modders never need it. The action system (`StartCommand_Ação` / `AddCommandModificador_Ação`) with pre-existing animation IDs covers 95% of use cases. `HumanCommandScript` is reserved for edge cases like custom vehicle types or entirely new movement modes.
+**Teoria:** `HumanCommandScript` permite criar comandos de animação totalmente customizados com controle completo de física.
+**Prática:** A maioria dos modders nunca precisa dele. O sistema de ações (`StartCommand_Action` / `AddCommandModifier_Action`) com IDs de animação pré-existentes cobre 95% dos casos de uso. `HumanCommandScript` é reservado para casos extremos como tipos de veículos customizados ou modos de movimento inteiramente novos.
 
-**Teoria:** You can register custom animation events and receive them in callbacks.
-**Practice:** Custom animation events require custom animation files (`.rtm` / animation graph changes), which need Workbench and the DayZ animation toolchain. Most modders reuse existing animation IDs and rely on state change callbacks (`OnStateChange`, `OnFinish`) rather than custom events.
+**Teoria:** Você pode registrar eventos de animação customizados e recebê-los em callbacks.
+**Prática:** Eventos de animação customizados requerem arquivos de animação customizados (`.rtm` / mudanças no grafo de animação), que precisam do Workbench e da cadeia de ferramentas de animação do DayZ. A maioria dos modders reutiliza IDs de animação existentes e conta com callbacks de mudança de estado (`OnStateChange`, `OnFinish`) ao invés de eventos customizados.
 
-**Teoria:** Any emote can play in any stance.
-**Practice:** The stance mask system is strict. If your emote class declares `m_StanceMaskFullbody = STANCEMASK_ERECT` but the player is crouching, the emote will not play. The `DetermineEmoteData()` method checks additive first, then full-body, and fails silently if neither matches.
+**Teoria:** Qualquer emote pode ser reproduzido em qualquer postura.
+**Prática:** O sistema de máscara de postura é estrito. Se sua classe de emote declara `m_StanceMaskFullbody = STANCEMASK_ERECT` mas o jogador está agachado, o emote não será reproduzido. O método `DetermineEmoteData()` verifica aditivo primeiro, depois corpo inteiro, e falha silenciosamente se nenhum corresponder.
 
 ---
 
 ## Erros Comuns
 
-1. **Checking the wrong command.** Calling `GetCommand_Move()` while the player is in a vehicle returns `null`. Always check `GetCurrentCommandID()` first or null-check the result.
+1. **Verificar o comando errado.** Chamar `GetCommand_Move()` enquanto o jogador está em um veículo retorna `null`. Sempre verifique `GetCurrentCommandID()` primeiro ou faça verificação de null no resultado.
 
-2. **Forgetting that action commands replace movement.** `StartCommand_Ação()` is full-body -- the player stops moving. If you want an overlay animation, use `AddCommandModificador_Ação()` instead.
+2. **Esquecer que comandos de ação substituem o movimento.** `StartCommand_Action()` é de corpo inteiro -- o jogador para de se mover. Se você quer uma animação de sobreposição, use `AddCommandModifier_Action()` em vez disso.
 
-3. **Using `SetAnimationPhase()` with wrong source names.** The string must match the `AnimationSources` class name in `model.cfg` exactly. There is no error if the name is wrong -- nothing happens.
+3. **Usar `SetAnimationPhase()` com nomes de fonte errados.** A string deve corresponder exatamente ao nome da classe `AnimationSources` no `model.cfg`. Não há erro se o nome estiver errado -- nada acontece.
 
-4. **Mixing up stance index and stance mask.** `ForceStance()` takes a `STANCEIDX_*` value (integer 0-5). `StartCommand_Ação()` and `IsPlayerInStance()` take `STANCEMASK_*` values (bitmask flags). Passing one where the other is expected produces silent, wrong behavior.
+4. **Confundir índice de postura e máscara de postura.** `ForceStance()` recebe um valor `STANCEIDX_*` (inteiro 0-5). `StartCommand_Action()` e `IsPlayerInStance()` recebem valores `STANCEMASK_*` (flags de bitmask). Passar um onde o outro é esperado produz comportamento errado silencioso.
 
-5. **Not checking `EmoteCondition()`.** Trying to play an emote that requires empty hands while holding an item will fail. The emote system checks conditions before playback but does not log a warning.
+5. **Não verificar `EmoteCondition()`.** Tentar reproduzir um emote que requer mãos vazias enquanto segura um item vai falhar. O sistema de emotes verifica condições antes da reprodução, mas não registra um aviso.
 
-6. **Calling `StartCommand_*()` on the wrong machine.** Most commands should only be started on the machine that owns the player (server for AI, client for controlled player). Starting commands on the wrong side causes desync.
-
----
-
-## Compatibility & Impact
-
-- The animation command system is **engine-level** and has remained stable across DayZ versions. `HumanCommandMove`, `HumanCommandAçãoCallback`, and `DayZPlayerConstantes` have not changed their API in years.
-- `EmoteManager` and `EmoteBase` are **moddable via `modded class`**. You can add new emotes by extending `EmoteBase` and modding `EmoteConstructor`.
-- Object animations via `SetAnimationPhase()` are the **standard pattern** used by all vanilla items and most mods. The API is stable and well-tested.
-- `HumanCommandScript` is a **power-user API**. It works but is sparsely documented by Bohemia. The best learning resource is reading vanilla implementations in `dayzplayerimplement.c`.
-- Adding new animation IDs (CMD_ACTIONFB/MOD values) requires corresponding animation graph entries in the game's animation system, which is only possible with Workbench access and p3d model editing tools.
+6. **Chamar `StartCommand_*()` na máquina errada.** A maioria dos comandos só deve ser iniciada na máquina que possui o jogador (servidor para IA, cliente para jogador controlado). Iniciar comandos no lado errado causa dessincronização.
 
 ---
 
-**Source files referenced in this chapter:**
+## Compatibilidade e Impacto
 
-| File | Content |
+- O sistema de comandos de animação é de **nível de motor** e permaneceu estável entre as versões do DayZ. `HumanCommandMove`, `HumanCommandActionCallback` e `DayZPlayerConstants` não mudaram sua API em anos.
+- `EmoteManager` e `EmoteBase` são **modificáveis via `modded class`**. Você pode adicionar novos emotes estendendo `EmoteBase` e modificando `EmoteConstructor`.
+- Animações de objetos via `SetAnimationPhase()` são o **padrão** usado por todos os itens vanilla e pela maioria dos mods. A API é estável e bem testada.
+- `HumanCommandScript` é uma **API para usuários avançados**. Funciona, mas é pouco documentada pela Bohemia. O melhor recurso de aprendizado é ler implementações vanilla em `dayzplayerimplement.c`.
+- Adicionar novos IDs de animação (valores CMD_ACTIONFB/MOD) requer entradas correspondentes no grafo de animação do jogo, o que só é possível com acesso ao Workbench e ferramentas de edição de modelos p3d.
+
+---
+
+**Arquivos fonte referenciados neste capítulo:**
+
+| Arquivo | Conteúdo |
 |------|---------|
-| `scripts/3_game/human.c` | HumanInputController, HumanCommandAçãoCallback, HumanCommandMove, HumanCommandFall, HumanCommandClimb, HumanCommandSwim, HumanCommandVehicle, HumanCommandScript, HumanMovementState, HumanAnimInterface, Human class |
-| `scripts/3_game/dayzplayer.c` | DayZPlayerConstantes (stances, commands, action/gesture IDs) |
-| `scripts/3_game/constants.c` | EmoteConstantes (emote IDs, suicide event IDs) |
+| `scripts/3_game/human.c` | HumanInputController, HumanCommandActionCallback, HumanCommandMove, HumanCommandFall, HumanCommandClimb, HumanCommandSwim, HumanCommandVehicle, HumanCommandScript, HumanMovementState, HumanAnimInterface, classe Human |
+| `scripts/3_game/dayzplayer.c` | DayZPlayerConstants (posturas, comandos, IDs de ação/gesto) |
+| `scripts/3_game/constants.c` | EmoteConstants (IDs de emote, IDs de evento de suicídio) |
 | `scripts/3_game/entities/entity.c` | SetAnimationPhase, GetAnimationPhase |
 | `scripts/4_world/classes/emotemanager.c` | EmoteCB, EmoteLauncher, EmoteManager |
-| `scripts/4_world/classes/emoteclasses/emotebase.c` | EmoteBase class |
-| `scripts/4_world/classes/emoteclasses/emoteclasses.c` | All vanilla EmoteBase subclasses |
-| `scripts/4_world/classes/emoteconstructor.c` | EmoteConstructor (emote registration) |
+| `scripts/4_world/classes/emoteclasses/emotebase.c` | Classe EmoteBase |
+| `scripts/4_world/classes/emoteclasses/emoteclasses.c` | Todas as subclasses vanilla de EmoteBase |
+| `scripts/4_world/classes/emoteconstructor.c` | EmoteConstructor (registro de emotes) |
