@@ -1,40 +1,44 @@
-# Chapter 5.2: inputs.xml --- Custom Keybindings
+# 第5.2章：inputs.xml --- 自定义按键绑定
 
-[Home](../../README.md) | [<< Previous: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Next: Credits.json >>](03-credits-json.md)
+[首页](../../README.md) | [<< 上一章：stringtable.csv](01-stringtable.md) | **inputs.xml** | [下一章：Credits.json >>](03-credits-json.md)
+
+---
+
+> **概要：** `inputs.xml` 文件让你的模组注册自定义按键绑定，这些绑定会出现在玩家的控制设置菜单中。玩家可以像原版操作一样查看、重新绑定和切换这些输入。这是为 DayZ 模组添加快捷键的标准机制。
 
 ---
 
 ## 目录
 
-- [Overview](#overview)
-- [File Location](#file-location)
-- [Complete XML Structure](#complete-xml-structure)
-- [Actions Block](#actions-block)
-- [Sorting Block](#sorting-block)
-- [Preset Block (Default Keybindings)](#preset-block-default-keybindings)
-- [Modifier Combos](#modifier-combos)
-- [Hidden Inputs](#hidden-inputs)
-- [Multiple Default Keys](#multiple-default-keys)
-- [Accessing Inputs in Script](#accessing-inputs-in-script)
-- [Input Methods Reference](#input-methods-reference)
-- [Suppressing and Disabling Inputs](#suppressing-and-disabling-inputs)
-- [Key Names Reference](#key-names-reference)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+- [概述](#overview)
+- [文件位置](#file-location)
+- [完整 XML 结构](#complete-xml-structure)
+- [Actions 块](#actions-block)
+- [Sorting 块](#sorting-block)
+- [Preset 块（默认按键绑定）](#preset-block-default-keybindings)
+- [修饰键组合](#modifier-combos)
+- [隐藏输入](#hidden-inputs)
+- [多个默认按键](#multiple-default-keys)
+- [在脚本中访问输入](#accessing-inputs-in-script)
+- [输入方法参考](#input-methods-reference)
+- [抑制和禁用输入](#suppressing-and-disabling-inputs)
+- [按键名称参考](#key-names-reference)
+- [实际示例](#real-examples)
+- [常见错误](#common-mistakes)
 
 ---
 
 ## 概述
 
-When your mod needs the player to press a key --- opening a menu, toggling a feature, commanding an AI unit --- you register a custom input action in `inputs.xml`. The engine reads this file at startup and integrates your actions into the universal input system. Players see your keybindings in the game's Settings > Controls menu, grouped under a heading you define.
+当你的模组需要玩家按下按键 --- 打开菜单、切换功能、指挥 AI 单位 --- 你在 `inputs.xml` 中注册自定义输入动作。引擎在启动时读取此文件，并将你的动作集成到通用输入系统中。玩家可以在游戏的 设置 > 控制 菜单中看到你的按键绑定，分组在你定义的标题下。
 
-Custom inputs are identified by a unique action name (conventionally prefixed with `UA` for "User Action") and can have default keybindings that players can rebind at will.
+自定义输入由唯一的动作名称标识（惯例以 `UA` 为前缀，代表 "User Action"），并且可以设置默认按键绑定，玩家可以自由重新绑定。
 
 ---
 
-## File Location
+## 文件位置
 
-Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
+将 `inputs.xml` 放在 Scripts 目录的 `data` 子文件夹中：
 
 ```
 @MyMod/
@@ -42,45 +46,45 @@ Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
     MyMod_Scripts.pbo
       Scripts/
         data/
-          inputs.xml        <-- Here
+          inputs.xml        <-- 放在这里
         3_Game/
         4_World/
         5_Mission/
 ```
 
-Some mods place it directly in the `Scripts/` folder. Both locations work. The engine discovers the file automatically --- no config.cpp registration is needed.
+一些模组直接放在 `Scripts/` 文件夹中。两种位置都可以。引擎会自动发现该文件 --- 不需要在 config.cpp 中注册。
 
 ---
 
-## Complete XML Structure
+## 完整 XML 结构
 
-An `inputs.xml` file has three sections, all wrapped in a `<modded_inputs>` root element:
+`inputs.xml` 文件有三个部分，全部包裹在 `<modded_inputs>` 根元素中：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <modded_inputs>
     <inputs>
         <actions>
-            <!-- Action definitions go here -->
+            <!-- 动作定义放在这里 -->
         </actions>
 
         <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
-            <!-- Sort order for the settings menu -->
+            <!-- 设置菜单的排序顺序 -->
         </sorting>
     </inputs>
     <preset>
-        <!-- Default keybinding assignments go here -->
+        <!-- 默认按键分配放在这里 -->
     </preset>
 </modded_inputs>
 ```
 
-All three sections --- `<actions>`, `<sorting>`, and `<preset>` --- work together but serve different purposes.
+三个部分 --- `<actions>`、`<sorting>` 和 `<preset>` --- 协同工作，但各自服务不同的目的。
 
 ---
 
-## Actions Block
+## Actions 块
 
-The `<actions>` block declares every input action your mod provides. Each action is a single `<input>` element.
+`<actions>` 块声明你的模组提供的每个输入动作。每个动作是一个 `<input>` 元素。
 
 ### 语法
 
@@ -91,17 +95,17 @@ The `<actions>` block declares every input action your mod provides. Each action
 </actions>
 ```
 
-### Attributes
+### 属性
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `name` | Yes | Unique action identifier. Convention: prefix with `UA` (User Action). Used in scripts to poll this input. |
-| `loc` | No | Stringtable key for the display name in the Controls menu. **No `#` prefix** --- the system adds it. |
-| `visible` | No | Set to `"false"` to hide from the Controls menu. Defaults to `true`. |
+| 属性 | 必需 | 描述 |
+|------|------|------|
+| `name` | 是 | 唯一的动作标识符。惯例：以 `UA`（User Action）为前缀。在脚本中用于轮询此输入。 |
+| `loc` | 否 | 控制菜单中显示名称的 stringtable 键。**不带 `#` 前缀** --- 系统会自动添加。 |
+| `visible` | 否 | 设置为 `"false"` 以从控制菜单中隐藏。默认为 `true`。 |
 
-### Naming Convention
+### 命名规范
 
-Action names must be globally unique across all loaded mods. Use your mod prefix:
+动作名称必须在所有已加载的模组中全局唯一。使用你的模组前缀：
 
 ```xml
 <input name="UAMyModAdminPanel" loc="STR_MYMOD_INPUT_ADMIN_PANEL" />
@@ -109,13 +113,13 @@ Action names must be globally unique across all loaded mods. Use your mod prefix
 <input name="eAICommandMenu" loc="STR_EXPANSION_AI_COMMAND_MENU" />
 ```
 
-The `UA` prefix is conventional but not enforced. Expansion AI uses `eAI` as its prefix, which also works.
+`UA` 前缀是惯例但不是强制的。Expansion AI 使用 `eAI` 作为前缀，同样有效。
 
 ---
 
-## Sorting Block
+## Sorting 块
 
-The `<sorting>` block controls how your inputs appear in the player's Controls settings. It defines a named group (which becomes a section header) and lists the inputs in display order.
+`<sorting>` 块控制你的输入在玩家的控制设置中如何显示。它定义一个命名组（成为区域标题）并按显示顺序列出输入。
 
 ### 语法
 
@@ -127,32 +131,32 @@ The `<sorting>` block controls how your inputs appear in the player's Controls s
 </sorting>
 ```
 
-### Attributes
+### 属性
 
-| Attribute | Required | Description |
-|-----------|----------|-------------|
-| `name` | Yes | Internal identifier for this sorting group |
-| `loc` | Yes | Stringtable key for the group header displayed in Settings > Controls |
+| 属性 | 必需 | 描述 |
+|------|------|------|
+| `name` | 是 | 此排序组的内部标识符 |
+| `loc` | 是 | 设置 > 控制 中显示的组标题的 stringtable 键 |
 
-### How It Appears
+### 显示效果
 
-In the Controls settings, the player sees:
+在控制设置中，玩家会看到：
 
 ```
-[MyMod]                          <-- from the sorting loc
-  Open Menu .............. [Y]   <-- from the input loc + preset
-  Toggle HUD ............. [H]   <-- from the input loc + preset
+[MyMod]                          <-- 来自 sorting 的 loc
+  Open Menu .............. [Y]   <-- 来自 input 的 loc + preset
+  Toggle HUD ............. [H]   <-- 来自 input 的 loc + preset
 ```
 
-Only inputs listed in the `<sorting>` block appear in the settings menu. Inputs defined in `<actions>` but not listed in `<sorting>` are silently registered but invisible to the player (even if `visible` is not explicitly set to `false`).
+只有在 `<sorting>` 块中列出的输入才会出现在设置菜单中。在 `<actions>` 中定义但未在 `<sorting>` 中列出的输入会被静默注册但对玩家不可见（即使 `visible` 未明确设置为 `false`）。
 
 ---
 
-## Preset Block (Default Keybindings)
+## Preset 块（默认按键绑定）
 
-The `<preset>` block assigns default keys to your actions. These are the keys the player starts with before any customization.
+`<preset>` 块为你的动作分配默认按键。这些是玩家在任何自定义之前的初始按键。
 
-### Simple Key Binding
+### 简单按键绑定
 
 ```xml
 <preset>
@@ -162,19 +166,19 @@ The `<preset>` block assigns default keys to your actions. These are the keys th
 </preset>
 ```
 
-This binds the `Y` key as the default for `UAMyModOpenMenu`.
+这将 `Y` 键绑定为 `UAMyModOpenMenu` 的默认键。
 
-### No Default Key
+### 无默认按键
 
-If you omit an action from the `<preset>` block, it has no default binding. The player must manually assign a key in Settings > Controls. This is appropriate for optional or advanced bindings.
+如果你从 `<preset>` 块中省略一个动作，它就没有默认绑定。玩家必须在 设置 > 控制 中手动分配按键。这适用于可选或高级绑定。
 
 ---
 
-## Modifier Combos
+## 修饰键组合
 
-To require a modifier key (Ctrl, Shift, Alt), nest `<btn>` elements:
+要要求修饰键（Ctrl、Shift、Alt），嵌套 `<btn>` 元素：
 
-### Ctrl + Left Mouse Button
+### Ctrl + 鼠标左键
 
 ```xml
 <input name="eAISetWaypoint">
@@ -184,9 +188,9 @@ To require a modifier key (Ctrl, Shift, Alt), nest `<btn>` elements:
 </input>
 ```
 
-The outer `<btn>` is the modifier; the inner `<btn>` is the primary key. The player must hold the modifier and then press the primary key.
+外层 `<btn>` 是修饰键；内层 `<btn>` 是主键。玩家必须按住修饰键然后按主键。
 
-### Shift + Key
+### Shift + 按键
 
 ```xml
 <input name="UAMyModQuickAction">
@@ -196,17 +200,17 @@ The outer `<btn>` is the modifier; the inner `<btn>` is the primary key. The pla
 </input>
 ```
 
-### Nesting Rules
+### 嵌套规则
 
-- The **outer** `<btn>` is always the modifier (held down)
-- The **inner** `<btn>` is the trigger (pressed while modifier is held)
-- Only one level of nesting is typical; deeper nesting is untested and not recommended
+- **外层** `<btn>` 始终是修饰键（按住）
+- **内层** `<btn>` 是触发键（按住修饰键时按下）
+- 通常只使用一层嵌套；更深层的嵌套未经测试，不推荐
 
 ---
 
-## Hidden Inputs
+## 隐藏输入
 
-Use `visible="false"` to register an input that the player cannot see or rebind in the Controls menu. This is useful for internal inputs used by your mod's code that should not be player-configurable.
+使用 `visible="false"` 注册玩家无法在控制菜单中看到或重新绑定的输入。这对于模组代码使用的内部输入很有用，不应由玩家配置。
 
 ```xml
 <actions>
@@ -215,7 +219,7 @@ Use `visible="false"` to register an input that the player cannot see or rebind 
 </actions>
 ```
 
-Hidden inputs can still have default key assignments in the `<preset>` block:
+隐藏输入仍然可以在 `<preset>` 块中设置默认按键：
 
 ```xml
 <preset>
@@ -227,9 +231,9 @@ Hidden inputs can still have default key assignments in the `<preset>` block:
 
 ---
 
-## Multiple Default Keys
+## 多个默认按键
 
-An action can have multiple default keys. List multiple `<btn>` elements as siblings:
+一个动作可以有多个默认按键。将多个 `<btn>` 元素作为兄弟元素列出：
 
 ```xml
 <input name="UAExpansionConfirm">
@@ -238,23 +242,23 @@ An action can have multiple default keys. List multiple `<btn>` elements as sibl
 </input>
 ```
 
-Both `Enter` and `Numpad Enter` will trigger `UAExpansionConfirm`. This is useful for actions where multiple physical keys should map to the same logical action.
+`Enter` 和 `Numpad Enter` 都将触发 `UAExpansionConfirm`。这对于多个物理按键应映射到同一逻辑动作的情况很有用。
 
 ---
 
-## Accessing Inputs in Script
+## 在脚本中访问输入
 
-### Getting the Input API
+### 获取输入 API
 
-All input access goes through `GetUApi()`, which returns the global User Action API:
+所有输入访问都通过 `GetUApi()` 进行，它返回全局用户动作 API：
 
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyModOpenMenu");
 ```
 
-### Polling in On上级date
+### 在 OnUpdate 中轮询
 
-Custom inputs are typically polled in `MissionGameplay.On上级date()` or similar per-frame callbacks:
+自定义输入通常在 `MissionGameplay.OnUpdate()` 或类似的每帧回调中轮询：
 
 ```c
 modded class MissionGameplay
@@ -267,16 +271,16 @@ modded class MissionGameplay
 
         if (input.LocalPress())
         {
-            // Key was just pressed this frame
+            // 按键在此帧被按下
             OpenMyModMenu();
         }
     }
 }
 ```
 
-### Alternative: Using the Input Name Directly
+### 替代方式：直接使用输入名称
 
-Many mods check inputs inline using the `UAInputAPI` methods with string names:
+许多模组使用 `UAInputAPI` 方法和字符串名称内联检查输入：
 
 ```c
 override void OnUpdate(float timeslice)
@@ -292,26 +296,26 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-The `false` parameter in `LocalPress("name", false)` indicates that the check should not consume the input event.
+`LocalPress("name", false)` 中的 `false` 参数表示该检查不应消耗输入事件。
 
 ---
 
-## Input Methods Reference
+## 输入方法参考
 
-Once you have a `UAInput` reference (from `GetUApi().GetInputByName()`), or are using the `Input` class directly, these methods detect different input states:
+一旦你有了 `UAInput` 引用（来自 `GetUApi().GetInputByName()`），或者直接使用 `Input` 类，这些方法可以检测不同的输入状态：
 
-| 方法 | 返回值 | When True |
-|--------|---------|-----------|
-| `LocalPress()` | `bool` | The key was pressed **this frame** (single trigger on key-down) |
-| `LocalRelease()` | `bool` | The key was released **this frame** (single trigger on key-up) |
-| `LocalClick()` | `bool` | The key was pressed and released quickly (tap) |
-| `LocalHold()` | `bool` | The key has been held down for a threshold duration |
-| `LocalDoubleClick()` | `bool` | The key was tapped twice quickly |
-| `LocalValue()` | `float` | Current analog value (0.0 or 1.0 for digital keys; variable for analog axes) |
+| 方法 | 返回值 | 何时为 True |
+|------|--------|-------------|
+| `LocalPress()` | `bool` | 按键在**此帧**被按下（按键按下时的单次触发） |
+| `LocalRelease()` | `bool` | 按键在**此帧**被释放（按键释放时的单次触发） |
+| `LocalClick()` | `bool` | 按键被快速按下和释放（点击） |
+| `LocalHold()` | `bool` | 按键已被按住超过阈值时间 |
+| `LocalDoubleClick()` | `bool` | 按键被快速点击两次 |
+| `LocalValue()` | `float` | 当前模拟值（数字键为 0.0 或 1.0；模拟轴为可变值） |
 
-### Usage Patterns
+### 使用模式
 
-**Toggle on press:**
+**按下切换：**
 ```c
 if (input.LocalPress("UAMyModToggle", false))
 {
@@ -319,7 +323,7 @@ if (input.LocalPress("UAMyModToggle", false))
 }
 ```
 
-**Hold to activate, release to deactivate:**
+**按住激活，释放停用：**
 ```c
 if (input.LocalPress("eAICommandMenu", false))
 {
@@ -332,7 +336,7 @@ if (input.LocalRelease("eAICommandMenu", false) || input.LocalValue("eAICommandM
 }
 ```
 
-**Double-tap action:**
+**双击动作：**
 ```c
 if (input.LocalDoubleClick("UAMyModSpecial", false))
 {
@@ -340,7 +344,7 @@ if (input.LocalDoubleClick("UAMyModSpecial", false))
 }
 ```
 
-**Hold for extended action:**
+**长按扩展动作：**
 ```c
 if (input.LocalHold("UAExpansionGPSToggle"))
 {
@@ -350,101 +354,101 @@ if (input.LocalHold("UAExpansionGPSToggle"))
 
 ---
 
-## Suppressing and Disabling Inputs
+## 抑制和禁用输入
 
 ### ForceDisable
 
-Temporarily disables a specific input. Commonly used when opening menus to prevent game actions from firing while a UI is active:
+临时禁用特定输入。通常在打开菜单时使用，以防止 UI 激活时触发游戏动作：
 
 ```c
-// Disable the input while menu is open
+// 菜单打开时禁用输入
 GetUApi().GetInputByName("UAMyModToggle").ForceDisable(true);
 
-// Re-enable when menu closes
+// 菜单关闭时重新启用
 GetUApi().GetInputByName("UAMyModToggle").ForceDisable(false);
 ```
 
-### Supress下一章Frame
+### SupressNextFrame
 
-Suppresses all input processing for the next frame. Used during input context transitions (e.g., closing menus) to prevent one-frame input bleed:
+抑制下一帧的所有输入处理。在输入上下文转换时使用（例如关闭菜单），以防止单帧输入泄漏：
 
 ```c
 GetUApi().SupressNextFrame(true);
 ```
 
-### 上级dateControls
+### UpdateControls
 
-After modifying input states, call `上级dateControls()` to apply changes immediately:
+修改输入状态后，调用 `UpdateControls()` 以立即应用更改：
 
 ```c
 GetUApi().GetInputByName("UAExpansionBookToggle").ForceDisable(false);
 GetUApi().UpdateControls();
 ```
 
-### Input Excludes
+### 输入排除
 
-The vanilla mission system provides exclude groups. When a menu is active, you can exclude categories of inputs:
+原版任务系统提供排除组。当菜单激活时，你可以排除类别的输入：
 
 ```c
-// Suppress gameplay inputs while inventory is open
+// 背包打开时抑制游戏输入
 AddActiveInputExcludes({"inventory"});
 
-// Restore when closing
+// 关闭时恢复
 RemoveActiveInputExcludes({"inventory"});
 ```
 
 ---
 
-## Key Names Reference
+## 按键名称参考
 
-Key names used in the `<btn name="">` attribute follow a specific naming convention. Here is the complete reference.
+在 `<btn name="">` 属性中使用的按键名称遵循特定的命名规范。以下是完整参考。
 
-### Keyboard Keys
+### 键盘按键
 
-| Category | Key Names |
-|----------|-----------|
-| Letters | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
-| Numbers (top row) | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
-| Function keys | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
-| Modifiers | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
-| Navigation | `k上级`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPage上级`, `kPageDown` |
-| Editing | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
-| Numpad | `kNumpad0` ... `kNumpad9`, `kNumpadEnter`, `kNumpadPlus`, `kNumpadMinus`, `kNumpadMultiply`, `kNumpadDivide`, `kNumpadDecimal` |
-| Punctuation | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
-| Locks | `kCapsLock`, `kNumLock`, `kScrollLock` |
+| 类别 | 按键名称 |
+|------|----------|
+| 字母 | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
+| 数字（顶行） | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
+| 功能键 | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
+| 修饰键 | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
+| 导航 | `kUp`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPageUp`, `kPageDown` |
+| 编辑 | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
+| 数字键盘 | `kNumpad0` ... `kNumpad9`, `kNumpadEnter`, `kNumpadPlus`, `kNumpadMinus`, `kNumpadMultiply`, `kNumpadDivide`, `kNumpadDecimal` |
+| 标点符号 | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
+| 锁定键 | `kCapsLock`, `kNumLock`, `kScrollLock` |
 
-### Mouse Buttons
+### 鼠标按钮
 
-| Name | Button |
-|------|--------|
-| `mBLeft` | Left mouse button |
-| `mBRight` | Right mouse button |
-| `mBMiddle` | Middle mouse button (scroll wheel click) |
-| `mBExtra1` | Mouse button 4 (side button back) |
-| `mBExtra2` | Mouse button 5 (side button forward) |
-
-### Mouse Axes
-
-| Name | Axis |
+| 名称 | 按钮 |
 |------|------|
-| `mAxisX` | Mouse horizontal movement |
-| `mAxisY` | Mouse vertical movement |
-| `mWheel上级` | Scroll wheel up |
-| `mWheelDown` | Scroll wheel down |
+| `mBLeft` | 鼠标左键 |
+| `mBRight` | 鼠标右键 |
+| `mBMiddle` | 鼠标中键（滚轮点击） |
+| `mBExtra1` | 鼠标按钮 4（侧键后退） |
+| `mBExtra2` | 鼠标按钮 5（侧键前进） |
 
-### Naming Pattern
+### 鼠标轴
 
-- **Keyboard**: `k` prefix + key name (e.g., `kT`, `kF5`, `kLControl`)
-- **Mouse buttons**: `mB` prefix + button name (e.g., `mBLeft`, `mBRight`)
-- **Mouse axes**: `m` prefix + axis name (e.g., `mAxisX`, `mWheel上级`)
+| 名称 | 轴 |
+|------|------|
+| `mAxisX` | 鼠标水平移动 |
+| `mAxisY` | 鼠标垂直移动 |
+| `mWheelUp` | 滚轮向上 |
+| `mWheelDown` | 滚轮向下 |
+
+### 命名模式
+
+- **键盘**：`k` 前缀 + 键名（例如 `kT`、`kF5`、`kLControl`）
+- **鼠标按钮**：`mB` 前缀 + 按钮名（例如 `mBLeft`、`mBRight`）
+- **鼠标轴**：`m` 前缀 + 轴名（例如 `mAxisX`、`mWheelUp`）
 
 ---
 
-## Real Examples
+## 实际示例
 
 ### DayZ Expansion AI
 
-A well-structured inputs.xml with visible keybindings, hidden debug inputs, and modifier combos:
+一个结构良好的 inputs.xml，包含可见的按键绑定、隐藏的调试输入和修饰键组合：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -498,14 +502,14 @@ A well-structured inputs.xml with visible keybindings, hidden debug inputs, and 
 </modded_inputs>
 ```
 
-Key observations:
-- `eAICommandMenu` bound to `T` --- visible in settings, player can rebind
-- `eAISetWaypoint` uses a **Ctrl + Left Click** modifier combo
-- Test inputs are `visible="false"` --- hidden from players but accessible in code
+关键观察：
+- `eAICommandMenu` 绑定到 `T` --- 在设置中可见，玩家可以重新绑定
+- `eAISetWaypoint` 使用 **Ctrl + 鼠标左键** 修饰键组合
+- 测试输入设置为 `visible="false"` --- 对玩家隐藏但在代码中可访问
 
 ### DayZ Expansion Market
 
-A minimal inputs.xml for a hidden utility input with multiple default keys:
+一个最小化的 inputs.xml，用于隐藏的实用输入，带有多个默认按键：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -524,14 +528,14 @@ A minimal inputs.xml for a hidden utility input with multiple default keys:
 </modded_inputs>
 ```
 
-Key observations:
-- Hidden input (`visible="false"`) with empty `loc` --- never shown in settings
-- Two default keys: both Enter and Numpad Enter trigger the same action
-- No `<sorting>` block --- not needed since the input is hidden
+关键观察：
+- 隐藏输入（`visible="false"`），`loc` 为空 --- 永不在设置中显示
+- 两个默认按键：Enter 和 Numpad Enter 都触发同一动作
+- 没有 `<sorting>` 块 --- 因为输入是隐藏的所以不需要
 
-### Complete Starter Template
+### 完整入门模板
 
-A minimal but complete template for a new mod:
+一个最小但完整的新模组模板：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -551,12 +555,12 @@ A minimal but complete template for a new mod:
         <input name="UAMyModOpenMenu">
             <btn name="kF6"/>
         </input>
-        <!-- UAMyModQuickAction has no default key; player must bind it -->
+        <!-- UAMyModQuickAction 没有默认按键；玩家必须自行绑定 -->
     </preset>
 </modded_inputs>
 ```
 
-With a corresponding stringtable.csv:
+配套的 stringtable.csv：
 
 ```csv
 "Language","original","english"
@@ -569,35 +573,78 @@ With a corresponding stringtable.csv:
 
 ## 常见错误
 
-### Using `#` in the loc Attribute
+### 在 loc 属性中使用 `#`
 
 ```xml
-<!-- WRONG -->
+<!-- 错误 -->
 <input name="UAMyAction" loc="#STR_MYMOD_ACTION" />
 
-<!-- CORRECT -->
+<!-- 正确 -->
 <input name="UAMyAction" loc="STR_MYMOD_ACTION" />
 ```
 
-The input system prepends `#` internally. Adding it yourself causes a double-prefix and the lookup fails.
+输入系统在内部自动添加 `#`。你自己添加会导致双前缀，查找失败。
 
-### Action Name Collisions
+### 动作名称冲突
 
-If two mods define `UAOpenMenu`, only one will work. Always use your mod prefix:
+如果两个模组定义了 `UAOpenMenu`，只有一个能工作。始终使用你的模组前缀：
 
 ```xml
-<input name="UAMyModOpenMenu" />     <!-- Good -->
-<input name="UAOpenMenu" />          <!-- Risky -->
+<input name="UAMyModOpenMenu" />     <!-- 好 -->
+<input name="UAOpenMenu" />          <!-- 有风险 -->
 ```
 
-### Missing Sorting Entry
+### 缺少 Sorting 条目
 
-If you define an action in `<actions>` but forget to list it in `<sorting>`, the action works in code but is invisible in the Controls menu. The player has no way to rebind it.
+如果你在 `<actions>` 中定义了一个动作但忘记在 `<sorting>` 中列出，该动作在代码中可以工作但在控制菜单中不可见。玩家无法重新绑定它。
 
-### Forgetting to Define in Actions
+### 忘记在 Actions 中定义
 
-If you list an input in `<sorting>` or `<preset>` but never define it in `<actions>`, the engine silently ignores it.
+如果你在 `<sorting>` 或 `<preset>` 中列出了一个输入但从未在 `<actions>` 中定义它，引擎会静默忽略它。
 
-### Binding Conflicting Keys
+### 绑定冲突的按键
 
-Choosing keys that conflict with vanilla bindings (like `W`, `A`, `S`, `D`, `Tab`, `I`) causes both your action and the vanilla action to fire simultaneously. Use less common keys (F5-F12, numpad keys) or modifier combos for safety.
+选择与原版绑定冲突的按键（如 `W`、`A`、`S`、`D`、`Tab`、`I`）会导致你的动作和原版动作同时触发。使用不太常用的按键（F5-F12、数字键盘按键）或修饰键组合以确保安全。
+
+---
+
+## 最佳实践
+
+- 始终用 `UA` + 你的模组名称作为动作名称前缀（例如 `UAMyModOpenMenu`）。通用名称如 `UAOpenMenu` 会与其他模组冲突。
+- 为每个可见输入提供 `loc` 属性并定义对应的 stringtable 键。没有它，控制菜单会显示原始动作名称。
+- 选择不常用的默认按键（F5-F12、数字键盘）或修饰键组合（Ctrl+按键），以最大程度减少与原版和流行模组按键绑定的冲突。
+- 始终在 `<sorting>` 块中列出可见的输入。在 `<actions>` 中定义但 `<sorting>` 中缺少的输入对玩家不可见，无法被重新绑定。
+- 将 `GetUApi().GetInputByName()` 的 `UAInput` 引用缓存在成员变量中，而不是在 `OnUpdate` 中每帧都调用。字符串查找有开销。
+
+---
+
+## 理论与实践
+
+> 文档所述与运行时实际工作方式的对比。
+
+| 概念 | 理论 | 现实 |
+|------|------|------|
+| `visible="false"` 从控制菜单中隐藏 | 输入被注册但不可见 | 在某些 DayZ 版本中，隐藏输入仍然出现在 `<sorting>` 块列表中。从 `<sorting>` 中省略是隐藏输入的可靠方式 |
+| `LocalPress()` 每次按键按下触发一次 | 在按键被按下的帧上的单次触发 | 如果游戏卡顿（低帧率），`LocalPress()` 可能完全被错过。对于关键操作，也检查 `LocalValue() > 0` 作为后备 |
+| 通过嵌套 `<btn>` 实现修饰键组合 | 外层是修饰键，内层是触发键 | 修饰键本身也会在自己的输入上注册为按下（例如 `kLControl` 也是原版蹲下键）。玩家按住 Ctrl+点击 也会蹲下 |
+| `ForceDisable(true)` 抑制输入 | 输入被完全忽略 | `ForceDisable` 持续到被明确重新启用。如果你的模组崩溃或 UI 关闭时没有调用 `ForceDisable(false)`，输入会保持禁用状态直到游戏重启 |
+| 多个 `<btn>` 兄弟元素 | 两个按键触发同一动作 | 正常工作，但控制菜单只显示第一个按键。玩家可以看到并重新绑定第一个按键，但可能不知道第二个默认按键的存在 |
+
+---
+
+## 兼容性和影响
+
+- **多模组：** 动作名称冲突是主要风险。如果两个模组定义了 `UAOpenMenu`，只有一个能工作，且冲突是静默的。对于跨模组的重复动作名称，引擎不会发出警告。
+- **性能：** 通过 `GetUApi().GetInputByName()` 进行输入轮询涉及字符串哈希查找。每帧轮询 5-10 个输入的开销可以忽略不计，但对于有许多输入的模组，仍建议缓存 `UAInput` 引用。
+- **版本：** `inputs.xml` 格式和 `<modded_inputs>` 结构自 DayZ 1.0 以来一直稳定。`visible` 属性是后来添加的（大约 1.08）-- 在旧版本中，所有输入始终在控制菜单中可见。
+
+---
+
+## 在真实模组中的应用
+
+| 模式 | 模组 | 详情 |
+|------|------|------|
+| 修饰键组合 `Ctrl+点击` | Expansion AI | `eAISetWaypoint` 使用嵌套的 `<btn name="kLControl"><btn name="mBLeft"/>` 实现 Ctrl+左键点击放置 AI 路径点 |
+| 隐藏实用输入 | Expansion Market | `UAExpansionConfirm` 设置为 `visible="false"`，带有双按键（Enter + Numpad Enter）用于内部确认逻辑 |
+| 菜单打开时的 `ForceDisable` | COT、VPP | 管理面板打开时对游戏输入调用 `ForceDisable(true)`，关闭时调用 `ForceDisable(false)` 以防止打字时角色移动 |
+| 在成员变量中缓存 `UAInput` | DabsFramework | 在初始化期间将 `GetUApi().GetInputByName()` 的结果存储在类字段中，在 `OnUpdate` 中轮询缓存的引用以避免每帧字符串查找 |
