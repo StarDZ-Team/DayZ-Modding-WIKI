@@ -1,6 +1,6 @@
 # Chapter 1.3: Classes & Inheritance
 
-[Home](../../README.md) | [<< Previous: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Classes & Inheritance** | [Next: Modded Classes >>](04-modded-classes.md)
+[Home](../README.md) | [<< Previous: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Classes & Inheritance** | [Next: Modded Classes >>](04-modded-classes.md)
 
 ---
 
@@ -947,4 +947,4 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 
 ---
 
-[Accueil](../../README.md) | [<< Previous: Tableaux, Maps et Sets](02-arrays-maps-sets.md) | **Classes et heritage** | [Next: Classes moddees >>](04-modded-classes.md)
+[Accueil](../README.md) | [<< Previous: Tableaux, Maps et Sets](02-arrays-maps-sets.md) | **Classes et heritage** | [Next: Classes moddees >>](04-modded-classes.md)

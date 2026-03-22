@@ -1,6 +1,6 @@
 # 7.5. fejezet: Jogosultsági rendszerek
 
-[Kezdőlap](../../README.md) | [<< Előző: Konfiguráció perzisztencia](04-config-persistence.md) | **Jogosultsági rendszerek** | [Következő: Eseményvezérelt architektúra >>](06-events.md)
+[Kezdőlap](../README.md) | [<< Előző: Konfiguráció perzisztencia](04-config-persistence.md) | **Jogosultsági rendszerek** | [Következő: Eseményvezérelt architektúra >>](06-events.md)
 
 ---
 
@@ -654,4 +654,4 @@ Ez egy gyakori minta az eredeti sima `AdminUIDs` tömbről a hierarchikus `Admin
 
 ---
 
-[Kezdőlap](../../README.md) | [<< Előző: Konfiguráció perzisztencia](04-config-persistence.md) | **Jogosultsági rendszerek** | [Következő: Eseményvezérelt architektúra >>](06-events.md)
+[Kezdőlap](../README.md) | [<< Előző: Konfiguráció perzisztencia](04-config-persistence.md) | **Jogosultsági rendszerek** | [Következő: Eseményvezérelt architektúra >>](06-events.md)

@@ -1,6 +1,6 @@
 # Rozdział 5.5: Pliki konfiguracyjne serwera
 
-[Strona główna](../../README.md) | [<< Poprzedni: Format ImageSet](04-imagesets.md) | **Pliki konfiguracyjne serwera** | [Następny: Konfiguracja ekwipunku startowego >>](06-spawning-gear.md)
+[Strona główna](../README.md) | [<< Poprzedni: Format ImageSet](04-imagesets.md) | **Pliki konfiguracyjne serwera** | [Następny: Konfiguracja ekwipunku startowego >>](06-spawning-gear.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Capitulo 7.4: Persistencia de Configuracion
 
-[Inicio](../../README.md) | [<< Anterior: Patrones RPC](03-rpc-patterns.md) | **Persistencia de Configuracion** | [Siguiente: Sistemas de Permisos >>](05-permissions.md)
+[Inicio](../README.md) | [<< Anterior: Patrones RPC](03-rpc-patterns.md) | **Persistencia de Configuracion** | [Siguiente: Sistemas de Permisos >>](05-permissions.md)
 
 ---
 
@@ -695,4 +695,4 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 ---
 
-[Inicio](../../README.md) | [<< Anterior: Patrones RPC](03-rpc-patterns.md) | **Persistencia de Configuracion** | [Siguiente: Sistemas de Permisos >>](05-permissions.md)
+[Inicio](../README.md) | [<< Anterior: Patrones RPC](03-rpc-patterns.md) | **Persistencia de Configuracion** | [Siguiente: Sistemas de Permisos >>](05-permissions.md)

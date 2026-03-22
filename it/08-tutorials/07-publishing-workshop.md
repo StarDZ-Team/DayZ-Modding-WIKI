@@ -1,6 +1,6 @@
 # Capitolo 8.7: Pubblicare sullo Steam Workshop
 
-[Home](../../README.md) | [<< Precedente: Debugging & Testing](06-debugging-testing.md) | **Pubblicare sullo Steam Workshop** | [Successivo: Costruire un Overlay HUD >>](08-hud-overlay.md)
+[Home](../README.md) | [<< Precedente: Debugging & Testing](06-debugging-testing.md) | **Pubblicare sullo Steam Workshop** | [Successivo: Costruire un Overlay HUD >>](08-hud-overlay.md)
 
 ---
 

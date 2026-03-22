@@ -1,6 +1,6 @@
 # 第 6.2 章：载具系统
 
-[首页](../../README.md) | [<< 上一章：实体系统](01-entity-system.md) | **载具** | [下一章：天气 >>](03-weather.md)
+[首页](../README.md) | [<< 上一章：实体系统](01-entity-system.md) | **载具** | [下一章：天气 >>](03-weather.md)
 
 ---
 
@@ -408,4 +408,4 @@ void FindAllVehicles(out array<Transport> vehicles)
 
 ---
 
-[首页](../../README.md) | [<< 上一章：实体系统](01-entity-system.md) | **载具** | [下一章：天气 >>](03-weather.md)
+[首页](../README.md) | [<< 上一章：实体系统](01-entity-system.md) | **载具** | [下一章：天气 >>](03-weather.md)

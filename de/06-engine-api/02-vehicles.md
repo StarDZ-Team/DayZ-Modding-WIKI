@@ -1,6 +1,6 @@
 # Kapitel 6.2: Fahrzeugsystem
 
-[Startseite](../../README.md) | [<< Zurück: Entity-System](01-entity-system.md) | **Fahrzeuge** | [Weiter: Wetter >>](03-weather.md)
+[Startseite](../README.md) | [<< Zurück: Entity-System](01-entity-system.md) | **Fahrzeuge** | [Weiter: Wetter >>](03-weather.md)
 
 ---
 
@@ -408,4 +408,4 @@ void FindAllVehicles(out array<Transport> vehicles)
 
 ---
 
-[Startseite](../../README.md) | [<< Zurück: Entity-System](01-entity-system.md) | **Fahrzeuge** | [Weiter: Wetter >>](03-weather.md)
+[Startseite](../README.md) | [<< Zurück: Entity-System](01-entity-system.md) | **Fahrzeuge** | [Weiter: Wetter >>](03-weather.md)

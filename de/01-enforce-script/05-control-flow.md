@@ -1,6 +1,6 @@
 # Kapitel 1.5: Kontrollfluss
 
-[Startseite](../../README.md) | [<< Zurück: Modded-Klassen](04-modded-classes.md) | **Kontrollfluss** | [Weiter: String-Operationen >>](06-strings.md)
+[Startseite](../README.md) | [<< Zurück: Modded-Klassen](04-modded-classes.md) | **Kontrollfluss** | [Weiter: String-Operationen >>](06-strings.md)
 
 ---
 
@@ -645,4 +645,4 @@ thread MyFunc();  // nicht-blockierender Aufruf
 
 ---
 
-[<< 1.4: Modded-Klassen](04-modded-classes.md) | [Startseite](../../README.md) | [1.6: String-Operationen >>](06-strings.md)
+[<< 1.4: Modded-Klassen](04-modded-classes.md) | [Startseite](../README.md) | [1.6: String-Operationen >>](06-strings.md)

@@ -1,6 +1,6 @@
 # Chapitre 6.19: Terrain & World Queries
 
-[Accueil](../../README.md) | [<< Précédent : Animation System](18-animation-system.md) | **Terrain & World Queries** | [Suivant : Particle & Effect System >>](20-particle-effects.md)
+[Accueil](../README.md) | [<< Précédent : Animation System](18-animation-system.md) | **Terrain & World Queries** | [Suivant : Particle & Effect System >>](20-particle-effects.md)
 
 ---
 
@@ -1104,4 +1104,4 @@ const static PhxInteractionLayers MELEE_TARGET_OBSTRUCTION_LAYERS =
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Animation System](18-animation-system.md) | **Terrain & World Queries** | [Suivant : Particle & Effect System >>](20-particle-effects.md)
+[Accueil](../README.md) | [<< Précédent : Animation System](18-animation-system.md) | **Terrain & World Queries** | [Suivant : Particle & Effect System >>](20-particle-effects.md)

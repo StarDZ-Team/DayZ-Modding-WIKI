@@ -1,6 +1,6 @@
 # Chapter 1.7: Math & Vector Operations
 
-[Domů](../../README.md) | [<< Předchozí: String Operations](06-strings.md) | **Math & Vector Operations** | [Další: Správa paměti >>](08-memory-management.md)
+[Domů](../README.md) | [<< Předchozí: String Operations](06-strings.md) | **Math & Vector Operations** | [Další: Správa paměti >>](08-memory-management.md)
 
 ---
 
@@ -754,4 +754,4 @@ vector.Zero  vector.Up  vector.Aside  vector.Forward
 
 ---
 
-[<< 1.6: String Operations](06-strings.md) | [Domů](../../README.md) | [1.8: Memory Management >>](08-memory-management.md)
+[<< 1.6: String Operations](06-strings.md) | [Domů](../README.md) | [1.8: Memory Management >>](08-memory-management.md)

@@ -1,6 +1,6 @@
 # Kapitel 3.2: Layout-Dateiformat (.layout)
 
-[Startseite](../../README.md) | [<< Zurück: Widget-Typen](01-widget-types.md) | **Layout-Dateiformat** | [Weiter: Größe & Positionierung >>](03-sizing-positioning.md)
+[Startseite](../README.md) | [<< Zurück: Widget-Typen](01-widget-types.md) | **Layout-Dateiformat** | [Weiter: Größe & Positionierung >>](03-sizing-positioning.md)
 
 ---
 

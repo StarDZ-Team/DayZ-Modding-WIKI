@@ -1,6 +1,6 @@
 # Capitolo 5.2: inputs.xml --- Associazioni di Tasti Personalizzate
 
-[Home](../../README.md) | [<< Precedente: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Successivo: Credits.json >>](03-credits-json.md)
+[Home](../README.md) | [<< Precedente: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Successivo: Credits.json >>](03-credits-json.md)
 
 ---
 

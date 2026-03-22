@@ -1,6 +1,6 @@
 # 3.9. fejezet: Valós mod UI minták
 
-[Főoldal](../../README.md) | [<< Előző: Dialógusok és modálisok](08-dialogs-modals.md) | **Valós mod UI minták** | [Következő: Haladó widgetek >>](10-advanced-widgets.md)
+[Főoldal](../README.md) | [<< Előző: Dialógusok és modálisok](08-dialogs-modals.md) | **Valós mod UI minták** | [Következő: Haladó widgetek >>](10-advanced-widgets.md)
 
 ---
 

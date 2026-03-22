@@ -1,6 +1,6 @@
 # Capitulo 7.5: Sistemas de Permisos
 
-[Inicio](../../README.md) | [<< Anterior: Persistencia de Configuracion](04-config-persistence.md) | **Sistemas de Permisos** | [Siguiente: Arquitectura Orientada a Eventos >>](06-events.md)
+[Inicio](../README.md) | [<< Anterior: Persistencia de Configuracion](04-config-persistence.md) | **Sistemas de Permisos** | [Siguiente: Arquitectura Orientada a Eventos >>](06-events.md)
 
 ---
 
@@ -655,4 +655,4 @@ Este es un patron comun utilizado para migrar desde el array plano original `Adm
 
 ---
 
-[Inicio](../../README.md) | [<< Anterior: Persistencia de Configuracion](04-config-persistence.md) | **Sistemas de Permisos** | [Siguiente: Arquitectura Orientada a Eventos >>](06-events.md)
+[Inicio](../README.md) | [<< Anterior: Persistencia de Configuracion](04-config-persistence.md) | **Sistemas de Permisos** | [Siguiente: Arquitectura Orientada a Eventos >>](06-events.md)

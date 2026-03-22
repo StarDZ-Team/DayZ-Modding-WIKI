@@ -1,6 +1,6 @@
 # Kapitola 3.9: Vzory UI ve skutečných modech
 
-[Domů](../../README.md) | [<< Předchozí: Dialogy a modální okna](08-dialogs-modals.md) | **Vzory UI ve skutečných modech** | [Další: Pokročilé widgety >>](10-advanced-widgets.md)
+[Domů](../README.md) | [<< Předchozí: Dialogy a modální okna](08-dialogs-modals.md) | **Vzory UI ve skutečných modech** | [Další: Pokročilé widgety >>](10-advanced-widgets.md)
 
 ---
 

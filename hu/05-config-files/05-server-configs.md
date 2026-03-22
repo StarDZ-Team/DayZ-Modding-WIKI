@@ -1,6 +1,6 @@
 # 5.5. fejezet: Szerver konfigurációs fájlok
 
-[Főoldal](../../README.md) | [<< Előző: ImageSet formátum](04-imagesets.md) | **Szerver konfigurációs fájlok** | [Következő: Spawn felszerelés konfiguráció >>](06-spawning-gear.md)
+[Főoldal](../README.md) | [<< Előző: ImageSet formátum](04-imagesets.md) | **Szerver konfigurációs fájlok** | [Következő: Spawn felszerelés konfiguráció >>](06-spawning-gear.md)
 
 ---
 

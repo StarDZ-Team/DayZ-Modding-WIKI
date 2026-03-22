@@ -1,6 +1,6 @@
 # 第 3.5 章：编程式控件创建
 
-[首页](../../README.md) | [<< 上一章：容器控件](04-containers.md) | **编程式控件创建** | [下一章：事件处理 >>](06-event-handling.md)
+[首页](../README.md) | [<< 上一章：容器控件](04-containers.md) | **编程式控件创建** | [下一章：事件处理 >>](06-event-handling.md)
 
 ---
 

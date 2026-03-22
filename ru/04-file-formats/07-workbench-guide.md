@@ -1,6 +1,6 @@
 # Глава 4.7: Руководство по Workbench
 
-[Главная](../../README.md) | [<< Предыдущая: Упаковка PBO](06-pbo-packing.md) | **Руководство по Workbench** | [Следующая: Моделирование зданий >>](08-building-modeling.md)
+[Главная](../README.md) | [<< Предыдущая: Упаковка PBO](06-pbo-packing.md) | **Руководство по Workbench** | [Следующая: Моделирование зданий >>](08-building-modeling.md)
 
 ---
 

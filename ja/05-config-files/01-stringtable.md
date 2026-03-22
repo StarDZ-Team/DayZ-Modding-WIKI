@@ -1,6 +1,6 @@
 # Chapter 5.1: stringtable.csv --- ローカライゼーション
 
-[Home](../../README.md) | **stringtable.csv** | [Next: inputs.xml >>](02-inputs-xml.md)
+[Home](../README.md) | **stringtable.csv** | [Next: inputs.xml >>](02-inputs-xml.md)
 
 ---
 

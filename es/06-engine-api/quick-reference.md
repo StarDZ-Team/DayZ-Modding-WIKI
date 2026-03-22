@@ -1,6 +1,6 @@
 # Referencia Rápida de la API del Motor
 
-[Inicio](../../README.md) | **Referencia Rápida de la API del Motor**
+[Inicio](../README.md) | **Referencia Rápida de la API del Motor**
 
 ---
 
@@ -656,4 +656,4 @@ override void SetActions()
 
 ---
 
-*Documentación completa: [Inicio](../../README.md) | [Cheat Sheet](../cheatsheet.md) | [Entity System](01-entity-system.md) | [Vehicles](02-vehicles.md) | [Weather](03-weather.md) | [Timers](07-timers.md) | [File I/O](08-file-io.md) | [Networking](09-networking.md) | [Mission Hooks](11-mission-hooks.md) | [Action System](12-action-system.md)*
+*Documentación completa: [Inicio](../README.md) | [Cheat Sheet](../cheatsheet.md) | [Entity System](01-entity-system.md) | [Vehicles](02-vehicles.md) | [Weather](03-weather.md) | [Timers](07-timers.md) | [File I/O](08-file-io.md) | [Networking](09-networking.md) | [Mission Hooks](11-mission-hooks.md) | [Action System](12-action-system.md)*

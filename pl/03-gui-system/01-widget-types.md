@@ -1,6 +1,6 @@
 # Rozdział 3.1: Typy widgetów
 
-[Strona główna](../../README.md) | **Typy widgetów** | [Dalej: Pliki layoutów >>](02-layout-files.md)
+[Strona główna](../README.md) | **Typy widgetów** | [Dalej: Pliki layoutów >>](02-layout-files.md)
 
 ---
 

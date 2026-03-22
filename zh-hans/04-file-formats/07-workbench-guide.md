@@ -1,6 +1,6 @@
 # 第4.7章：Workbench 指南
 
-[首页](../../README.md) | [<< 上一章：PBO 打包](06-pbo-packing.md) | **Workbench 指南** | [下一章：建筑建模 >>](08-building-modeling.md)
+[首页](../README.md) | [<< 上一章：PBO 打包](06-pbo-packing.md) | **Workbench 指南** | [下一章：建筑建模 >>](08-building-modeling.md)
 
 ---
 

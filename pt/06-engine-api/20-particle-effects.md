@@ -1,6 +1,6 @@
 # Capítulo 6.20: Sistema de Partículas e Efeitos
 
-[Início](../../README.md) | [<< Anterior: Consultas de Terreno e Mundo](19-terrain-queries.md) | **Sistema de Partículas e Efeitos** | [Próximo: Sistema de Zumbis e IA >>](21-zombie-ai-system.md)
+[Início](../README.md) | [<< Anterior: Consultas de Terreno e Mundo](19-terrain-queries.md) | **Sistema de Partículas e Efeitos** | [Próximo: Sistema de Zumbis e IA >>](21-zombie-ai-system.md)
 
 ---
 
@@ -1068,4 +1068,4 @@ ps.ResetParticle();  // Funciona corretamente
 
 ---
 
-[Início](../../README.md) | [<< Anterior: Consultas de Terreno e Mundo](19-terrain-queries.md) | **Sistema de Partículas e Efeitos** | [Próximo: Sistema de Zumbis e IA >>](21-zombie-ai-system.md)
+[Início](../README.md) | [<< Anterior: Consultas de Terreno e Mundo](19-terrain-queries.md) | **Sistema de Partículas e Efeitos** | [Próximo: Sistema de Zumbis e IA >>](21-zombie-ai-system.md)

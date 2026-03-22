@@ -1,6 +1,6 @@
 # Engine API Quick Reference
 
-[Home](../../README.md) | **Engine API Quick Reference**
+[Home](../README.md) | **Engine API Quick Reference**
 
 ---
 
@@ -652,4 +652,4 @@ override void SetActions()
 
 ---
 
-*完全なドキュメント: [ホーム](../../README.md) | [チートシート](../cheatsheet.md) | [エンティティシステム](01-entity-system.md) | [車両](02-vehicles.md) | [天候](03-weather.md) | [タイマー](07-timers.md) | [ファイル I/O](08-file-io.md) | [ネットワーキング](09-networking.md) | [ミッションフック](11-mission-hooks.md) | [アクションシステム](12-action-system.md)*
+*完全なドキュメント: [ホーム](../README.md) | [チートシート](../cheatsheet.md) | [エンティティシステム](01-entity-system.md) | [車両](02-vehicles.md) | [天候](03-weather.md) | [タイマー](07-timers.md) | [ファイル I/O](08-file-io.md) | [ネットワーキング](09-networking.md) | [ミッションフック](11-mission-hooks.md) | [アクションシステム](12-action-system.md)*

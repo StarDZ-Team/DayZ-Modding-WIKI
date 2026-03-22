@@ -1,6 +1,6 @@
 # Kapitola 3.6: Zpracování událostí
 
-[Domů](../../README.md) | [<< Předchozí: Programatické vytváření widgetů](05-programmatic-widgets.md) | **Zpracování událostí** | [Další: Styly, písma a obrázky >>](07-styles-fonts.md)
+[Domů](../README.md) | [<< Předchozí: Programatické vytváření widgetů](05-programmatic-widgets.md) | **Zpracování událostí** | [Další: Styly, písma a obrázky >>](07-styles-fonts.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapitre 3.9 : Patrons d'interface des vrais mods
 
-[Accueil](../../README.md) | [<< Précédent : Dialogues et modales](08-dialogs-modals.md) | **Patrons d'interface des vrais mods** | [Suivant : Widgets avancés >>](10-advanced-widgets.md)
+[Accueil](../README.md) | [<< Précédent : Dialogues et modales](08-dialogs-modals.md) | **Patrons d'interface des vrais mods** | [Suivant : Widgets avancés >>](10-advanced-widgets.md)
 
 ---
 

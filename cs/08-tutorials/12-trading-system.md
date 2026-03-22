@@ -1,6 +1,6 @@
 # Kapitola 8.12: Vytváření obchodního systému
 
-[Domů](../../README.md) | [<< Předchozí: Vytváření vlastního oblečení](11-clothing-mod.md) | **Vytváření obchodního systému** | [Další: Diagnostické menu >>](13-diag-menu.md)
+[Domů](../README.md) | [<< Předchozí: Vytváření vlastního oblečení](11-clothing-mod.md) | **Vytváření obchodního systému** | [Další: Diagnostické menu >>](13-diag-menu.md)
 
 ---
 

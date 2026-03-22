@@ -1,6 +1,6 @@
 # Глава 7.2: Модульные / плагинные системы
 
-[Главная](../../README.md) | [<< Предыдущая: Паттерн Singleton](01-singletons.md) | **Модульные / плагинные системы** | [Следующая: Паттерны RPC >>](03-rpc-patterns.md)
+[Главная](../README.md) | [<< Предыдущая: Паттерн Singleton](01-singletons.md) | **Модульные / плагинные системы** | [Следующая: Паттерны RPC >>](03-rpc-patterns.md)
 
 ---
 
@@ -571,4 +571,4 @@ override void OnMissionFinish()
 
 ---
 
-[<< Предыдущая: Паттерн Singleton](01-singletons.md) | [Главная](../../README.md) | [Следующая: Паттерны RPC >>](03-rpc-patterns.md)
+[<< Предыдущая: Паттерн Singleton](01-singletons.md) | [Главная](../README.md) | [Следующая: Паттерны RPC >>](03-rpc-patterns.md)

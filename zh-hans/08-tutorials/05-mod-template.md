@@ -1,6 +1,6 @@
 # Chapter 8.5: Using the DayZ Mod Template
 
-[Home](../../README.md) | [<< Previous: Adding Chat Commands](04-chat-commands.md) | **Using the DayZ Mod Template** | [Next: Debugging & Testing >>](06-debugging-testing.md)
+[Home](../README.md) | [<< Previous: Adding Chat Commands](04-chat-commands.md) | **Using the DayZ Mod Template** | [Next: Debugging & Testing >>](06-debugging-testing.md)
 
 ---
 
@@ -409,4 +409,4 @@ pause
 
 ---
 
-**上一篇：** [第 8.4 章：添加聊天命令](04-chat-commands.md) | [首页](../../README.md)
+**上一篇：** [第 8.4 章：添加聊天命令](04-chat-commands.md) | [首页](../README.md)

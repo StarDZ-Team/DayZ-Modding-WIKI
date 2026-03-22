@@ -1,6 +1,6 @@
 # Chapitre 3.5 : Création programmatique de widgets
 
-[Accueil](../../README.md) | [<< Précédent : Widgets conteneurs](04-containers.md) | **Création programmatique de widgets** | [Suivant : Gestion des événements >>](06-event-handling.md)
+[Accueil](../README.md) | [<< Précédent : Widgets conteneurs](04-containers.md) | **Création programmatique de widgets** | [Suivant : Gestion des événements >>](06-event-handling.md)
 
 ---
 

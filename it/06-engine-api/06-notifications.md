@@ -1,6 +1,6 @@
 # Capitolo 6.6: Sistema di notifiche
 
-[Home](../../README.md) | [<< Precedente: Effetti di post-elaborazione](05-ppe.md) | **Notifiche** | [Successivo: Timer e CallQueue >>](07-timers.md)
+[Home](../README.md) | [<< Precedente: Effetti di post-elaborazione](05-ppe.md) | **Notifiche** | [Successivo: Timer e CallQueue >>](07-timers.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapter 8.13: The Diagnostic Menu (Diag Menu)
 
-[Home](../../README.md) | [<< Previous: Building a Trading System](12-trading-system.md) | **The Diagnostic Menu**
+[Home](../README.md) | [<< Previous: Building a Trading System](12-trading-system.md) | **The Diagnostic Menu**
 
 ---
 

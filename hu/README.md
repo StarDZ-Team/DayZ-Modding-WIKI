@@ -1,7 +1,6 @@
-<p align="center">
-  <strong>DayZ Modding Teljes Utmutato</strong><br/>
-  Atfogo DayZ modding dokumentacio — 92 fejezet, a nullarol a publikalt modig.
-</p>
+# DayZ Modding Teljes Utmutato
+
+> Atfogo DayZ modding dokumentacio — 92 fejezet, a nullarol a publikalt modig.
 
 <p align="center">
   <a href="../en/README.md"><img src="https://flagsapi.com/US/flat/48.png" alt="English" /></a>

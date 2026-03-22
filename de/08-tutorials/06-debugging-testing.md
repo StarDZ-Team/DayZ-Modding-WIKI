@@ -1,6 +1,6 @@
 # Kapitel 8.6: Debugging & Testen Ihrer Mod
 
-[Startseite](../../README.md) | [<< Zurück: Die DayZ-Mod-Vorlage verwenden](05-mod-template.md) | **Debugging & Testen** | [Weiter: Im Steam Workshop veröffentlichen >>](07-publishing-workshop.md)
+[Startseite](../README.md) | [<< Zurück: Die DayZ-Mod-Vorlage verwenden](05-mod-template.md) | **Debugging & Testen** | [Weiter: Im Steam Workshop veröffentlichen >>](07-publishing-workshop.md)
 
 ---
 

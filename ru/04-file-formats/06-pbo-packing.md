@@ -1,6 +1,6 @@
 # Глава 4.6: Упаковка PBO
 
-[Главная](../../README.md) | [<< Предыдущая: Рабочий процесс DayZ Tools](05-dayz-tools.md) | **Упаковка PBO** | [Следующая: Руководство по Workbench >>](07-workbench-guide.md)
+[Главная](../README.md) | [<< Предыдущая: Рабочий процесс DayZ Tools](05-dayz-tools.md) | **Упаковка PBO** | [Следующая: Руководство по Workbench >>](07-workbench-guide.md)
 
 ---
 

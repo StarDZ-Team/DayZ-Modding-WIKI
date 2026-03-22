@@ -1,6 +1,6 @@
 # Capítulo 1.10: Enums y Preprocesador
 
-[Inicio](../../README.md) | [<< Anterior: Casting & Reflection](09-casting-reflection.md) | **Enums & Preprocessor** | [Siguiente: Error Handling >>](11-error-handling.md)
+[Inicio](../README.md) | [<< Anterior: Casting & Reflection](09-casting-reflection.md) | **Enums & Preprocessor** | [Siguiente: Error Handling >>](11-error-handling.md)
 
 ---
 

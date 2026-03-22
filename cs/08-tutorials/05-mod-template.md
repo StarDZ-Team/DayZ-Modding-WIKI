@@ -1,6 +1,6 @@
 # Chapter 8.5: Using the DayZ Mod Template
 
-[Home](../../README.md) | [<< Previous: Adding Chat Commands](04-chat-commands.md) | **Using the DayZ Mod Template** | [Next: Debugging & Testing >>](06-debugging-testing.md)
+[Home](../README.md) | [<< Previous: Adding Chat Commands](04-chat-commands.md) | **Using the DayZ Mod Template** | [Next: Debugging & Testing >>](06-debugging-testing.md)
 
 ---
 
@@ -409,4 +409,4 @@ S vaším modem založeným na šabloně v provozu můžete:
 
 ---
 
-**Předchozí:** [Kapitola 8.4: Přidání chatových příkazů](04-chat-commands.md) | [Domů](../../README.md)
+**Předchozí:** [Kapitola 8.4: Přidání chatových příkazů](04-chat-commands.md) | [Domů](../README.md)

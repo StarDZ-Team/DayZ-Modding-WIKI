@@ -1,6 +1,6 @@
 # Kapitel 1.13: Funktionen & Methoden
 
-[Startseite](../../README.md) | [<< Zurück: Fallstricke](12-gotchas.md) | **Funktionen & Methoden**
+[Startseite](../README.md) | [<< Zurück: Fallstricke](12-gotchas.md) | **Funktionen & Methoden**
 
 ---
 

@@ -1,6 +1,6 @@
 # Capítulo 8.10: Creando un Mod de Vehículo Personalizado
 
-[Inicio](../../README.md) | [<< Anterior: Plantilla Profesional de Mod](09-professional-template.md) | **Creando un Vehículo Personalizado** | [Siguiente: Creando Ropa Personalizada >>](11-clothing-mod.md)
+[Inicio](../README.md) | [<< Anterior: Plantilla Profesional de Mod](09-professional-template.md) | **Creando un Vehículo Personalizado** | [Siguiente: Creando Ropa Personalizada >>](11-clothing-mod.md)
 
 ---
 

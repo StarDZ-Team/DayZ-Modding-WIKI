@@ -1,6 +1,6 @@
 # 第 6.7 章：定时器与 CallQueue
 
-[首页](../../README.md) | [<< 上一章：通知系统](06-notifications.md) | **定时器与 CallQueue** | [下一章：文件 I/O 与 JSON >>](08-file-io.md)
+[首页](../README.md) | [<< 上一章：通知系统](06-notifications.md) | **定时器与 CallQueue** | [下一章：文件 I/O 与 JSON >>](08-file-io.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapter 7.5: Permission Systems
 
-[Home](../../README.md) | [<< Previous: Config Persistence](04-config-persistence.md) | **Permission Systems** | [Next: Event-Driven Architecture >>](06-events.md)
+[Home](../README.md) | [<< Previous: Config Persistence](04-config-persistence.md) | **Permission Systems** | [Next: Event-Driven Architecture >>](06-events.md)
 
 ---
 
@@ -237,4 +237,4 @@ Concede todas as permissões que começam com `"MyMod.Admin."`. Permite conceder
 
 ---
 
-[<< Anterior: Persistência de Config](04-config-persistence.md) | [Início](../../README.md) | [Próximo: Arquitetura Orientada a Eventos >>](06-events.md)
+[<< Anterior: Persistência de Config](04-config-persistence.md) | [Início](../README.md) | [Próximo: Arquitetura Orientada a Eventos >>](06-events.md)

@@ -1,6 +1,6 @@
 # Kapitola 4.4: Zvuk (.ogg, .wss)
 
-[Domů](../../README.md) | [<< Předchozí: Materiály](03-materials.md) | **Zvuk** | [Další: DayZ Tools Workflow >>](05-dayz-tools.md)
+[Domů](../README.md) | [<< Předchozí: Materiály](03-materials.md) | **Zvuk** | [Další: DayZ Tools Workflow >>](05-dayz-tools.md)
 
 ---
 

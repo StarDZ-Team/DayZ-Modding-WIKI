@@ -1,6 +1,6 @@
 # Rozdział 5.6: Konfiguracja ekwipunku startowego
 
-[Strona główna](../../README.md) | [<< Poprzedni: Pliki konfiguracyjne serwera](05-server-configs.md) | **Konfiguracja ekwipunku startowego**
+[Strona główna](../README.md) | [<< Poprzedni: Pliki konfiguracyjne serwera](05-server-configs.md) | **Konfiguracja ekwipunku startowego**
 
 ---
 
@@ -1158,4 +1158,4 @@ cfgplayerspawnpoints.xml
 
 ---
 
-[Strona główna](../../README.md) | [<< Poprzedni: Pliki konfiguracyjne serwera](05-server-configs.md) | **Konfiguracja ekwipunku startowego**
+[Strona główna](../README.md) | [<< Poprzedni: Pliki konfiguracyjne serwera](05-server-configs.md) | **Konfiguracja ekwipunku startowego**

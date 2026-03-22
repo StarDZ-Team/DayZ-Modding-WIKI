@@ -1,6 +1,6 @@
 # Chapitre 7.7 : Optimisation des performances
 
-[Accueil](../../README.md) | [<< Précédent : Architecture événementielle](06-events.md) | **Optimisation des performances**
+[Accueil](../README.md) | [<< Précédent : Architecture événementielle](06-events.md) | **Optimisation des performances**
 
 ---
 
@@ -800,4 +800,4 @@ Avant de livrer du code sensible aux performances, vérifiez :
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Architecture événementielle](06-events.md) | **Optimisation des performances**
+[Accueil](../README.md) | [<< Précédent : Architecture événementielle](06-events.md) | **Optimisation des performances**

@@ -1,6 +1,6 @@
 # Kapitel 6.6: Benachrichtigungssystem
 
-[Startseite](../../README.md) | [<< Zurück: Nachbearbeitungseffekte](05-ppe.md) | **Benachrichtigungen** | [Weiter: Timer und CallQueue >>](07-timers.md)
+[Startseite](../README.md) | [<< Zurück: Nachbearbeitungseffekte](05-ppe.md) | **Benachrichtigungen** | [Weiter: Timer und CallQueue >>](07-timers.md)
 
 ---
 

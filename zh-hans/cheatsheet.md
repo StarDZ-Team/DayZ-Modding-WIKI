@@ -1,6 +1,6 @@
 # Enforce Script 速查表
 
-[首页](../README.md) | **速查表**
+[首页](./README.md) | **速查表**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // 多人游戏返回 true
 
 ---
 
-*完整文档：[DayZ 模组制作 Wiki](../README.md) | [常见陷阱](01-enforce-script/12-gotchas.md) | [错误处理](01-enforce-script/11-error-handling.md)*
+*完整文档：[DayZ 模组制作 Wiki](./README.md) | [常见陷阱](01-enforce-script/12-gotchas.md) | [错误处理](01-enforce-script/11-error-handling.md)*

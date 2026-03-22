@@ -1,6 +1,6 @@
 # Rozdział 4.6: Pakowanie PBO
 
-[Strona główna](../../README.md) | [<< Poprzedni: Przepływ pracy DayZ Tools](05-dayz-tools.md) | **Pakowanie PBO** | [Następny: Przewodnik po Workbench >>](07-workbench-guide.md)
+[Strona główna](../README.md) | [<< Poprzedni: Przepływ pracy DayZ Tools](05-dayz-tools.md) | **Pakowanie PBO** | [Następny: Przewodnik po Workbench >>](07-workbench-guide.md)
 
 ---
 

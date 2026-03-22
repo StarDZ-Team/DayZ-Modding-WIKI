@@ -1,6 +1,6 @@
 # 第 5.3 章：Credits.json
 
-[首页](../../README.md) | [<< 上一章：inputs.xml](02-inputs-xml.md) | **Credits.json** | [下一章：ImageSet 格式 >>](04-imagesets.md)
+[首页](../README.md) | [<< 上一章：inputs.xml](02-inputs-xml.md) | **Credits.json** | [下一章：ImageSet 格式 >>](04-imagesets.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapter 1.6: String Operations
 
-[Home](../../README.md) | [<< Previous: Control Flow](05-control-flow.md) | **String Operations** | [Next: Math & Vectors >>](07-math-vectors.md)
+[Home](../README.md) | [<< Previous: Control Flow](05-control-flow.md) | **String Operations** | [Next: Math & Vectors >>](07-math-vectors.md)
 
 ---
 
@@ -494,4 +494,4 @@ bool lt = (a < b);
 
 ---
 
-[<< 1.5: Fluxo de Controle](05-control-flow.md) | [Início](../../README.md) | [1.7: Matemática & Vectors >>](07-math-vectors.md)
+[<< 1.5: Fluxo de Controle](05-control-flow.md) | [Início](../README.md) | [1.7: Matemática & Vectors >>](07-math-vectors.md)

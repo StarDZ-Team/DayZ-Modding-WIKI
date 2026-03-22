@@ -1,6 +1,6 @@
 # Chapter 1.2: Arrays, Maps & Sets
 
-[Home](../../README.md) | [<< Previous: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Next: Classes & Inheritance >>](03-classes-inheritance.md)
+[Home](../README.md) | [<< Previous: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Next: Classes & Inheritance >>](03-classes-inheritance.md)
 
 ---
 
@@ -917,4 +917,4 @@ Crie uma classe com dois maps que permite consulta em ambas as direções: dado 
 
 ---
 
-[Início](../../README.md) | [<< Anterior: Variáveis & Tipos](01-variables-types.md) | **Arrays, Maps & Sets** | [Próximo: Classes & Herança >>](03-classes-inheritance.md)
+[Início](../README.md) | [<< Anterior: Variáveis & Tipos](01-variables-types.md) | **Arrays, Maps & Sets** | [Próximo: Classes & Herança >>](03-classes-inheritance.md)

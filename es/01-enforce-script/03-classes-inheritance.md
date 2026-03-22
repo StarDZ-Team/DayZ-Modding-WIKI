@@ -1,6 +1,6 @@
 # Capitulo 1.3: Clases y Herencia
 
-[Inicio](../../README.md) | [<< Anterior: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Clases y Herencia** | [Siguiente: Modded Classes >>](04-modded-classes.md)
+[Inicio](../README.md) | [<< Anterior: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Clases y Herencia** | [Siguiente: Modded Classes >>](04-modded-classes.md)
 
 ---
 
@@ -947,4 +947,4 @@ Crea una clase abstracta `Handler` con `protected Handler m_Next` y metodos `Set
 
 ---
 
-[Inicio](../../README.md) | [<< Anterior: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Clases y Herencia** | [Siguiente: Modded Classes >>](04-modded-classes.md)
+[Inicio](../README.md) | [<< Anterior: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Clases y Herencia** | [Siguiente: Modded Classes >>](04-modded-classes.md)

@@ -1,6 +1,6 @@
 # Rozdział 3.10: Zaawansowane widgety
 
-[Strona główna](../../README.md) | [<< Poprzedni: Wzorce UI z prawdziwych modów](09-real-mod-patterns.md) | **Zaawansowane widgety**
+[Strona główna](../README.md) | [<< Poprzedni: Wzorce UI z prawdziwych modów](09-real-mod-patterns.md) | **Zaawansowane widgety**
 
 ---
 

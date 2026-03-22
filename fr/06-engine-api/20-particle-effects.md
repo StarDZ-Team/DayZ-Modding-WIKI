@@ -1,6 +1,6 @@
 # Chapitre 6.20: Particle & Effect System
 
-[Accueil](../../README.md) | [<< Précédent : Terrain & World Queries](19-terrain-queries.md) | **Particle & Effect System** | [Suivant : Zombie & AI System >>](21-zombie-ai-system.md)
+[Accueil](../README.md) | [<< Précédent : Terrain & World Queries](19-terrain-queries.md) | **Particle & Effect System** | [Suivant : Zombie & AI System >>](21-zombie-ai-system.md)
 
 ---
 
@@ -1068,4 +1068,4 @@ ps.ResetParticle();  // Works correctly
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Terrain & World Queries](19-terrain-queries.md) | **Particle & Effect System** | [Suivant : Zombie & AI System >>](21-zombie-ai-system.md)
+[Accueil](../README.md) | [<< Précédent : Terrain & World Queries](19-terrain-queries.md) | **Particle & Effect System** | [Suivant : Zombie & AI System >>](21-zombie-ai-system.md)

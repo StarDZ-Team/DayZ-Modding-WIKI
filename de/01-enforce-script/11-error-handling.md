@@ -1,6 +1,6 @@
 # Kapitel 1.11: Fehlerbehandlung
 
-[Startseite](../../README.md) | [<< Zurück: Enums & Präprozessor](10-enums-preprocessor.md) | **Fehlerbehandlung** | [Weiter: Fallstricke >>](12-gotchas.md)
+[Startseite](../README.md) | [<< Zurück: Enums & Präprozessor](10-enums-preprocessor.md) | **Fehlerbehandlung** | [Weiter: Fallstricke >>](12-gotchas.md)
 
 ---
 

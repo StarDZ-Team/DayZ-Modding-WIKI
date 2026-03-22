@@ -1,6 +1,6 @@
 # Chapter 8.10: カスタム車両Modの作成
 
-[Home](../../README.md) | [<< 前へ: プロフェッショナルModテンプレート](09-professional-template.md) | **カスタム車両の作成** | [次へ: カスタム衣類の作成 >>](11-clothing-mod.md)
+[Home](../README.md) | [<< 前へ: プロフェッショナルModテンプレート](09-professional-template.md) | **カスタム車両の作成** | [次へ: カスタム衣類の作成 >>](11-clothing-mod.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第 8.1 章：你的第一个 Mod（Hello World）
 
-[首页](../../README.md) | **你的第一个 Mod** | [下一章：创建自定义物品 >>](02-custom-item.md)
+[首页](../README.md) | **你的第一个 Mod** | [下一章：创建自定义物品 >>](02-custom-item.md)
 
 ---
 

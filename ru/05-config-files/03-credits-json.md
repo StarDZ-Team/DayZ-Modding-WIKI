@@ -1,6 +1,6 @@
 # Глава 5.3: Credits.json
 
-[Главная](../../README.md) | [<< Назад: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Далее: Формат ImageSet >>](04-imagesets.md)
+[Главная](../README.md) | [<< Назад: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Далее: Формат ImageSet >>](04-imagesets.md)
 
 ---
 

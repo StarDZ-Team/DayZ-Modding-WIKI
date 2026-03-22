@@ -1,6 +1,6 @@
 # 第 4.4 章：音频（.ogg、.wss）
 
-[首页](../../README.md) | [<< 上一章：材质](03-materials.md) | **音频** | [下一章：DayZ 工具工作流 >>](05-dayz-tools.md)
+[首页](../README.md) | [<< 上一章：材质](03-materials.md) | **音频** | [下一章：DayZ 工具工作流 >>](05-dayz-tools.md)
 
 ---
 

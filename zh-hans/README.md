@@ -1,7 +1,6 @@
-<p align="center">
-  <strong>DayZ Mod 开发完全指南</strong><br/>
-  全面的 DayZ Mod 开发文档 — 92 章，从零到发布 Mod。
-</p>
+# DayZ Mod 开发完全指南
+
+> 全面的 DayZ Mod 开发文档 — 92 章，从零到发布 Mod。
 
 <p align="center">
   <a href="../en/README.md"><img src="https://flagsapi.com/US/flat/48.png" alt="English" /></a>

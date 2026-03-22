@@ -1,6 +1,6 @@
 # Capítulo 6.12: Sistema de Ações
 
-[Início](../../README.md) | [<< Anterior: Hooks de Missão](11-mission-hooks.md) | **Sistema de Ações** | [Próximo: Sistema de Entrada >>](13-input-system.md)
+[Início](../README.md) | [<< Anterior: Hooks de Missão](11-mission-hooks.md) | **Sistema de Ações** | [Próximo: Sistema de Entrada >>](13-input-system.md)
 
 ---
 

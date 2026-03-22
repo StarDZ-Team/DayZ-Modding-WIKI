@@ -1,6 +1,6 @@
 # Глава 4.5: Рабочий процесс DayZ Tools
 
-[Главная](../../README.md) | [<< Предыдущая: Аудио](04-audio.md) | **DayZ Tools** | [Следующая: Упаковка PBO >>](06-pbo-packing.md)
+[Главная](../README.md) | [<< Предыдущая: Аудио](04-audio.md) | **DayZ Tools** | [Следующая: Упаковка PBO >>](06-pbo-packing.md)
 
 ---
 

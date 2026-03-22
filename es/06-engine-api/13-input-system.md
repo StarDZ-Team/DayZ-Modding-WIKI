@@ -1,6 +1,6 @@
 # Capítulo 6.13: Sistema de Input
 
-[Inicio](../../README.md) | [<< Anterior: Action System](12-action-system.md) | **Input System** | [Siguiente: Player System >>](14-player-system.md)
+[Inicio](../README.md) | [<< Anterior: Action System](12-action-system.md) | **Input System** | [Siguiente: Player System >>](14-player-system.md)
 
 ---
 

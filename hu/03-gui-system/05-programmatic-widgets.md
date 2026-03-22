@@ -1,6 +1,6 @@
 # 3.5. fejezet: Programozott widget létrehozás
 
-[Kezdőlap](../../README.md) | [<< Előző: Konténer widgetek](04-containers.md) | **Programozott widget létrehozás** | [Következő: Események kezelése >>](06-event-handling.md)
+[Kezdőlap](../README.md) | [<< Előző: Konténer widgetek](04-containers.md) | **Programozott widget létrehozás** | [Következő: Események kezelése >>](06-event-handling.md)
 
 ---
 

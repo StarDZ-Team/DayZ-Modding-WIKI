@@ -1,6 +1,6 @@
 # Capitolo 4.7: Guida a Workbench
 
-[Home](../../README.md) | [<< Precedente: Impacchettamento PBO](06-pbo-packing.md) | **Guida a Workbench** | [Successivo: Modellazione di Edifici >>](08-building-modeling.md)
+[Home](../README.md) | [<< Precedente: Impacchettamento PBO](06-pbo-packing.md) | **Guida a Workbench** | [Successivo: Modellazione di Edifici >>](08-building-modeling.md)
 
 ---
 

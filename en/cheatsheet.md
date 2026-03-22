@@ -1,6 +1,6 @@
 # Enforce Script Cheat Sheet
 
-[Home](../README.md) | **Cheat Sheet**
+[Home](./README.md) | **Cheat Sheet**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true if multiplayer
 
 ---
 
-*Full documentation: [DayZ Modding Wiki](../README.md) | [Gotchas](01-enforce-script/12-gotchas.md) | [Error Handling](01-enforce-script/11-error-handling.md)*
+*Full documentation: [DayZ Modding Wiki](./README.md) | [Gotchas](01-enforce-script/12-gotchas.md) | [Error Handling](01-enforce-script/11-error-handling.md)*

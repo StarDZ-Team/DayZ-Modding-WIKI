@@ -1,6 +1,6 @@
 # 第 1.6 章：字符串操作
 
-[首页](../../README.md) | [<< 上一章：控制流](05-control-flow.md) | **字符串操作** | [下一章：数学与向量 >>](07-math-vectors.md)
+[首页](../README.md) | [<< 上一章：控制流](05-control-flow.md) | **字符串操作** | [下一章：数学与向量 >>](07-math-vectors.md)
 
 ---
 
@@ -527,4 +527,4 @@ bool lt = (a < b);
 
 ---
 
-[<< 1.5：控制流](05-control-flow.md) | [首页](../../README.md) | [1.7：数学与向量 >>](07-math-vectors.md)
+[<< 1.5：控制流](05-control-flow.md) | [首页](../README.md) | [1.7：数学与向量 >>](07-math-vectors.md)

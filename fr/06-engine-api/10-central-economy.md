@@ -1,6 +1,6 @@
 # Chapitre 6.10: Central Economy
 
-[Accueil](../../README.md) | [<< Précédent : Networking & RPC](09-networking.md) | **Central Economy** | [Suivant : Mission Hooks >>](11-mission-hooks.md)
+[Accueil](../README.md) | [<< Précédent : Networking & RPC](09-networking.md) | **Central Economy** | [Suivant : Mission Hooks >>](11-mission-hooks.md)
 
 ---
 
@@ -548,4 +548,4 @@ Add a new `<event>` block in `events.xml` and corresponding apparition positions
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Networking & RPC](09-networking.md) | **Central Economy** | [Suivant : Mission Hooks >>](11-mission-hooks.md)
+[Accueil](../README.md) | [<< Précédent : Networking & RPC](09-networking.md) | **Central Economy** | [Suivant : Mission Hooks >>](11-mission-hooks.md)

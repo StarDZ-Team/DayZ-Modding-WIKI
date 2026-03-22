@@ -1,6 +1,6 @@
 # 第1.6章: 文字列操作
 
-[ホーム](../../README.md) | [<< 前へ: 制御フロー](05-control-flow.md) | **文字列操作** | [次へ: 数学とベクトル >>](07-math-vectors.md)
+[ホーム](../README.md) | [<< 前へ: 制御フロー](05-control-flow.md) | **文字列操作** | [次へ: 数学とベクトル >>](07-math-vectors.md)
 
 ---
 
@@ -527,4 +527,4 @@ bool lt = (a < b);
 
 ---
 
-[<< 1.5: 制御フロー](05-control-flow.md) | [ホーム](../../README.md) | [1.7: 数学とベクトル >>](07-math-vectors.md)
+[<< 1.5: 制御フロー](05-control-flow.md) | [ホーム](../README.md) | [1.7: 数学とベクトル >>](07-math-vectors.md)

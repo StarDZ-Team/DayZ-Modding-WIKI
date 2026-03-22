@@ -1,6 +1,6 @@
 # Rozdział 6.11: Hooki misji
 
-[Strona główna](../../README.md) | [<< Poprzedni: Centralna Ekonomia](10-central-economy.md) | **Hooki misji** | [Następny: System akcji >>](12-action-system.md)
+[Strona główna](../README.md) | [<< Poprzedni: Centralna Ekonomia](10-central-economy.md) | **Hooki misji** | [Następny: System akcji >>](12-action-system.md)
 
 ---
 
@@ -942,4 +942,4 @@ override void InvokeOnDisconnect(PlayerBase player)
 
 ---
 
-[Strona główna](../../README.md) | [<< Poprzedni: Centralna Ekonomia](10-central-economy.md) | **Hooki misji** | [Następny: System akcji >>](12-action-system.md)
+[Strona główna](../README.md) | [<< Poprzedni: Centralna Ekonomia](10-central-economy.md) | **Hooki misji** | [Następny: System akcji >>](12-action-system.md)

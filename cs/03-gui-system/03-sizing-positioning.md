@@ -1,6 +1,6 @@
 # Kapitola 3.3: Rozměry a pozicování
 
-[Domů](../../README.md) | [<< Předchozí: Formát souboru layoutu](02-layout-files.md) | **Rozměry a pozicování** | [Další: Kontejnerové widgety >>](04-containers.md)
+[Domů](../README.md) | [<< Předchozí: Formát souboru layoutu](02-layout-files.md) | **Rozměry a pozicování** | [Další: Kontejnerové widgety >>](04-containers.md)
 
 ---
 

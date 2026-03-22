@@ -1,6 +1,6 @@
 # Rozdział 3.4: Widgety kontenerów
 
-[Strona główna](../../README.md) | [<< Poprzedni: Rozmiary i pozycjonowanie](03-sizing-positioning.md) | **Widgety kontenerów** | [Dalej: Programowe tworzenie widgetów >>](05-programmatic-widgets.md)
+[Strona główna](../README.md) | [<< Poprzedni: Rozmiary i pozycjonowanie](03-sizing-positioning.md) | **Widgety kontenerów** | [Dalej: Programowe tworzenie widgetów >>](05-programmatic-widgets.md)
 
 ---
 

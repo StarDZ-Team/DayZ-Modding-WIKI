@@ -1,6 +1,6 @@
 # Chapter 6.1: Entity System
 
-[Home](../../README.md) | **Entity System** | [Next: Vehicles >>](02-vehicles.md)
+[Home](../README.md) | **Entity System** | [Next: Vehicles >>](02-vehicles.md)
 
 ---
 
@@ -892,4 +892,4 @@ void DamageEntity(EntityAI target, float amount)
 
 ---
 
-[Kezdolap](../../README.md) | **Entitas rendszer** | [Kovetkezo: Jarmuvek >>](02-vehicles.md)
+[Kezdolap](../README.md) | **Entitas rendszer** | [Kovetkezo: Jarmuvek >>](02-vehicles.md)

@@ -1,6 +1,6 @@
 # Rozdział 6.4: System kamer
 
-[Strona główna](../../README.md) | [<< Poprzedni: Pogoda](03-weather.md) | **Kamery** | [Następny: Efekty post-processingu >>](05-ppe.md)
+[Strona główna](../README.md) | [<< Poprzedni: Pogoda](03-weather.md) | **Kamery** | [Następny: Efekty post-processingu >>](05-ppe.md)
 
 ---
 

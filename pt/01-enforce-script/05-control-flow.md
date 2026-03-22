@@ -1,6 +1,6 @@
 # Chapter 1.5: Control Flow
 
-[Home](../../README.md) | [<< Previous: Modded Classes](04-modded-classes.md) | **Control Flow** | [Next: String Operations >>](06-strings.md)
+[Home](../README.md) | [<< Previous: Modded Classes](04-modded-classes.md) | **Control Flow** | [Next: String Operations >>](06-strings.md)
 
 ---
 
@@ -575,4 +575,4 @@ switch (value) { case X: /* ... */ break; default: break; }
 
 ---
 
-[<< 1.4: Modded Classes](04-modded-classes.md) | [Início](../../README.md) | [1.6: Operações com Strings >>](06-strings.md)
+[<< 1.4: Modded Classes](04-modded-classes.md) | [Início](../README.md) | [1.6: Operações com Strings >>](06-strings.md)

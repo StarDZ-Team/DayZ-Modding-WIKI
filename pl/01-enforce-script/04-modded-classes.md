@@ -1,6 +1,6 @@
 # Chapter 1.4: Modded Classes (The Key to DayZ Modding)
 
-[Home](../../README.md) | [<< Previous: Classes & Inheritance](03-classes-inheritance.md) | **Modded Classes** | [Next: Control Flow >>](05-control-flow.md)
+[Home](../README.md) | [<< Previous: Classes & Inheritance](03-classes-inheritance.md) | **Modded Classes** | [Next: Control Flow >>](05-control-flow.md)
 
 ---
 
@@ -1095,4 +1095,4 @@ Create a `modded class PlayerBase` that adds a reputation system. When a player 
 
 ---
 
-[Home](../../README.md) | [<< Previous: Classes & Inheritance](03-classes-inheritance.md) | **Modded Classes** | [Next: Control Flow >>](05-control-flow.md)
+[Home](../README.md) | [<< Previous: Classes & Inheritance](03-classes-inheritance.md) | **Modded Classes** | [Next: Control Flow >>](05-control-flow.md)

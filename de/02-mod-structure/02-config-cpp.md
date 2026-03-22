@@ -1,6 +1,6 @@
 # Kapitel 2.2: config.cpp im Detail
 
-[Startseite](../../README.md) | [<< Zurück: Die 5-Schichten-Skript-Hierarchie](01-five-layers.md) | **config.cpp im Detail** | [Weiter: mod.cpp & Workshop >>](03-mod-cpp.md)
+[Startseite](../README.md) | [<< Zurück: Die 5-Schichten-Skript-Hierarchie](01-five-layers.md) | **config.cpp im Detail** | [Weiter: mod.cpp & Workshop >>](03-mod-cpp.md)
 
 ---
 

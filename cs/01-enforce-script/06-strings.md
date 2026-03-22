@@ -1,6 +1,6 @@
 # Chapter 1.6: String Operations
 
-[Domů](../../README.md) | [<< Předchozí: Řízení toku](05-control-flow.md) | **String Operations** | [Další: Matematika a vektory >>](07-math-vectors.md)
+[Domů](../README.md) | [<< Předchozí: Řízení toku](05-control-flow.md) | **String Operations** | [Další: Matematika a vektory >>](07-math-vectors.md)
 
 ---
 
@@ -527,4 +527,4 @@ bool lt = (a < b);
 
 ---
 
-[<< 1.5: Control Flow](05-control-flow.md) | [Domů](../../README.md) | [1.7: Math & Vectors >>](07-math-vectors.md)
+[<< 1.5: Control Flow](05-control-flow.md) | [Domů](../README.md) | [1.7: Math & Vectors >>](07-math-vectors.md)

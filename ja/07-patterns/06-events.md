@@ -1,6 +1,6 @@
 # Chapter 7.6: イベント駆動アーキテクチャ
 
-[ホーム](../../README.md) | [<< 前: パーミッションシステム](05-permissions.md) | **イベント駆動アーキテクチャ** | [次: パフォーマンス最適化 >>](07-performance.md)
+[ホーム](../README.md) | [<< 前: パーミッションシステム](05-permissions.md) | **イベント駆動アーキテクチャ** | [次: パフォーマンス最適化 >>](07-performance.md)
 
 ---
 
@@ -474,4 +474,4 @@ OnKillEvent.Invoke(killData);
 
 ---
 
-[ホーム](../../README.md) | [<< 前: パーミッションシステム](05-permissions.md) | **イベント駆動アーキテクチャ** | [次: パフォーマンス最適化 >>](07-performance.md)
+[ホーム](../README.md) | [<< 前: パーミッションシステム](05-permissions.md) | **イベント駆動アーキテクチャ** | [次: パフォーマンス最適化 >>](07-performance.md)

@@ -1,6 +1,6 @@
 # Chapitre 2.6 : Architecture Serveur vs Client
 
-[Accueil](../../README.md) | [<< Précédent : Organisation des fichiers](05-file-organization.md) | **Architecture Serveur vs Client**
+[Accueil](../README.md) | [<< Précédent : Organisation des fichiers](05-file-organization.md) | **Architecture Serveur vs Client**
 
 ---
 

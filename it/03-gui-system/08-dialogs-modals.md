@@ -1,6 +1,6 @@
 # Capitolo 3.8: Dialoghi e Modali
 
-[Home](../../README.md) | [<< Precedente: Stili, Font e Immagini](07-styles-fonts.md) | **Dialoghi e Modali** | [Successivo: Pattern UI dei Mod Reali >>](09-real-mod-patterns.md)
+[Home](../README.md) | [<< Precedente: Stili, Font e Immagini](07-styles-fonts.md) | **Dialoghi e Modali** | [Successivo: Pattern UI dei Mod Reali >>](09-real-mod-patterns.md)
 
 ---
 

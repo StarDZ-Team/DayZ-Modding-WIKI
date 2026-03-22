@@ -1,6 +1,6 @@
 # Глава 8.8: Создание HUD-оверлея
 
-[Главная](../../README.md) | [<< Назад: Публикация в Steam Workshop](07-publishing-workshop.md) | **Создание HUD-оверлея** | [Далее: Профессиональный шаблон мода >>](09-professional-template.md)
+[Главная](../README.md) | [<< Назад: Публикация в Steam Workshop](07-publishing-workshop.md) | **Создание HUD-оверлея** | [Далее: Профессиональный шаблон мода >>](09-professional-template.md)
 
 ---
 

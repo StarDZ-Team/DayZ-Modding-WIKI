@@ -1,6 +1,6 @@
 # Kapitola 8.1: Váš první mod (Hello World)
 
-[Domů](../../README.md) | **Váš první mod** | [Další: Vytvoření vlastního předmětu >>](02-custom-item.md)
+[Domů](../README.md) | **Váš první mod** | [Další: Vytvoření vlastního předmětu >>](02-custom-item.md)
 
 ---
 

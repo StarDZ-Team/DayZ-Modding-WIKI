@@ -1,6 +1,6 @@
 # 第7.4章：配置持久化
 
-[首页](../../README.md) | [<< 上一章：RPC 模式](03-rpc-patterns.md) | **配置持久化** | [下一章：权限系统 >>](05-permissions.md)
+[首页](../README.md) | [<< 上一章：RPC 模式](03-rpc-patterns.md) | **配置持久化** | [下一章：权限系统 >>](05-permissions.md)
 
 ---
 
@@ -695,4 +695,4 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 ---
 
-[首页](../../README.md) | [<< 上一章：RPC 模式](03-rpc-patterns.md) | **配置持久化** | [下一章：权限系统 >>](05-permissions.md)
+[首页](../README.md) | [<< 上一章：RPC 模式](03-rpc-patterns.md) | **配置持久化** | [下一章：权限系统 >>](05-permissions.md)

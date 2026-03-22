@@ -1,6 +1,6 @@
 # Chapitre 8.11 : Créer des vêtements personnalisés
 
-[Accueil](../../README.md) | [<< Précédent : Créer un véhicule personnalisé](10-vehicle-mod.md) | **Créer des vêtements personnalisés** | [Suivant : Construire un système d'échange >>](12-trading-system.md)
+[Accueil](../README.md) | [<< Précédent : Créer un véhicule personnalisé](10-vehicle-mod.md) | **Créer des vêtements personnalisés** | [Suivant : Construire un système d'échange >>](12-trading-system.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Capítulo 6.11: Hooks de Missão
 
-[Início](../../README.md) | [<< Anterior: Economia Central](10-central-economy.md) | **Hooks de Missão** | [Próximo: Sistema de Ações >>](12-action-system.md)
+[Início](../README.md) | [<< Anterior: Economia Central](10-central-economy.md) | **Hooks de Missão** | [Próximo: Sistema de Ações >>](12-action-system.md)
 
 ---
 
@@ -942,4 +942,4 @@ override void InvokeOnDisconnect(PlayerBase player)
 
 ---
 
-[Início](../../README.md) | [<< Anterior: Economia Central](10-central-economy.md) | **Hooks de Missão** | [Próximo: Sistema de Ações >>](12-action-system.md)
+[Início](../README.md) | [<< Anterior: Economia Central](10-central-economy.md) | **Hooks de Missão** | [Próximo: Sistema de Ações >>](12-action-system.md)

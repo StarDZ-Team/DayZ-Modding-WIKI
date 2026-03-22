@@ -1,6 +1,6 @@
 # Capitolo 5.5: File di Configurazione del Server
 
-[Home](../../README.md) | [<< Precedente: Formato ImageSet](04-imagesets.md) | **File di Configurazione del Server** | [Successivo: Configurazione dello Spawn Gear >>](06-spawning-gear.md)
+[Home](../README.md) | [<< Precedente: Formato ImageSet](04-imagesets.md) | **File di Configurazione del Server** | [Successivo: Configurazione dello Spawn Gear >>](06-spawning-gear.md)
 
 ---
 

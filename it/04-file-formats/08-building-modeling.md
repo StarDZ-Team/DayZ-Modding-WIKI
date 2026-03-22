@@ -1,6 +1,6 @@
 # Capitolo 4.8: Modellazione di Edifici -- Porte e Scale
 
-[Home](../../README.md) | [<< Precedente: Guida a Workbench](07-workbench-guide.md) | **Modellazione di Edifici**
+[Home](../README.md) | [<< Precedente: Guida a Workbench](07-workbench-guide.md) | **Modellazione di Edifici**
 
 ---
 

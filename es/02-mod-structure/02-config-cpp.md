@@ -1,6 +1,6 @@
 # Capitulo 2.2: config.cpp a Fondo
 
-[Inicio](../../README.md) | [<< Anterior: La Jerarquia de 5 Capas de Scripts](01-five-layers.md) | **config.cpp a Fondo** | [Siguiente: mod.cpp & Workshop >>](03-mod-cpp.md)
+[Inicio](../README.md) | [<< Anterior: La Jerarquia de 5 Capas de Scripts](01-five-layers.md) | **config.cpp a Fondo** | [Siguiente: mod.cpp & Workshop >>](03-mod-cpp.md)
 
 ---
 

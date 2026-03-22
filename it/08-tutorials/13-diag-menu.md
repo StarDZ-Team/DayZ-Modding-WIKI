@@ -1,6 +1,6 @@
 # Capitolo 8.13: Il Menu Diagnostico (Diag Menu)
 
-[Home](../../README.md) | [<< Precedente: Costruire un Sistema di Scambio](12-trading-system.md) | **Il Menu Diagnostico**
+[Home](../README.md) | [<< Precedente: Costruire un Sistema di Scambio](12-trading-system.md) | **Il Menu Diagnostico**
 
 ---
 

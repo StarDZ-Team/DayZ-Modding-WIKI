@@ -1,6 +1,6 @@
 # 8.11. fejezet: Egyedi ruházat készítése
 
-[Kezdőlap](../../README.md) | [<< Előző: Egyedi jármű készítése](10-vehicle-mod.md) | **Egyedi ruházat készítése** | [Következő: Kereskedési rendszer építése >>](12-trading-system.md)
+[Kezdőlap](../README.md) | [<< Előző: Egyedi jármű készítése](10-vehicle-mod.md) | **Egyedi ruházat készítése** | [Következő: Kereskedési rendszer építése >>](12-trading-system.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Capítulo 4.2: 3D Models (.p3d)
 
-[Inicio](../../README.md) | [<< Anterior: Textures](01-textures.md) | **3D Models** | [Siguiente: Materials >>](03-materials.md)
+[Inicio](../README.md) | [<< Anterior: Textures](01-textures.md) | **3D Models** | [Siguiente: Materials >>](03-materials.md)
 
 ---
 

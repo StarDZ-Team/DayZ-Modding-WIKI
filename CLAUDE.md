@@ -54,8 +54,8 @@ Reference files sit at the root of each language dir: `cheatsheet.md`, `glossary
 
 ### VitePress Configuration
 
-- **Config:** `.vitepress/config.mts` — single sidebar definition via `sidebarEN()`, reused for all 12 locales
-- **Sidebar caveat:** All locale sidebars share the same `sidebarEN()` — links point to `/en/` paths regardless of current language. This is a known limitation.
+- **Config:** `.vitepress/config.mts` — single sidebar definition via `sidebar(lang)`, parameterized for all 12 locales
+- **Sidebar:** Each locale calls `sidebar('pt')`, `sidebar('de')`, etc. so sidebar links point to the correct language paths.
 - **Mermaid:** Enabled via `vitepress-plugin-mermaid` (dark theme)
 - **Search:** Local client-side search (no external provider)
 - **Code blocks:** Line numbers enabled globally
@@ -107,7 +107,7 @@ Update these when adding a new chapter:
 1. Root `README.md` — chapter in the Part table
 2. `<lang>/README.md` — language-specific table of contents
 3. Previous/Next navigation links in adjacent chapters
-4. `.vitepress/config.mts` — sidebar `sidebarEN()` items array
+4. `.vitepress/config.mts` — sidebar `sidebar(lang)` items array
 
 One topic per PR. Reference vanilla script files or tested in-game behavior when correcting API signatures.
 

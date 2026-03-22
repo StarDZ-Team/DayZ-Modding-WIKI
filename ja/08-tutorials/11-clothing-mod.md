@@ -1,6 +1,6 @@
 # Chapter 8.11: カスタム衣類の作成
 
-[Home](../../README.md) | [<< 前へ: カスタム車両の作成](10-vehicle-mod.md) | **カスタム衣類の作成** | [次へ: トレーディングシステムの構築 >>](12-trading-system.md)
+[Home](../README.md) | [<< 前へ: カスタム車両の作成](10-vehicle-mod.md) | **カスタム衣類の作成** | [次へ: トレーディングシステムの構築 >>](12-trading-system.md)
 
 ---
 

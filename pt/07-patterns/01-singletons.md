@@ -1,6 +1,6 @@
 # Chapter 7.1: Singleton Pattern
 
-[Home](../../README.md) | **Singleton Pattern** | [Next: Module Systems >>](02-module-systems.md)
+[Home](../README.md) | **Singleton Pattern** | [Next: Module Systems >>](02-module-systems.md)
 
 ---
 
@@ -487,4 +487,4 @@ Antes de publicar um singleton, verifique:
 
 ---
 
-[Início](../../README.md) | **Padrão Singleton** | [Próximo: Sistemas de Módulos >>](02-module-systems.md)
+[Início](../README.md) | **Padrão Singleton** | [Próximo: Sistemas de Módulos >>](02-module-systems.md)

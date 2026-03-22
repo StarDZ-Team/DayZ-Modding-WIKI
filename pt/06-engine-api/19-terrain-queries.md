@@ -1,6 +1,6 @@
 # Capítulo 6.19: Consultas de Terreno e Mundo
 
-[Início](../../README.md) | [<< Anterior: Sistema de Animação](18-animation-system.md) | **Consultas de Terreno e Mundo** | [Próximo: Sistema de Partículas e Efeitos >>](20-particle-effects.md)
+[Início](../README.md) | [<< Anterior: Sistema de Animação](18-animation-system.md) | **Consultas de Terreno e Mundo** | [Próximo: Sistema de Partículas e Efeitos >>](20-particle-effects.md)
 
 ---
 
@@ -1104,4 +1104,4 @@ const static PhxInteractionLayers MELEE_TARGET_OBSTRUCTION_LAYERS =
 
 ---
 
-[Início](../../README.md) | [<< Anterior: Sistema de Animação](18-animation-system.md) | **Consultas de Terreno e Mundo** | [Próximo: Sistema de Partículas e Efeitos >>](20-particle-effects.md)
+[Início](../README.md) | [<< Anterior: Sistema de Animação](18-animation-system.md) | **Consultas de Terreno e Mundo** | [Próximo: Sistema de Partículas e Efeitos >>](20-particle-effects.md)

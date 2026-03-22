@@ -1,6 +1,6 @@
 # Kapitel 1.9: Casting & Reflexion
 
-[Startseite](../../README.md) | [<< Zurück: Speicherverwaltung](08-memory-management.md) | **Casting & Reflexion** | [Weiter: Enums & Präprozessor >>](10-enums-preprocessor.md)
+[Startseite](../README.md) | [<< Zurück: Speicherverwaltung](08-memory-management.md) | **Casting & Reflexion** | [Weiter: Enums & Präprozessor >>](10-enums-preprocessor.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Capitolo 4.1: Texture (.paa, .edds, .tga)
 
-[Home](../../README.md) | **Texture** | [Successivo: Modelli 3D >>](02-models.md)
+[Home](../README.md) | **Texture** | [Successivo: Modelli 3D >>](02-models.md)
 
 ---
 

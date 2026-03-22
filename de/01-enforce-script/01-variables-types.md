@@ -1,6 +1,6 @@
 # Kapitel 1.1: Variablen & Typen
 
-[Startseite](../../README.md) | **Variablen & Typen** | [Weiter: Arrays, Maps & Sets >>](02-arrays-maps-sets.md)
+[Startseite](../README.md) | **Variablen & Typen** | [Weiter: Arrays, Maps & Sets >>](02-arrays-maps-sets.md)
 
 ---
 
@@ -757,4 +757,4 @@ Schreiben Sie eine Funktion `vector SnapToGround(vector pos)`, die eine beliebig
 
 ---
 
-[Startseite](../../README.md) | **Variablen & Typen** | [Weiter: Arrays, Maps & Sets >>](02-arrays-maps-sets.md)
+[Startseite](../README.md) | **Variablen & Typen** | [Weiter: Arrays, Maps & Sets >>](02-arrays-maps-sets.md)

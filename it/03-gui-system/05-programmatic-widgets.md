@@ -1,6 +1,6 @@
 # Capitolo 3.5: Creazione Programmatica di Widget
 
-[Home](../../README.md) | [<< Precedente: Widget Contenitore](04-containers.md) | **Creazione Programmatica di Widget** | [Successivo: Gestione degli Eventi >>](06-event-handling.md)
+[Home](../README.md) | [<< Precedente: Widget Contenitore](04-containers.md) | **Creazione Programmatica di Widget** | [Successivo: Gestione degli Eventi >>](06-event-handling.md)
 
 ---
 

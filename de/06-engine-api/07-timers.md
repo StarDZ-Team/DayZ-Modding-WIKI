@@ -1,6 +1,6 @@
 # Kapitel 6.7: Timer und CallQueue
 
-[Startseite](../../README.md) | [<< Zurück: Benachrichtigungen](06-notifications.md) | **Timer und CallQueue** | [Weiter: Datei-E/A und JSON >>](08-file-io.md)
+[Startseite](../README.md) | [<< Zurück: Benachrichtigungen](06-notifications.md) | **Timer und CallQueue** | [Weiter: Datei-E/A und JSON >>](08-file-io.md)
 
 ---
 

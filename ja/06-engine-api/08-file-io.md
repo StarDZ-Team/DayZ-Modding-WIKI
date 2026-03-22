@@ -1,6 +1,6 @@
 # 第6.8章: ファイルI/OとJSON
 
-[ホーム](../../README.md) | [<< 前へ: タイマーとCallQueue](07-timers.md) | **ファイルI/OとJSON** | [次へ: ネットワークとRPC >>](09-networking.md)
+[ホーム](../README.md) | [<< 前へ: タイマーとCallQueue](07-timers.md) | **ファイルI/OとJSON** | [次へ: ネットワークとRPC >>](09-networking.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第 4.8 章：建筑建模 -- 门与梯子
 
-[首页](../../README.md) | [<< 上一章：Workbench 指南](07-workbench-guide.md) | **建筑建模**
+[首页](../README.md) | [<< 上一章：Workbench 指南](07-workbench-guide.md) | **建筑建模**
 
 ---
 

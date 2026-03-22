@@ -1,6 +1,6 @@
 # Capítulo 3.9: Real Mod UI Patterns
 
-[Inicio](../../README.md) | [<< Anterior: Dialogs & Modals](08-dialogs-modals.md) | **Real Mod UI Patterns** | [Siguiente: Advanced Widgets >>](10-advanced-widgets.md)
+[Inicio](../README.md) | [<< Anterior: Dialogs & Modals](08-dialogs-modals.md) | **Real Mod UI Patterns** | [Siguiente: Advanced Widgets >>](10-advanced-widgets.md)
 
 ---
 

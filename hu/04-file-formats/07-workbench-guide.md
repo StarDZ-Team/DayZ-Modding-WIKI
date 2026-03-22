@@ -1,6 +1,6 @@
 # 4.7. fejezet: Workbench útmutató
 
-[Főoldal](../../README.md) | [<< Előző: PBO csomagolás](06-pbo-packing.md) | **Workbench útmutató** | [Következő: Épület modellezés >>](08-building-modeling.md)
+[Főoldal](../README.md) | [<< Előző: PBO csomagolás](06-pbo-packing.md) | **Workbench útmutató** | [Következő: Épület modellezés >>](08-building-modeling.md)
 
 ---
 

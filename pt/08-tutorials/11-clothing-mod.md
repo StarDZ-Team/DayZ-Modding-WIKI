@@ -1,6 +1,6 @@
 # Chapter 8.11: Criando Roupas Personalizadas
 
-[Inicio](../../README.md) | [<< Anterior: Criando um Veículo Personalizado](10-vehicle-mod.md) | **Criando Roupas Personalizadas** | [Próximo: Construindo um Sistema de Comércio >>](12-trading-system.md)
+[Inicio](../README.md) | [<< Anterior: Criando um Veículo Personalizado](10-vehicle-mod.md) | **Criando Roupas Personalizadas** | [Próximo: Construindo um Sistema de Comércio >>](12-trading-system.md)
 
 ---
 

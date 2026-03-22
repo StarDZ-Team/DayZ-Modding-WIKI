@@ -1,6 +1,6 @@
 # Rozdział 3.9: Wzorce UI z prawdziwych modów
 
-[Strona główna](../../README.md) | [<< Poprzedni: Okna dialogowe i modale](08-dialogs-modals.md) | **Wzorce UI z prawdziwych modów** | [Następny: Zaawansowane widgety >>](10-advanced-widgets.md)
+[Strona główna](../README.md) | [<< Poprzedni: Okna dialogowe i modale](08-dialogs-modals.md) | **Wzorce UI z prawdziwych modów** | [Następny: Zaawansowane widgety >>](10-advanced-widgets.md)
 
 ---
 

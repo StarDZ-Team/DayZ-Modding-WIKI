@@ -1,6 +1,6 @@
 # 6.13. fejezet: Input rendszer
 
-[Kezdőlap](../../README.md) | [<< Előző: Akció rendszer](12-action-system.md) | **Input rendszer** | [Következő: Játékos rendszer >>](14-player-system.md)
+[Kezdőlap](../README.md) | [<< Előző: Akció rendszer](12-action-system.md) | **Input rendszer** | [Következő: Játékos rendszer >>](14-player-system.md)
 
 ---
 

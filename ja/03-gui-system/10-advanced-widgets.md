@@ -1,6 +1,6 @@
 # Chapter 3.10: Advanced Widgets
 
-[Home](../../README.md) | [<< Previous: Real Mod UI Patterns](09-real-mod-patterns.md) | **Advanced Widgets**
+[Home](../README.md) | [<< Previous: Real Mod UI Patterns](09-real-mod-patterns.md) | **Advanced Widgets**
 
 ---
 

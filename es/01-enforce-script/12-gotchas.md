@@ -1,6 +1,6 @@
 # Capitulo 1.12: Lo que NO Existe (Gotchas)
 
-[Inicio](../../README.md) | [<< Anterior: Manejo de Errores](11-error-handling.md) | **Gotchas** | [Siguiente: Funciones y Metodos >>](13-functions-methods.md)
+[Inicio](../README.md) | [<< Anterior: Manejo de Errores](11-error-handling.md) | **Gotchas** | [Siguiente: Funciones y Metodos >>](13-functions-methods.md)
 
 ---
 

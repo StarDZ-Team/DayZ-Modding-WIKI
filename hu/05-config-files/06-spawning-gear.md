@@ -1,6 +1,6 @@
 # 5.6. fejezet: Spawn felszerelés konfiguráció
 
-[Főoldal](../../README.md) | [<< Előző: Szerver konfigurációs fájlok](05-server-configs.md) | **Spawn felszerelés konfiguráció**
+[Főoldal](../README.md) | [<< Előző: Szerver konfigurációs fájlok](05-server-configs.md) | **Spawn felszerelés konfiguráció**
 
 ---
 
@@ -817,4 +817,4 @@ cfgplayerspawnpoints.xml
 
 ---
 
-[Főoldal](../../README.md) | [<< Előző: Szerver konfigurációs fájlok](05-server-configs.md) | **Spawn felszerelés konfiguráció**
+[Főoldal](../README.md) | [<< Előző: Szerver konfigurációs fájlok](05-server-configs.md) | **Spawn felszerelés konfiguráció**

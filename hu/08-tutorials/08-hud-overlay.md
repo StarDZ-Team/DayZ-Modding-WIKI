@@ -1,6 +1,6 @@
 # 8.8. fejezet: HUD overlay készítése
 
-[Főoldal](../../README.md) | [<< Előző: Publikálás a Steam Workshopra](07-publishing-workshop.md) | **HUD overlay készítése** | [Következő: Professzionális mod sablon >>](09-professional-template.md)
+[Főoldal](../README.md) | [<< Előző: Publikálás a Steam Workshopra](07-publishing-workshop.md) | **HUD overlay készítése** | [Következő: Professzionális mod sablon >>](09-professional-template.md)
 
 ---
 

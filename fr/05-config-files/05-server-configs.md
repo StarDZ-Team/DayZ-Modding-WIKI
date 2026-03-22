@@ -1,6 +1,6 @@
 # Chapitre 5.5 : Fichiers de configuration serveur
 
-[Accueil](../../README.md) | [<< Précédent : Format ImageSet](04-imagesets.md) | **Fichiers de configuration serveur** | [Suivant : Configuration de l'équipement d'apparition >>](06-spawning-gear.md)
+[Accueil](../README.md) | [<< Précédent : Format ImageSet](04-imagesets.md) | **Fichiers de configuration serveur** | [Suivant : Configuration de l'équipement d'apparition >>](06-spawning-gear.md)
 
 ---
 

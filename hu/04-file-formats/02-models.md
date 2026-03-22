@@ -1,6 +1,6 @@
 # 4.2. fejezet: 3D modellek (.p3d)
 
-[Kezdőlap](../../README.md) | [<< Előző: Textúrák](01-textures.md) | **3D modellek** | [Következő: Anyagok >>](03-materials.md)
+[Kezdőlap](../README.md) | [<< Előző: Textúrák](01-textures.md) | **3D modellek** | [Következő: Anyagok >>](03-materials.md)
 
 ---
 

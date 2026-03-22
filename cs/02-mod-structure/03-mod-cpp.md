@@ -1,6 +1,6 @@
 # Chapter 2.3: mod.cpp & Workshop
 
-[Domů](../../README.md) | [<< Předchozí: config.cpp do hloubky](02-config-cpp.md) | **mod.cpp a Workshop** | [Další: Minimální funkční mod >>](04-minimum-viable-mod.md)
+[Domů](../README.md) | [<< Předchozí: config.cpp do hloubky](02-config-cpp.md) | **mod.cpp a Workshop** | [Další: Minimální funkční mod >>](04-minimum-viable-mod.md)
 
 ---
 

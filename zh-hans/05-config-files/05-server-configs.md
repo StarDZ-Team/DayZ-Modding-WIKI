@@ -1,6 +1,6 @@
 # 第 5.5 章：服务器配置文件
 
-[首页](../../README.md) | [<< 上一章：ImageSet 格式](04-imagesets.md) | **服务器配置文件** | [下一章：出生装备配置 >>](06-spawning-gear.md)
+[首页](../README.md) | [<< 上一章：ImageSet 格式](04-imagesets.md) | **服务器配置文件** | [下一章：出生装备配置 >>](06-spawning-gear.md)
 
 ---
 

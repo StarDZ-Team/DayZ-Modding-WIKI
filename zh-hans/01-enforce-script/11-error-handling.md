@@ -1,6 +1,6 @@
 # 第 1.11 章：错误处理
 
-[首页](../../README.md) | [<< 上一章：枚举与预处理器](10-enums-preprocessor.md) | **错误处理** | [下一章：注意事项 >>](12-gotchas.md)
+[首页](../README.md) | [<< 上一章：枚举与预处理器](10-enums-preprocessor.md) | **错误处理** | [下一章：注意事项 >>](12-gotchas.md)
 
 ---
 

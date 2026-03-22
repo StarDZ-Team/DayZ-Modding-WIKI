@@ -1,6 +1,6 @@
 # Capítulo 3.1: Tipos de Widget
 
-[Inicio](../../README.md) | **Widget Types** | [Siguiente: Layout Files >>](02-layout-files.md)
+[Inicio](../README.md) | **Widget Types** | [Siguiente: Layout Files >>](02-layout-files.md)
 
 ---
 

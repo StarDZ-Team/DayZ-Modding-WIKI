@@ -1,6 +1,6 @@
 # Kapitola 3.4: Kontejnerové widgety
 
-[Domů](../../README.md) | [<< Předchozí: Rozměry a pozicování](03-sizing-positioning.md) | **Kontejnerové widgety** | [Další: Programatické vytváření widgetů >>](05-programmatic-widgets.md)
+[Domů](../README.md) | [<< Předchozí: Rozměry a pozicování](03-sizing-positioning.md) | **Kontejnerové widgety** | [Další: Programatické vytváření widgetů >>](05-programmatic-widgets.md)
 
 ---
 

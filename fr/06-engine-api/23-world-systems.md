@@ -1,6 +1,6 @@
 # Chapitre 6.23: World Configuration Systems
 
-[Accueil](../../README.md) | [<< Précédent : Admin & Server Management](22-admin-server.md) | **World Systems**
+[Accueil](../README.md) | [<< Précédent : Admin & Server Management](22-admin-server.md) | **World Systems**
 
 ---
 
@@ -794,4 +794,4 @@ All five systems share these characteristics:
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Admin & Server Management](22-admin-server.md) | **World Systems**
+[Accueil](../README.md) | [<< Précédent : Admin & Server Management](22-admin-server.md) | **World Systems**

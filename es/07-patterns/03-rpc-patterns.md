@@ -1,6 +1,6 @@
 # Capitulo 7.3: Patrones de Comunicacion RPC
 
-[Inicio](../../README.md) | [<< Anterior: Sistemas de Modulos](02-module-systems.md) | **Patrones de Comunicacion RPC** | [Siguiente: Persistencia de Configuracion >>](04-config-persistence.md)
+[Inicio](../README.md) | [<< Anterior: Sistemas de Modulos](02-module-systems.md) | **Patrones de Comunicacion RPC** | [Siguiente: Persistencia de Configuracion >>](04-config-persistence.md)
 
 ---
 
@@ -659,4 +659,4 @@ O usa un `Cleanup()` centralizado que limpie todo el mapa de manejadores (como l
 
 ---
 
-[Inicio](../../README.md) | [<< Anterior: Sistemas de Modulos](02-module-systems.md) | **Patrones de Comunicacion RPC** | [Siguiente: Persistencia de Configuracion >>](04-config-persistence.md)
+[Inicio](../README.md) | [<< Anterior: Sistemas de Modulos](02-module-systems.md) | **Patrones de Comunicacion RPC** | [Siguiente: Persistencia de Configuracion >>](04-config-persistence.md)

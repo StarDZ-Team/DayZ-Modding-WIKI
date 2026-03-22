@@ -1,6 +1,6 @@
 # Gyakran ismetelt kerdesek
 
-[Fooldal](../README.md) | **FAQ**
+[Fooldal](./README.md) | **FAQ**
 
 ---
 

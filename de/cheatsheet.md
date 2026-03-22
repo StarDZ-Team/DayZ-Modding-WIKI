@@ -1,6 +1,6 @@
 # Enforce Script Spickzettel
 
-[Startseite](../README.md) | **Spickzettel**
+[Startseite](./README.md) | **Spickzettel**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true wenn Multiplayer
 
 ---
 
-*Vollständige Dokumentation: [DayZ Modding Wiki](../README.md) | [Fallstricke](01-enforce-script/12-gotchas.md) | [Fehlerbehandlung](01-enforce-script/11-error-handling.md)*
+*Vollständige Dokumentation: [DayZ Modding Wiki](./README.md) | [Fallstricke](01-enforce-script/12-gotchas.md) | [Fehlerbehandlung](01-enforce-script/11-error-handling.md)*

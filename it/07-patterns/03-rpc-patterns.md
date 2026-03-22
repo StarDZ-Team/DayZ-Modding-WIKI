@@ -1,6 +1,6 @@
 # Capitolo 7.3: Pattern di Comunicazione RPC
 
-[Home](../../README.md) | [<< Precedente: Sistemi a Moduli](02-module-systems.md) | **Pattern di Comunicazione RPC** | [Successivo: Persistenza Configurazione >>](04-config-persistence.md)
+[Home](../README.md) | [<< Precedente: Sistemi a Moduli](02-module-systems.md) | **Pattern di Comunicazione RPC** | [Successivo: Persistenza Configurazione >>](04-config-persistence.md)
 
 ---
 
@@ -659,4 +659,4 @@ Oppure usa un `Cleanup()` centralizzato che svuota l'intera mappa degli handler 
 
 ---
 
-[Home](../../README.md) | [<< Precedente: Sistemi a Moduli](02-module-systems.md) | **Pattern di Comunicazione RPC** | [Successivo: Persistenza Configurazione >>](04-config-persistence.md)
+[Home](../README.md) | [<< Precedente: Sistemi a Moduli](02-module-systems.md) | **Pattern di Comunicazione RPC** | [Successivo: Persistenza Configurazione >>](04-config-persistence.md)

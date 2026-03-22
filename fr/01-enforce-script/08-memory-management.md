@@ -1,6 +1,6 @@
 # Chapitre 1.8 : Gestion de la mémoire
 
-[Accueil](../../README.md) | [<< Précédent : Math & Vecteurs](07-math-vectors.md) | **Gestion de la mémoire** | [Suivant : Casting & Réflexion >>](09-casting-reflection.md)
+[Accueil](../README.md) | [<< Précédent : Math & Vecteurs](07-math-vectors.md) | **Gestion de la mémoire** | [Suivant : Casting & Réflexion >>](09-casting-reflection.md)
 
 ---
 
@@ -673,4 +673,4 @@ class Child  { Parent m_Parent; }        // Faible -- l'enfant observe le parent
 
 ---
 
-[<< 1.7 : Math & Vecteurs](07-math-vectors.md) | [Accueil](../../README.md) | [1.9 : Casting & Réflexion >>](09-casting-reflection.md)
+[<< 1.7 : Math & Vecteurs](07-math-vectors.md) | [Accueil](../README.md) | [1.9 : Casting & Réflexion >>](09-casting-reflection.md)

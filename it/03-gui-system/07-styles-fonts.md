@@ -1,6 +1,6 @@
 # Capitolo 3.7: Stili, Font e Immagini
 
-[Home](../../README.md) | [<< Precedente: Gestione degli Eventi](06-event-handling.md) | **Stili, Font e Immagini** | [Successivo: Dialoghi e Modali >>](08-dialogs-modals.md)
+[Home](../README.md) | [<< Precedente: Gestione degli Eventi](06-event-handling.md) | **Stili, Font e Immagini** | [Successivo: Dialoghi e Modali >>](08-dialogs-modals.md)
 
 ---
 

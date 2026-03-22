@@ -1,6 +1,6 @@
 # Chapter 1.11: Error Handling
 
-[Domů](../../README.md) | [<< Předchozí: Výčty a preprocesor](10-enums-preprocessor.md) | **Zpracování chyb** | [Další: Záludnosti >>](12-gotchas.md)
+[Domů](../README.md) | [<< Předchozí: Výčty a preprocesor](10-enums-preprocessor.md) | **Zpracování chyb** | [Další: Záludnosti >>](12-gotchas.md)
 
 ---
 

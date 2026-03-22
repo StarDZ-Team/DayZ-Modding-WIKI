@@ -1,6 +1,6 @@
 # Capítulo 5.6: Spawning Gear Configuration
 
-[Inicio](../../README.md) | [<< Anterior: Server Configuration Files](05-server-configs.md) | **Spawning Gear Configuration**
+[Inicio](../README.md) | [<< Anterior: Server Configuration Files](05-server-configs.md) | **Spawning Gear Configuration**
 
 ---
 
@@ -1158,4 +1158,4 @@ cfgplayerspawnpoints.xml
 
 ---
 
-[Inicio](../../README.md) | [<< Anterior: Server Configuration Files](05-server-configs.md) | **Spawning Gear Configuration**
+[Inicio](../README.md) | [<< Anterior: Server Configuration Files](05-server-configs.md) | **Spawning Gear Configuration**

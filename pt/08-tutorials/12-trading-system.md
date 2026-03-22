@@ -1,6 +1,6 @@
 # Capítulo 8.12: Construindo um Sistema de Comércio
 
-[Início](../../README.md) | [<< Anterior: Criando Roupas Personalizadas](11-clothing-mod.md) | **Construindo um Sistema de Comércio** | [Próximo: O Menu de Diagnóstico >>](13-diag-menu.md)
+[Início](../README.md) | [<< Anterior: Criando Roupas Personalizadas](11-clothing-mod.md) | **Construindo um Sistema de Comércio** | [Próximo: O Menu de Diagnóstico >>](13-diag-menu.md)
 
 ---
 

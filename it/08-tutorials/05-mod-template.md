@@ -1,6 +1,6 @@
 # Capitolo 8.5: Usare il Template Mod di DayZ
 
-[Home](../../README.md) | [<< Precedente: Aggiungere Comandi Chat](04-chat-commands.md) | **Usare il Template Mod di DayZ** | [Successivo: Debug e Test >>](06-debugging-testing.md)
+[Home](../README.md) | [<< Precedente: Aggiungere Comandi Chat](04-chat-commands.md) | **Usare il Template Mod di DayZ** | [Successivo: Debug e Test >>](06-debugging-testing.md)
 
 ---
 
@@ -413,4 +413,4 @@ Con la tua mod basata su template funzionante, puoi:
 
 ---
 
-**Precedente:** [Capitolo 8.4: Aggiungere Comandi Chat](04-chat-commands.md) | [Home](../../README.md)
+**Precedente:** [Capitolo 8.4: Aggiungere Comandi Chat](04-chat-commands.md) | [Home](../README.md)

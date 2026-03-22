@@ -1,6 +1,6 @@
 # 7.3. fejezet: RPC kommunikációs minták
 
-[Kezdőlap](../../README.md) | [<< Előző: Modul rendszerek](02-module-systems.md) | **RPC kommunikációs minták** | [Következő: Konfiguráció perzisztencia >>](04-config-persistence.md)
+[Kezdőlap](../README.md) | [<< Előző: Modul rendszerek](02-module-systems.md) | **RPC kommunikációs minták** | [Következő: Konfiguráció perzisztencia >>](04-config-persistence.md)
 
 ---
 
@@ -659,4 +659,4 @@ Vagy használj centralizált `Cleanup()`-ot, amely kitörli a teljes kezelő té
 
 ---
 
-[Kezdőlap](../../README.md) | [<< Előző: Modul rendszerek](02-module-systems.md) | **RPC kommunikációs minták** | [Következő: Konfiguráció perzisztencia >>](04-config-persistence.md)
+[Kezdőlap](../README.md) | [<< Előző: Modul rendszerek](02-module-systems.md) | **RPC kommunikációs minták** | [Következő: Konfiguráció perzisztencia >>](04-config-persistence.md)

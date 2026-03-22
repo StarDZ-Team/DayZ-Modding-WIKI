@@ -1,6 +1,6 @@
 # Rozdział 8.9: Profesjonalny szablon moda
 
-[Strona główna](../../README.md) | [<< Poprzedni: Budowanie nakładki HUD](08-hud-overlay.md) | **Profesjonalny szablon moda** | [Dalej: Tworzenie własnego pojazdu >>](10-vehicle-mod.md)
+[Strona główna](../README.md) | [<< Poprzedni: Budowanie nakładki HUD](08-hud-overlay.md) | **Profesjonalny szablon moda** | [Dalej: Tworzenie własnego pojazdu >>](10-vehicle-mod.md)
 
 ---
 
@@ -1794,4 +1794,4 @@ Z tym profesjonalnym szablonem działającym, możesz:
 
 ---
 
-**Poprzedni:** [Rozdział 8.8: Budowanie nakładki HUD](08-hud-overlay.md) | [Strona główna](../../README.md)
+**Poprzedni:** [Rozdział 8.8: Budowanie nakładki HUD](08-hud-overlay.md) | [Strona główna](../README.md)

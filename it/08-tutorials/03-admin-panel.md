@@ -1,53 +1,53 @@
-# Chapter 8.3: Building an Admin Panel Module
+# Capitolo 8.3: Costruire un Modulo Pannello Admin
 
-[Home](../../README.md) | [<< Previous: Creating a Custom Item](02-custom-item.md) | **Building an Admin Panel** | [Next: Adding Chat Commands >>](04-chat-commands.md)
+[Home](../README.md) | [<< Precedente: Creare un Oggetto Personalizzato](02-custom-item.md) | **Costruire un Pannello Admin** | [Successivo: Aggiungere Comandi Chat >>](04-chat-commands.md)
 
 ---
 
-> **Riepilogo:** Questo tutorial ti guida nella building a complete admin panel module from scratch. You will create a UI layout, bind widgets in script, handle button clicks, send an RPC from client to server, process the request on the server, send a response back, and display the result in the UI. This covers the full client-server-client roundtrip that every networked mod needs.
+> **Riepilogo:** Questo tutorial ti guida nella costruzione di un modulo pannello admin completo partendo da zero. Creerai un layout UI, collegherai i widget nello script, gestirai i clic dei pulsanti, invierai un RPC dal client al server, elaborerai la richiesta sul server, invierai una risposta indietro e visualizzerai il risultato nell'interfaccia. Questo copre l'intero ciclo client-server-client di cui ogni mod con funzionalità di rete ha bisogno.
 
 ---
 
 ## Indice dei Contenuti
 
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Step 1: Create the Module Class](#step-1-create-the-module-class)
-- [Step 2: Create the Layout File](#step-2-create-the-layout-file)
-- [Step 3: Bind Widgets in OnActivated](#step-3-bind-widgets-in-onactivated)
-- [Step 4: Handle Button Clicks](#step-4-handle-button-clicks)
-- [Step 5: Send an RPC to the Server](#step-5-send-an-rpc-to-the-server)
-- [Step 6: Handle the Server-Side Response](#step-6-handle-the-server-side-response)
-- [Step 7: Update the UI with Received Data](#step-7-update-the-ui-with-received-data)
-- [Step 8: Register the Module](#step-8-register-the-module)
-- [Complete File Reference](#complete-file-reference)
-- [The Full Roundtrip Explained](#the-full-roundtrip-explained)
-- [Troubleshooting](#troubleshooting)
-- [Next Steps](#next-steps)
+- [Cosa Stiamo Costruendo](#cosa-stiamo-costruendo)
+- [Prerequisiti](#prerequisiti)
+- [Panoramica dell'Architettura](#panoramica-dellarchitettura)
+- [Step 1: Creare la Classe Modulo](#step-1-creare-la-classe-modulo)
+- [Step 2: Creare il File di Layout](#step-2-creare-il-file-di-layout)
+- [Step 3: Collegare i Widget in OnActivated](#step-3-collegare-i-widget-in-onactivated)
+- [Step 4: Gestire i Clic dei Pulsanti](#step-4-gestire-i-clic-dei-pulsanti)
+- [Step 5: Inviare un RPC al Server](#step-5-inviare-un-rpc-al-server)
+- [Step 6: Gestire la Risposta Lato Server](#step-6-gestire-la-risposta-lato-server)
+- [Step 7: Aggiornare la UI con i Dati Ricevuti](#step-7-aggiornare-la-ui-con-i-dati-ricevuti)
+- [Step 8: Registrare il Modulo](#step-8-registrare-il-modulo)
+- [Riferimento Completo dei File](#riferimento-completo-dei-file)
+- [Spiegazione del Ciclo Completo](#spiegazione-del-ciclo-completo)
+- [Risoluzione dei Problemi](#risoluzione-dei-problemi)
+- [Prossimi Passi](#prossimi-passi)
 
 ---
 
 ## Cosa Stiamo Costruendo
 
-Creeremo an **Admin Player Info** panel that:
+Creeremo un pannello **Admin Player Info** che:
 
-1. Shows a "Refresh" button in a simple UI panel
-2. When the admin clicks Refresh, sends an RPC to the server requesting player count data
-3. The server receives the request, gathers the information, and sends it back
-4. The client receives the response and displays the player count and list in the UI
+1. Mostra un pulsante "Refresh" in un semplice pannello UI
+2. Quando l'admin clicca Refresh, invia un RPC al server richiedendo i dati del conteggio giocatori
+3. Il server riceve la richiesta, raccoglie le informazioni e le invia indietro
+4. Il client riceve la risposta e visualizza il conteggio e la lista dei giocatori nella UI
 
-Questo dimostra the fundamental pattern used by every networked admin tool, mod configuration panel, and multiplayer UI in DayZ.
+Questo dimostra il pattern fondamentale utilizzato da ogni strumento admin di rete, pannello di configurazione mod e interfaccia multiplayer in DayZ.
 
 ---
 
 ## Prerequisiti
 
-- A working mod from [Chapter 8.1](01-first-mod.md) or a new mod with the standard structure
-- Understanding of the [5-Layer Script Hierarchy](../02-mod-structure/01-five-layers.md) (we will use `3_Game`, `4_World`, and `5_Mission`)
-- Basic comfort reading Enforce Script code
+- Una mod funzionante dal [Capitolo 8.1](01-first-mod.md) o una nuova mod con la struttura standard
+- Comprensione della [Gerarchia a 5 Layer degli Script](../02-mod-structure/01-five-layers.md) (useremo `3_Game`, `4_World` e `5_Mission`)
+- Familiarità di base nella lettura del codice Enforce Script
 
-### Struttura del Mod for This Tutorial
+### Struttura del Mod per Questo Tutorial
 
 Creeremo questi nuovi file:
 
@@ -81,54 +81,54 @@ Prima di scrivere codice, comprendi il flusso dei dati:
 CLIENT                              SERVER
 ------                              ------
 
-1. Admin clicks "Refresh"
-2. Client sends RPC ------>  3. Server receives RPC
-   (AdminDemo_RequestInfo)       Gathers player data
-                             4. Server sends RPC ------>  CLIENT
+1. L'admin clicca "Refresh"
+2. Il client invia RPC ------>  3. Il server riceve l'RPC
+   (AdminDemo_RequestInfo)         Raccoglie i dati dei giocatori
+                             4. Il server invia RPC ------>  CLIENT
                                 (AdminDemo_ResponseInfo)
-                                                     5. Client receives RPC
-                                                        Updates UI text
+                                                     5. Il client riceve l'RPC
+                                                        Aggiorna il testo della UI
 ```
 
-The RPC (Remote Procedure Call) system is how client and server communicate in DayZ. Il motore provides `GetGame().RPCSingleParam()` and `GetGame().RPC()` methods to send data, and an `OnRPC()` override to receive it.
+Il sistema RPC (Remote Procedure Call) è il modo in cui client e server comunicano in DayZ. Il motore fornisce i metodi `GetGame().RPCSingleParam()` e `GetGame().RPC()` per inviare dati, e un override `OnRPC()` per riceverli.
 
-**Key constraints:**
-- Clients cannot directly read server-side data (player list, server state)
-- All cross-boundary communication must go through RPC
-- RPC messages are identified by integer IDs
-- Data is sent as serialized parameters using `Param` classes
+**Vincoli chiave:**
+- I client non possono leggere direttamente i dati lato server (lista giocatori, stato del server)
+- Tutta la comunicazione tra i confini deve passare attraverso RPC
+- I messaggi RPC sono identificati da ID interi
+- I dati vengono inviati come parametri serializzati usando le classi `Param`
 
 ---
 
-## Step 1: Create the Module Class
+## Step 1: Creare la Classe Modulo
 
-First, definire the RPC identifiers in `3_Game` (the earliest layer where game types are available). RPC IDs must be defined in `3_Game` perché entrambi `4_World` (server handler) and `5_Mission` (client handler) need to reference them.
+Per prima cosa, definisci gli identificatori RPC in `3_Game` (il layer più basso dove i tipi di gioco sono disponibili). Gli ID RPC devono essere definiti in `3_Game` perché sia `4_World` (gestore lato server) che `5_Mission` (gestore lato client) hanno bisogno di riferirsi ad essi.
 
-### Create `Scripts/3_Game/AdminDemo/AdminDemoRPC.c`
+### Crea `Scripts/3_Game/AdminDemo/AdminDemoRPC.c`
 
 ```c
 class AdminDemoRPC
 {
-    // RPC IDs -- pick unique numbers that do not collide with other mods
-    // Using high numbers reduces collision risk
+    // ID RPC -- scegli numeri unici che non collidano con altre mod
+    // Usare numeri alti riduce il rischio di collisione
     static const int REQUEST_PLAYER_INFO  = 78001;
     static const int RESPONSE_PLAYER_INFO = 78002;
 };
 ```
 
-These constants will be used by both the client (to send requests) and the server (to identify incoming requests and send responses).
+Queste costanti saranno utilizzate sia dal client (per inviare richieste) che dal server (per identificare le richieste in arrivo e inviare risposte).
 
-### Why 3_Game?
+### Perché 3_Game?
 
-RPC IDs are pure data -- integers with no dependency on world entities or UI. Placing them in `3_Game` makes them visible to both `4_World` (where the server handler lives) and `5_Mission` (where the client UI lives).
+Gli ID RPC sono dati puri -- interi senza dipendenze da entità del mondo o dalla UI. Posizionarli in `3_Game` li rende visibili sia a `4_World` (dove risiede il gestore lato server) che a `5_Mission` (dove risiede la UI lato client).
 
 ---
 
-## Step 2: Create the Layout File
+## Step 2: Creare il File di Layout
 
 Il file di layout definisce la struttura visuale del tuo pannello. DayZ usa un formato testuale personalizzato (non XML) per i file `.layout`.
 
-### Create `GUI/layouts/admin_player_info.layout`
+### Crea `GUI/layouts/admin_player_info.layout`
 
 ```
 FrameWidgetClass AdminDemoPanel {
@@ -218,24 +218,24 @@ FrameWidgetClass AdminDemoPanel {
 ### Dettaglio del Layout
 
 | Widget | Scopo |
-|--------|---------|
-| `AdminDemoPanel` | Root frame, 40% wide and 50% tall, centered on screen |
-| `Background` | Dark semi-transparent background filling the entire panel |
-| `Title` | "Player Info Panel" text at the top |
-| `RefreshButton` | Button the admin clicks to request data |
-| `PlayerCountText` | Displays the player count number |
-| `PlayerListText` | Displays the list of player names |
-| `CloseButton` | Closes the panel |
+|--------|-------|
+| `AdminDemoPanel` | Frame radice, largo 40% e alto 50%, centrato sullo schermo |
+| `Background` | Sfondo scuro semi-trasparente che riempie l'intero pannello |
+| `Title` | Testo "Player Info Panel" in alto |
+| `RefreshButton` | Pulsante che l'admin clicca per richiedere i dati |
+| `PlayerCountText` | Visualizza il numero del conteggio giocatori |
+| `PlayerListText` | Visualizza la lista dei nomi dei giocatori |
+| `CloseButton` | Chiude il pannello |
 
-Tutte le dimensioni usano coordinate proporzionali (da 0.0 a 1.0 relative al genitore) perché `hexactsize` and `vexactsize` are set to `0`.
+Tutte le dimensioni usano coordinate proporzionali (da 0.0 a 1.0 relative al genitore) perché `hexactsize` e `vexactsize` sono impostati a `0`.
 
 ---
 
-## Step 3: Bind Widgets in OnActivated
+## Step 3: Collegare i Widget in OnActivated
 
 Ora crea lo script del pannello lato client che carica il layout e collega i widget alle variabili.
 
-### Create `Scripts/5_Mission/AdminDemo/AdminDemoPanel.c`
+### Crea `Scripts/5_Mission/AdminDemo/AdminDemoPanel.c`
 
 ```c
 class AdminDemoPanel extends ScriptedWidgetEventHandler
@@ -259,28 +259,28 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Open the panel: create widgets and bind references
+    // Apri il pannello: crea i widget e collega i riferimenti
     // -------------------------------------------------------
     void Open()
     {
         if (m_IsOpen)
             return;
 
-        // Load the layout file and get the root widget
+        // Carica il file di layout e ottieni il widget radice
         m_Root = GetGame().GetWorkspace().CreateWidgets("AdminDemo/GUI/layouts/admin_player_info.layout");
         if (!m_Root)
         {
-            Print("[AdminDemo] ERROR: Failed to load layout file!");
+            Print("[AdminDemo] ERRORE: Caricamento del file di layout fallito!");
             return;
         }
 
-        // Bind widget references by name
+        // Collega i riferimenti ai widget per nome
         m_RefreshButton  = ButtonWidget.Cast(m_Root.FindAnyWidget("RefreshButton"));
         m_CloseButton    = ButtonWidget.Cast(m_Root.FindAnyWidget("CloseButton"));
         m_PlayerCountText = TextWidget.Cast(m_Root.FindAnyWidget("PlayerCountText"));
         m_PlayerListText  = TextWidget.Cast(m_Root.FindAnyWidget("PlayerListText"));
 
-        // Register this class as the event handler for our widgets
+        // Registra questa classe come gestore degli eventi per i nostri widget
         if (m_RefreshButton)
             m_RefreshButton.SetHandler(this);
 
@@ -290,15 +290,15 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
         m_Root.Show(true);
         m_IsOpen = true;
 
-        // Show the mouse cursor so the admin can click buttons
+        // Mostra il cursore del mouse perché l'admin possa cliccare i pulsanti
         GetGame().GetMission().PlayerControlDisable(INPUT_EXCLUDE_ALL);
         GetGame().GetUIManager().ShowUICursor(true);
 
-        Print("[AdminDemo] Panel opened.");
+        Print("[AdminDemo] Pannello aperto.");
     }
 
     // -------------------------------------------------------
-    // Close the panel: destroy widgets and restore controls
+    // Chiudi il pannello: distruggi i widget e ripristina i controlli
     // -------------------------------------------------------
     void Close()
     {
@@ -313,11 +313,11 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 
         m_IsOpen = false;
 
-        // Restore player controls and hide cursor
+        // Ripristina i controlli del giocatore e nascondi il cursore
         GetGame().GetMission().PlayerControlEnable(true);
         GetGame().GetUIManager().ShowUICursor(false);
 
-        Print("[AdminDemo] Panel closed.");
+        Print("[AdminDemo] Pannello chiuso.");
     }
 
     bool IsOpen()
@@ -326,7 +326,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Toggle open/close
+    // Alterna apertura/chiusura
     // -------------------------------------------------------
     void Toggle()
     {
@@ -337,7 +337,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Handle button click events
+    // Gestisci gli eventi di clic dei pulsanti
     // -------------------------------------------------------
     override bool OnClick(Widget w, int x, int y, int button)
     {
@@ -357,21 +357,21 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Called when admin clicks Refresh
+    // Chiamato quando l'admin clicca Refresh
     // -------------------------------------------------------
     protected void OnRefreshClicked()
     {
-        Print("[AdminDemo] Refresh clicked, sending RPC to server...");
+        Print("[AdminDemo] Refresh cliccato, invio RPC al server...");
 
-        // Update UI to show loading state
+        // Aggiorna la UI per mostrare lo stato di caricamento
         if (m_PlayerCountText)
             m_PlayerCountText.SetText("Player Count: Loading...");
 
         if (m_PlayerListText)
-            m_PlayerListText.SetText("Requesting data from server...");
+            m_PlayerListText.SetText("Richiesta dati al server...");
 
-        // Send RPC to server
-        // Parameters: target object, RPC ID, data, recipient (null = server)
+        // Invia RPC al server
+        // Parametri: oggetto target, ID RPC, dati, destinatario (null = server)
         Man player = GetGame().GetPlayer();
         if (player)
         {
@@ -381,11 +381,11 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
     }
 
     // -------------------------------------------------------
-    // Called when server response arrives (from mission OnRPC)
+    // Chiamato quando arriva la risposta del server (da mission OnRPC)
     // -------------------------------------------------------
     void OnPlayerInfoReceived(int playerCount, string playerNames)
     {
-        Print("[AdminDemo] Received player info: " + playerCount.ToString() + " players");
+        Print("[AdminDemo] Info giocatori ricevute: " + playerCount.ToString() + " giocatori");
 
         if (m_PlayerCountText)
             m_PlayerCountText.SetText("Player Count: " + playerCount.ToString());
@@ -398,21 +398,21 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 
 ### Concetti Chiave
 
-**`CreateWidgets()`** loads the `.layout` file and creates actual widget objects in memory. It returns the root widget.
+**`CreateWidgets()`** carica il file `.layout` e crea gli oggetti widget effettivi in memoria. Restituisce il widget radice.
 
-**`FindAnyWidget("name")`** searches the widget tree for a widget with the given name. The name must match the widget name in the layout file exactly.
+**`FindAnyWidget("name")`** cerca nell'albero dei widget un widget con il nome specificato. Il nome deve corrispondere esattamente al nome del widget nel file di layout.
 
-**`Cast()`** converts the generic `Widget` reference to a specific type (like `ButtonWidget`). Questo è richiesto perché `FindAnyWidget` returns the base `Widget` type.
+**`Cast()`** converte il riferimento generico `Widget` in un tipo specifico (come `ButtonWidget`). Questo è richiesto perché `FindAnyWidget` restituisce il tipo base `Widget`.
 
-**`SetHandler(this)`** registers this class as the event handler for the widget. When the button is clicked, il motore calls `OnClick()` on this object.
+**`SetHandler(this)`** registra questa classe come gestore degli eventi per il widget. Quando il pulsante viene cliccato, il motore chiama `OnClick()` su questo oggetto.
 
-**`PlayerControlDisable` / `PlayerControlEnable`** disables/re-enables player movement and actions. Without this, the player would walk around while trying to click buttons.
+**`PlayerControlDisable` / `PlayerControlEnable`** disabilita/riabilita il movimento e le azioni del giocatore. Senza questo, il giocatore si muoverebbe mentre cerca di cliccare i pulsanti.
 
 ---
 
-## Step 4: Handle Button Clicks
+## Step 4: Gestire i Clic dei Pulsanti
 
-The button click handling is already implemented in Step 3's `OnClick()` method. Esaminiamo il pattern più da vicino.
+La gestione dei clic dei pulsanti è già implementata nel metodo `OnClick()` dello Step 3. Esaminiamo il pattern più da vicino.
 
 ### Il Pattern OnClick
 
@@ -422,7 +422,7 @@ override bool OnClick(Widget w, int x, int y, int button)
     if (w == m_RefreshButton)
     {
         OnRefreshClicked();
-        return true;    // Event consumed -- stop propagation
+        return true;    // Evento consumato -- ferma la propagazione
     }
 
     if (w == m_CloseButton)
@@ -431,30 +431,30 @@ override bool OnClick(Widget w, int x, int y, int button)
         return true;
     }
 
-    return false;        // Event not consumed -- let it propagate
+    return false;        // Evento non consumato -- lascialo propagare
 }
 ```
 
-**Parameters:**
-- `w` -- The widget that was clicked
-- `x`, `y` -- Mouse coordinates at the time of the click
-- `button` -- Which mouse button (0 = left, 1 = right, 2 = middle)
+**Parametri:**
+- `w` -- Il widget che è stato cliccato
+- `x`, `y` -- Coordinate del mouse al momento del clic
+- `button` -- Quale pulsante del mouse (0 = sinistro, 1 = destro, 2 = centrale)
 
-**Return value:**
-- `true` means you handled the event. It stops propagating to parent widgets.
-- `false` means you did not handle it. Il motore passes it to the next handler.
+**Valore di ritorno:**
+- `true` significa che hai gestito l'evento. Ferma la propagazione ai widget genitori.
+- `false` significa che non l'hai gestito. Il motore lo passa al gestore successivo.
 
-**Pattern:** Compare the clicked widget `w` against your known widget references. Call a handler method for each recognized button. Return `true` for handled clicks, `false` for everything else.
+**Pattern:** Confronta il widget cliccato `w` con i tuoi riferimenti ai widget conosciuti. Chiama un metodo gestore per ogni pulsante riconosciuto. Restituisci `true` per i clic gestiti, `false` per tutto il resto.
 
 ---
 
-## Step 5: Send an RPC to the Server
+## Step 5: Inviare un RPC al Server
 
-Quando l'admin clicca Aggiorna, dobbiamo inviare un messaggio dal client al server. DayZ provides the RPC system for this.
+Quando l'admin clicca Refresh, dobbiamo inviare un messaggio dal client al server. DayZ fornisce il sistema RPC per questo.
 
-### RPC Sending (Client to Server)
+### Invio RPC (dal Client al Server)
 
-The core send call from Step 3:
+La chiamata di invio principale dallo Step 3:
 
 ```c
 Man player = GetGame().GetPlayer();
@@ -468,23 +468,23 @@ if (player)
 **`GetGame().RPCSingleParam(target, rpcID, params, guaranteed)`:**
 
 | Parametro | Significato |
-|-----------|---------|
-| `target` | The object this RPC is associated with. Using the player is standard. |
-| `rpcID` | Your unique integer identifier (defined in `AdminDemoRPC`). |
-| `params` | A `Param` object carrying the data payload. |
-| `guaranteed` | `true` = TCP-like reliable delivery. `false` = UDP-like fire-and-forget. Always use `true` for admin operations. |
+|-----------|-------------|
+| `target` | L'oggetto a cui questo RPC è associato. Usare il giocatore è lo standard. |
+| `rpcID` | Il tuo identificatore intero unico (definito in `AdminDemoRPC`). |
+| `params` | Un oggetto `Param` che trasporta il payload dei dati. |
+| `guaranteed` | `true` = consegna affidabile tipo TCP. `false` = spara-e-dimentica tipo UDP. Usa sempre `true` per le operazioni admin. |
 
-### Param Classes
+### Classi Param
 
-DayZ provides template `Param` classes for sending data:
+DayZ fornisce classi template `Param` per l'invio dei dati:
 
-| Class | Usage |
-|-------|-------|
-| `Param1<T>` | One value |
-| `Param2<T1, T2>` | Two values |
-| `Param3<T1, T2, T3>` | Three values |
+| Classe | Utilizzo |
+|--------|----------|
+| `Param1<T>` | Un valore |
+| `Param2<T1, T2>` | Due valori |
+| `Param3<T1, T2, T3>` | Tre valori |
 
-Puoi inviare strings, ints, floats, bools, and vectors. Example with multiple values:
+Puoi inviare stringhe, interi, float, booleani e vettori. Esempio con valori multipli:
 
 ```c
 Param3<string, int, float> data = new Param3<string, int, float>("hello", 42, 3.14);
@@ -493,23 +493,23 @@ GetGame().RPCSingleParam(player, MY_RPC_ID, data, true);
 
 ---
 
-## Step 6: Handle the Server-Side Response
+## Step 6: Gestire la Risposta Lato Server
 
-Il server riceve l'RPC del client, raccoglie i dati e invia una risposta.
+Il server riceve l'RPC del client, raccoglie i dati e invia una risposta indietro.
 
-### Create `Scripts/4_World/AdminDemo/AdminDemoServer.c`
+### Crea `Scripts/4_World/AdminDemo/AdminDemoServer.c`
 
 ```c
 modded class PlayerBase
 {
     // -------------------------------------------------------
-    // Server-side RPC handler
+    // Gestore RPC lato server
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
     {
         super.OnRPC(sender, rpc_type, ctx);
 
-        // Only handle on server
+        // Gestisci solo sul server
         if (!GetGame().IsServer())
             return;
 
@@ -522,21 +522,21 @@ modded class PlayerBase
     }
 
     // -------------------------------------------------------
-    // Gather player data and send response
+    // Raccoglie i dati dei giocatori e invia la risposta
     // -------------------------------------------------------
     protected void HandlePlayerInfoRequest(PlayerIdentity requestor)
     {
         if (!requestor)
             return;
 
-        Print("[AdminDemo] Server received player info request from: " + requestor.GetName());
+        Print("[AdminDemo] Il server ha ricevuto richiesta info giocatori da: " + requestor.GetName());
 
-        // --- Permission check (optional but recommended) ---
-        // In a real mod, check if the requestor is an admin:
+        // --- Controllo permessi (opzionale ma raccomandato) ---
+        // In una mod reale, controlla se il richiedente è un admin:
         // if (!IsAdmin(requestor))
         //     return;
 
-        // --- Gather player data ---
+        // --- Raccoglie i dati dei giocatori ---
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
 
@@ -560,12 +560,12 @@ modded class PlayerBase
         }
 
         if (playerNames == "")
-            playerNames = "(No players connected)";
+            playerNames = "(Nessun giocatore connesso)";
 
-        // --- Send response back to the requesting client ---
+        // --- Invia risposta al client richiedente ---
         Param2<int, string> responseData = new Param2<int, string>(playerCount, playerNames);
 
-        // RPCSingleParam with the requestor's player object sends to that specific client
+        // RPCSingleParam con l'oggetto giocatore del richiedente invia a quel client specifico
         Man requestorPlayer = null;
         for (int j = 0; j < players.Count(); j++)
         {
@@ -581,7 +581,7 @@ modded class PlayerBase
         {
             GetGame().RPCSingleParam(requestorPlayer, AdminDemoRPC.RESPONSE_PLAYER_INFO, responseData, true, requestor);
 
-            Print("[AdminDemo] Server sent player info response: " + playerCount.ToString() + " players");
+            Print("[AdminDemo] Il server ha inviato risposta info giocatori: " + playerCount.ToString() + " giocatori");
         }
     }
 };
@@ -589,37 +589,37 @@ modded class PlayerBase
 
 ### Come Funziona la Ricezione RPC Lato Server
 
-1. **`OnRPC()` is called on the target object.** When the client sent the RPC with `target = player`, the server-side `PlayerBase.OnRPC()` fires.
+1. **`OnRPC()` viene chiamato sull'oggetto target.** Quando il client ha inviato l'RPC con `target = player`, il `PlayerBase.OnRPC()` lato server si attiva.
 
-2. **Chiama sempre `super.OnRPC()`.** Other mods and vanilla code may also handle RPCs on this object.
+2. **Chiama sempre `super.OnRPC()`.** Altre mod e il codice vanilla potrebbero anche gestire RPC su questo oggetto.
 
-3. **Controlla `GetGame().IsServer()`.** This code is in `4_World`, which compiles on both client and server. The `IsServer()` check ensures we only process the request on the server.
+3. **Controlla `GetGame().IsServer()`.** Questo codice è in `4_World`, che viene compilato sia su client che su server. Il controllo `IsServer()` assicura che la richiesta venga elaborata solo sul server.
 
-4. **Switch on `rpc_type`.** Match against your RPC ID constants.
+4. **Fai lo switch su `rpc_type`.** Confronta con le tue costanti ID RPC.
 
-5. **Send the response.** Use `RPCSingleParam` with the fifth parameter (`recipient`) set to the requesting player's identity. This sends the response only to that specific client.
+5. **Invia la risposta.** Usa `RPCSingleParam` con il quinto parametro (`recipient`) impostato sull'identità del giocatore richiedente. Questo invia la risposta solo a quel client specifico.
 
 ### Firma della Risposta RPCSingleParam
 
 ```c
 GetGame().RPCSingleParam(
-    requestorPlayer,                        // Target object (the player)
-    AdminDemoRPC.RESPONSE_PLAYER_INFO,      // RPC ID
-    responseData,                           // Data payload
-    true,                                   // Guaranteed delivery
-    requestor                               // Recipient identity (specific client)
+    requestorPlayer,                        // Oggetto target (il giocatore)
+    AdminDemoRPC.RESPONSE_PLAYER_INFO,      // ID RPC
+    responseData,                           // Payload dei dati
+    true,                                   // Consegna garantita
+    requestor                               // Identità del destinatario (client specifico)
 );
 ```
 
-The fifth parameter `requestor` (a `PlayerIdentity`) is what makes this a targeted response. Without it, the RPC would go to all clients.
+Il quinto parametro `requestor` (un `PlayerIdentity`) è ciò che rende questa una risposta mirata. Senza di esso, l'RPC verrebbe inviato a tutti i client.
 
 ---
 
-## Step 7: Update the UI with Received Data
+## Step 7: Aggiornare la UI con i Dati Ricevuti
 
 Lato client, dobbiamo intercettare l'RPC di risposta del server e indirizzarlo al pannello.
 
-### Create `Scripts/5_Mission/AdminDemo/AdminDemoMission.c`
+### Crea `Scripts/5_Mission/AdminDemo/AdminDemoMission.c`
 
 ```c
 modded class MissionGameplay
@@ -627,7 +627,7 @@ modded class MissionGameplay
     protected ref AdminDemoPanel m_AdminDemoPanel;
 
     // -------------------------------------------------------
-    // Initialize the panel on mission start
+    // Inizializza il pannello all'avvio della missione
     // -------------------------------------------------------
     override void OnInit()
     {
@@ -636,11 +636,11 @@ modded class MissionGameplay
         if (!m_AdminDemoPanel)
             m_AdminDemoPanel = new AdminDemoPanel();
 
-        Print("[AdminDemo] Client mission initialized.");
+        Print("[AdminDemo] Missione client inizializzata.");
     }
 
     // -------------------------------------------------------
-    // Clean up on mission end
+    // Pulisci alla fine della missione
     // -------------------------------------------------------
     override void OnMissionFinish()
     {
@@ -654,13 +654,13 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Handle keyboard input to toggle the panel
+    // Gestisci l'input da tastiera per alternare il pannello
     // -------------------------------------------------------
     override void OnKeyPress(int key)
     {
         super.OnKeyPress(key);
 
-        // F5 key toggles the admin panel
+        // Il tasto F5 alterna il pannello admin
         if (key == KeyCode.KC_F5)
         {
             if (m_AdminDemoPanel)
@@ -669,7 +669,7 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Receive server RPCs on the client side
+    // Ricevi RPC dal server sul lato client
     // -------------------------------------------------------
     override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
     {
@@ -684,21 +684,21 @@ modded class MissionGameplay
     }
 
     // -------------------------------------------------------
-    // Deserialize server response and update the panel
+    // Deserializza la risposta del server e aggiorna il pannello
     // -------------------------------------------------------
     protected void HandlePlayerInfoResponse(ParamsReadContext ctx)
     {
         Param2<int, string> data = new Param2<int, string>(0, "");
         if (!ctx.Read(data))
         {
-            Print("[AdminDemo] ERROR: Failed to read player info response!");
+            Print("[AdminDemo] ERRORE: Lettura risposta info giocatori fallita!");
             return;
         }
 
         int playerCount = data.param1;
         string playerNames = data.param2;
 
-        Print("[AdminDemo] Client received player info: " + playerCount.ToString() + " players");
+        Print("[AdminDemo] Client ha ricevuto info giocatori: " + playerCount.ToString() + " giocatori");
 
         if (m_AdminDemoPanel)
             m_AdminDemoPanel.OnPlayerInfoReceived(playerCount, playerNames);
@@ -708,13 +708,13 @@ modded class MissionGameplay
 
 ### Come Funziona la Ricezione RPC Lato Client
 
-1. **`MissionGameplay.OnRPC()`** is a catch-all handler for RPCs received on the client. It fires for every incoming RPC.
+1. **`MissionGameplay.OnRPC()`** è un gestore generico per gli RPC ricevuti sul client. Si attiva per ogni RPC in arrivo.
 
-2. **`ParamsReadContext ctx`** contains the serialized data sent by the server. You must deserialize it using `ctx.Read()` with a matching `Param` type.
+2. **`ParamsReadContext ctx`** contiene i dati serializzati inviati dal server. Devi deserializzarli usando `ctx.Read()` con un tipo `Param` corrispondente.
 
-3. **Matching Param types is critical.** The server sent `Param2<int, string>`. The client must read with `Param2<int, string>`. A mismatch causes `ctx.Read()` to return `false` and no data is retrieved.
+3. **La corrispondenza dei tipi Param è critica.** Il server ha inviato `Param2<int, string>`. Il client deve leggere con `Param2<int, string>`. Una mancata corrispondenza fa restituire `false` a `ctx.Read()` e nessun dato viene recuperato.
 
-4. **Route data to the panel.** After deserializing, call a method on the panel object to update the UI.
+4. **Indirizza i dati al pannello.** Dopo la deserializzazione, chiama un metodo sull'oggetto pannello per aggiornare la UI.
 
 ### Il Gestore OnKeyPress
 
@@ -731,15 +731,15 @@ override void OnKeyPress(int key)
 }
 ```
 
-Questo si aggancia a the mission's keyboard input. When the admin presses F5, the panel opens or closes. `KeyCode.KC_F5` is a built-in constant for the F5 key.
+Questo si aggancia all'input da tastiera della missione. Quando l'admin preme F5, il pannello si apre o si chiude. `KeyCode.KC_F5` è una costante integrata per il tasto F5.
 
 ---
 
-## Step 8: Register the Module
+## Step 8: Registrare il Modulo
 
 Infine, collega tutto insieme in config.cpp.
 
-### Create `AdminDemo/mod.cpp`
+### Crea `AdminDemo/mod.cpp`
 
 ```cpp
 name = "Admin Demo";
@@ -748,7 +748,7 @@ version = "1.0";
 overview = "Tutorial admin panel demonstrating the full RPC roundtrip pattern.";
 ```
 
-### Create `AdminDemo/Scripts/config.cpp`
+### Crea `AdminDemo/Scripts/config.cpp`
 
 ```cpp
 class CfgPatches
@@ -801,11 +801,11 @@ class CfgMods
 
 ### Perché Tre Layer?
 
-| Layer | Contains | Motivo |
+| Layer | Contiene | Motivo |
 |-------|----------|--------|
-| `3_Game` | `AdminDemoRPC.c` | RPC ID constants need to be visible to both `4_World` and `5_Mission` |
-| `4_World` | `AdminDemoServer.c` | Server-side handler modding `PlayerBase` (a world entity) |
-| `5_Mission` | `AdminDemoPanel.c`, `AdminDemoMission.c` | Client UI and mission hooks |
+| `3_Game` | `AdminDemoRPC.c` | Le costanti ID RPC devono essere visibili sia a `4_World` che a `5_Mission` |
+| `4_World` | `AdminDemoServer.c` | Gestore lato server che modda `PlayerBase` (un'entità del mondo) |
+| `5_Mission` | `AdminDemoPanel.c`, `AdminDemoMission.c` | UI lato client e hook della missione |
 
 ---
 
@@ -868,7 +868,7 @@ modded class PlayerBase
         if (!requestor)
             return;
 
-        Print("[AdminDemo] Server received player info request from: " + requestor.GetName());
+        Print("[AdminDemo] Il server ha ricevuto richiesta info giocatori da: " + requestor.GetName());
 
         ref array<Man> players = new array<Man>;
         GetGame().GetPlayers(players);
@@ -893,7 +893,7 @@ modded class PlayerBase
         }
 
         if (playerNames == "")
-            playerNames = "(No players connected)";
+            playerNames = "(Nessun giocatore connesso)";
 
         Param2<int, string> responseData = new Param2<int, string>(playerCount, playerNames);
 
@@ -911,7 +911,7 @@ modded class PlayerBase
         if (requestorPlayer)
         {
             GetGame().RPCSingleParam(requestorPlayer, AdminDemoRPC.RESPONSE_PLAYER_INFO, responseData, true, requestor);
-            Print("[AdminDemo] Server sent player info response: " + playerCount.ToString() + " players");
+            Print("[AdminDemo] Il server ha inviato risposta info giocatori: " + playerCount.ToString() + " giocatori");
         }
     }
 };
@@ -948,7 +948,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
         m_Root = GetGame().GetWorkspace().CreateWidgets("AdminDemo/GUI/layouts/admin_player_info.layout");
         if (!m_Root)
         {
-            Print("[AdminDemo] ERROR: Failed to load layout file!");
+            Print("[AdminDemo] ERRORE: Caricamento del file di layout fallito!");
             return;
         }
 
@@ -969,7 +969,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
         GetGame().GetMission().PlayerControlDisable(INPUT_EXCLUDE_ALL);
         GetGame().GetUIManager().ShowUICursor(true);
 
-        Print("[AdminDemo] Panel opened.");
+        Print("[AdminDemo] Pannello aperto.");
     }
 
     void Close()
@@ -988,7 +988,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
         GetGame().GetMission().PlayerControlEnable(true);
         GetGame().GetUIManager().ShowUICursor(false);
 
-        Print("[AdminDemo] Panel closed.");
+        Print("[AdminDemo] Pannello chiuso.");
     }
 
     bool IsOpen()
@@ -1023,13 +1023,13 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 
     protected void OnRefreshClicked()
     {
-        Print("[AdminDemo] Refresh clicked, sending RPC to server...");
+        Print("[AdminDemo] Refresh cliccato, invio RPC al server...");
 
         if (m_PlayerCountText)
             m_PlayerCountText.SetText("Player Count: Loading...");
 
         if (m_PlayerListText)
-            m_PlayerListText.SetText("Requesting data from server...");
+            m_PlayerListText.SetText("Richiesta dati al server...");
 
         Man player = GetGame().GetPlayer();
         if (player)
@@ -1041,7 +1041,7 @@ class AdminDemoPanel extends ScriptedWidgetEventHandler
 
     void OnPlayerInfoReceived(int playerCount, string playerNames)
     {
-        Print("[AdminDemo] Received player info: " + playerCount.ToString() + " players");
+        Print("[AdminDemo] Info giocatori ricevute: " + playerCount.ToString() + " giocatori");
 
         if (m_PlayerCountText)
             m_PlayerCountText.SetText("Player Count: " + playerCount.ToString());
@@ -1066,7 +1066,7 @@ modded class MissionGameplay
         if (!m_AdminDemoPanel)
             m_AdminDemoPanel = new AdminDemoPanel();
 
-        Print("[AdminDemo] Client mission initialized.");
+        Print("[AdminDemo] Missione client inizializzata.");
     }
 
     override void OnMissionFinish()
@@ -1108,14 +1108,14 @@ modded class MissionGameplay
         Param2<int, string> data = new Param2<int, string>(0, "");
         if (!ctx.Read(data))
         {
-            Print("[AdminDemo] ERROR: Failed to read player info response!");
+            Print("[AdminDemo] ERRORE: Lettura risposta info giocatori fallita!");
             return;
         }
 
         int playerCount = data.param1;
         string playerNames = data.param2;
 
-        Print("[AdminDemo] Client received player info: " + playerCount.ToString() + " players");
+        Print("[AdminDemo] Client ha ricevuto info giocatori: " + playerCount.ToString() + " giocatori");
 
         if (m_AdminDemoPanel)
             m_AdminDemoPanel.OnPlayerInfoReceived(playerCount, playerNames);
@@ -1127,120 +1127,120 @@ modded class MissionGameplay
 
 ## Spiegazione del Ciclo Completo
 
-Ecco la sequenza esatta degli eventi when the admin presses F5 and clicks Refresh:
+Ecco la sequenza esatta degli eventi quando l'admin preme F5 e clicca Refresh:
 
 ```
-1. [CLIENT] Admin presses F5
-   --> MissionGameplay.OnKeyPress(KC_F5) fires
-   --> AdminDemoPanel.Toggle() is called
-   --> Panel opens, layout is created, cursor appears
+1. [CLIENT] L'admin preme F5
+   --> MissionGameplay.OnKeyPress(KC_F5) si attiva
+   --> AdminDemoPanel.Toggle() viene chiamato
+   --> Il pannello si apre, il layout viene creato, il cursore appare
 
-2. [CLIENT] Admin clicks "Refresh" button
-   --> AdminDemoPanel.OnClick() fires with w == m_RefreshButton
-   --> OnRefreshClicked() is called
-   --> UI shows "Loading..."
-   --> RPCSingleParam sends REQUEST_PLAYER_INFO (78001) to server
+2. [CLIENT] L'admin clicca il pulsante "Refresh"
+   --> AdminDemoPanel.OnClick() si attiva con w == m_RefreshButton
+   --> OnRefreshClicked() viene chiamato
+   --> La UI mostra "Loading..."
+   --> RPCSingleParam invia REQUEST_PLAYER_INFO (78001) al server
 
-3. [NETWORK] RPC travels from client to server
+3. [RETE] L'RPC viaggia dal client al server
 
-4. [SERVER] PlayerBase.OnRPC() fires
-   --> rpc_type matches REQUEST_PLAYER_INFO
-   --> HandlePlayerInfoRequest(sender) is called
-   --> Server iterates all connected players
-   --> Builds player count and name list
-   --> RPCSingleParam sends RESPONSE_PLAYER_INFO (78002) back to client
+4. [SERVER] PlayerBase.OnRPC() si attiva
+   --> rpc_type corrisponde a REQUEST_PLAYER_INFO
+   --> HandlePlayerInfoRequest(sender) viene chiamato
+   --> Il server itera tutti i giocatori connessi
+   --> Costruisce il conteggio e la lista dei nomi
+   --> RPCSingleParam invia RESPONSE_PLAYER_INFO (78002) al client
 
-5. [NETWORK] RPC travels from server to client
+5. [RETE] L'RPC viaggia dal server al client
 
-6. [CLIENT] MissionGameplay.OnRPC() fires
-   --> rpc_type matches RESPONSE_PLAYER_INFO
-   --> HandlePlayerInfoResponse(ctx) is called
-   --> Data is deserialized from ParamsReadContext
-   --> AdminDemoPanel.OnPlayerInfoReceived() is called
-   --> UI updates with player count and names
+6. [CLIENT] MissionGameplay.OnRPC() si attiva
+   --> rpc_type corrisponde a RESPONSE_PLAYER_INFO
+   --> HandlePlayerInfoResponse(ctx) viene chiamato
+   --> I dati vengono deserializzati da ParamsReadContext
+   --> AdminDemoPanel.OnPlayerInfoReceived() viene chiamato
+   --> La UI si aggiorna con il conteggio e i nomi dei giocatori
 
-Total time: typically under 100ms on a local network.
+Tempo totale: tipicamente sotto i 100ms su una rete locale.
 ```
 
 ---
 
 ## Risoluzione dei Problemi
 
-### Panel Does Not Open When Pressing F5
+### Il Pannello Non Si Apre Premendo F5
 
-- **Controlla OnKeyPress override:** Make sure `super.OnKeyPress(key)` is called first.
-- **Controlla key code:** `KeyCode.KC_F5` is the correct constant. If using a different key, find the right constant in the Enforce Script API.
-- **Controlla initialization:** Assicurati che `m_AdminDemoPanel` is created in `OnInit()`.
+- **Controlla l'override di OnKeyPress:** Assicurati che `super.OnKeyPress(key)` venga chiamato per primo.
+- **Controlla il codice del tasto:** `KeyCode.KC_F5` è la costante corretta. Se usi un tasto diverso, trova la costante giusta nell'API di Enforce Script.
+- **Controlla l'inizializzazione:** Assicurati che `m_AdminDemoPanel` venga creato in `OnInit()`.
 
-### Panel Opens But Buttons Do Not Work
+### Il Pannello Si Apre Ma i Pulsanti Non Funzionano
 
-- **Controlla SetHandler:** Every button needs `button.SetHandler(this)` called on it.
-- **Controlla widget names:** `FindAnyWidget("RefreshButton")` is case-sensitive. The name must match the layout file exactly.
-- **Controlla OnClick return:** Make sure `OnClick` returns `true` for handled buttons.
+- **Controlla SetHandler:** Ogni pulsante necessita che `button.SetHandler(this)` venga chiamato su di esso.
+- **Controlla i nomi dei widget:** `FindAnyWidget("RefreshButton")` è case-sensitive. Il nome deve corrispondere esattamente al file di layout.
+- **Controlla il ritorno di OnClick:** Assicurati che `OnClick` restituisca `true` per i pulsanti gestiti.
 
-### RPC Never Reaches the Server
+### L'RPC Non Raggiunge Mai il Server
 
-- **Controlla RPC ID uniqueness:** If another mod uses the same RPC ID number, there will be conflicts. Use high unique numbers.
-- **Controlla player reference:** `GetGame().GetPlayer()` returns `null` if called before the player is fully initialized. Assicurati che the panel only opens after the player spawns.
-- **Controlla server code compiles:** Look at the server script log for `SCRIPT (E)` errors in your `4_World` code.
+- **Controlla l'unicità degli ID RPC:** Se un'altra mod usa lo stesso numero ID RPC, ci saranno conflitti. Usa numeri alti e unici.
+- **Controlla il riferimento al giocatore:** `GetGame().GetPlayer()` restituisce `null` se chiamato prima che il giocatore sia completamente inizializzato. Assicurati che il pannello si apra solo dopo che il giocatore è spawnato.
+- **Controlla che il codice server compili:** Cerca nel log degli script del server errori `SCRIPT (E)` nel tuo codice `4_World`.
 
-### Server Response Never Reaches the Client
+### La Risposta del Server Non Raggiunge Mai il Client
 
-- **Controlla the recipient parameter:** The fifth parameter of `RPCSingleParam` must be the `PlayerIdentity` of the target client.
-- **Controlla Param type matching:** Server sends `Param2<int, string>`, client reads `Param2<int, string>`. A type mismatch causes `ctx.Read()` to fail.
-- **Controlla MissionGameplay.OnRPC override:** Make sure you call `super.OnRPC()` and the method signature is correct.
+- **Controlla il parametro destinatario:** Il quinto parametro di `RPCSingleParam` deve essere il `PlayerIdentity` del client destinatario.
+- **Controlla la corrispondenza dei tipi Param:** Il server invia `Param2<int, string>`, il client legge `Param2<int, string>`. Una mancata corrispondenza dei tipi causa il fallimento di `ctx.Read()`.
+- **Controlla l'override di MissionGameplay.OnRPC:** Assicurati di chiamare `super.OnRPC()` e che la firma del metodo sia corretta.
 
-### UI Shows But Data Does Not Update
+### La UI Si Mostra Ma i Dati Non Si Aggiornano
 
-- **Null widget references:** If `FindAnyWidget` returns `null` (widget name mismatch), `SetText()` calls silently fail.
-- **Controlla panel reference:** Make sure `m_AdminDemoPanel` in the mission class is the same object that was opened.
-- **Add Print statements:** Trace the data flow by adding `Print()` calls at each step.
+- **Riferimenti widget null:** Se `FindAnyWidget` restituisce `null` (nome del widget errato), le chiamate a `SetText()` falliscono silenziosamente.
+- **Controlla il riferimento al pannello:** Assicurati che `m_AdminDemoPanel` nella classe mission sia lo stesso oggetto che è stato aperto.
+- **Aggiungi istruzioni Print:** Traccia il flusso dei dati aggiungendo chiamate `Print()` ad ogni passo.
 
 ---
 
 ## Prossimi Passi
 
-1. **[Chapter 8.4: Adding Chat Commands](04-chat-commands.md)** -- Create server-side chat commands for admin operations.
-2. **Add permissions** -- Check if the requesting player is an admin before processing RPCs.
-3. **Add more features** -- Extend the panel with tabs for weather control, player teleport, item spawning.
-4. **Use a framework** -- Frameworks like MyMod Core provide built-in RPC routing, config management, and admin panel infrastructure that eliminates much of this boilerplate.
-5. **Style the UI** -- Learn about widget styles, imagesets, and fonts in [Chapter 3: GUI System](../03-gui-system/01-widget-types.md).
+1. **[Capitolo 8.4: Aggiungere Comandi Chat](04-chat-commands.md)** -- Crea comandi chat lato server per operazioni admin.
+2. **Aggiungi i permessi** -- Controlla se il giocatore richiedente è un admin prima di elaborare gli RPC.
+3. **Aggiungi più funzionalità** -- Estendi il pannello con schede per il controllo meteo, teletrasporto giocatori, spawn di oggetti.
+4. **Usa un framework** -- Framework come MyMod Core forniscono routing RPC integrato, gestione configurazione e infrastruttura per pannelli admin che elimina gran parte di questo codice boilerplate.
+5. **Personalizza la UI** -- Scopri gli stili dei widget, gli imageset e i font nel [Capitolo 3: Sistema GUI](../03-gui-system/01-widget-types.md).
 
 ---
 
 ## Buone Pratiche
 
-- **Validate all RPC data on the server before executing.** Never trust data from the client -- always check permissions, validate parameters, and guard against null values before performing any server action.
-- **Cache widget references in member variables invece di calling `FindAnyWidget` ogni frame.** Widget lookup is not free; calling it in `OnUpdate` or `OnClick` repeatedly wastes performance.
-- **Always call `SetHandler(this)` on interactive widgets.** Without it, `OnClick()` will never fire, and there is no error message -- buttons just silently do nothing.
-- **Use high, unique RPC ID numbers.** Vanilla DayZ uses low IDs. Other mods pick common ranges. Use numbers above 70000 and add your mod prefix to comments so collisions are traceable.
-- **Clean up widgets in `OnMissionFinish`.** Leaked widget roots stack up across server hops, consuming memory and causing ghost UI elements.
+- **Valida tutti i dati RPC sul server prima dell'esecuzione.** Non fidarti mai dei dati provenienti dal client -- controlla sempre i permessi, valida i parametri e proteggi dai valori null prima di eseguire qualsiasi azione sul server.
+- **Memorizza i riferimenti ai widget nelle variabili membro invece di chiamare `FindAnyWidget` ogni frame.** La ricerca dei widget non è gratuita; chiamarla ripetutamente in `OnUpdate` o `OnClick` spreca prestazioni.
+- **Chiama sempre `SetHandler(this)` sui widget interattivi.** Senza di esso, `OnClick()` non si attiverà mai, e non c'è nessun messaggio di errore -- i pulsanti semplicemente non fanno nulla silenziosamente.
+- **Usa numeri ID RPC alti e unici.** Il DayZ vanilla usa ID bassi. Altre mod scelgono intervalli comuni. Usa numeri sopra 70000 e aggiungi il prefisso della tua mod nei commenti così le collisioni sono tracciabili.
+- **Pulisci i widget in `OnMissionFinish`.** I widget root non eliminati si accumulano tra i cambi di server, consumando memoria e causando elementi UI fantasma.
 
 ---
 
 ## Teoria vs Pratica
 
-| Concetto | Theory | Realtà |
-|---------|--------|---------|
-| `RPCSingleParam` delivery | Setting `guaranteed=true` means the RPC always arrives | RPCs can still be lost if the player disconnects mid-flight or the server crashes. Always handle the "no response" case in your UI (e.g., a timeout message). |
-| `OnClick` widget matching | Compare `w == m_Button` to identify clicks | If `FindAnyWidget` returned NULL (typo in widget name), `m_Button` is NULL and the comparison silently fails. Always log a warning if widget binding fails in `Open()`. |
-| Param type matching | Client and server use the same `Param2<int, string>` | If the types or order do not match exactly, `ctx.Read()` returns false and the data is silently lost. There is no type-checking error message at runtime. |
-| Listen server testing | Good enough for quick iteration | Listen servers run client and server in one process, so RPCs arrive instantly and never cross the network. Timing bugs, packet loss, and authority issues only appear on a real dedicated server. |
+| Concetto | Teoria | Realtà |
+|----------|--------|--------|
+| Consegna di `RPCSingleParam` | Impostare `guaranteed=true` significa che l'RPC arriva sempre | Gli RPC possono comunque essere persi se il giocatore si disconnette durante il transito o il server crasha. Gestisci sempre il caso "nessuna risposta" nella tua UI (es. un messaggio di timeout). |
+| Corrispondenza widget in `OnClick` | Confronta `w == m_Button` per identificare i clic | Se `FindAnyWidget` ha restituito NULL (errore di battitura nel nome del widget), `m_Button` è NULL e il confronto fallisce silenziosamente. Logga sempre un avviso se il collegamento del widget fallisce in `Open()`. |
+| Corrispondenza dei tipi Param | Client e server usano lo stesso `Param2<int, string>` | Se i tipi o l'ordine non corrispondono esattamente, `ctx.Read()` restituisce false e i dati vengono persi silenziosamente. Non c'è nessun messaggio di errore di controllo dei tipi a runtime. |
+| Test su listen server | Sufficiente per iterazione rapida | I listen server eseguono client e server in un unico processo, quindi gli RPC arrivano istantaneamente e non attraversano mai la rete. Bug di temporizzazione, perdita di pacchetti e problemi di autorità compaiono solo su un vero server dedicato. |
 
 ---
 
 ## Cosa Hai Imparato
 
 In questo tutorial hai imparato:
-- Come creare un pannello UI with layout files and bind widgets in script
-- Come gestire i clic dei pulsanti with `OnClick()` and `SetHandler()`
-- Come inviare RPC from client to server and back using `RPCSingleParam` and `Param` classes
-- The full client-server-client roundtrip pattern used by every networked admin tool
-- How to register the panel in `MissionGameplay` with proper lifecycle management
+- Come creare un pannello UI con file di layout e collegare i widget nello script
+- Come gestire i clic dei pulsanti con `OnClick()` e `SetHandler()`
+- Come inviare RPC dal client al server e viceversa usando `RPCSingleParam` e le classi `Param`
+- Il pattern completo del ciclo client-server-client utilizzato da ogni strumento admin di rete
+- Come registrare il pannello in `MissionGameplay` con una gestione corretta del ciclo di vita
 
-**Successivo:** [Chapter 8.4: Adding Chat Commands](04-chat-commands.md)
+**Successivo:** [Capitolo 8.4: Aggiungere Comandi Chat](04-chat-commands.md)
 
 ---
 
-**Precedente:** [Chapter 8.2: Creating a Custom Item](02-custom-item.md)
-**Successivo:** [Chapter 8.4: Adding Chat Commands](04-chat-commands.md)
+**Precedente:** [Capitolo 8.2: Creare un Oggetto Personalizzato](02-custom-item.md)
+**Successivo:** [Capitolo 8.4: Aggiungere Comandi Chat](04-chat-commands.md)

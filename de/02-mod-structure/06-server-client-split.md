@@ -1,6 +1,6 @@
 # Kapitel 2.6: Server- vs. Client-Architektur
 
-[Startseite](../../README.md) | [<< Zurück: Dateiorganisation](05-file-organization.md) | **Server- vs. Client-Architektur**
+[Startseite](../README.md) | [<< Zurück: Dateiorganisation](05-file-organization.md) | **Server- vs. Client-Architektur**
 
 ---
 

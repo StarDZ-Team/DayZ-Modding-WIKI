@@ -1,6 +1,6 @@
 # 第 5.4 章：ImageSet 格式
 
-[首页](../../README.md) | [<< 上一章：Credits.json](03-credits-json.md) | **ImageSet 格式** | [下一章：服务器配置文件 >>](05-server-configs.md)
+[首页](../README.md) | [<< 上一章：Credits.json](03-credits-json.md) | **ImageSet 格式** | [下一章：服务器配置文件 >>](05-server-configs.md)
 
 ---
 

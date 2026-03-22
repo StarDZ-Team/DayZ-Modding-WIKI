@@ -1,6 +1,6 @@
 # Chapter 6.7: Timers & CallQueue
 
-[Domů](../../README.md) | [<< Předchozí: Oznámení](06-notifications.md) | **Časovače a CallQueue** | [Další: Souborové I/O a JSON >>](08-file-io.md)
+[Domů](../README.md) | [<< Předchozí: Oznámení](06-notifications.md) | **Časovače a CallQueue** | [Další: Souborové I/O a JSON >>](08-file-io.md)
 
 ---
 

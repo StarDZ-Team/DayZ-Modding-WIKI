@@ -1,6 +1,6 @@
 # Rozdział 7.5: Systemy uprawnień
 
-[Strona główna](../../README.md) | [<< Poprzedni: Trwałość konfiguracji](04-config-persistence.md) | **Systemy uprawnień** | [Dalej: Architektura zdarzeniowa >>](06-events.md)
+[Strona główna](../README.md) | [<< Poprzedni: Trwałość konfiguracji](04-config-persistence.md) | **Systemy uprawnień** | [Dalej: Architektura zdarzeniowa >>](06-events.md)
 
 ---
 
@@ -639,4 +639,4 @@ To częsty wzorzec używany do migracji z oryginalnej płaskiej tablicy `AdminUI
 
 ---
 
-[Strona główna](../../README.md) | [<< Poprzedni: Trwałość konfiguracji](04-config-persistence.md) | **Systemy uprawnień** | [Dalej: Architektura zdarzeniowa >>](06-events.md)
+[Strona główna](../README.md) | [<< Poprzedni: Trwałość konfiguracji](04-config-persistence.md) | **Systemy uprawnień** | [Dalej: Architektura zdarzeniowa >>](06-events.md)

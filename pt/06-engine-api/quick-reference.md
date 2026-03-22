@@ -1,6 +1,6 @@
 # Engine API Quick Reference
 
-[Home](../../README.md) | **Engine API Quick Reference**
+[Home](../README.md) | **Engine API Quick Reference**
 
 ---
 
@@ -652,4 +652,4 @@ override void SetActions()
 
 ---
 
-*Documentacao completa: [Inicio](../../README.md) | [Folha de Referencia](../cheatsheet.md) | [Sistema de Entidades](01-entity-system.md) | [Veiculos](02-vehicles.md) | [Clima](03-weather.md) | [Timers](07-timers.md) | [E/S de Arquivo](08-file-io.md) | [Rede](09-networking.md) | [Hooks de Mission](11-mission-hooks.md) | [Sistema de Acoes](12-action-system.md)*
+*Documentacao completa: [Inicio](../README.md) | [Folha de Referencia](../cheatsheet.md) | [Sistema de Entidades](01-entity-system.md) | [Veiculos](02-vehicles.md) | [Clima](03-weather.md) | [Timers](07-timers.md) | [E/S de Arquivo](08-file-io.md) | [Rede](09-networking.md) | [Hooks de Mission](11-mission-hooks.md) | [Sistema de Acoes](12-action-system.md)*

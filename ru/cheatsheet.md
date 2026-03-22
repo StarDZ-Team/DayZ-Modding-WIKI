@@ -1,6 +1,6 @@
 # Шпаргалка по Enforce Script
 
-[Главная](../README.md) | **Шпаргалка**
+[Главная](./README.md) | **Шпаргалка**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true в мультиплеере
 
 ---
 
-*Полная документация: [Вики моддинга DayZ](../README.md) | [Подводные камни](01-enforce-script/12-gotchas.md) | [Обработка ошибок](01-enforce-script/11-error-handling.md)*
+*Полная документация: [Вики моддинга DayZ](./README.md) | [Подводные камни](01-enforce-script/12-gotchas.md) | [Обработка ошибок](01-enforce-script/11-error-handling.md)*

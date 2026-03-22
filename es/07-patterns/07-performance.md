@@ -1,6 +1,6 @@
 # Capitulo 7.7: Optimizacion de Rendimiento
 
-[Inicio](../../README.md) | [<< Anterior: Arquitectura Orientada a Eventos](06-events.md) | **Optimizacion de Rendimiento**
+[Inicio](../README.md) | [<< Anterior: Arquitectura Orientada a Eventos](06-events.md) | **Optimizacion de Rendimiento**
 
 ---
 
@@ -800,4 +800,4 @@ Antes de publicar codigo sensible al rendimiento, verifica:
 
 ---
 
-[Inicio](../../README.md) | [<< Anterior: Arquitectura Orientada a Eventos](06-events.md) | **Optimizacion de Rendimiento**
+[Inicio](../README.md) | [<< Anterior: Arquitectura Orientada a Eventos](06-events.md) | **Optimizacion de Rendimiento**

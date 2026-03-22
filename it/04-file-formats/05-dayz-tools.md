@@ -1,6 +1,6 @@
 # Capitolo 4.5: Flusso di Lavoro DayZ Tools
 
-[Home](../../README.md) | [<< Precedente: Audio](04-audio.md) | **DayZ Tools** | [Successivo: Impacchettamento PBO >>](06-pbo-packing.md)
+[Home](../README.md) | [<< Precedente: Audio](04-audio.md) | **DayZ Tools** | [Successivo: Impacchettamento PBO >>](06-pbo-packing.md)
 
 ---
 

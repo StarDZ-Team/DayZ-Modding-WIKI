@@ -1,6 +1,6 @@
 # 第 8.9 章：专业模组模板
 
-[首页](../../README.md) | [<< 上一章：构建 HUD 覆盖层](08-hud-overlay.md) | **专业模组模板** | [下一章：创建自定义载具 >>](10-vehicle-mod.md)
+[首页](../README.md) | [<< 上一章：构建 HUD 覆盖层](08-hud-overlay.md) | **专业模组模板** | [下一章：创建自定义载具 >>](10-vehicle-mod.md)
 
 ---
 
@@ -1791,4 +1791,4 @@ text "#STR_MYMOD_BOUNTY_PLACED"
 
 ---
 
-**上一章：** [第 8.8 章：构建 HUD 覆盖层](08-hud-overlay.md) | [首页](../../README.md)
+**上一章：** [第 8.8 章：构建 HUD 覆盖层](08-hud-overlay.md) | [首页](../README.md)

@@ -1,6 +1,6 @@
 # Chapitre 7.1 : Le patron Singleton
 
-[Accueil](../../README.md) | **Patron Singleton** | [Suivant : Systèmes de modules >>](02-module-systems.md)
+[Accueil](../README.md) | **Patron Singleton** | [Suivant : Systèmes de modules >>](02-module-systems.md)
 
 ---
 
@@ -547,4 +547,4 @@ Avant de publier un singleton, vérifiez :
 
 ---
 
-[Accueil](../../README.md) | **Patron Singleton** | [Suivant : Systèmes de modules >>](02-module-systems.md)
+[Accueil](../README.md) | **Patron Singleton** | [Suivant : Systèmes de modules >>](02-module-systems.md)

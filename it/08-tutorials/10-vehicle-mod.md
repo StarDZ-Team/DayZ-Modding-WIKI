@@ -1,53 +1,53 @@
-# Chapter 8.10: Creating a Custom Vehicle Mod
+# Capitolo 8.10: Creare una Mod Veicolo Personalizzato
 
-[Home](../../README.md) | [<< Previous: Professional Mod Template](09-professional-template.md) | **Creating a Custom Vehicle** | [Next: Creating Custom Clothing >>](11-clothing-mod.md)
+[Home](../README.md) | [<< Precedente: Template Mod Professionale](09-professional-template.md) | **Creare un Veicolo Personalizzato** | [Successivo: Creare Abbigliamento Personalizzato >>](11-clothing-mod.md)
 
 ---
 
-> **Riepilogo:** Questo tutorial ti guida nella creating a custom vehicle variant in DayZ by extending an existing vanilla vehicle. You will definire the vehicle in config.cpp, customize its stats and textures, write script behavior for doors and engine, add it to the server spawn table with pre-attached parts, and test it in-game. Alla fine, avrai a fully drivable custom Offroad Hatchback variant with modified performance and appearance.
+> **Riepilogo:** Questo tutorial ti guida nella creazione di una variante di veicolo personalizzato in DayZ estendendo un veicolo vanilla esistente. Definirai il veicolo in config.cpp, personalizzerai le sue statistiche e texture, scriverai il comportamento tramite script per le porte e il motore, lo aggiungerai alla tabella di spawn del server con parti pre-attaccate e lo testerai in gioco. Alla fine, avrai una variante personalizzata della Offroad Hatchback completamente guidabile con prestazioni e aspetto modificati.
 
 ---
 
 ## Indice dei Contenuti
 
-- [What We Are Building](#what-we-are-building)
-- [Prerequisites](#prerequisites)
-- [Step 1: Create the Config (config.cpp)](#step-1-create-the-config-configcpp)
-- [Step 2: Custom Textures](#step-2-custom-textures)
-- [Step 3: Script Behavior (CarScript)](#step-3-script-behavior-carscript)
-- [Step 4: types.xml Entry](#step-4-typesxml-entry)
-- [Step 5: Build and Test](#step-5-build-and-test)
-- [Step 6: Polish](#step-6-polish)
-- [Complete Code Reference](#complete-code-reference)
-- [Best Practices](#best-practices)
-- [Theory vs Practice](#theory-vs-practice)
-- [What You Learned](#what-you-learned)
-- [Common Mistakes](#common-mistakes)
+- [Cosa Stiamo Costruendo](#cosa-stiamo-costruendo)
+- [Prerequisiti](#prerequisiti)
+- [Step 1: Creare il Config (config.cpp)](#step-1-creare-il-config-configcpp)
+- [Step 2: Texture Personalizzate](#step-2-texture-personalizzate)
+- [Step 3: Comportamento Script (CarScript)](#step-3-comportamento-script-carscript)
+- [Step 4: Voce types.xml](#step-4-voce-typesxml)
+- [Step 5: Compilare e Testare](#step-5-compilare-e-testare)
+- [Step 6: Rifinitura](#step-6-rifinitura)
+- [Riferimento Completo del Codice](#riferimento-completo-del-codice)
+- [Buone Pratiche](#buone-pratiche)
+- [Teoria vs Pratica](#teoria-vs-pratica)
+- [Cosa Hai Imparato](#cosa-hai-imparato)
+- [Errori Comuni](#errori-comuni)
 
 ---
 
 ## Cosa Stiamo Costruendo
 
-Creeremo a vehicle called **MFM Rally Hatchback** -- a modified version of the vanilla Offroad Hatchback (the Niva) with:
+Creeremo un veicolo chiamato **MFM Rally Hatchback** -- una versione modificata della Offroad Hatchback vanilla (la Niva) con:
 
-- Custom retextured body panels using hidden selections
-- Modified engine performance (faster top speed, higher fuel consumption)
-- Adjusted damage zone health values (tougher engine, weaker doors)
-- All standard vehicle behavior: opening doors, engine start/stop, fuel, lights, crew entry/exit
-- Spawn table entry with pre-attached wheels and parts
+- Pannelli carrozzeria ritexturizzati usando le hidden selection
+- Prestazioni motore modificate (velocità massima più alta, consumo carburante maggiore)
+- Valori di salute delle zone di danno regolati (motore più resistente, porte più deboli)
+- Tutto il comportamento standard del veicolo: apertura porte, avvio/arresto motore, carburante, luci, entrata/uscita equipaggio
+- Voce nella tabella di spawn con ruote e parti pre-attaccate
 
-Estendiamo `OffroadHatchback` rather than building a vehicle from scratch. This is the standard workflow for vehicle mods perché it inherits the model, animations, physics geometry, and all existing behavior. You only override what you want to change.
+Estendiamo `OffroadHatchback` piuttosto che costruire un veicolo da zero. Questo è il flusso di lavoro standard per le mod veicolo perché eredita il modello, le animazioni, la geometria fisica e tutto il comportamento esistente. Devi sovrascrivere solo ciò che vuoi cambiare.
 
 ---
 
 ## Prerequisiti
 
-- A working mod structure (complete [Chapter 8.1](01-first-mod.md) and [Chapter 8.2](02-custom-item.md) first)
-- A text editor
-- DayZ Tools installed (for texture conversion, optional)
-- Basic familiarity with how config.cpp class inheritance works
+- Una struttura mod funzionante (completa prima il [Capitolo 8.1](01-first-mod.md) e il [Capitolo 8.2](02-custom-item.md))
+- Un editor di testo
+- DayZ Tools installato (per la conversione delle texture, opzionale)
+- Familiarità di base con il funzionamento dell'ereditarietà delle classi in config.cpp
 
-Il tuo mod dovrebbe avere questa struttura iniziale:
+La tua mod dovrebbe avere questa struttura di partenza:
 
 ```
 MyFirstMod/
@@ -60,13 +60,13 @@ MyFirstMod/
 
 ---
 
-## Step 1: Create the Config (config.cpp)
+## Step 1: Creare il Config (config.cpp)
 
-Vehicle definitions live in `CfgVehicles`, just like items. Despite the class name, `CfgVehicles` holds everything -- items, buildings, and actual vehicles alike. The key difference for vehicles is the classe genitore and the additional configuration for damage zones, attachments, and simulation parameters.
+Le definizioni dei veicoli risiedono in `CfgVehicles`, proprio come gli oggetti. Nonostante il nome della classe, `CfgVehicles` contiene tutto -- oggetti, edifici e veicoli veri e propri. La differenza chiave per i veicoli è la classe genitore e la configurazione aggiuntiva per le zone di danno, gli attaccamenti e i parametri di simulazione.
 
-### Update Your Data config.cpp
+### Aggiorna il tuo config.cpp Data
 
-Open `MyFirstMod/Data/config.cpp` and add the vehicle class. If you already have item definitions here from Chapter 8.2, add the vehicle class inside the existing `CfgVehicles` block.
+Apri `MyFirstMod/Data/config.cpp` e aggiungi la classe veicolo. Se hai già definizioni di oggetti qui dal Capitolo 8.2, aggiungi la classe veicolo all'interno del blocco `CfgVehicles` esistente.
 
 ```cpp
 class CfgPatches
@@ -94,7 +94,7 @@ class CfgVehicles
         displayName = "Rally Hatchback";
         descriptionShort = "A modified offroad hatchback built for speed.";
 
-        // --- Hidden Selections for retexturing ---
+        // --- Hidden Selection per la ritexturizzazione ---
         hiddenSelections[] =
         {
             "camoGround",
@@ -114,10 +114,10 @@ class CfgVehicles
             ""
         };
 
-        // --- Simulation (physics and engine) ---
+        // --- Simulazione (fisica e motore) ---
         class SimulationModule : SimulationModule
         {
-            // Drive type: 0 = RWD, 1 = FWD, 2 = AWD
+            // Tipo di trazione: 0 = RWD, 1 = FWD, 2 = AWD
             drive = 2;
 
             class Throttle
@@ -153,7 +153,7 @@ class CfgVehicles
             braking[] = { 0.0, 0.1, 0.8, 0.9, 0.95, 1.0 };
         };
 
-        // --- Damage Zones ---
+        // --- Zone di Danno ---
         class DamageSystem
         {
             class GlobalHealth
@@ -314,73 +314,73 @@ class CfgVehicles
 ### Spiegazione dei Campi Chiave
 
 | Campo | Scopo |
-|-------|---------|
-| `scope = 2` | Makes the vehicle spawnable. Use `0` for classe basees that should never spawn directly. |
-| `displayName` | Name shown in admin tools and in-game. You can use `$STR_` references for localization. |
-| `requiredAddons[]` | Must include `"DZ_Vehicles_Wheeled"` so the classe genitore `OffroadHatchback` is loaded before your class. |
-| `hiddenSelections[]` | Texture slots on the model you want to override. Must match the model's named selections. |
-| `SimulationModule` | Physics and engine configuration. Controls speed, torque, gearing, and braking. |
-| `DamageSystem` | Defines health pools for each part of the vehicle (engine, doors, windows, body). |
+|-------|-------|
+| `scope = 2` | Rende il veicolo spawnabile. Usa `0` per le classi base che non dovrebbero mai spawnare direttamente. |
+| `displayName` | Nome mostrato negli strumenti admin e in gioco. Puoi usare riferimenti `$STR_` per la localizzazione. |
+| `requiredAddons[]` | Deve includere `"DZ_Vehicles_Wheeled"` così la classe genitore `OffroadHatchback` viene caricata prima della tua classe. |
+| `hiddenSelections[]` | Slot di texture sul modello che vuoi sovrascrivere. Devono corrispondere alle selezioni nominate del modello. |
+| `SimulationModule` | Configurazione fisica e motore. Controlla velocità, coppia, rapporti e frenata. |
+| `DamageSystem` | Definisce le riserve di salute per ogni parte del veicolo (motore, porte, finestrini, carrozzeria). |
 
-### Informazioni sulla Classe Genitore
+### Riguardo la Classe Genitore
 
 ```cpp
 class OffroadHatchback;
 ```
 
-This forward declaration tells the config parser that `OffroadHatchback` exists in vanilla DayZ. Your vehicle then inherits from it, getting the complete Niva model, animations, physics geometry, attachment points, and proxy definitions. Devi solo to override what you want to change.
+Questa dichiarazione forward dice al parser del config che `OffroadHatchback` esiste nel DayZ vanilla. Il tuo veicolo eredita poi da essa, ottenendo il modello completo della Niva, le animazioni, la geometria fisica, i punti di attacco e le definizioni dei proxy. Devi sovrascrivere solo ciò che vuoi cambiare.
 
 Altre classi genitore di veicoli vanilla che potresti estendere:
 
-| Parent Class | Veicolo |
-|-------------|---------|
-| `OffroadHatchback` | Niva (4-seat hatchback) |
-| `CivilianSedan` | Olga (4-seat sedan) |
-| `Hatchback_02` | Golf/Gunter (4-seat hatchback) |
-| `Sedan_02` | Sarka 120 (4-seat sedan) |
-| `Offroad_02` | Humvee (4-seat offroad) |
-| `Truck_01_Base` | V3S (truck) |
+| Classe Genitore | Veicolo |
+|----------------|---------|
+| `OffroadHatchback` | Niva (hatchback a 4 posti) |
+| `CivilianSedan` | Olga (berlina a 4 posti) |
+| `Hatchback_02` | Golf/Gunter (hatchback a 4 posti) |
+| `Sedan_02` | Sarka 120 (berlina a 4 posti) |
+| `Offroad_02` | Humvee (fuoristrada a 4 posti) |
+| `Truck_01_Base` | V3S (camion) |
 
-### Informazioni su SimulationModule
+### Riguardo il SimulationModule
 
-The `SimulationModule` controls how the vehicle drives. Key parameters:
+Il `SimulationModule` controlla come il veicolo si guida. Parametri chiave:
 
 | Parametro | Effetto |
-|-----------|--------|
-| `drive` | `0` = rear-wheel drive, `1` = front-wheel drive, `2` = all-wheel drive |
-| `torqueMax` | Peak engine torque in Nm. Higher = more acceleration. Vanilla Niva is ~114. |
-| `powerMax` | Peak horsepower. Higher = faster top speed. Vanilla Niva is ~68. |
-| `rpmRedline` | Engine redline RPM. Beyond this, il motore bounces off the rev limiter. |
-| `ratios[]` | Gear ratios. Lower numbers = taller gears = higher top speed but slower acceleration. |
-| `transmissionRatio` | Final drive ratio. Acts as a multiplier on all gears. |
+|-----------|---------|
+| `drive` | `0` = trazione posteriore, `1` = trazione anteriore, `2` = trazione integrale |
+| `torqueMax` | Coppia massima del motore in Nm. Più alta = più accelerazione. La Niva vanilla è ~114. |
+| `powerMax` | Potenza massima in cavalli. Più alta = velocità massima più elevata. La Niva vanilla è ~68. |
+| `rpmRedline` | RPM al limitatore del motore. Oltre questo, il motore rimbalza sul limitatore di giri. |
+| `ratios[]` | Rapporti delle marce. Numeri più bassi = marce più lunghe = velocità massima più alta ma accelerazione più lenta. |
+| `transmissionRatio` | Rapporto del differenziale finale. Agisce come moltiplicatore su tutte le marce. |
 
-### Informazioni sulle Zone Danno
+### Riguardo le Zone di Danno
 
-Each damage zone has its own health pool. When a zone's health reaches zero, that component is ruined:
+Ogni zona di danno ha la propria riserva di salute. Quando la salute di una zona raggiunge zero, quel componente è distrutto:
 
-| Zona | Effetto Quando Distrutto |
-|------|-------------------|
-| `Engine` | Vehicle cannot start |
-| `FuelTank` | Fuel leaks out |
-| `Front` / `Rear` | Visual damage, reduced protection |
-| `Door_1_1` / `Door_2_1` | Door falls off |
-| `WindowFront` | Window shatters (affects sound insulation) |
+| Zona | Effetto Quando Distrutta |
+|------|--------------------------|
+| `Engine` | Il veicolo non può avviarsi |
+| `FuelTank` | Il carburante fuoriesce |
+| `Front` / `Rear` | Danno visivo, protezione ridotta |
+| `Door_1_1` / `Door_2_1` | La porta cade |
+| `WindowFront` | Il finestrino si frantuma (influisce sull'isolamento acustico) |
 
-The `transferToGlobalCoef` value determines how much damage transfers from this zone to the vehicle's global health. `1` means 100% transfer (engine damage hurts overall health), `0` means no transfer.
+Il valore `transferToGlobalCoef` determina quanto danno viene trasferito da questa zona alla salute globale del veicolo. `1` significa trasferimento al 100% (il danno al motore danneggia la salute complessiva), `0` significa nessun trasferimento.
 
-The `componentNames[]` must match named components in the vehicle's geometry LOD. Since we inherit the Niva model, we use placeholder names here -- the classe genitore's geometry components are what actually matter for collision detection. If you are using the vanilla model without modification, the parent's component mapping applies automatically.
+I `componentNames[]` devono corrispondere ai componenti nominati nel LOD geometria del veicolo. Poiché ereditiamo il modello della Niva, usiamo nomi segnaposto qui -- i componenti geometrici della classe genitore sono quelli che contano effettivamente per il rilevamento delle collisioni. Se usi il modello vanilla senza modifiche, la mappatura dei componenti del genitore si applica automaticamente.
 
 ---
 
-## Step 2: Custom Textures
+## Step 2: Texture Personalizzate
 
 ### Come Funzionano le Hidden Selection dei Veicoli
 
-Vehicle hidden selections work the same way as item textures, but vehicles typically have more selection slots. The Offroad Hatchback model uses selections for different body panels, allowing color variants (White, Blue) in vanilla.
+Le hidden selection dei veicoli funzionano allo stesso modo delle texture degli oggetti, ma i veicoli hanno tipicamente più slot di selezione. Il modello della Offroad Hatchback usa selezioni per diversi pannelli della carrozzeria, permettendo varianti di colore (Bianco, Blu) nel vanilla.
 
-### Usare Texture Vanilla (Inizio più Rapido)
+### Usare Texture Vanilla (Avvio Più Veloce)
 
-For initial testing, point your hidden selections at existing vanilla textures. This confirms your config works before you create custom art:
+Per i test iniziali, punta le tue hidden selection verso le texture vanilla esistenti. Questo conferma che il tuo config funziona prima di creare arte personalizzata:
 
 ```cpp
 hiddenSelectionsTextures[] =
@@ -394,46 +394,46 @@ hiddenSelectionsTextures[] =
 };
 ```
 
-Empty strings `""` mean "use the model's default texture for this selection."
+Le stringhe vuote `""` significano "usa la texture predefinita del modello per questa selezione."
 
 ### Creare un Set di Texture Personalizzate
 
-To create a unique appearance:
+Per creare un aspetto unico:
 
-1. **Extract the vanilla texture** using DayZ Tools' Addon Builder or P: drive to find:
+1. **Estrai la texture vanilla** usando l'Addon Builder di DayZ Tools o il drive P: per trovare:
    ```
    P:\DZ\vehicles\wheeled\offroadhatchback\data\niva_body_co.paa
    ```
 
-2. **Convert to editable format** using TexView2:
-   - Open the `.paa` file in TexView2
-   - Export as `.tga` or `.png`
+2. **Converti in formato modificabile** usando TexView2:
+   - Apri il file `.paa` in TexView2
+   - Esporta come `.tga` o `.png`
 
-3. **Edit in your image editor** (GIMP, Photoshop, Paint.NET):
-   - Vehicle textures are typically **2048x2048** or **4096x4096**
-   - Modify colors, add decals, racing stripes, or rust effects
-   - Keep the UV layout intact -- only change colors and details
+3. **Modifica nel tuo editor di immagini** (GIMP, Photoshop, Paint.NET):
+   - Le texture dei veicoli sono tipicamente **2048x2048** o **4096x4096**
+   - Modifica i colori, aggiungi decal, strisce da corsa o effetti ruggine
+   - Mantieni intatto il layout UV -- cambia solo i colori e i dettagli
 
-4. **Convert back to `.paa`**:
-   - Open your edited image in TexView2
-   - Save as `.paa` format
-   - Save to `MyFirstMod/Data/Textures/rally_body_co.paa`
+4. **Riconverti in `.paa`**:
+   - Apri la tua immagine modificata in TexView2
+   - Salva in formato `.paa`
+   - Salva in `MyFirstMod/Data/Textures/rally_body_co.paa`
 
-### Convenzioni di Denominazione Texture per Veicoli
+### Convenzioni di Denominazione delle Texture per i Veicoli
 
 | Suffisso | Tipo | Scopo |
-|--------|------|---------|
-| `_co` | Color (Diffuse) | Main color and appearance |
-| `_nohq` | Normal Map | Surface bumps, panel lines, rivet detail |
-| `_smdi` | Specular | Metallic shine, paint reflections |
-| `_as` | Alpha/Surface | Transparency for windows |
-| `_de` | Destruct | Damage overlay textures |
+|----------|------|-------|
+| `_co` | Colore (Diffuse) | Colore e aspetto principale |
+| `_nohq` | Normal Map | Rilievi superficiali, linee dei pannelli, dettagli dei rivetti |
+| `_smdi` | Specular | Lucentezza metallica, riflessi della vernice |
+| `_as` | Alpha/Superficie | Trasparenza per i finestrini |
+| `_de` | Destruct | Texture overlay per il danno |
 
-For a first vehicle mod, only the `_co` texture is required. The model uses its default normal and specular maps.
+Per una prima mod veicolo, è richiesta solo la texture `_co`. Il modello usa le sue mappe normali e speculari predefinite.
 
 ### Materiali Corrispondenti (Opzionale)
 
-For full material control, create an `.rvmat` file:
+Per un controllo completo dei materiali, crea un file `.rvmat`:
 
 ```cpp
 hiddenSelectionsMaterials[] =
@@ -449,13 +449,13 @@ hiddenSelectionsMaterials[] =
 
 ---
 
-## Step 3: Script Behavior (CarScript)
+## Step 3: Comportamento Script (CarScript)
 
-Vehicle script classes control engine sounds, logica delle porte, crew entry/exit behavior, and seat animations. Since we extend `OffroadHatchback`, we inherit all vanilla behavior and only override what we want to customize.
+Le classi script dei veicoli controllano i suoni del motore, la logica delle porte, il comportamento di entrata/uscita dell'equipaggio e le animazioni dei sedili. Poiché estendiamo `OffroadHatchback`, ereditiamo tutto il comportamento vanilla e sovrascriviamo solo ciò che vogliamo personalizzare.
 
-### Create the Script File
+### Crea il File Script
 
-Create the folder structure and script file:
+Crea la struttura delle cartelle e il file script:
 
 ```
 MyFirstMod/
@@ -466,9 +466,9 @@ MyFirstMod/
                 MFM_RallyHatchback.c
 ```
 
-### Update Scripts config.cpp
+### Aggiorna Scripts config.cpp
 
-Your `Scripts/config.cpp` must register the `4_World` layer so il motore loads your script:
+Il tuo `Scripts/config.cpp` deve registrare il layer `4_World` perché il motore carichi il tuo script:
 
 ```cpp
 class CfgPatches
@@ -509,16 +509,16 @@ class CfgMods
 };
 ```
 
-### Write the Vehicle Script
+### Scrivi lo Script del Veicolo
 
-Create `4_World/MyFirstMod/MFM_RallyHatchback.c`:
+Crea `4_World/MyFirstMod/MFM_RallyHatchback.c`:
 
 ```c
 class MFM_RallyHatchback extends OffroadHatchback
 {
     void MFM_RallyHatchback()
     {
-        // Override engine sounds (reuse vanilla Niva sounds)
+        // Sovrascrivi i suoni del motore (riutilizza i suoni vanilla della Niva)
         m_EngineStartOK         = "offroad_engine_start_SoundSet";
         m_EngineStartBattery    = "offroad_engine_failed_start_battery_SoundSet";
         m_EngineStartPlug       = "offroad_engine_failed_start_sparkplugs_SoundSet";
@@ -534,30 +534,30 @@ class MFM_RallyHatchback extends OffroadHatchback
         m_CarHornShortSoundName = "Offroad_Horn_Short_SoundSet";
         m_CarHornLongSoundName  = "Offroad_Horn_SoundSet";
 
-        // Engine position in model space (x, y, z) -- used for
-        // temperature source, drowning detection, and particle effects
+        // Posizione del motore nello spazio del modello (x, y, z) -- usata per
+        // la sorgente di temperatura, rilevamento annegamento ed effetti particellari
         SetEnginePos("0 0.7 1.2");
     }
 
-    // --- Animation Instance ---
-    // Determines which player animation set is used when entering/exiting.
-    // Must match the vehicle skeleton. Since we use the Niva model, keep HATCHBACK.
+    // --- Istanza Animazione ---
+    // Determina quale set di animazioni del giocatore viene usato durante entrata/uscita.
+    // Deve corrispondere allo scheletro del veicolo. Poiché usiamo il modello Niva, manteniamo HATCHBACK.
     override int GetAnimInstance()
     {
         return VehicleAnimInstances.HATCHBACK;
     }
 
-    // --- Camera Distance ---
-    // How far the third-person camera sits behind the vehicle.
-    // Vanilla Niva is 3.5. Increase for a wider view.
+    // --- Distanza Camera ---
+    // Quanto è distante la camera in terza persona dietro il veicolo.
+    // La Niva vanilla è 3.5. Aumenta per una visuale più ampia.
     override float GetTransportCameraDistance()
     {
         return 4.0;
     }
 
-    // --- Seat Animation Types ---
-    // Maps each seat index to a player animation type.
-    // 0 = driver, 1 = co-driver, 2 = rear left, 3 = rear right.
+    // --- Tipi di Animazione dei Sedili ---
+    // Mappa ogni indice di sedile a un tipo di animazione del giocatore.
+    // 0 = guidatore, 1 = passeggero anteriore, 2 = posteriore sinistro, 3 = posteriore destro.
     override int GetSeatAnimationType(int posIdx)
     {
         switch (posIdx)
@@ -575,10 +575,10 @@ class MFM_RallyHatchback extends OffroadHatchback
         return 0;
     }
 
-    // --- Door State ---
-    // Returns whether a door is missing, open, or closed.
-    // Slot names (NivaDriverDoors, NivaCoDriverDoors, NivaHood, NivaTrunk)
-    // are defined by the model's inventory slot proxies.
+    // --- Stato delle Porte ---
+    // Restituisce se una porta è mancante, aperta o chiusa.
+    // I nomi degli slot (NivaDriverDoors, NivaCoDriverDoors, NivaHood, NivaTrunk)
+    // sono definiti dai proxy degli slot dell'inventario del modello.
     override int GetCarDoorsState(string slotType)
     {
         CarDoor carDoor;
@@ -607,11 +607,11 @@ class MFM_RallyHatchback extends OffroadHatchback
         return CarDoorState.DOORS_MISSING;
     }
 
-    // --- Crew Entry/Exit ---
-    // Determines whether a player can get in or out of a specific seat.
-    // Checks door state and seat-fold animation phase.
-    // Front seats (0, 1) require the door to be open.
-    // Rear seats (2, 3) require the door open AND the front seat folded forward.
+    // --- Entrata/Uscita Equipaggio ---
+    // Determina se un giocatore può entrare o uscire da un sedile specifico.
+    // Controlla lo stato della porta e la fase di animazione del ribaltamento del sedile.
+    // I sedili anteriori (0, 1) richiedono che la porta sia aperta.
+    // I sedili posteriori (2, 3) richiedono la porta aperta E il sedile anteriore ribaltato in avanti.
     override bool CrewCanGetThrough(int posIdx)
     {
         switch (posIdx)
@@ -648,8 +648,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return false;
     }
 
-    // --- Hood Check for Attachments ---
-    // Prevents players from removing engine parts when the hood is closed.
+    // --- Controllo Cofano per Attaccamenti ---
+    // Impedisce ai giocatori di rimuovere parti del motore quando il cofano è chiuso.
     override bool CanReleaseAttachment(EntityAI attachment)
     {
         if (!super.CanReleaseAttachment(attachment))
@@ -669,8 +669,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Cargo Access ---
-    // Trunk must be open to access vehicle cargo.
+    // --- Accesso al Cargo ---
+    // Il bagagliaio deve essere aperto per accedere al cargo del veicolo.
     override bool CanDisplayCargo()
     {
         if (!super.CanDisplayCargo())
@@ -686,8 +686,8 @@ class MFM_RallyHatchback extends OffroadHatchback
         return true;
     }
 
-    // --- Engine Compartment Access ---
-    // Hood must be open to see engine attachment slots.
+    // --- Accesso al Vano Motore ---
+    // Il cofano deve essere aperto per vedere gli slot di attacco del motore.
     override bool CanDisplayAttachmentCategory(string category_name)
     {
         if (!super.CanDisplayAttachmentCategory(category_name))
@@ -708,8 +708,8 @@ class MFM_RallyHatchback extends OffroadHatchback
     }
 
     // --- Debug Spawn ---
-    // Called when spawning from debug menu. Spawns with all parts attached
-    // and fluids filled for immediate testing.
+    // Chiamato quando si spawna dal menu debug. Spawna con tutte le parti attaccate
+    // e i fluidi riempiti per il test immediato.
     override void OnDebugSpawn()
     {
         SpawnUniversalParts();
@@ -727,40 +727,40 @@ class MFM_RallyHatchback extends OffroadHatchback
         inventory.CreateInInventory("HatchbackHood");
         inventory.CreateInInventory("HatchbackTrunk");
 
-        // Spare wheels in cargo
+        // Ruote di scorta nel cargo
         inventory.CreateInInventory("HatchbackWheel");
         inventory.CreateInInventory("HatchbackWheel");
     }
 };
 ```
 
-### Comprensione degli Override Chiave
+### Comprendere gli Override Chiave
 
-**GetAnimInstance** -- Returns which animation set the player uses when sitting in the vehicle. The enum values are:
+**GetAnimInstance** -- Restituisce quale set di animazioni il giocatore usa quando è seduto nel veicolo. I valori dell'enum sono:
 
-| Valore | Costante | Tipo Veicolo |
-|-------|----------|-------------|
-| 0 | `CIVVAN` | Van |
-| 1 | `V3S` | V3S Truck |
-| 2 | `SEDAN` | Olga Sedan |
-| 3 | `HATCHBACK` | Niva Hatchback |
+| Valore | Costante | Tipo di Veicolo |
+|--------|----------|----------------|
+| 0 | `CIVVAN` | Furgone |
+| 1 | `V3S` | Camion V3S |
+| 2 | `SEDAN` | Berlina Olga |
+| 3 | `HATCHBACK` | Hatchback Niva |
 | 5 | `S120` | Sarka 120 |
 | 7 | `GOLF` | Gunter 2 |
 | 8 | `HMMWV` | Humvee |
 
-If you change this to the wrong value, the player's animation will clip through the vehicle or look incorrect. Always match the model you are using.
+Se cambi questo al valore sbagliato, l'animazione del giocatore penetrerà attraverso il veicolo o apparirà scorretta. Fai sempre corrispondere al modello che stai usando.
 
-**CrewCanGetThrough** -- This is called ogni frame to determine if a player can enter or exit a seat. The Niva's rear seats (indices 2 and 3) work differently from the front seats: the front seatback must be folded forward (animation phase > 0.5) before rear passengers can get through. This matches the real-world behavior of a 2-door hatchback where rear passengers must tilt the front seat.
+**CrewCanGetThrough** -- Viene chiamato ogni frame per determinare se un giocatore può entrare o uscire da un sedile. I sedili posteriori della Niva (indici 2 e 3) funzionano diversamente da quelli anteriori: lo schienale del sedile anteriore deve essere ribaltato in avanti (fase di animazione > 0.5) prima che i passeggeri posteriori possano passare. Questo rispecchia il comportamento nel mondo reale di una hatchback a 2 porte dove i passeggeri posteriori devono inclinare il sedile anteriore.
 
-**OnDebugSpawn** -- Called when you use the debug spawn menu. `SpawnUniversalParts()` adds headlight bulbs and a car battery. `FillUpCarFluids()` fills fuel, coolant, oil, and brake fluid to maximum. We then create wheels, doors, hood, and trunk. Questo ti dà an immediately drivable vehicle for testing.
+**OnDebugSpawn** -- Chiamato quando usi il menu di spawn debug. `SpawnUniversalParts()` aggiunge lampadine dei fari e una batteria. `FillUpCarFluids()` riempie al massimo carburante, liquido di raffreddamento, olio e liquido dei freni. Poi creiamo ruote, porte, cofano e bagagliaio. Questo ti dà un veicolo immediatamente guidabile per i test.
 
 ---
 
-## Step 4: types.xml Entry
+## Step 4: Voce types.xml
 
-### Configurazione Spawn Veicolo
+### Configurazione dello Spawn del Veicolo
 
-Vehicles in `types.xml` use the same format as items, but with some important differences. Add this to your server's `types.xml`:
+I veicoli in `types.xml` usano lo stesso formato degli oggetti, ma con alcune differenze importanti. Aggiungi questo al `types.xml` del tuo server:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -784,16 +784,16 @@ Vehicles in `types.xml` use the same format as items, but with some important di
 
 ### Differenze tra Veicoli e Oggetti in types.xml
 
-| Impostazione | Items | Vehicles |
-|---------|-------|----------|
-| `nominal` | 10-50+ | 1-5 (vehicles are rare) |
-| `lifetime` | 3600-14400 | 3888000 (45 days -- vehicles persist a long time) |
-| `restock` | 1800 | 0 (vehicles do not restock automatically; they respawn only after the previous one is destroyed and despawned) |
-| `category` | `tools`, `weapons`, etc. | `vehicles` |
+| Impostazione | Oggetti | Veicoli |
+|-------------|---------|---------|
+| `nominal` | 10-50+ | 1-5 (i veicoli sono rari) |
+| `lifetime` | 3600-14400 | 3888000 (45 giorni -- i veicoli persistono a lungo) |
+| `restock` | 1800 | 0 (i veicoli non si riforniscono automaticamente; rispawnano solo dopo che il precedente è distrutto e despawnato) |
+| `category` | `tools`, `weapons`, ecc. | `vehicles` |
 
 ### Parti Pre-Attaccate con cfgspawnabletypes.xml
 
-Vehicles spawn as empty shells per impostazione predefinita -- no wheels, doors, or engine parts. To make them spawn with parts pre-attached, add entries to `cfgspawnabletypes.xml` in the server mission folder:
+I veicoli spawnano come gusci vuoti per impostazione predefinita -- niente ruote, porte o parti del motore. Per farli spawnare con parti pre-attaccate, aggiungi le voci a `cfgspawnabletypes.xml` nella cartella della missione del server:
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -827,34 +827,34 @@ Vehicles spawn as empty shells per impostazione predefinita -- no wheels, doors,
 
 ### Come Funziona cfgspawnabletypes
 
-Each `<attachments>` block is evaluated independently:
-- The outer `chance` determines if this group of attachments is considered at all
-- Each `<item>` within has its own `chance` of being placed
-- Items are placed into the first available matching slot on the vehicle
+Ogni blocco `<attachments>` viene valutato indipendentemente:
+- La `chance` esterna determina se questo gruppo di attaccamenti viene considerato
+- Ogni `<item>` all'interno ha la propria `chance` di essere posizionato
+- Gli oggetti vengono posizionati nel primo slot corrispondente disponibile sul veicolo
 
-Questo significa a vehicle might spawn with 3 wheels and no doors, or with all wheels and a battery but no spark plug. Questo crea il scavenging gameplay loop -- players must find the missing parts.
+Questo significa che un veicolo potrebbe spawnare con 3 ruote e nessuna porta, o con tutte le ruote e una batteria ma senza candela. Questo crea il ciclo di gameplay basato sulla raccolta -- i giocatori devono trovare le parti mancanti.
 
 ---
 
-## Step 5: Build and Test
+## Step 5: Compilare e Testare
 
 ### Impacchettare i PBO
 
-You need two PBOs for this mod:
+Hai bisogno di due PBO per questa mod:
 
 ```
 @MyFirstMod/
     mod.cpp
     Addons/
-        Scripts.pbo          <-- Contains Scripts/config.cpp and 4_World/
-        Data.pbo             <-- Contains Data/config.cpp and Textures/
+        Scripts.pbo          <-- Contiene Scripts/config.cpp e 4_World/
+        Data.pbo             <-- Contiene Data/config.cpp e Textures/
 ```
 
-Use Addon Builder from DayZ Tools:
-1. **Scripts PBO:** Source = `MyFirstMod/Scripts/`, Prefix = `MyFirstMod/Scripts`
-2. **Data PBO:** Source = `MyFirstMod/Data/`, Prefix = `MyFirstMod/Data`
+Usa Addon Builder dai DayZ Tools:
+1. **PBO Scripts:** Source = `MyFirstMod/Scripts/`, Prefix = `MyFirstMod/Scripts`
+2. **PBO Data:** Source = `MyFirstMod/Data/`, Prefix = `MyFirstMod/Data`
 
-Or use file patching during development:
+Oppure usa il file patching durante lo sviluppo:
 
 ```
 DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
@@ -862,10 +862,10 @@ DayZDiag_x64.exe -mod=P:\MyFirstMod -filePatching
 
 ### Spawnare il Veicolo Usando la Console Script
 
-1. Launch DayZ with your mod loaded
-2. Join your server or start offline mode
-3. Open the script console
-4. To spawn a fully equipped vehicle near your character:
+1. Avvia DayZ con la tua mod caricata
+2. Entra nel tuo server o avvia la modalità offline
+3. Apri la console script
+4. Per spawnare un veicolo completamente equipaggiato vicino al tuo personaggio:
 
 ```c
 EntityAI vehicle;
@@ -874,13 +874,13 @@ pos[2] = pos[2] + 5;
 vehicle = EntityAI.Cast(GetGame().CreateObject("MFM_RallyHatchback", pos, false, false, true));
 ```
 
-5. Press **Execute**
+5. Premi **Execute**
 
-The vehicle should appear 5 meters in front of you.
+Il veicolo dovrebbe apparire 5 metri davanti a te.
 
-### Spawnare un Veicolo Pronto da Guidare
+### Spawnare un Veicolo Pronto per Guidare
 
-For faster testing, spawn the vehicle and use the debug spawn method that attaches all parts:
+Per test più veloci, spawna il veicolo e usa il metodo debug spawn che attacca tutte le parti:
 
 ```c
 vector pos = GetGame().GetPlayer().GetPosition();
@@ -893,46 +893,46 @@ if (car)
 }
 ```
 
-This calls your `OnDebugSpawn()` override, which fills fluids and attaches wheels, doors, hood, and trunk.
+Questo chiama il tuo override `OnDebugSpawn()`, che riempie i fluidi e attacca ruote, porte, cofano e bagagliaio.
 
 ### Cosa Testare
 
 | Controllo | Cosa Cercare |
-|-------|-----------------|
-| **Vehicle spawns** | Appears in the world without errors in the script log |
-| **Textures applied** | Custom body color is visible (if using custom textures) |
-| **Engine starts** | Get in, hold il motore start key. Listen for start sound. |
-| **Driving** | Acceleration, top speed, handling feel different from vanilla |
-| **Doors** | Can open/close driver and co-driver doors |
-| **Hood/Trunk** | Can open hood to access engine parts. Can open trunk for cargo. |
-| **Rear seats** | Fold front seat, then enter rear seat |
-| **Fuel consumption** | Drive and watch the fuel gauge |
-| **Damage** | Shoot the vehicle. Parts should take damage and eventually break. |
-| **Lights** | Headlights and rear lights work at night |
+|-----------|-------------|
+| **Il veicolo spawna** | Appare nel mondo senza errori nel log degli script |
+| **Texture applicate** | Il colore personalizzato della carrozzeria è visibile (se usi texture personalizzate) |
+| **Il motore si avvia** | Entra, tieni premuto il tasto di avvio motore. Ascolta il suono di avviamento. |
+| **Guida** | Accelerazione, velocità massima, maneggevolezza sono diverse dal vanilla |
+| **Porte** | Puoi aprire/chiudere le porte del guidatore e del passeggero |
+| **Cofano/Bagagliaio** | Puoi aprire il cofano per accedere alle parti del motore. Puoi aprire il bagagliaio per il cargo. |
+| **Sedili posteriori** | Ribalta il sedile anteriore, poi entra nel sedile posteriore |
+| **Consumo carburante** | Guida e osserva l'indicatore del carburante |
+| **Danno** | Spara al veicolo. Le parti dovrebbero subire danni e alla fine rompersi. |
+| **Luci** | I fari anteriori e le luci posteriori funzionano di notte |
 
 ### Leggere il Log degli Script
 
-If the vehicle does not spawn or behaves incorrectly, check the script log at:
+Se il veicolo non spawna o si comporta in modo scorretto, controlla il log degli script in:
 
 ```
-%localappdata%\DayZ\<YourProfile>\script.log
+%localappdata%\DayZ\<TuoProfilo>\script.log
 ```
 
 Errori comuni:
 
-| Messaggio di Log | Causa |
-|-------------|-------|
-| `Cannot create object type MFM_RallyHatchback` | config.cpp class name mismatch or Data PBO not loaded |
-| `Undefined variable 'OffroadHatchback'` | `requiredAddons` missing `"DZ_Vehicles_Wheeled"` |
-| `Member not found` on method call | Typo in override method name |
+| Messaggio nel Log | Causa |
+|-------------------|-------|
+| `Cannot create object type MFM_RallyHatchback` | Nome della classe in config.cpp non corrispondente o PBO Data non caricato |
+| `Undefined variable 'OffroadHatchback'` | `requiredAddons` manca `"DZ_Vehicles_Wheeled"` |
+| `Member not found` sulla chiamata del metodo | Errore di battitura nel nome del metodo sovrascritto |
 
 ---
 
-## Step 6: Polish
+## Step 6: Rifinitura
 
-### Suono Clacson Personalizzato
+### Suono del Clacson Personalizzato
 
-To give your vehicle a unique horn, definire custom sound sets in your Data config.cpp:
+Per dare al tuo veicolo un clacson unico, definisci sound set personalizzati nel tuo config.cpp Data:
 
 ```cpp
 class CfgSoundShaders
@@ -972,31 +972,31 @@ class CfgSoundSets
 };
 ```
 
-Then reference them in your script constructor:
+Poi fai riferimento ad essi nel costruttore del tuo script:
 
 ```c
 m_CarHornShortSoundName = "MFM_RallyHornShort_SoundSet";
 m_CarHornLongSoundName  = "MFM_RallyHorn_SoundSet";
 ```
 
-I file audio devono essere in formato `.ogg`. The path in `samples[]` does NOT include the file extension.
+I file audio devono essere in formato `.ogg`. Il percorso in `samples[]` NON include l'estensione del file.
 
 ### Fari Personalizzati
 
-You can create a custom light class to change headlight brightness, color, or range:
+Puoi creare una classe di luce personalizzata per cambiare luminosità, colore o portata dei fari:
 
 ```c
 class MFM_RallyFrontLight extends CarLightBase
 {
     void MFM_RallyFrontLight()
     {
-        // Low beam (segregated)
+        // Anabbaglianti (segregati)
         m_SegregatedBrightness = 7;
         m_SegregatedRadius = 65;
         m_SegregatedAngle = 110;
         m_SegregatedColorRGB = Vector(0.9, 0.9, 1.0);
 
-        // High beam (aggregated)
+        // Abbaglianti (aggregati)
         m_AggregatedBrightness = 14;
         m_AggregatedRadius = 90;
         m_AggregatedAngle = 120;
@@ -1010,7 +1010,7 @@ class MFM_RallyFrontLight extends CarLightBase
 };
 ```
 
-Override in your vehicle class:
+Sovrascrivi nella tua classe veicolo:
 
 ```c
 override CarLightBase CreateFrontLight()
@@ -1021,7 +1021,7 @@ override CarLightBase CreateFrontLight()
 
 ### Isolamento Acustico (OnSound)
 
-The `OnSound` override controls how much the cabin muffles engine noise based on door and window state:
+L'override `OnSound` controlla quanto l'abitacolo attenua il rumore del motore in base allo stato di porte e finestrini:
 
 ```c
 override float OnSound(CarSoundCtrl ctrl, float oldValue)
@@ -1061,7 +1061,7 @@ override float OnSound(CarSoundCtrl ctrl, float oldValue)
 }
 ```
 
-A value of `1.0` means full insulation (quiet cabin), `0.0` means no insulation (open-air feeling).
+Un valore di `1.0` significa isolamento completo (abitacolo silenzioso), `0.0` significa nessun isolamento (sensazione all'aperto).
 
 ---
 
@@ -1082,8 +1082,8 @@ MyFirstMod/
         Textures/
             rally_body_co.paa
         Sounds/
-            rally_horn.ogg           (optional)
-            rally_horn_short.ogg     (optional)
+            rally_horn.ogg           (opzionale)
+            rally_horn_short.ogg     (opzionale)
 ```
 
 ### MyFirstMod/mod.cpp
@@ -1136,7 +1136,7 @@ class CfgMods
 };
 ```
 
-### Server Mission types.xml Entry
+### Voce types.xml della Missione Server
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1158,7 +1158,7 @@ class CfgMods
 </type>
 ```
 
-### Server Mission cfgspawnabletypes.xml Entry
+### Voce cfgspawnabletypes.xml della Missione Server
 
 ```xml
 <type name="MFM_RallyHatchback">
@@ -1194,25 +1194,25 @@ class CfgMods
 
 ## Buone Pratiche
 
-- **Always extend an existing vehicle class.** Creating a vehicle from scratch requires a custom 3D model with correct geometry LODs, proxies, memory points, and a physics simulation config. Extending a vanilla vehicle gives you all of this for free.
-- **Test with `OnDebugSpawn()` first.** Before setting up types.xml and cfgspawnabletypes.xml, verify the vehicle works by spawning it fully equipped via the debug menu or script console.
-- **Keep the same `GetAnimInstance()` as the parent.** If you change this without a matching animation set, players will T-pose or clip through the vehicle.
-- **Do not change door slot names.** The Niva uses `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. These are tied to the model's proxy names and inventory slot definitions. Changing them without changing the model will break door functionality.
-- **Use `scope = 0` for internal classe basees.** If you create an abstract base vehicle that other variants extend, set `scope = 0` so it never spawns directly.
-- **Set `requiredAddons` correctly.** Your Data config.cpp must list `"DZ_Vehicles_Wheeled"` so the parent `OffroadHatchback` class loads before yours.
-- **Test logica delle porte thoroughly.** Enter/exit every seat, open/close every door, try accessing il motore bay with the hood closed. CrewCanGetThrough bugs are the most common vehicle mod issue.
+- **Estendi sempre una classe veicolo esistente.** Creare un veicolo da zero richiede un modello 3D personalizzato con LOD geometria corretti, proxy, punti memoria e una configurazione di simulazione fisica. Estendere un veicolo vanilla ti dà tutto questo gratuitamente.
+- **Testa prima con `OnDebugSpawn()`.** Prima di configurare types.xml e cfgspawnabletypes.xml, verifica che il veicolo funzioni spawnandolo completamente equipaggiato tramite il menu debug o la console script.
+- **Mantieni lo stesso `GetAnimInstance()` del genitore.** Se lo cambi senza un set di animazioni corrispondente, i giocatori faranno il T-pose o penetreranno attraverso il veicolo.
+- **Non cambiare i nomi degli slot delle porte.** La Niva usa `NivaDriverDoors`, `NivaCoDriverDoors`, `NivaHood`, `NivaTrunk`. Questi sono legati ai nomi dei proxy del modello e alle definizioni degli slot dell'inventario. Cambiarli senza cambiare il modello romperà la funzionalità delle porte.
+- **Usa `scope = 0` per le classi base interne.** Se crei un veicolo base astratto che altre varianti estendono, imposta `scope = 0` così non spawna mai direttamente.
+- **Imposta `requiredAddons` correttamente.** Il tuo config.cpp Data deve elencare `"DZ_Vehicles_Wheeled"` così la classe genitore `OffroadHatchback` viene caricata prima della tua.
+- **Testa la logica delle porte accuratamente.** Entra/esci da ogni sedile, apri/chiudi ogni porta, prova ad accedere al vano motore con il cofano chiuso. I bug di CrewCanGetThrough sono il problema più comune nelle mod veicolo.
 
 ---
 
 ## Teoria vs Pratica
 
-| Concetto | Theory | Realtà |
-|---------|--------|---------|
-| `SimulationModule` in config.cpp | Full control over vehicle physics | Not all parameters override cleanly when extending a classe genitore. If your speed/torque changes seem to have no effect, try adjusting `transmissionRatio` and gear `ratios[]` invece di just `torqueMax`. |
-| Damage zones with `componentNames[]` | Each zone maps to a geometry component | When extending a vanilla vehicle, the parent model's component names are already set. Your `componentNames[]` values in config only matter if you provide a custom model. The parent's geometry LOD determines actual hit detection. |
-| Custom textures via hidden selections | Swap any texture freely | Only selections the model author marked as "hidden" can be overridden. If you need to retexture a part not in `hiddenSelections[]`, you must create a new model or modify the existing one in Object Builder. |
-| Pre-attached parts in `cfgspawnabletypes.xml` | Items attach to matching slots | If a wheel class is incompatible with the vehicle (wrong attachment slot), it silently fails. Always use parts that the parent vehicle accepts -- for the Niva, that means `HatchbackWheel`, not `CivSedanWheel`. |
-| Engine sounds | Set any SoundSet name | Sound sets must be defined in `CfgSoundSets` somewhere in the loaded configs. If you reference a sound set that does not exist, il motore silently falls back to no sound -- no error in the log. |
+| Concetto | Teoria | Realtà |
+|----------|--------|--------|
+| `SimulationModule` in config.cpp | Pieno controllo sulla fisica del veicolo | Non tutti i parametri vengono sovrascritti in modo pulito quando si estende una classe genitore. Se le tue modifiche a velocità/coppia sembrano non avere effetto, prova a regolare `transmissionRatio` e i `ratios[]` delle marce invece del solo `torqueMax`. |
+| Zone di danno con `componentNames[]` | Ogni zona mappa a un componente geometrico | Quando estendi un veicolo vanilla, i nomi dei componenti del modello genitore sono già impostati. I tuoi valori `componentNames[]` nel config contano solo se fornisci un modello personalizzato. Il LOD geometria del genitore determina il rilevamento effettivo dei colpi. |
+| Texture personalizzate tramite hidden selection | Sostituisci qualsiasi texture liberamente | Solo le selezioni che l'autore del modello ha marcato come "hidden" possono essere sovrascritte. Se hai bisogno di ritexturizzare una parte non presente in `hiddenSelections[]`, devi creare un nuovo modello o modificare quello esistente in Object Builder. |
+| Parti pre-attaccate in `cfgspawnabletypes.xml` | Gli oggetti si attaccano agli slot corrispondenti | Se una classe di ruota è incompatibile con il veicolo (slot di attacco sbagliato), fallisce silenziosamente. Usa sempre parti che il veicolo genitore accetta -- per la Niva, questo significa `HatchbackWheel`, non `CivSedanWheel`. |
+| Suoni del motore | Imposta qualsiasi nome di SoundSet | I sound set devono essere definiti in `CfgSoundSets` da qualche parte nei config caricati. Se fai riferimento a un sound set che non esiste, il motore usa silenziosamente nessun suono -- nessun errore nel log. |
 
 ---
 
@@ -1220,52 +1220,52 @@ class CfgMods
 
 In questo tutorial hai imparato:
 
-- How to definire a custom vehicle class by extending an existing vanilla vehicle in config.cpp
-- Come funzionano le zone danno and how to configure health values for each vehicle component
-- Come le hidden selection dei veicoli allow retexturing the body without a custom 3D model
-- Come scrivere uno script veicolo with door state logic, crew entry checks, and engine behavior
-- How `types.xml` and `cfgspawnabletypes.xml` work together for vehicle spawning with randomized pre-attached parts
-- Come testare i veicoli in-game using the script console and the `OnDebugSpawn()` method
-- Come aggiungere suoni personalizzati for horns and custom light classes for headlights
+- Come definire una classe veicolo personalizzata estendendo un veicolo vanilla esistente in config.cpp
+- Come funzionano le zone di danno e come configurare i valori di salute per ogni componente del veicolo
+- Come le hidden selection dei veicoli permettono la ritexturizzazione della carrozzeria senza un modello 3D personalizzato
+- Come scrivere uno script del veicolo con logica dello stato delle porte, controlli di entrata dell'equipaggio e comportamento del motore
+- Come `types.xml` e `cfgspawnabletypes.xml` lavorano insieme per lo spawn dei veicoli con parti pre-attaccate randomizzate
+- Come testare i veicoli in gioco usando la console script e il metodo `OnDebugSpawn()`
+- Come aggiungere suoni personalizzati per i clacson e classi di luce personalizzate per i fari
 
-**Successivo:** Expand your vehicle mod with custom door models, interior textures, or even a completely new vehicle body using Blender and Object Builder.
+**Successivo:** Espandi la tua mod veicolo con modelli di porte personalizzati, texture degli interni o persino una carrozzeria completamente nuova usando Blender e Object Builder.
 
 ---
 
 ## Errori Comuni
 
-### Vehicle Spawns But Immediately Falls Through the Ground
+### Il Veicolo Spawna Ma Cade Immediatamente Attraverso il Terreno
 
-The physics geometry is not loading. This usually means `requiredAddons[]` is missing `"DZ_Vehicles_Wheeled"`, so the classe genitore physics config is not inherited.
+La geometria fisica non si sta caricando. Questo di solito significa che `requiredAddons[]` manca `"DZ_Vehicles_Wheeled"`, quindi il config fisico della classe genitore non viene ereditato.
 
-### Vehicle Spawns But Cannot Be Entered
+### Il Veicolo Spawna Ma Non Si Può Entrare
 
-Check that `GetAnimInstance()` returns the correct enum value for your model. If you extend `OffroadHatchback` but return `VehicleAnimInstances.SEDAN`, the entry animation targets the wrong door positions and the player cannot get in.
+Controlla che `GetAnimInstance()` restituisca il valore enum corretto per il tuo modello. Se estendi `OffroadHatchback` ma restituisci `VehicleAnimInstances.SEDAN`, l'animazione di entrata punta alle posizioni sbagliate delle porte e il giocatore non riesce a entrare.
 
-### Doors Do Not Open or Close
+### Le Porte Non Si Aprono o Chiudono
 
-Verify that `GetCarDoorsState()` uses the correct slot names. The Niva uses `"NivaDriverDoors"`, `"NivaCoDriverDoors"`, `"NivaHood"`, and `"NivaTrunk"`. These must match exactly, including capitalization.
+Verifica che `GetCarDoorsState()` usi i nomi degli slot corretti. La Niva usa `"NivaDriverDoors"`, `"NivaCoDriverDoors"`, `"NivaHood"` e `"NivaTrunk"`. Questi devono corrispondere esattamente, inclusa la capitalizzazione.
 
-### Engine Starts But Vehicle Does Not Move
+### Il Motore Si Avvia Ma il Veicolo Non Si Muove
 
-Check your `SimulationModule` gear ratios. If `ratios[]` is empty or has zero values, the vehicle has no forward gears. Also verify the wheels are attached -- a vehicle with no wheels will rev but not move.
+Controlla i rapporti delle marce nel tuo `SimulationModule`. Se `ratios[]` è vuoto o ha valori zero, il veicolo non ha marce avanti. Verifica anche che le ruote siano attaccate -- un veicolo senza ruote accelererà ma non si muoverà.
 
-### Vehicle Has No Sound
+### Il Veicolo Non Ha Suono
 
-Engine sounds are assigned in the constructor. If you misspell a SoundSet name (per esempio `"offroad_engine_Start_SoundSet"` invece di `"offroad_engine_start_SoundSet"`), il motore silently uses no sound. Sound set names are case-sensitive.
+I suoni del motore vengono assegnati nel costruttore. Se scrivi male il nome di un SoundSet (ad esempio `"offroad_engine_Start_SoundSet"` invece di `"offroad_engine_start_SoundSet"`), il motore usa silenziosamente nessun suono. I nomi dei sound set sono case-sensitive.
 
-### Custom Texture Not Showing
+### La Texture Personalizzata Non Si Mostra
 
-Verify three things in order: (1) the hidden selection name matches the model exactly, (2) the texture path uses backslashes in config.cpp, and (3) the `.paa` file is inside the packed PBO. If using file patching during development, ensure the path starts from the mod root, not an absolute path.
+Verifica tre cose in ordine: (1) il nome della hidden selection corrisponde esattamente al modello, (2) il percorso della texture usa le barre rovesciate in config.cpp, e (3) il file `.paa` è dentro il PBO impacchettato. Se usi il file patching durante lo sviluppo, assicurati che il percorso parta dalla radice della mod, non un percorso assoluto.
 
-### Rear Seat Passengers Cannot Enter
+### I Passeggeri Posteriori Non Possono Entrare
 
-The Niva rear seats require the front seat to be folded forward. If your `CrewCanGetThrough()` override for seat indices 2 and 3 does not check `GetAnimationPhase("SeatDriver")` and `GetAnimationPhase("SeatCoDriver")`, rear passengers will be permanently locked out.
+I sedili posteriori della Niva richiedono che il sedile anteriore sia ribaltato in avanti. Se il tuo override `CrewCanGetThrough()` per gli indici dei sedili 2 e 3 non controlla `GetAnimationPhase("SeatDriver")` e `GetAnimationPhase("SeatCoDriver")`, i passeggeri posteriori saranno permanentemente bloccati fuori.
 
-### Vehicle Spawns Without Parts in Multiplayer
+### Il Veicolo Spawna Senza Parti nel Multiplayer
 
-`OnDebugSpawn()` is only for debug/testing. In a real server, parts come from `cfgspawnabletypes.xml`. If your vehicle spawns as a bare shell, add the `cfgspawnabletypes.xml` entry described in Step 4.
+`OnDebugSpawn()` è solo per il debug/test. In un server reale, le parti provengono da `cfgspawnabletypes.xml`. Se il tuo veicolo spawna come guscio nudo, aggiungi la voce `cfgspawnabletypes.xml` descritta nello Step 4.
 
 ---
 
-**Precedente:** [Chapter 8.9: Professional Mod Template](09-professional-template.md)
+**Precedente:** [Capitolo 8.9: Template Mod Professionale](09-professional-template.md)

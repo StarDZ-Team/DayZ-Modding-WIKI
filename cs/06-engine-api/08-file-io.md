@@ -1,6 +1,6 @@
 # Chapter 6.8: File I/O & JSON
 
-[Domů](../../README.md) | [<< Předchozí: Časovače a CallQueue](07-timers.md) | **Souborové I/O a JSON** | [Další: Síťování a RPC >>](09-networking.md)
+[Domů](../README.md) | [<< Předchozí: Časovače a CallQueue](07-timers.md) | **Souborové I/O a JSON** | [Další: Síťování a RPC >>](09-networking.md)
 
 ---
 

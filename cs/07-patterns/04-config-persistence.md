@@ -1,6 +1,6 @@
 # Chapter 7.4: Config Persistence
 
-[Domů](../../README.md) | [<< Předchozí: Vzory RPC](03-rpc-patterns.md) | **Perzistence konfigurace** | [Další: Permission Systems >>](05-permissions.md)
+[Domů](../README.md) | [<< Předchozí: Vzory RPC](03-rpc-patterns.md) | **Perzistence konfigurace** | [Další: Permission Systems >>](05-permissions.md)
 
 ---
 
@@ -695,4 +695,4 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Vzory RPC](03-rpc-patterns.md) | **Perzistence konfigurace** | [Další: Permission Systems >>](05-permissions.md)
+[Domů](../README.md) | [<< Předchozí: Vzory RPC](03-rpc-patterns.md) | **Perzistence konfigurace** | [Další: Permission Systems >>](05-permissions.md)

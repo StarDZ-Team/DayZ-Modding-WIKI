@@ -1,6 +1,6 @@
 # Kapitola 6.12: Systém akcí
 
-[Domů](../../README.md) | [<< Předchozí: Háčky mise](11-mission-hooks.md) | **Systém akcí** | [Další: Vstupní systém >>](13-input-system.md)
+[Domů](../README.md) | [<< Předchozí: Háčky mise](11-mission-hooks.md) | **Systém akcí** | [Další: Vstupní systém >>](13-input-system.md)
 
 ---
 

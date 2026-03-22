@@ -1,6 +1,6 @@
 # 第 2.5 章：文件组织最佳实践
 
-[首页](../../README.md) | [<< 上一章：最小可行模组](04-minimum-viable-mod.md) | **文件组织** | [下一章：服务器与客户端架构 >>](06-server-client-split.md)
+[首页](../README.md) | [<< 上一章：最小可行模组](04-minimum-viable-mod.md) | **文件组织** | [下一章：服务器与客户端架构 >>](06-server-client-split.md)
 
 ---
 

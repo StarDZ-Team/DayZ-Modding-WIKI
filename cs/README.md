@@ -1,7 +1,6 @@
-<p align="center">
-  <strong>Kompletni pruvodce moddingem DayZ</strong><br/>
-  Komplexni dokumentace moddingu DayZ — 92 kapitol, od nuly po publikovany mod.
-</p>
+# Kompletni pruvodce moddingem DayZ
+
+> Komplexni dokumentace moddingu DayZ — 92 kapitol, od nuly po publikovany mod.
 
 <p align="center">
   <a href="../en/README.md"><img src="https://flagsapi.com/US/flat/48.png" alt="English" /></a>

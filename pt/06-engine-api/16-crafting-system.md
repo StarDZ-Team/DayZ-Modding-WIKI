@@ -1,6 +1,6 @@
 # Capítulo 6.16: Sistema de Crafting
 
-[Início](../../README.md) | [<< Anterior: Sistema de Som](15-sound-system.md) | **Sistema de Crafting** | [Próximo: Sistema de Construção >>](17-construction-system.md)
+[Início](../README.md) | [<< Anterior: Sistema de Som](15-sound-system.md) | **Sistema de Crafting** | [Próximo: Sistema de Construção >>](17-construction-system.md)
 
 ---
 

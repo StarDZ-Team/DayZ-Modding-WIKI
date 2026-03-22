@@ -1,6 +1,6 @@
 # 第1.10章: 列挙型とプリプロセッサ
 
-[ホーム](../../README.md) | [<< 前へ: キャストとリフレクション](09-casting-reflection.md) | **列挙型とプリプロセッサ** | [次へ: エラー処理 >>](11-error-handling.md)
+[ホーム](../README.md) | [<< 前へ: キャストとリフレクション](09-casting-reflection.md) | **列挙型とプリプロセッサ** | [次へ: エラー処理 >>](11-error-handling.md)
 
 ---
 

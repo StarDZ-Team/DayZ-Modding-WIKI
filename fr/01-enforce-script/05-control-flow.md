@@ -1,6 +1,6 @@
 # Chapitre 1.5 : Flux de contrôle
 
-[Accueil](../../README.md) | [<< Précédent : Classes Moddées](04-modded-classes.md) | **Flux de contrôle** | [Suivant : Opérations sur les chaînes >>](06-strings.md)
+[Accueil](../README.md) | [<< Précédent : Classes Moddées](04-modded-classes.md) | **Flux de contrôle** | [Suivant : Opérations sur les chaînes >>](06-strings.md)
 
 ---
 
@@ -645,4 +645,4 @@ thread MyFunc();  // appel non-bloquant
 
 ---
 
-[<< 1.4 : Classes Moddées](04-modded-classes.md) | [Accueil](../../README.md) | [1.6 : Opérations sur les chaînes >>](06-strings.md)
+[<< 1.4 : Classes Moddées](04-modded-classes.md) | [Accueil](../README.md) | [1.6 : Opérations sur les chaînes >>](06-strings.md)

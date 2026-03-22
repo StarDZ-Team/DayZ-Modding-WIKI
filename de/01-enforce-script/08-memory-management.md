@@ -1,6 +1,6 @@
 # Kapitel 1.8: Speicherverwaltung
 
-[Startseite](../../README.md) | [<< Zurück: Mathematik & Vektoren](07-math-vectors.md) | **Speicherverwaltung** | [Weiter: Casting & Reflection >>](09-casting-reflection.md)
+[Startseite](../README.md) | [<< Zurück: Mathematik & Vektoren](07-math-vectors.md) | **Speicherverwaltung** | [Weiter: Casting & Reflection >>](09-casting-reflection.md)
 
 ---
 
@@ -673,4 +673,4 @@ class Child  { Parent m_Parent; }        // Schwach -- Kind beobachtet Elterntei
 
 ---
 
-[<< 1.7: Mathematik & Vektoren](07-math-vectors.md) | [Startseite](../../README.md) | [1.9: Casting & Reflection >>](09-casting-reflection.md)
+[<< 1.7: Mathematik & Vektoren](07-math-vectors.md) | [Startseite](../README.md) | [1.9: Casting & Reflection >>](09-casting-reflection.md)

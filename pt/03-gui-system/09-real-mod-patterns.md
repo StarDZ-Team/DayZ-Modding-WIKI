@@ -1,6 +1,6 @@
 # Capítulo 3.9: Padrões Reais de UI em Mods
 
-[Home](../../README.md) | [<< Anterior: Diálogos & Modais](08-dialogs-modals.md) | **Padrões Reais de UI em Mods** | [Próximo: Widgets Avançados >>](10-advanced-widgets.md)
+[Home](../README.md) | [<< Anterior: Diálogos & Modais](08-dialogs-modals.md) | **Padrões Reais de UI em Mods** | [Próximo: Widgets Avançados >>](10-advanced-widgets.md)
 
 ---
 

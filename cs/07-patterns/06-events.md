@@ -1,6 +1,6 @@
 # Chapter 7.6: Event-Driven Architecture
 
-[Domů](../../README.md) | [<< Předchozí: Permission Systems](05-permissions.md) | **Event-Driven Architecture** | [Další: Performance Optimization >>](07-performance.md)
+[Domů](../README.md) | [<< Předchozí: Permission Systems](05-permissions.md) | **Event-Driven Architecture** | [Další: Performance Optimization >>](07-performance.md)
 
 ---
 
@@ -552,4 +552,4 @@ OnKillEvent.Invoke(killData);
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Permission Systems](05-permissions.md) | **Event-Driven Architecture** | [Další: Performance Optimization >>](07-performance.md)
+[Domů](../README.md) | [<< Předchozí: Permission Systems](05-permissions.md) | **Event-Driven Architecture** | [Další: Performance Optimization >>](07-performance.md)

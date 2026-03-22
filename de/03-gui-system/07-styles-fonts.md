@@ -1,6 +1,6 @@
 # Kapitel 3.7: Stile, Schriftarten & Bilder
 
-[Startseite](../../README.md) | [<< Zurück: Ereignisbehandlung](06-event-handling.md) | **Stile, Schriftarten & Bilder** | [Weiter: Dialoge & Modale >>](08-dialogs-modals.md)
+[Startseite](../README.md) | [<< Zurück: Ereignisbehandlung](06-event-handling.md) | **Stile, Schriftarten & Bilder** | [Weiter: Dialoge & Modale >>](08-dialogs-modals.md)
 
 ---
 

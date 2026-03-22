@@ -1,6 +1,6 @@
 # 第 6.5 章：后处理效果（PPE）
 
-[首页](../../README.md) | [<< 上一章：相机](04-cameras.md) | **后处理效果** | [下一章：通知系统 >>](06-notifications.md)
+[首页](../README.md) | [<< 上一章：相机](04-cameras.md) | **后处理效果** | [下一章：通知系统 >>](06-notifications.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Kapitola 6.5: Post-processingové efekty (PPE)
 
-[Domů](../../README.md) | [<< Předchozí: Kamery](04-cameras.md) | **Post-processingové efekty** | [Další: Notifikace >>](06-notifications.md)
+[Domů](../README.md) | [<< Předchozí: Kamery](04-cameras.md) | **Post-processingové efekty** | [Další: Notifikace >>](06-notifications.md)
 
 ---
 

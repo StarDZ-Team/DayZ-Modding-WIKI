@@ -1,6 +1,6 @@
 # Chapter 5.2: inputs.xml --- カスタムキーバインド
 
-[ホーム](../../README.md) | [<< 前: stringtable.csv](01-stringtable.md) | **inputs.xml** | [次: Credits.json >>](03-credits-json.md)
+[ホーム](../README.md) | [<< 前: stringtable.csv](01-stringtable.md) | **inputs.xml** | [次: Credits.json >>](03-credits-json.md)
 
 ---
 

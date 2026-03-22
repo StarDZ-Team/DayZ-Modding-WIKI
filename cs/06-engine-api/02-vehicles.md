@@ -1,6 +1,6 @@
 # Chapter 6.2: Vehicle System
 
-[Domů](../../README.md) | [<< Předchozí: Systém entit](01-entity-system.md) | **Vozidla** | [Další: Počasí >>](03-weather.md)
+[Domů](../README.md) | [<< Předchozí: Systém entit](01-entity-system.md) | **Vozidla** | [Další: Počasí >>](03-weather.md)
 
 ---
 
@@ -408,4 +408,4 @@ void FindAllVehicles(out array<Transport> vehicles)
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Systém entit](01-entity-system.md) | **Vozidla** | [Další: Počasí >>](03-weather.md)
+[Domů](../README.md) | [<< Předchozí: Systém entit](01-entity-system.md) | **Vozidla** | [Další: Počasí >>](03-weather.md)

@@ -1,6 +1,6 @@
 # Capitulo 3.2: Formato de Archivos Layout (.layout)
 
-[Inicio](../../README.md) | [<< Anterior: Tipos de Widget](01-widget-types.md) | **Formato de Archivos Layout** | [Siguiente: Tamano y Posicionamiento >>](03-sizing-positioning.md)
+[Inicio](../README.md) | [<< Anterior: Tipos de Widget](01-widget-types.md) | **Formato de Archivos Layout** | [Siguiente: Tamano y Posicionamiento >>](03-sizing-positioning.md)
 
 ---
 

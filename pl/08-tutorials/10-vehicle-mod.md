@@ -1,6 +1,6 @@
 # Rozdział 8.10: Tworzenie niestandardowego moda pojazdów
 
-[Strona główna](../../README.md) | [<< Poprzedni: Profesjonalny szablon moda](09-professional-template.md) | **Tworzenie niestandardowego pojazdu** | [Następny: Tworzenie niestandardowej odzieży >>](11-clothing-mod.md)
+[Strona główna](../README.md) | [<< Poprzedni: Profesjonalny szablon moda](09-professional-template.md) | **Tworzenie niestandardowego pojazdu** | [Następny: Tworzenie niestandardowej odzieży >>](11-clothing-mod.md)
 
 ---
 

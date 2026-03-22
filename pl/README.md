@@ -1,7 +1,6 @@
-<p align="center">
-  <strong>Kompletny przewodnik po moddingu DayZ</strong><br/>
-  Kompleksowa dokumentacja moddingu DayZ — 92 rozdzialy, od zera do opublikowanego moda.
-</p>
+# Kompletny przewodnik po moddingu DayZ
+
+> Kompleksowa dokumentacja moddingu DayZ — 92 rozdzialy, od zera do opublikowanego moda.
 
 <p align="center">
   <a href="../en/README.md"><img src="https://flagsapi.com/US/flat/48.png" alt="English" /></a>

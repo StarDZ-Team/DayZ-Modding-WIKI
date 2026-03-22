@@ -1,6 +1,6 @@
 # Chapter 6.11: Mission Hooks
 
-[Domů](../../README.md) | [<< Předchozí: Central Economy](10-central-economy.md) | **Mission Hooks** | [Další: Action System >>](12-action-system.md)
+[Domů](../README.md) | [<< Předchozí: Central Economy](10-central-economy.md) | **Mission Hooks** | [Další: Action System >>](12-action-system.md)
 
 ---
 

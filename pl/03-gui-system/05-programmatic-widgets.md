@@ -1,6 +1,6 @@
 # Rozdział 3.5: Programowe tworzenie widgetów
 
-[Strona główna](../../README.md) | [<< Poprzedni: Widgety kontenerów](04-containers.md) | **Programowe tworzenie widgetów** | [Dalej: Obsługa zdarzeń >>](06-event-handling.md)
+[Strona główna](../README.md) | [<< Poprzedni: Widgety kontenerów](04-containers.md) | **Programowe tworzenie widgetów** | [Dalej: Obsługa zdarzeń >>](06-event-handling.md)
 
 ---
 

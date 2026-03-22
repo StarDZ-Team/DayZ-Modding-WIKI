@@ -1,6 +1,6 @@
 # Szybka referencja API silnika
 
-[Strona główna](../../README.md) | **Szybka referencja API silnika**
+[Strona główna](../README.md) | **Szybka referencja API silnika**
 
 ---
 
@@ -656,4 +656,4 @@ override void SetActions()
 
 ---
 
-*Pełna dokumentacja: [Strona główna](../../README.md) | [Ściągawka](../cheatsheet.md) | [System encji](01-entity-system.md) | [Pojazdy](02-vehicles.md) | [Pogoda](03-weather.md) | [Timery](07-timers.md) | [I/O plików](08-file-io.md) | [Sieć](09-networking.md) | [Haki misji](11-mission-hooks.md) | [System akcji](12-action-system.md)*
+*Pełna dokumentacja: [Strona główna](../README.md) | [Ściągawka](../cheatsheet.md) | [System encji](01-entity-system.md) | [Pojazdy](02-vehicles.md) | [Pogoda](03-weather.md) | [Timery](07-timers.md) | [I/O plików](08-file-io.md) | [Sieć](09-networking.md) | [Haki misji](11-mission-hooks.md) | [System akcji](12-action-system.md)*

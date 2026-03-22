@@ -1,6 +1,6 @@
 # Kapitola 8.13: Diagnostické menu (Diag Menu)
 
-[Domů](../../README.md) | [<< Předchozí: Vytváření obchodního systému](12-trading-system.md) | **Diagnostické menu**
+[Domů](../README.md) | [<< Předchozí: Vytváření obchodního systému](12-trading-system.md) | **Diagnostické menu**
 
 ---
 

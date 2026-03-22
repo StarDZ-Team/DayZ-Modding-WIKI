@@ -1,6 +1,6 @@
 # Capitolo 7.6: Architettura Event-Driven
 
-[Home](../../README.md) | [<< Precedente: Sistemi di Permessi](05-permissions.md) | **Architettura Event-Driven** | [Successivo: Ottimizzazione delle Prestazioni >>](07-performance.md)
+[Home](../README.md) | [<< Precedente: Sistemi di Permessi](05-permissions.md) | **Architettura Event-Driven** | [Successivo: Ottimizzazione delle Prestazioni >>](07-performance.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Kapitel 1.3: Klassen & Vererbung
 
-[Startseite](../../README.md) | [<< Zurück: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Klassen & Vererbung** | [Weiter: Modded-Klassen >>](04-modded-classes.md)
+[Startseite](../README.md) | [<< Zurück: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Klassen & Vererbung** | [Weiter: Modded-Klassen >>](04-modded-classes.md)
 
 ---
 
@@ -947,4 +947,4 @@ Erstellen Sie eine abstrakte `Handler`-Klasse mit `protected Handler m_Next` und
 
 ---
 
-[Startseite](../../README.md) | [<< Zurück: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Klassen & Vererbung** | [Weiter: Modded-Klassen >>](04-modded-classes.md)
+[Startseite](../README.md) | [<< Zurück: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Klassen & Vererbung** | [Weiter: Modded-Klassen >>](04-modded-classes.md)

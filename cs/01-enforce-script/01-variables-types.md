@@ -1,6 +1,6 @@
 # Kapitola 1.1: Proměnné a typy
 
-[Domů](../../README.md) | **Proměnné a typy** | [Další: Pole, mapy a množiny >>](02-arrays-maps-sets.md)
+[Domů](../README.md) | **Proměnné a typy** | [Další: Pole, mapy a množiny >>](02-arrays-maps-sets.md)
 
 ---
 
@@ -876,4 +876,4 @@ Napište funkci `vector SnapToGround(vector pos)`, která přijme libovolnou poz
 
 ---
 
-[Domů](../../README.md) | **Proměnné a typy** | [Další: Pole, mapy a množiny >>](02-arrays-maps-sets.md)
+[Domů](../README.md) | **Proměnné a typy** | [Další: Pole, mapy a množiny >>](02-arrays-maps-sets.md)

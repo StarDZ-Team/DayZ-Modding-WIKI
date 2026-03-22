@@ -1,6 +1,6 @@
 # 第 8.7 章：发布到 Steam 创意工坊
 
-[首页](../../README.md) | [<< 上一章：调试与测试](06-debugging-testing.md) | **发布到 Steam 创意工坊** | [下一章：构建 HUD 覆盖层 >>](08-hud-overlay.md)
+[首页](../README.md) | [<< 上一章：调试与测试](06-debugging-testing.md) | **发布到 Steam 创意工坊** | [下一章：构建 HUD 覆盖层 >>](08-hud-overlay.md)
 
 ---
 

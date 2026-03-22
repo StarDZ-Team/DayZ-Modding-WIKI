@@ -1,6 +1,6 @@
 # 8.9. fejezet: Professzionális mod sablon
 
-[Főoldal](../../README.md) | [<< Előző: HUD overlay építése](08-hud-overlay.md) | **Professzionális mod sablon** | [Következő: Egyéni jármű készítése >>](10-vehicle-mod.md)
+[Főoldal](../README.md) | [<< Előző: HUD overlay építése](08-hud-overlay.md) | **Professzionális mod sablon** | [Következő: Egyéni jármű készítése >>](10-vehicle-mod.md)
 
 ---
 
@@ -1790,4 +1790,4 @@ Ezzel a professzionális sablonnal futva a következőket teheted:
 
 ---
 
-**Előző:** [8.8. fejezet: HUD overlay építése](08-hud-overlay.md) | [Főoldal](../../README.md)
+**Előző:** [8.8. fejezet: HUD overlay építése](08-hud-overlay.md) | [Főoldal](../README.md)

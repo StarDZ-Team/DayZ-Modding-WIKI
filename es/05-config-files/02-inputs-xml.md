@@ -1,6 +1,6 @@
 # Capítulo 5.2: inputs.xml --- Custom Keybindings
 
-[Inicio](../../README.md) | [<< Anterior: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Siguiente: Credits.json >>](03-credits-json.md)
+[Inicio](../README.md) | [<< Anterior: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Siguiente: Credits.json >>](03-credits-json.md)
 
 ---
 

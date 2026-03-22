@@ -1,6 +1,6 @@
 # Chapitre 2.5 : Bonnes pratiques d'organisation des fichiers
 
-[Accueil](../../README.md) | [<< Précédent : Mod Minimum Viable](04-minimum-viable-mod.md) | **Organisation des fichiers** | [Suivant : Architecture Serveur vs Client >>](06-server-client-split.md)
+[Accueil](../README.md) | [<< Précédent : Mod Minimum Viable](04-minimum-viable-mod.md) | **Organisation des fichiers** | [Suivant : Architecture Serveur vs Client >>](06-server-client-split.md)
 
 ---
 

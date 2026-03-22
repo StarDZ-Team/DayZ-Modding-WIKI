@@ -1,6 +1,6 @@
 # 6.5. fejezet: Utófeldolgozási effektek (PPE)
 
-[Kezdőlap](../../README.md) | [<< Előző: Kamerák](04-cameras.md) | **Utófeldolgozási effektek** | [Következő: Értesítések >>](06-notifications.md)
+[Kezdőlap](../README.md) | [<< Előző: Kamerák](04-cameras.md) | **Utófeldolgozási effektek** | [Következő: Értesítések >>](06-notifications.md)
 
 ---
 

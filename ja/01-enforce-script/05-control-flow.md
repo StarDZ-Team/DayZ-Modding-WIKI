@@ -1,6 +1,6 @@
 # 第1.5章: 制御フロー
 
-[ホーム](../../README.md) | [<< 前へ: Modded クラス](04-modded-classes.md) | **制御フロー** | [次へ: 文字列操作 >>](06-strings.md)
+[ホーム](../README.md) | [<< 前へ: Modded クラス](04-modded-classes.md) | **制御フロー** | [次へ: 文字列操作 >>](06-strings.md)
 
 ---
 
@@ -645,4 +645,4 @@ thread MyFunc();  // ノンブロッキング呼び出し
 
 ---
 
-[<< 1.4: Modded クラス](04-modded-classes.md) | [ホーム](../../README.md) | [1.6: 文字列操作 >>](06-strings.md)
+[<< 1.4: Modded クラス](04-modded-classes.md) | [ホーム](../README.md) | [1.6: 文字列操作 >>](06-strings.md)

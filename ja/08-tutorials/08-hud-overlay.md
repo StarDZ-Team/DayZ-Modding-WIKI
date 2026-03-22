@@ -1,6 +1,6 @@
 # チャプター 8.8: HUDオーバーレイの構築
 
-[ホーム](../../README.md) | [<< 前へ: Steam Workshopへの公開](07-publishing-workshop.md) | **HUDオーバーレイの構築** | [次へ: プロフェッショナルModテンプレート >>](09-professional-template.md)
+[ホーム](../README.md) | [<< 前へ: Steam Workshopへの公開](07-publishing-workshop.md) | **HUDオーバーレイの構築** | [次へ: プロフェッショナルModテンプレート >>](09-professional-template.md)
 
 ---
 

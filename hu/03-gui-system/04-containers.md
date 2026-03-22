@@ -1,6 +1,6 @@
 # 3.4. fejezet: Konténer widgetek
 
-[Kezdőlap](../../README.md) | [<< Előző: Méretezés és pozícionálás](03-sizing-positioning.md) | **Konténer widgetek** | [Következő: Programozott widgetek >>](05-programmatic-widgets.md)
+[Kezdőlap](../README.md) | [<< Előző: Méretezés és pozícionálás](03-sizing-positioning.md) | **Konténer widgetek** | [Következő: Programozott widgetek >>](05-programmatic-widgets.md)
 
 ---
 

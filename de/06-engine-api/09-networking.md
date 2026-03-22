@@ -1,6 +1,6 @@
 # Kapitel 6.9: Netzwerk & RPC
 
-[Startseite](../../README.md) | [<< Zurück: Datei-I/O & JSON](08-file-io.md) | **Netzwerk & RPC** | [Weiter: Central Economy >>](10-central-economy.md)
+[Startseite](../README.md) | [<< Zurück: Datei-I/O & JSON](08-file-io.md) | **Netzwerk & RPC** | [Weiter: Central Economy >>](10-central-economy.md)
 
 ---
 

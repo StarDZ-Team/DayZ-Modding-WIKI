@@ -1,6 +1,6 @@
 # Chapitre 1.13 : Fonctions & Méthodes
 
-[Accueil](../../README.md) | [<< Précédent : Pièges](12-gotchas.md) | **Fonctions & Méthodes**
+[Accueil](../README.md) | [<< Précédent : Pièges](12-gotchas.md) | **Fonctions & Méthodes**
 
 ---
 

@@ -1,6 +1,6 @@
 # Rozdział 4.5: Przebieg pracy DayZ Tools
 
-[Strona główna](../../README.md) | [<< Poprzedni: Audio](04-audio.md) | **DayZ Tools** | [Dalej: Pakowanie PBO >>](06-pbo-packing.md)
+[Strona główna](../README.md) | [<< Poprzedni: Audio](04-audio.md) | **DayZ Tools** | [Dalej: Pakowanie PBO >>](06-pbo-packing.md)
 
 ---
 

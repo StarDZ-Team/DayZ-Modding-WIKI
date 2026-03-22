@@ -1,6 +1,6 @@
 # Chapter 7.2: Module / Plugin Systems
 
-[Home](../../README.md) | [<< Previous: Singleton Pattern](01-singletons.md) | **Module / Plugin Systems** | [Next: RPC Patterns >>](03-rpc-patterns.md)
+[Home](../README.md) | [<< Previous: Singleton Pattern](01-singletons.md) | **Module / Plugin Systems** | [Next: RPC Patterns >>](03-rpc-patterns.md)
 
 ---
 
@@ -535,4 +535,4 @@ Choose the approach that matches your mod's dependency profile. If you already d
 
 ---
 
-[<< Zurück: Singleton Pattern](01-singletons.md) | [Startseite](../../README.md) | [Next: RPC Patterns >>](03-rpc-patterns.md)
+[<< Zurück: Singleton Pattern](01-singletons.md) | [Startseite](../README.md) | [Next: RPC Patterns >>](03-rpc-patterns.md)

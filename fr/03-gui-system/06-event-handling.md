@@ -1,6 +1,6 @@
 # Chapitre 3.6 : Gestion des événements
 
-[Accueil](../../README.md) | [<< Précédent : Création programmatique de widgets](05-programmatic-widgets.md) | **Gestion des événements** | [Suivant : Styles, polices et images >>](07-styles-fonts.md)
+[Accueil](../README.md) | [<< Précédent : Création programmatique de widgets](05-programmatic-widgets.md) | **Gestion des événements** | [Suivant : Styles, polices et images >>](07-styles-fonts.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第6.10章: セントラルエコノミー
 
-[ホーム](../../README.md) | [<< 前へ: ネットワークとRPC](09-networking.md) | **セントラルエコノミー** | [次へ: ミッションフック >>](11-mission-hooks.md)
+[ホーム](../README.md) | [<< 前へ: ネットワークとRPC](09-networking.md) | **セントラルエコノミー** | [次へ: ミッションフック >>](11-mission-hooks.md)
 
 ---
 
@@ -548,4 +548,4 @@ GetGame().SurfaceGetType(x, z, surfaceType);
 
 ---
 
-[ホーム](../../README.md) | [<< 前へ: ネットワークとRPC](09-networking.md) | **セントラルエコノミー** | [次へ: ミッションフック >>](11-mission-hooks.md)
+[ホーム](../README.md) | [<< 前へ: ネットワークとRPC](09-networking.md) | **セントラルエコノミー** | [次へ: ミッションフック >>](11-mission-hooks.md)

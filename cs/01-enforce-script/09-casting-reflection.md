@@ -1,6 +1,6 @@
 # Chapter 1.9: Casting & Reflection
 
-[Domů](../../README.md) | [<< Předchozí: Správa paměti](08-memory-management.md) | **Přetypování a reflexe** | [Další: Výčty a preprocesor >>](10-enums-preprocessor.md)
+[Domů](../README.md) | [<< Předchozí: Správa paměti](08-memory-management.md) | **Přetypování a reflexe** | [Další: Výčty a preprocesor >>](10-enums-preprocessor.md)
 
 ---
 

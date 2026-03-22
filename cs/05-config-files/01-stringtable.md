@@ -1,6 +1,6 @@
 # Kapitola 5.1: stringtable.csv --- Lokalizace
 
-[Domů](../../README.md) | **stringtable.csv** | [Další: inputs.xml >>](02-inputs-xml.md)
+[Domů](../README.md) | **stringtable.csv** | [Další: inputs.xml >>](02-inputs-xml.md)
 
 ---
 

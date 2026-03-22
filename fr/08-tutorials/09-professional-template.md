@@ -1,6 +1,6 @@
 # Chapitre 8.9 : Modèle de mod professionnel
 
-[Accueil](../../README.md) | [<< Précédent : Construire une surcouche HUD](08-hud-overlay.md) | **Modèle de mod professionnel** | [Suivant : Créer un véhicule personnalisé >>](10-vehicle-mod.md)
+[Accueil](../README.md) | [<< Précédent : Construire une surcouche HUD](08-hud-overlay.md) | **Modèle de mod professionnel** | [Suivant : Créer un véhicule personnalisé >>](10-vehicle-mod.md)
 
 ---
 
@@ -1794,4 +1794,4 @@ Avec ce modèle professionnel en fonctionnement, vous pouvez :
 
 ---
 
-**Précédent :** [Chapitre 8.8 : Construire une surcouche HUD](08-hud-overlay.md) | [Accueil](../../README.md)
+**Précédent :** [Chapitre 8.8 : Construire une surcouche HUD](08-hud-overlay.md) | [Accueil](../README.md)

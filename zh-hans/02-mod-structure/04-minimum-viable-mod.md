@@ -1,6 +1,6 @@
 # 第 2.4 章：你的第一个模组 -- 最小可行模组
 
-[首页](../../README.md) | [<< 上一章：mod.cpp 与 Workshop](03-mod-cpp.md) | **最小可行模组** | [下一章：文件组织 >>](05-file-organization.md)
+[首页](../README.md) | [<< 上一章：mod.cpp 与 Workshop](03-mod-cpp.md) | **最小可行模组** | [下一章：文件组织 >>](05-file-organization.md)
 
 ---
 

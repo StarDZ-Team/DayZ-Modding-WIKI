@@ -1,6 +1,6 @@
 # Rozdział 8.7: Publikacja w Steam Workshop
 
-[Strona główna](../../README.md) | [<< Poprzedni: Debugowanie i testowanie](06-debugging-testing.md) | **Publikacja w Steam Workshop** | [Następny: Budowanie nakładki HUD >>](08-hud-overlay.md)
+[Strona główna](../README.md) | [<< Poprzedni: Debugowanie i testowanie](06-debugging-testing.md) | **Publikacja w Steam Workshop** | [Następny: Budowanie nakładki HUD >>](08-hud-overlay.md)
 
 ---
 

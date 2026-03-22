@@ -1,6 +1,6 @@
 # Chapter 8.9: Professional Mod Template
 
-[Home](../../README.md) | [<< Previous: Building a HUD Overlay](08-hud-overlay.md) | **Professional Mod Template** | [Next: Creating a Custom Vehicle >>](10-vehicle-mod.md)
+[Home](../README.md) | [<< Previous: Building a HUD Overlay](08-hud-overlay.md) | **Professional Mod Template** | [Next: Creating a Custom Vehicle >>](10-vehicle-mod.md)
 
 ---
 
@@ -1794,4 +1794,4 @@ With this professional template running, you can:
 
 ---
 
-**Precedente:** [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) | [Home](../../README.md)
+**Precedente:** [Chapter 8.8: Building a HUD Overlay](08-hud-overlay.md) | [Home](../README.md)

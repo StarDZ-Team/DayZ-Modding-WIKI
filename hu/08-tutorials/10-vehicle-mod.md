@@ -1,6 +1,6 @@
 # 8.10. fejezet: Egyéni jármű mod készítése
 
-[Főoldal](../../README.md) | [<< Előző: Professzionális mod sablon](09-professional-template.md) | **Egyéni jármű készítése** | [Következő: Egyéni ruházat készítése >>](11-clothing-mod.md)
+[Főoldal](../README.md) | [<< Előző: Professzionális mod sablon](09-professional-template.md) | **Egyéni jármű készítése** | [Következő: Egyéni ruházat készítése >>](11-clothing-mod.md)
 
 ---
 

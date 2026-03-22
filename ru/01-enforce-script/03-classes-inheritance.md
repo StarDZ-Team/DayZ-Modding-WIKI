@@ -1,6 +1,6 @@
 # Глава 1.3: Классы и наследование
 
-[Главная](../../README.md) | [<< Предыдущая: Массивы, Map и Set](02-arrays-maps-sets.md) | **Классы и наследование** | [Следующая: Modded-классы >>](04-modded-classes.md)
+[Главная](../README.md) | [<< Предыдущая: Массивы, Map и Set](02-arrays-maps-sets.md) | **Классы и наследование** | [Следующая: Modded-классы >>](04-modded-classes.md)
 
 ---
 ---
@@ -982,4 +982,4 @@ class FlyingCar extends Car
 
 ---
 
-[Главная](../../README.md) | [<< Предыдущая: Массивы, Map и Set](02-arrays-maps-sets.md) | **Классы и наследование** | [Следующая: Modded-классы >>](04-modded-classes.md)
+[Главная](../README.md) | [<< Предыдущая: Массивы, Map и Set](02-arrays-maps-sets.md) | **Классы и наследование** | [Следующая: Modded-классы >>](04-modded-classes.md)

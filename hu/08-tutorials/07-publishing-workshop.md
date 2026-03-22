@@ -1,6 +1,6 @@
 # 8.7. fejezet: Publikálás a Steam Workshopra
 
-[Főoldal](../../README.md) | [<< Előző: Hibakeresés és tesztelés](06-debugging-testing.md) | **Publikálás a Steam Workshopra** | [Következő: HUD overlay készítése >>](08-hud-overlay.md)
+[Főoldal](../README.md) | [<< Előző: Hibakeresés és tesztelés](06-debugging-testing.md) | **Publikálás a Steam Workshopra** | [Következő: HUD overlay készítése >>](08-hud-overlay.md)
 
 ---
 

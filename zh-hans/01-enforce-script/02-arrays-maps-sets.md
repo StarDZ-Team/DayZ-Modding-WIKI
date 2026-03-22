@@ -1,6 +1,6 @@
 # 第 1.2 章：数组、映射与集合
 
-[首页](../../README.md) | [<< 上一章：变量与类型](01-variables-types.md) | **数组、映射与集合** | [下一章：类与继承 >>](03-classes-inheritance.md)
+[首页](../README.md) | [<< 上一章：变量与类型](01-variables-types.md) | **数组、映射与集合** | [下一章：类与继承 >>](03-classes-inheritance.md)
 
 ---
 
@@ -950,4 +950,4 @@ string GetFirstItem(array<string> items)
 
 ---
 
-[首页](../../README.md) | [<< 上一章：变量与类型](01-variables-types.md) | **数组、映射与集合** | [下一章：类与继承 >>](03-classes-inheritance.md)
+[首页](../README.md) | [<< 上一章：变量与类型](01-variables-types.md) | **数组、映射与集合** | [下一章：类与继承 >>](03-classes-inheritance.md)

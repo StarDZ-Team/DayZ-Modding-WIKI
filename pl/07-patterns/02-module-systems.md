@@ -1,6 +1,6 @@
 # Rozdział 7.2: Systemy modułów / wtyczek
 
-[Strona główna](../../README.md) | [<< Poprzedni: Wzorzec Singleton](01-singletons.md) | **Systemy modułów / wtyczek** | [Dalej: Wzorce RPC >>](03-rpc-patterns.md)
+[Strona główna](../README.md) | [<< Poprzedni: Wzorzec Singleton](01-singletons.md) | **Systemy modułów / wtyczek** | [Dalej: Wzorce RPC >>](03-rpc-patterns.md)
 
 ---
 
@@ -571,4 +571,4 @@ Wybierz podejście odpowiadające profilowi zależności twojego moda. Jeśli ju
 
 ---
 
-[Strona główna](../../README.md) | [<< Poprzedni: Wzorzec Singleton](01-singletons.md) | **Systemy modułów / wtyczek** | [Dalej: Wzorce RPC >>](03-rpc-patterns.md)
+[Strona główna](../README.md) | [<< Poprzedni: Wzorzec Singleton](01-singletons.md) | **Systemy modułów / wtyczek** | [Dalej: Wzorce RPC >>](03-rpc-patterns.md)

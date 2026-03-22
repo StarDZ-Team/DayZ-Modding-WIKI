@@ -1,6 +1,6 @@
 # Kapitola 8.7: Publikování na Steam Workshop
 
-[Domů](../../README.md) | [<< Předchozí: Ladění a testování](06-debugging-testing.md) | **Publikování na Steam Workshop** | [Další: Vytváření HUD overlayi >>](08-hud-overlay.md)
+[Domů](../README.md) | [<< Předchozí: Ladění a testování](06-debugging-testing.md) | **Publikování na Steam Workshop** | [Další: Vytváření HUD overlayi >>](08-hud-overlay.md)
 
 ---
 

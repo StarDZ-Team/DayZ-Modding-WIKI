@@ -1,6 +1,6 @@
 # 第 6.8 章：文件 I/O 与 JSON
 
-[首页](../../README.md) | [<< 上一章：计时器与 CallQueue](07-timers.md) | **文件 I/O 与 JSON** | [下一章：网络与 RPC >>](09-networking.md)
+[首页](../README.md) | [<< 上一章：计时器与 CallQueue](07-timers.md) | **文件 I/O 与 JSON** | [下一章：网络与 RPC >>](09-networking.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapter 1.1: 変数と型
 
-[ホーム](../../README.md) | **変数と型** | [次: 配列、マップ、セット >>](02-arrays-maps-sets.md)
+[ホーム](../README.md) | **変数と型** | [次: 配列、マップ、セット >>](02-arrays-maps-sets.md)
 
 ---
 
@@ -876,4 +876,4 @@ posB[1] = 99;             // posB のみが変更される
 
 ---
 
-[ホーム](../../README.md) | **変数と型** | [次: 配列、マップ、セット >>](02-arrays-maps-sets.md)
+[ホーム](../README.md) | **変数と型** | [次: 配列、マップ、セット >>](02-arrays-maps-sets.md)

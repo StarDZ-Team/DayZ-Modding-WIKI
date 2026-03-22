@@ -1,6 +1,6 @@
 # Capitolo 7.5: Sistemi di Permessi
 
-[Home](../../README.md) | [<< Precedente: Persistenza Configurazione](04-config-persistence.md) | **Sistemi di Permessi** | [Successivo: Architettura Event-Driven >>](06-events.md)
+[Home](../README.md) | [<< Precedente: Persistenza Configurazione](04-config-persistence.md) | **Sistemi di Permessi** | [Successivo: Architettura Event-Driven >>](06-events.md)
 
 ---
 
@@ -653,4 +653,4 @@ Questo è un pattern comune usato per migrare dall'array flat `AdminUIDs` origin
 
 ---
 
-[Home](../../README.md) | [<< Precedente: Persistenza Configurazione](04-config-persistence.md) | **Sistemi di Permessi** | [Successivo: Architettura Event-Driven >>](06-events.md)
+[Home](../README.md) | [<< Precedente: Persistenza Configurazione](04-config-persistence.md) | **Sistemi di Permessi** | [Successivo: Architettura Event-Driven >>](06-events.md)

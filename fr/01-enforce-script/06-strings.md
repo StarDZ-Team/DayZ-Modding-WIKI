@@ -1,6 +1,6 @@
 # Chapitre 1.6 : Operations sur les chaines
 
-[Accueil](../../README.md) | [<< Precedent : Flux de controle](05-control-flow.md) | **Operations sur les chaines** | [Suivant : Math & Vecteurs >>](07-math-vectors.md)
+[Accueil](../README.md) | [<< Precedent : Flux de controle](05-control-flow.md) | **Operations sur les chaines** | [Suivant : Math & Vecteurs >>](07-math-vectors.md)
 
 ---
 
@@ -527,4 +527,4 @@ bool lt = (a < b);
 
 ---
 
-[<< 1.5 : Flux de controle](05-control-flow.md) | [Accueil](../../README.md) | [1.7 : Math & Vecteurs >>](07-math-vectors.md)
+[<< 1.5 : Flux de controle](05-control-flow.md) | [Accueil](../README.md) | [1.7 : Math & Vecteurs >>](07-math-vectors.md)

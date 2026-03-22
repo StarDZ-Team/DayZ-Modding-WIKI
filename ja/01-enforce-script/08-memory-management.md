@@ -1,6 +1,6 @@
 # 第1.8章: メモリ管理
 
-[ホーム](../../README.md) | [<< 前へ: 数学とベクトル](07-math-vectors.md) | **メモリ管理** | [次へ: キャストとリフレクション >>](09-casting-reflection.md)
+[ホーム](../README.md) | [<< 前へ: 数学とベクトル](07-math-vectors.md) | **メモリ管理** | [次へ: キャストとリフレクション >>](09-casting-reflection.md)
 
 ---
 
@@ -673,4 +673,4 @@ class Child  { Parent m_Parent; }        // 弱 -- 子が親を観察
 
 ---
 
-[<< 1.7: 数学とベクトル](07-math-vectors.md) | [ホーム](../../README.md) | [1.9: キャストとリフレクション >>](09-casting-reflection.md)
+[<< 1.7: 数学とベクトル](07-math-vectors.md) | [ホーム](../README.md) | [1.9: キャストとリフレクション >>](09-casting-reflection.md)

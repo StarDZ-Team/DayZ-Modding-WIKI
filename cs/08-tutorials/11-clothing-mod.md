@@ -1,6 +1,6 @@
 # Kapitola 8.11: Vytváření vlastního oblečení
 
-[Domů](../../README.md) | [<< Předchozí: Vytváření vlastního vozidla](10-vehicle-mod.md) | **Vytváření vlastního oblečení** | [Další: Vytváření obchodního systému >>](12-trading-system.md)
+[Domů](../README.md) | [<< Předchozí: Vytváření vlastního vozidla](10-vehicle-mod.md) | **Vytváření vlastního oblečení** | [Další: Vytváření obchodního systému >>](12-trading-system.md)
 
 ---
 

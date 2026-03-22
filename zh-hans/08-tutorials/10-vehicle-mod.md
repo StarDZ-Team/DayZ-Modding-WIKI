@@ -1,6 +1,6 @@
 # 第 8.10 章：创建自定义载具模组
 
-[首页](../../README.md) | [<< 上一章：专业模组模板](09-professional-template.md) | **创建自定义载具** | [下一章：创建自定义服装 >>](11-clothing-mod.md)
+[首页](../README.md) | [<< 上一章：专业模组模板](09-professional-template.md) | **创建自定义载具** | [下一章：创建自定义服装 >>](11-clothing-mod.md)
 
 ---
 

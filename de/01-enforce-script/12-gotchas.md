@@ -1,6 +1,6 @@
 # Kapitel 1.12: Was NICHT existiert (Fallstricke)
 
-[Startseite](../../README.md) | [<< Zurück: Fehlerbehandlung](11-error-handling.md) | **Fallstricke** | [Weiter: Funktionen & Methoden >>](13-functions-methods.md)
+[Startseite](../README.md) | [<< Zurück: Fehlerbehandlung](11-error-handling.md) | **Fallstricke** | [Weiter: Funktionen & Methoden >>](13-functions-methods.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 5.3. fejezet: Credits.json
 
-[Főoldal](../../README.md) | [<< Előző: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Következő: ImageSet formátum >>](04-imagesets.md)
+[Főoldal](../README.md) | [<< Előző: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Következő: ImageSet formátum >>](04-imagesets.md)
 
 ---
 

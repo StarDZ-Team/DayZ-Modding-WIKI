@@ -1,6 +1,6 @@
 # Capitulo 8.11: Creando Ropa Personalizada
 
-[Inicio](../../README.md) | [<< Anterior: Creando un Vehiculo Personalizado](10-vehicle-mod.md) | **Creando Ropa Personalizada** | [Siguiente: Construyendo un Sistema de Comercio >>](12-trading-system.md)
+[Inicio](../README.md) | [<< Anterior: Creando un Vehiculo Personalizado](10-vehicle-mod.md) | **Creando Ropa Personalizada** | [Siguiente: Construyendo un Sistema de Comercio >>](12-trading-system.md)
 
 ---
 

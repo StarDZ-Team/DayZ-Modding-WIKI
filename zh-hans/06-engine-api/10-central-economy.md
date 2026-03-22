@@ -1,6 +1,6 @@
 # 第 6.10 章：中央经济系统
 
-[首页](../../README.md) | [<< 上一章：网络与 RPC](09-networking.md) | **中央经济系统** | [下一章：任务钩子 >>](11-mission-hooks.md)
+[首页](../README.md) | [<< 上一章：网络与 RPC](09-networking.md) | **中央经济系统** | [下一章：任务钩子 >>](11-mission-hooks.md)
 
 ---
 
@@ -548,4 +548,4 @@ GetGame().SurfaceGetType(x, z, surfaceType);
 
 ---
 
-[首页](../../README.md) | [<< 上一章：网络与 RPC](09-networking.md) | **中央经济系统** | [下一章：任务钩子 >>](11-mission-hooks.md)
+[首页](../README.md) | [<< 上一章：网络与 RPC](09-networking.md) | **中央经济系统** | [下一章：任务钩子 >>](11-mission-hooks.md)

@@ -1,6 +1,6 @@
 # 第 4.2 章：3D 模型 (.p3d)
 
-[首页](../../README.md) | [<< 上一章：纹理](01-textures.md) | **3D 模型** | [下一章：材质 >>](03-materials.md)
+[首页](../README.md) | [<< 上一章：纹理](01-textures.md) | **3D 模型** | [下一章：材质 >>](03-materials.md)
 
 ---
 

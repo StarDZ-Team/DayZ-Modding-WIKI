@@ -1,7 +1,6 @@
-<p align="center">
-  <strong>DayZ Modding 完全ガイド</strong><br/>
-  DayZ Modding の包括的なドキュメント — 92章、ゼロから公開Modまで。
-</p>
+# DayZ Modding 完全ガイド
+
+> DayZ Modding の包括的なドキュメント — 92章、ゼロから公開Modまで。
 
 <p align="center">
   <a href="../en/README.md"><img src="https://flagsapi.com/US/flat/48.png" alt="English" /></a>

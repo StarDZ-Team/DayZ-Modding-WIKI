@@ -1,6 +1,6 @@
 # 7.2. fejezet: Modul / Plugin rendszerek
 
-[Kezdőlap](../../README.md) | [<< Előző: Singleton minta](01-singletons.md) | **Modul / Plugin rendszerek** | [Következő: RPC minták >>](03-rpc-patterns.md)
+[Kezdőlap](../README.md) | [<< Előző: Singleton minta](01-singletons.md) | **Modul / Plugin rendszerek** | [Következő: RPC minták >>](03-rpc-patterns.md)
 
 ---
 
@@ -571,4 +571,4 @@ Válaszd azt a megközelítést, amely illeszkedik a modod függőségi profilj�
 
 ---
 
-[Kezdőlap](../../README.md) | [<< Előző: Singleton minta](01-singletons.md) | **Modul / Plugin rendszerek** | [Következő: RPC minták >>](03-rpc-patterns.md)
+[Kezdőlap](../README.md) | [<< Előző: Singleton minta](01-singletons.md) | **Modul / Plugin rendszerek** | [Következő: RPC minták >>](03-rpc-patterns.md)

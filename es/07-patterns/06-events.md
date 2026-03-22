@@ -1,6 +1,6 @@
 # Capítulo 7.6: Arquitectura Orientada a Eventos
 
-[Inicio](../../README.md) | [<< Anterior: Sistemas de Permisos](05-permissions.md) | **Arquitectura Orientada a Eventos** | [Siguiente: Optimización del Rendimiento >>](07-performance.md)
+[Inicio](../README.md) | [<< Anterior: Sistemas de Permisos](05-permissions.md) | **Arquitectura Orientada a Eventos** | [Siguiente: Optimización del Rendimiento >>](07-performance.md)
 
 ---
 
@@ -552,4 +552,4 @@ OnKillEvent.Invoke(killData);
 
 ---
 
-[Inicio](../../README.md) | [<< Anterior: Sistemas de Permisos](05-permissions.md) | **Arquitectura Orientada a Eventos** | [Siguiente: Optimización del Rendimiento >>](07-performance.md)
+[Inicio](../README.md) | [<< Anterior: Sistemas de Permisos](05-permissions.md) | **Arquitectura Orientada a Eventos** | [Siguiente: Optimización del Rendimiento >>](07-performance.md)

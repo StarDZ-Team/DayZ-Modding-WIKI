@@ -1,6 +1,6 @@
 # 第7.5章：权限系统
 
-[首页](../../README.md) | [<< 上一章：配置持久化](04-config-persistence.md) | **权限系统** | [下一章：事件驱动架构 >>](06-events.md)
+[首页](../README.md) | [<< 上一章：配置持久化](04-config-persistence.md) | **权限系统** | [下一章：事件驱动架构 >>](06-events.md)
 
 ---
 
@@ -652,4 +652,4 @@ void LoadLegacyAndMigrate()
 
 ---
 
-[首页](../../README.md) | [<< 上一章：配置持久化](04-config-persistence.md) | **权限系统** | [下一章：事件驱动架构 >>](06-events.md)
+[首页](../README.md) | [<< 上一章：配置持久化](04-config-persistence.md) | **权限系统** | [下一章：事件驱动架构 >>](06-events.md)

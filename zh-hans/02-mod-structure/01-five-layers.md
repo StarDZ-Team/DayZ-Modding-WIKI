@@ -1,6 +1,6 @@
 # Chapter 2.1: The 5-Layer Script Hierarchy
 
-[Home](../../README.md) | **The 5-Layer Script Hierarchy** | [Next: config.cpp Deep Dive >>](02-config-cpp.md)
+[Home](../README.md) | **The 5-Layer Script Hierarchy** | [Next: config.cpp Deep Dive >>](02-config-cpp.md)
 
 ---
 

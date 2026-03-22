@@ -1,6 +1,6 @@
 # 7.1. fejezet: Singleton minta
 
-[Kezdőlap](../../README.md) | **Singleton minta** | [Következő: Modulrendszerek >>](02-module-systems.md)
+[Kezdőlap](../README.md) | **Singleton minta** | [Következő: Modulrendszerek >>](02-module-systems.md)
 
 ---
 
@@ -547,4 +547,4 @@ Szállítás előtt ellenőrizd a singletonnál:
 
 ---
 
-[Kezdőlap](../../README.md) | **Singleton minta** | [Következő: Modulrendszerek >>](02-module-systems.md)
+[Kezdőlap](../README.md) | **Singleton minta** | [Következő: Modulrendszerek >>](02-module-systems.md)

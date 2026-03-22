@@ -1,6 +1,6 @@
 # Chapitre 6.7 : Timers et CallQueue
 
-[Accueil](../../README.md) | [<< Precedent : Notifications](06-notifications.md) | **Timers & CallQueue** | [Suivant : E/S fichiers & JSON >>](08-file-io.md)
+[Accueil](../README.md) | [<< Precedent : Notifications](06-notifications.md) | **Timers & CallQueue** | [Suivant : E/S fichiers & JSON >>](08-file-io.md)
 
 ---
 

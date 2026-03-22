@@ -1,6 +1,6 @@
 # Capitolo 6.3: Sistema Meteo
 
-[Home](../../README.md) | [<< Precedente: Veicoli](02-vehicles.md) | **Meteo** | [Successivo: Telecamere >>](04-cameras.md)
+[Home](../README.md) | [<< Precedente: Veicoli](02-vehicles.md) | **Meteo** | [Successivo: Telecamere >>](04-cameras.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第4.6章：PBO 打包
 
-[首页](../../README.md) | [<< 上一章：DayZ Tools 工作流](05-dayz-tools.md) | **PBO 打包** | [下一章：Workbench 指南 >>](07-workbench-guide.md)
+[首页](../README.md) | [<< 上一章：DayZ Tools 工作流](05-dayz-tools.md) | **PBO 打包** | [下一章：Workbench 指南 >>](07-workbench-guide.md)
 
 ---
 

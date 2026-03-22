@@ -1,6 +1,6 @@
 # Enforce Script gyorsreferencia
 
-[Kezdőlap](../README.md) | **Gyorsreferencia**
+[Kezdőlap](./README.md) | **Gyorsreferencia**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true ha többjátékos
 
 ---
 
-*Teljes dokumentáció: [DayZ Modding Wiki](../README.md) | [Buktatók](01-enforce-script/12-gotchas.md) | [Hibakezelés](01-enforce-script/11-error-handling.md)*
+*Teljes dokumentáció: [DayZ Modding Wiki](./README.md) | [Buktatók](01-enforce-script/12-gotchas.md) | [Hibakezelés](01-enforce-script/11-error-handling.md)*

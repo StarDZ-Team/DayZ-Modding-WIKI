@@ -1,6 +1,6 @@
 # Chapitre 4.6 : PBO Packing
 
-[Accueil](../../README.md) | [<< Précédent : Workflow DayZ Tools](05-dayz-tools.md) | **PBO Packing** | [Suivant : Guide Workbench >>](07-workbench-guide.md)
+[Accueil](../README.md) | [<< Précédent : Workflow DayZ Tools](05-dayz-tools.md) | **PBO Packing** | [Suivant : Guide Workbench >>](07-workbench-guide.md)
 
 ---
 

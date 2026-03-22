@@ -1,6 +1,6 @@
 # Chapter 1.5: Control Flow
 
-[Home](../../README.md) | [<< Previous: Modded Classes](04-modded-classes.md) | **Control Flow** | [Next: String Operations >>](06-strings.md)
+[Home](../README.md) | [<< Previous: Modded Classes](04-modded-classes.md) | **Control Flow** | [Next: String Operations >>](06-strings.md)
 
 ---
 
@@ -645,4 +645,4 @@ thread MyFunc();  // non-blocking call
 
 ---
 
-[<< 1.4: Modded Classes](04-modded-classes.md) | [Home](../../README.md) | [1.6: String Operations >>](06-strings.md)
+[<< 1.4: Modded Classes](04-modded-classes.md) | [Home](../README.md) | [1.6: String Operations >>](06-strings.md)

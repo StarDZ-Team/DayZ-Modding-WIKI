@@ -1,6 +1,6 @@
 # Chapitre 7.6 : Architecture événementielle
 
-[Accueil](../../README.md) | [<< Précédent : Systèmes de permissions](05-permissions.md) | **Architecture événementielle** | [Suivant : Optimisation des performances >>](07-performance.md)
+[Accueil](../README.md) | [<< Précédent : Systèmes de permissions](05-permissions.md) | **Architecture événementielle** | [Suivant : Optimisation des performances >>](07-performance.md)
 
 ---
 
@@ -552,4 +552,4 @@ OnKillEvent.Invoke(killData);
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Systèmes de permissions](05-permissions.md) | **Architecture événementielle** | [Suivant : Optimisation des performances >>](07-performance.md)
+[Accueil](../README.md) | [<< Précédent : Systèmes de permissions](05-permissions.md) | **Architecture événementielle** | [Suivant : Optimisation des performances >>](07-performance.md)

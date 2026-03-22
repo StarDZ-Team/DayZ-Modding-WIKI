@@ -1,6 +1,6 @@
 # Kapitel 3.8: Dialoge & Modale Fenster
 
-[Startseite](../../README.md) | [<< Zurück: Styles, Schriften & Bilder](07-styles-fonts.md) | **Dialoge & Modale Fenster** | [Weiter: Echte Mod-UI-Muster >>](09-real-mod-patterns.md)
+[Startseite](../README.md) | [<< Zurück: Styles, Schriften & Bilder](07-styles-fonts.md) | **Dialoge & Modale Fenster** | [Weiter: Echte Mod-UI-Muster >>](09-real-mod-patterns.md)
 
 ---
 

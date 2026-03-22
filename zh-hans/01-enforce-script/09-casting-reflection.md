@@ -1,6 +1,6 @@
 # 第 1.9 章：类型转换与反射
 
-[首页](../../README.md) | [<< 上一章：内存管理](08-memory-management.md) | **类型转换与反射** | [下一章：枚举与预处理器 >>](10-enums-preprocessor.md)
+[首页](../README.md) | [<< 上一章：内存管理](08-memory-management.md) | **类型转换与反射** | [下一章：枚举与预处理器 >>](10-enums-preprocessor.md)
 
 ---
 

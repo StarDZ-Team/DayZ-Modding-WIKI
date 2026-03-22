@@ -1,6 +1,6 @@
 # 6.12. fejezet: Akció rendszer
 
-[Főoldal](../../README.md) | [<< Előző: Mission hookok](11-mission-hooks.md) | **Akció rendszer** | [Következő: Input rendszer >>](13-input-system.md)
+[Főoldal](../README.md) | [<< Előző: Mission hookok](11-mission-hooks.md) | **Akció rendszer** | [Következő: Input rendszer >>](13-input-system.md)
 
 ---
 

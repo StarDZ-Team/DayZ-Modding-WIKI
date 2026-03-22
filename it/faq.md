@@ -1,6 +1,6 @@
 # Domande frequenti
 
-[Home](../README.md) | **FAQ**
+[Home](./README.md) | **FAQ**
 
 ---
 

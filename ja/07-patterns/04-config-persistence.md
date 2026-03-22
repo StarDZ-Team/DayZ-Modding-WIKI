@@ -1,6 +1,6 @@
 # Chapter 7.4: 設定の永続化
 
-[ホーム](../../README.md) | [<< 前: RPCパターン](03-rpc-patterns.md) | **設定の永続化** | [次: パーミッションシステム >>](05-permissions.md)
+[ホーム](../README.md) | [<< 前: RPCパターン](03-rpc-patterns.md) | **設定の永続化** | [次: パーミッションシステム >>](05-permissions.md)
 
 ---
 
@@ -695,4 +695,4 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 ---
 
-[ホーム](../../README.md) | [<< 前: RPCパターン](03-rpc-patterns.md) | **設定の永続化** | [次: パーミッションシステム >>](05-permissions.md)
+[ホーム](../README.md) | [<< 前: RPCパターン](03-rpc-patterns.md) | **設定の永続化** | [次: パーミッションシステム >>](05-permissions.md)

@@ -1,6 +1,6 @@
 # Capítulo 6.15: Sistema de Som
 
-[Início](../../README.md) | [<< Anterior: Sistema do Jogador](14-player-system.md) | **Sistema de Som** | [Próximo: Sistema de Crafting >>](16-crafting-system.md)
+[Início](../README.md) | [<< Anterior: Sistema do Jogador](14-player-system.md) | **Sistema de Som** | [Próximo: Sistema de Crafting >>](16-crafting-system.md)
 
 ---
 
@@ -1063,4 +1063,4 @@ Nomes de controladores disponíveis incluem: `rain`, `night`, `meadow`, `trees`,
 
 ---
 
-[Início](../../README.md) | [<< Anterior: Sistema do Jogador](14-player-system.md) | **Sistema de Som** | [Próximo: Sistema de Crafting >>](16-crafting-system.md)
+[Início](../README.md) | [<< Anterior: Sistema do Jogador](14-player-system.md) | **Sistema de Som** | [Próximo: Sistema de Crafting >>](16-crafting-system.md)

@@ -1,6 +1,6 @@
 # 7.4. fejezet: Konfiguráció perzisztencia
 
-[Kezdőlap](../../README.md) | [<< Előző: RPC minták](03-rpc-patterns.md) | **Konfiguráció perzisztencia** | [Következő: Jogosultsági rendszerek >>](05-permissions.md)
+[Kezdőlap](../README.md) | [<< Előző: RPC minták](03-rpc-patterns.md) | **Konfiguráció perzisztencia** | [Következő: Jogosultsági rendszerek >>](05-permissions.md)
 
 ---
 
@@ -695,4 +695,4 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 ---
 
-[Kezdőlap](../../README.md) | [<< Előző: RPC minták](03-rpc-patterns.md) | **Konfiguráció perzisztencia** | [Következő: Jogosultsági rendszerek >>](05-permissions.md)
+[Kezdőlap](../README.md) | [<< Előző: RPC minták](03-rpc-patterns.md) | **Konfiguráció perzisztencia** | [Következő: Jogosultsági rendszerek >>](05-permissions.md)

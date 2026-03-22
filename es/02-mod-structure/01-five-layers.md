@@ -1,6 +1,6 @@
 # Capitulo 2.1: La Jerarquia de 5 Capas de Scripts
 
-[Inicio](../../README.md) | **La Jerarquia de 5 Capas de Scripts** | [Siguiente: config.cpp a Fondo >>](02-config-cpp.md)
+[Inicio](../README.md) | **La Jerarquia de 5 Capas de Scripts** | [Siguiente: config.cpp a Fondo >>](02-config-cpp.md)
 
 ---
 

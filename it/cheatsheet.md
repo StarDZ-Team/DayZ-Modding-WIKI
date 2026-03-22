@@ -1,6 +1,6 @@
 # Scheda di Riferimento Rapido di Enforce Script
 
-[Home](../README.md) | **Scheda di Riferimento Rapido**
+[Home](./README.md) | **Scheda di Riferimento Rapido**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true se multiplayer
 
 ---
 
-*Documentazione completa: [DayZ Modding Wiki](../README.md) | [Insidie](01-enforce-script/12-gotchas.md) | [Gestione errori](01-enforce-script/11-error-handling.md)*
+*Documentazione completa: [DayZ Modding Wiki](./README.md) | [Insidie](01-enforce-script/12-gotchas.md) | [Gestione errori](01-enforce-script/11-error-handling.md)*

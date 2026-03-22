@@ -1,6 +1,6 @@
 # Engine API Quick Reference
 
-[Home](../../README.md) | **Engine API Quick Reference**
+[Home](../README.md) | **Engine API Quick Reference**
 
 ---
 
@@ -652,4 +652,4 @@ override void SetActions()
 
 ---
 
-*Teljes dokumentacio: [Fooldal](../../README.md) | [Puska](../cheatsheet.md) | [Entitas rendszer](01-entity-system.md) | [Jarmuvek](02-vehicles.md) | [Idojaras](03-weather.md) | [Idozitok](07-timers.md) | [Fajl I/O](08-file-io.md) | [Halozat](09-networking.md) | [Misszio hookok](11-mission-hooks.md) | [Akcio rendszer](12-action-system.md)*
+*Teljes dokumentacio: [Fooldal](../README.md) | [Puska](../cheatsheet.md) | [Entitas rendszer](01-entity-system.md) | [Jarmuvek](02-vehicles.md) | [Idojaras](03-weather.md) | [Idozitok](07-timers.md) | [Fajl I/O](08-file-io.md) | [Halozat](09-networking.md) | [Misszio hookok](11-mission-hooks.md) | [Akcio rendszer](12-action-system.md)*

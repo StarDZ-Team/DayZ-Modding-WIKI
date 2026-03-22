@@ -1,6 +1,6 @@
 # Chapitre 1.1 : Variables et types
 
-[Accueil](../../README.md) | **Variables et types** | [Suivant : Tableaux, Maps et Sets >>](02-arrays-maps-sets.md)
+[Accueil](../README.md) | **Variables et types** | [Suivant : Tableaux, Maps et Sets >>](02-arrays-maps-sets.md)
 
 ---
 
@@ -876,4 +876,4 @@ Indice : pour la distance 2D, créez de nouveaux vecteurs avec `[1]` mis à `0` 
 
 ---
 
-[Accueil](../../README.md) | **Variables et types** | [Suivant : Tableaux, Maps et Sets >>](02-arrays-maps-sets.md)
+[Accueil](../README.md) | **Variables et types** | [Suivant : Tableaux, Maps et Sets >>](02-arrays-maps-sets.md)

@@ -1,6 +1,6 @@
 # Kapitola 8.4: Přidání chatových příkazů
 
-[Domů](../../README.md) | [<< Předchozí: Tvorba administrátorského panelu](03-admin-panel.md) | **Přidání chatových příkazů** | [Další: Použití šablony DayZ modu >>](05-mod-template.md)
+[Domů](../README.md) | [<< Předchozí: Tvorba administrátorského panelu](03-admin-panel.md) | **Přidání chatových příkazů** | [Další: Použití šablony DayZ modu >>](05-mod-template.md)
 
 ---
 

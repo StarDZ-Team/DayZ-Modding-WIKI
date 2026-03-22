@@ -1,6 +1,6 @@
 # Rozdział 6.12: System akcji
 
-[Strona główna](../../README.md) | [<< Poprzedni: Haki misji](11-mission-hooks.md) | **System akcji** | [Następny: System wejścia >>](13-input-system.md)
+[Strona główna](../README.md) | [<< Poprzedni: Haki misji](11-mission-hooks.md) | **System akcji** | [Następny: System wejścia >>](13-input-system.md)
 
 ---
 

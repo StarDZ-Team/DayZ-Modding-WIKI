@@ -1,6 +1,6 @@
 # Chapitre 7.2 : Systèmes de modules / plugins
 
-[Accueil](../../README.md) | [<< Précédent : Patron Singleton](01-singletons.md) | **Systèmes de modules / plugins** | [Suivant : Patrons RPC >>](03-rpc-patterns.md)
+[Accueil](../README.md) | [<< Précédent : Patron Singleton](01-singletons.md) | **Systèmes de modules / plugins** | [Suivant : Patrons RPC >>](03-rpc-patterns.md)
 
 ---
 
@@ -572,4 +572,4 @@ Choisissez l'approche qui correspond au profil de dépendances de votre mod. Si 
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Patron Singleton](01-singletons.md) | **Systèmes de modules / plugins** | [Suivant : Patrons RPC >>](03-rpc-patterns.md)
+[Accueil](../README.md) | [<< Précédent : Patron Singleton](01-singletons.md) | **Systèmes de modules / plugins** | [Suivant : Patrons RPC >>](03-rpc-patterns.md)

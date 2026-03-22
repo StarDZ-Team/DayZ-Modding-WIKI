@@ -1,6 +1,6 @@
 # Capítulo 3.6: Manejo de Eventos
 
-[Inicio](../../README.md) | [<< Anterior: Programmatic Widget Creation](05-programmatic-widgets.md) | **Event Handling** | [Siguiente: Styles, Fonts & Images >>](07-styles-fonts.md)
+[Inicio](../README.md) | [<< Anterior: Programmatic Widget Creation](05-programmatic-widgets.md) | **Event Handling** | [Siguiente: Styles, Fonts & Images >>](07-styles-fonts.md)
 
 ---
 

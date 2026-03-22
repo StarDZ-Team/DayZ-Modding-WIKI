@@ -1,6 +1,6 @@
 # Rozdział 8.8: Budowanie nakładki HUD
 
-[Strona główna](../../README.md) | [<< Poprzedni: Publikacja na Steam Workshop](07-publishing-workshop.md) | **Budowanie nakładki HUD** | [Dalej: Profesjonalny szablon moda >>](09-professional-template.md)
+[Strona główna](../README.md) | [<< Poprzedni: Publikacja na Steam Workshop](07-publishing-workshop.md) | **Budowanie nakładki HUD** | [Dalej: Profesjonalny szablon moda >>](09-professional-template.md)
 
 ---
 

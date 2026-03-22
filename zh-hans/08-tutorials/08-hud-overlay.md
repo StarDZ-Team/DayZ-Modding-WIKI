@@ -1,6 +1,6 @@
 # 第 8.8 章：构建 HUD 覆盖层
 
-[首页](../../README.md) | [<< 上一章：发布到 Steam 创意工坊](07-publishing-workshop.md) | **构建 HUD 覆盖层** | [下一章：专业模组模板 >>](09-professional-template.md)
+[首页](../README.md) | [<< 上一章：发布到 Steam 创意工坊](07-publishing-workshop.md) | **构建 HUD 覆盖层** | [下一章：专业模组模板 >>](09-professional-template.md)
 
 ---
 

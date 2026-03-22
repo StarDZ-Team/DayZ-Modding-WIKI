@@ -1,6 +1,6 @@
 # 第 7.2 章：模块/插件系统
 
-[首页](../../README.md) | [<< 上一章：单例模式](01-singletons.md) | **模块/插件系统** | [下一章：RPC 模式 >>](03-rpc-patterns.md)
+[首页](../README.md) | [<< 上一章：单例模式](01-singletons.md) | **模块/插件系统** | [下一章：RPC 模式 >>](03-rpc-patterns.md)
 
 ---
 
@@ -568,4 +568,4 @@ override void OnMissionFinish()
 
 ---
 
-[首页](../../README.md) | [<< 上一章：单例模式](01-singletons.md) | **模块/插件系统** | [下一章：RPC 模式 >>](03-rpc-patterns.md)
+[首页](../README.md) | [<< 上一章：单例模式](01-singletons.md) | **模块/插件系统** | [下一章：RPC 模式 >>](03-rpc-patterns.md)

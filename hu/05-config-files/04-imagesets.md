@@ -1,6 +1,6 @@
 # 5.4. fejezet: ImageSet formátum
 
-[Főoldal](../../README.md) | [<< Előző: Credits.json](03-credits-json.md) | **ImageSet formátum** | [Következő: Szerver konfigurációs fájlok >>](05-server-configs.md)
+[Főoldal](../README.md) | [<< Előző: Credits.json](03-credits-json.md) | **ImageSet formátum** | [Következő: Szerver konfigurációs fájlok >>](05-server-configs.md)
 
 ---
 

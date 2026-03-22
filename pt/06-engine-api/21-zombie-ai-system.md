@@ -1,6 +1,6 @@
 # Capítulo 6.21: Sistema de Zumbis e IA
 
-[Início](../../README.md) | [<< Anterior: Sistema de Partículas e Efeitos](20-particle-effects.md) | **Sistema de Zumbis e IA** | [Próximo: Administração e Gerenciamento de Servidor >>](22-admin-server.md)
+[Início](../README.md) | [<< Anterior: Sistema de Partículas e Efeitos](20-particle-effects.md) | **Sistema de Zumbis e IA** | [Próximo: Administração e Gerenciamento de Servidor >>](22-admin-server.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第2.3章: mod.cppとWorkshop
 
-[ホーム](../../README.md) | [<< 前へ: config.cpp詳細解説](02-config-cpp.md) | **mod.cppとWorkshop** | [次へ: 最小構成のMod >>](04-minimum-viable-mod.md)
+[ホーム](../README.md) | [<< 前へ: config.cpp詳細解説](02-config-cpp.md) | **mod.cppとWorkshop** | [次へ: 最小構成のMod >>](04-minimum-viable-mod.md)
 
 ---
 

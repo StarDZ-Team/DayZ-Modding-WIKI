@@ -1,6 +1,6 @@
 # 1.1. fejezet: Változók és típusok
 
-[Kezdőlap](../../README.md) | **Változók és típusok** | [Következő: Tömbök, Map-ek és Set-ek >>](02-arrays-maps-sets.md)
+[Kezdőlap](../README.md) | **Változók és típusok** | [Következő: Tömbök, Map-ek és Set-ek >>](02-arrays-maps-sets.md)
 
 ---
 
@@ -876,4 +876,4 @@ A `"42"` string esetén konvertáld:
 
 ---
 
-[Kezdőlap](../../README.md) | **Változók és típusok** | [Következő: Tömbök, Map-ek és Set-ek >>](02-arrays-maps-sets.md)
+[Kezdőlap](../README.md) | **Változók és típusok** | [Következő: Tömbök, Map-ek és Set-ek >>](02-arrays-maps-sets.md)

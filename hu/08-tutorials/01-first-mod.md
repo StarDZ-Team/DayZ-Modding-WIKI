@@ -1,6 +1,6 @@
 # 8.1. fejezet: Az első modod (Hello World)
 
-[Kezdőlap](../../README.md) | **Az első modod** | [Következő: Egyéni tárgy létrehozása >>](02-custom-item.md)
+[Kezdőlap](../README.md) | **Az első modod** | [Következő: Egyéni tárgy létrehozása >>](02-custom-item.md)
 
 ---
 

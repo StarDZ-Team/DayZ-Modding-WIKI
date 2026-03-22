@@ -1,6 +1,6 @@
 # Chapitre 5.3 : Credits.json
 
-[Accueil](../../README.md) | [<< Précédent : inputs.xml](02-inputs-xml.md) | **Credits.json** | [Suivant : Format ImageSet >>](04-imagesets.md)
+[Accueil](../README.md) | [<< Précédent : inputs.xml](02-inputs-xml.md) | **Credits.json** | [Suivant : Format ImageSet >>](04-imagesets.md)
 
 ---
 

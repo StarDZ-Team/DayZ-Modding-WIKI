@@ -1,6 +1,6 @@
 # Capítulo 3.7: Styles, Fonts & Images
 
-[Inicio](../../README.md) | [<< Anterior: Event Handling](06-event-handling.md) | **Styles, Fonts & Images** | [Siguiente: Dialogs & Modals >>](08-dialogs-modals.md)
+[Inicio](../README.md) | [<< Anterior: Event Handling](06-event-handling.md) | **Styles, Fonts & Images** | [Siguiente: Dialogs & Modals >>](08-dialogs-modals.md)
 
 ---
 

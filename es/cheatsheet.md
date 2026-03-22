@@ -1,6 +1,6 @@
 # Hoja de Referencia de Enforce Script
 
-[Inicio](../README.md) | **Hoja de Referencia**
+[Inicio](./README.md) | **Hoja de Referencia**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true si es multijugador
 
 ---
 
-*Documentación completa: [Wiki de Modding de DayZ](../README.md) | [Errores Comunes](01-enforce-script/12-gotchas.md) | [Manejo de Errores](01-enforce-script/11-error-handling.md)*
+*Documentación completa: [Wiki de Modding de DayZ](./README.md) | [Errores Comunes](01-enforce-script/12-gotchas.md) | [Manejo de Errores](01-enforce-script/11-error-handling.md)*

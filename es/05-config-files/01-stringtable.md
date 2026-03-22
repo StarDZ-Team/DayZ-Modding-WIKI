@@ -1,6 +1,6 @@
 # Capítulo 5.1: stringtable.csv --- Localization
 
-[Inicio](../../README.md) | **stringtable.csv** | [Siguiente: inputs.xml >>](02-inputs-xml.md)
+[Inicio](../README.md) | **stringtable.csv** | [Siguiente: inputs.xml >>](02-inputs-xml.md)
 
 ---
 

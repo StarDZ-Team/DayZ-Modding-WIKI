@@ -1,6 +1,6 @@
 # Chapitre 7.5 : Systèmes de permissions
 
-[Accueil](../../README.md) | [<< Précédent : Persistance de configuration](04-config-persistence.md) | **Systèmes de permissions** | [Suivant : Architecture événementielle >>](06-events.md)
+[Accueil](../README.md) | [<< Précédent : Persistance de configuration](04-config-persistence.md) | **Systèmes de permissions** | [Suivant : Architecture événementielle >>](06-events.md)
 
 ---
 
@@ -656,4 +656,4 @@ C'est un patron courant utilisé pour migrer depuis le tableau plat `AdminUIDs` 
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Persistance de configuration](04-config-persistence.md) | **Systèmes de permissions** | [Suivant : Architecture événementielle >>](06-events.md)
+[Accueil](../README.md) | [<< Précédent : Persistance de configuration](04-config-persistence.md) | **Systèmes de permissions** | [Suivant : Architecture événementielle >>](06-events.md)

@@ -1,6 +1,6 @@
 # Capitolo 6.12: Sistema delle Azioni
 
-[Home](../../README.md) | [<< Precedente: Mission Hooks](11-mission-hooks.md) | **Sistema delle Azioni** | [Successivo: Sistema di Input >>](13-input-system.md)
+[Home](../README.md) | [<< Precedente: Mission Hooks](11-mission-hooks.md) | **Sistema delle Azioni** | [Successivo: Sistema di Input >>](13-input-system.md)
 
 ---
 
@@ -546,4 +546,4 @@ Il sistema è progettato per essere modulare: i componenti condizione gestiscono
 
 ---
 
-[Home](../../README.md) | [<< Precedente: Mission Hooks](11-mission-hooks.md) | **Sistema delle Azioni** | [Successivo: Sistema di Input >>](13-input-system.md)
+[Home](../README.md) | [<< Precedente: Mission Hooks](11-mission-hooks.md) | **Sistema delle Azioni** | [Successivo: Sistema di Input >>](13-input-system.md)

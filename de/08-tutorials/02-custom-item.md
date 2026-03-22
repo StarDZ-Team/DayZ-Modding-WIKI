@@ -1,6 +1,6 @@
 # Kapitel 8.2: Ein eigenes Item erstellen
 
-[Startseite](../../README.md) | [<< Zurück: Ihre erste Mod](01-first-mod.md) | **Ein eigenes Item erstellen** | [Weiter: Ein Admin-Panel bauen >>](03-admin-panel.md)
+[Startseite](../README.md) | [<< Zurück: Ihre erste Mod](01-first-mod.md) | **Ein eigenes Item erstellen** | [Weiter: Ein Admin-Panel bauen >>](03-admin-panel.md)
 
 ---
 

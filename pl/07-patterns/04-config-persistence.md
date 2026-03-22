@@ -1,6 +1,6 @@
 # Rozdział 7.4: Trwałość konfiguracji
 
-[Strona główna](../../README.md) | [<< Poprzedni: Wzorce RPC](03-rpc-patterns.md) | **Trwałość konfiguracji** | [Dalej: Systemy uprawnień >>](05-permissions.md)
+[Strona główna](../README.md) | [<< Poprzedni: Wzorce RPC](03-rpc-patterns.md) | **Trwałość konfiguracji** | [Dalej: Systemy uprawnień >>](05-permissions.md)
 
 ---
 
@@ -695,4 +695,4 @@ string LogPath = "$profile:MyMod/Logs/server.log";
 
 ---
 
-[Strona główna](../../README.md) | [<< Poprzedni: Wzorce RPC](03-rpc-patterns.md) | **Trwałość konfiguracji** | [Dalej: Systemy uprawnień >>](05-permissions.md)
+[Strona główna](../README.md) | [<< Poprzedni: Wzorce RPC](03-rpc-patterns.md) | **Trwałość konfiguracji** | [Dalej: Systemy uprawnień >>](05-permissions.md)

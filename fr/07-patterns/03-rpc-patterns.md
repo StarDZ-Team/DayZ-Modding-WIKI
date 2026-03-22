@@ -1,6 +1,6 @@
 # Chapitre 7.3 : Patrons de communication RPC
 
-[Accueil](../../README.md) | [<< Précédent : Systèmes de modules](02-module-systems.md) | **Patrons de communication RPC** | [Suivant : Persistance de la configuration >>](04-config-persistence.md)
+[Accueil](../README.md) | [<< Précédent : Systèmes de modules](02-module-systems.md) | **Patrons de communication RPC** | [Suivant : Persistance de la configuration >>](04-config-persistence.md)
 
 ---
 
@@ -659,4 +659,4 @@ Ou utilisez un `Cleanup()` centralisé qui vide toute la map de gestionnaires (c
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Systèmes de modules](02-module-systems.md) | **Patrons de communication RPC** | [Suivant : Persistance de la configuration >>](04-config-persistence.md)
+[Accueil](../README.md) | [<< Précédent : Systèmes de modules](02-module-systems.md) | **Patrons de communication RPC** | [Suivant : Persistance de la configuration >>](04-config-persistence.md)

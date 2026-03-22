@@ -1,6 +1,6 @@
 # Rozdział 8.12: Budowanie systemu handlowego
 
-[Strona główna](../../README.md) | [<< Poprzedni: Tworzenie niestandardowej odzieży](11-clothing-mod.md) | **Budowanie systemu handlowego** | [Następny: Menu diagnostyczne >>](13-diag-menu.md)
+[Strona główna](../README.md) | [<< Poprzedni: Tworzenie niestandardowej odzieży](11-clothing-mod.md) | **Budowanie systemu handlowego** | [Następny: Menu diagnostyczne >>](13-diag-menu.md)
 
 ---
 

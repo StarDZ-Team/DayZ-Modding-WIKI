@@ -1,6 +1,6 @@
 # 第 7.6 章：事件驱动架构
 
-[首页](../../README.md) | [<< 上一章：权限系统](05-permissions.md) | **事件驱动架构** | [下一章：性能优化 >>](07-performance.md)
+[首页](../README.md) | [<< 上一章：权限系统](05-permissions.md) | **事件驱动架构** | [下一章：性能优化 >>](07-performance.md)
 
 ---
 
@@ -562,4 +562,4 @@ OnKillEvent.Invoke(killData);
 
 ---
 
-[<< 上一章：权限系统](05-permissions.md) | [首页](../../README.md) | [下一章：性能优化 >>](07-performance.md)
+[<< 上一章：权限系统](05-permissions.md) | [首页](../README.md) | [下一章：性能优化 >>](07-performance.md)

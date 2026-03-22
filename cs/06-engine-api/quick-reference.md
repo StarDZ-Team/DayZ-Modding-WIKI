@@ -1,6 +1,6 @@
 # Engine API Quick Reference
 
-[Home](../../README.md) | **Engine API Quick Reference**
+[Home](../README.md) | **Engine API Quick Reference**
 
 ---
 
@@ -652,4 +652,4 @@ override void SetActions()
 
 ---
 
-*Plná dokumentace: [Domů](../../README.md) | [Tahák](../cheatsheet.md) | [Entity systém](01-entity-system.md) | [Vozidla](02-vehicles.md) | [Počasí](03-weather.md) | [Časovače](07-timers.md) | [Souborové I/O](08-file-io.md) | [Síťování](09-networking.md) | [Háčky misí](11-mission-hooks.md) | [Systém akcí](12-action-system.md)*
+*Plná dokumentace: [Domů](../README.md) | [Tahák](../cheatsheet.md) | [Entity systém](01-entity-system.md) | [Vozidla](02-vehicles.md) | [Počasí](03-weather.md) | [Časovače](07-timers.md) | [Souborové I/O](08-file-io.md) | [Síťování](09-networking.md) | [Háčky misí](11-mission-hooks.md) | [Systém akcí](12-action-system.md)*

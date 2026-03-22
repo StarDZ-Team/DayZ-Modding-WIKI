@@ -1,6 +1,6 @@
 # Kapitel 3.9: Echte Mod-UI-Muster
 
-[Startseite](../../README.md) | [<< Zurück: Dialoge & Modale Fenster](08-dialogs-modals.md) | **Echte Mod-UI-Muster** | [Weiter: Erweiterte Widgets >>](10-advanced-widgets.md)
+[Startseite](../README.md) | [<< Zurück: Dialoge & Modale Fenster](08-dialogs-modals.md) | **Echte Mod-UI-Muster** | [Weiter: Erweiterte Widgets >>](10-advanced-widgets.md)
 
 ---
 

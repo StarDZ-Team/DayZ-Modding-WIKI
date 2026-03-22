@@ -1,6 +1,6 @@
 # Chapter 7.7: Performance Optimization
 
-[Domů](../../README.md) | [<< Předchozí: Event-Driven Architecture](06-events.md) | **Performance Optimization**
+[Domů](../README.md) | [<< Předchozí: Event-Driven Architecture](06-events.md) | **Performance Optimization**
 
 ---
 
@@ -800,4 +800,4 @@ Před shipping performance-sensitive code, verify:
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Event-Driven Architecture](06-events.md) | **Performance Optimization**
+[Domů](../README.md) | [<< Předchozí: Event-Driven Architecture](06-events.md) | **Performance Optimization**

@@ -1,6 +1,6 @@
 # Chapitre 1.11 : Gestion des erreurs
 
-[Accueil](../../README.md) | [<< Précédent : Enums & Préprocesseur](10-enums-preprocessor.md) | **Gestion des erreurs** | [Suivant : Pièges >>](12-gotchas.md)
+[Accueil](../README.md) | [<< Précédent : Enums & Préprocesseur](10-enums-preprocessor.md) | **Gestion des erreurs** | [Suivant : Pièges >>](12-gotchas.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Capitolo 3.4: Widget Contenitore
 
-[Home](../../README.md) | [<< Precedente: Dimensionamento e Posizionamento](03-sizing-positioning.md) | **Widget Contenitore** | [Successivo: Widget Programmatici >>](05-programmatic-widgets.md)
+[Home](../README.md) | [<< Precedente: Dimensionamento e Posizionamento](03-sizing-positioning.md) | **Widget Contenitore** | [Successivo: Widget Programmatici >>](05-programmatic-widgets.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapitre 8.4 : Ajouter des commandes de chat
 
-[Accueil](../../README.md) | [<< Précédent : Construire un panneau d'administration](03-admin-panel.md) | **Ajouter des commandes de chat** | [Suivant : Utiliser le modèle de mod DayZ >>](05-mod-template.md)
+[Accueil](../README.md) | [<< Précédent : Construire un panneau d'administration](03-admin-panel.md) | **Ajouter des commandes de chat** | [Suivant : Utiliser le modèle de mod DayZ >>](05-mod-template.md)
 
 ---
 

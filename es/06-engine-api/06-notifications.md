@@ -1,6 +1,6 @@
 # Capítulo 6.6: Sistema de Notificaciones
 
-[Inicio](../../README.md) | [<< Anterior: Efectos de Post-Procesado](05-ppe.md) | **Notificaciones** | [Siguiente: Timers y CallQueue >>](07-timers.md)
+[Inicio](../README.md) | [<< Anterior: Efectos de Post-Procesado](05-ppe.md) | **Notificaciones** | [Siguiente: Timers y CallQueue >>](07-timers.md)
 
 ---
 

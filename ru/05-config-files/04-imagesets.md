@@ -1,6 +1,6 @@
 # Глава 5.4: Формат ImageSet
 
-[Главная](../../README.md) | [<< Предыдущая: Credits.json](03-credits-json.md) | **Формат ImageSet** | [Следующая: Серверные конфигурационные файлы >>](05-server-configs.md)
+[Главная](../README.md) | [<< Предыдущая: Credits.json](03-credits-json.md) | **Формат ImageSet** | [Следующая: Серверные конфигурационные файлы >>](05-server-configs.md)
 
 ---
 

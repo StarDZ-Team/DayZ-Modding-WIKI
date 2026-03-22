@@ -1,6 +1,6 @@
 # 第 8.13 章：诊断菜单（Diag Menu）
 
-[首页](../../README.md) | [<< 上一章：构建交易系统](12-trading-system.md) | **诊断菜单**
+[首页](../README.md) | [<< 上一章：构建交易系统](12-trading-system.md) | **诊断菜单**
 
 ---
 

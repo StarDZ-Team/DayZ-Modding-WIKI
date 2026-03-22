@@ -1,6 +1,6 @@
 # 第6.2章: 車両システム
 
-[ホーム](../../README.md) | [<< 前へ: エンティティシステム](01-entity-system.md) | **車両** | [次へ: 天候 >>](03-weather.md)
+[ホーム](../README.md) | [<< 前へ: エンティティシステム](01-entity-system.md) | **車両** | [次へ: 天候 >>](03-weather.md)
 
 ---
 
@@ -408,4 +408,4 @@ void FindAllVehicles(out array<Transport> vehicles)
 
 ---
 
-[ホーム](../../README.md) | [<< 前へ: エンティティシステム](01-entity-system.md) | **車両** | [次へ: 天候 >>](03-weather.md)
+[ホーム](../README.md) | [<< 前へ: エンティティシステム](01-entity-system.md) | **車両** | [次へ: 天候 >>](03-weather.md)

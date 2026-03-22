@@ -1,6 +1,6 @@
 # Rozdział 1.1: Zmienne i typy
 
-[Strona główna](../../README.md) | **Zmienne i typy** | [Dalej: Tablice, mapy i zbiory >>](02-arrays-maps-sets.md)
+[Strona główna](../README.md) | **Zmienne i typy** | [Dalej: Tablice, mapy i zbiory >>](02-arrays-maps-sets.md)
 
 ---
 
@@ -876,4 +876,4 @@ Napisz funkcję `vector SnapToGround(vector pos)`, która przyjmuje dowolną poz
 
 ---
 
-[Strona główna](../../README.md) | **Zmienne i typy** | [Dalej: Tablice, mapy i zbiory >>](02-arrays-maps-sets.md)
+[Strona główna](../README.md) | **Zmienne i typy** | [Dalej: Tablice, mapy i zbiory >>](02-arrays-maps-sets.md)

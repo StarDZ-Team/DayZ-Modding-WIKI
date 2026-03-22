@@ -1,6 +1,6 @@
 # Kapitola 4.6: Balení PBO
 
-[Domů](../../README.md) | [<< Předchozí: Pracovní postup s DayZ Tools](05-dayz-tools.md) | **Balení PBO** | [Další: Průvodce Workbench >>](07-workbench-guide.md)
+[Domů](../README.md) | [<< Předchozí: Pracovní postup s DayZ Tools](05-dayz-tools.md) | **Balení PBO** | [Další: Průvodce Workbench >>](07-workbench-guide.md)
 
 ---
 

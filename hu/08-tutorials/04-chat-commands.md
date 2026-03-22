@@ -1,6 +1,6 @@
 # 8.4. fejezet: Chat parancsok hozzáadása
 
-[Főoldal](../../README.md) | [<< Előző: Admin panel építése](03-admin-panel.md) | **Chat parancsok hozzáadása** | [Következő: A DayZ mod sablon használata >>](05-mod-template.md)
+[Főoldal](../README.md) | [<< Előző: Admin panel építése](03-admin-panel.md) | **Chat parancsok hozzáadása** | [Következő: A DayZ mod sablon használata >>](05-mod-template.md)
 
 ---
 

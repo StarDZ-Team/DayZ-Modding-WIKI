@@ -1,6 +1,6 @@
 # Chapter 1.3: Classes & Inheritance
 
-[Home](../../README.md) | [<< Previous: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Classes & Inheritance** | [Next: Modded Classes >>](04-modded-classes.md)
+[Home](../README.md) | [<< Previous: Arrays, Maps & Sets](02-arrays-maps-sets.md) | **Classes & Inheritance** | [Next: Modded Classes >>](04-modded-classes.md)
 
 ---
 
@@ -947,4 +947,4 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 
 ---
 
-[Kezdolap](../../README.md) | [<< Elozo: Tombok, Map-ek es Set-ek](02-arrays-maps-sets.md) | **Osztalyok es oroklodes** | [Kovetkezo: Modded osztalyok >>](04-modded-classes.md)
+[Kezdolap](../README.md) | [<< Elozo: Tombok, Map-ek es Set-ek](02-arrays-maps-sets.md) | **Osztalyok es oroklodes** | [Kovetkezo: Modded osztalyok >>](04-modded-classes.md)

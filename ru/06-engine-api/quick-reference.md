@@ -1,6 +1,6 @@
 # Engine API Quick Reference
 
-[Home](../../README.md) | **Engine API Quick Reference**
+[Home](../README.md) | **Engine API Quick Reference**
 
 ---
 
@@ -652,4 +652,4 @@ override void SetActions()
 
 ---
 
-*Полная документация: [Главная](../../README.md) | [Шпаргалка](../cheatsheet.md) | [Система сущностей](01-entity-system.md) | [Транспорт](02-vehicles.md) | [Погода](03-weather.md) | [Таймеры](07-timers.md) | [Файловый I/O](08-file-io.md) | [Сеть](09-networking.md) | [Хуки миссий](11-mission-hooks.md) | [Система действий](12-action-system.md)*
+*Полная документация: [Главная](../README.md) | [Шпаргалка](../cheatsheet.md) | [Система сущностей](01-entity-system.md) | [Транспорт](02-vehicles.md) | [Погода](03-weather.md) | [Таймеры](07-timers.md) | [Файловый I/O](08-file-io.md) | [Сеть](09-networking.md) | [Хуки миссий](11-mission-hooks.md) | [Система действий](12-action-system.md)*

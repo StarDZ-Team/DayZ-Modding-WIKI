@@ -1,6 +1,6 @@
 # Kapitel 2.3: mod.cpp und Workshop
 
-[Startseite](../../README.md) | [<< Zurück: config.cpp im Detail](02-config-cpp.md) | **mod.cpp und Workshop** | [Weiter: Minimale funktionsfähige Mod >>](04-minimum-viable-mod.md)
+[Startseite](../README.md) | [<< Zurück: config.cpp im Detail](02-config-cpp.md) | **mod.cpp und Workshop** | [Weiter: Minimale funktionsfähige Mod >>](04-minimum-viable-mod.md)
 
 ---
 

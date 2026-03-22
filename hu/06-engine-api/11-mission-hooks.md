@@ -1,6 +1,6 @@
 # 6.11. fejezet: Mission Hookok
 
-[Főoldal](../../README.md) | [<< Előző: Központi gazdaság](10-central-economy.md) | **Mission Hookok** | [Következő: Akció rendszer >>](12-action-system.md)
+[Főoldal](../README.md) | [<< Előző: Központi gazdaság](10-central-economy.md) | **Mission Hookok** | [Következő: Akció rendszer >>](12-action-system.md)
 
 ---
 

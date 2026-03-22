@@ -1,6 +1,6 @@
 # Chapitre 3.3 : Dimensionnement et positionnement
 
-[Accueil](../../README.md) | [<< Précédent : Format des fichiers layout](02-layout-files.md) | **Dimensionnement et positionnement** | [Suivant : Widgets conteneurs >>](04-containers.md)
+[Accueil](../README.md) | [<< Précédent : Format des fichiers layout](02-layout-files.md) | **Dimensionnement et positionnement** | [Suivant : Widgets conteneurs >>](04-containers.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第 3.6 章：事件处理
 
-[首页](../../README.md) | [<< 上一章：编程式控件创建](05-programmatic-widgets.md) | **事件处理** | [下一章：样式、字体与图像 >>](07-styles-fonts.md)
+[首页](../README.md) | [<< 上一章：编程式控件创建](05-programmatic-widgets.md) | **事件处理** | [下一章：样式、字体与图像 >>](07-styles-fonts.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第3.4章: コンテナウィジェット
 
-[ホーム](../../README.md) | [<< 前へ: サイズと配置](03-sizing-positioning.md) | **コンテナウィジェット** | [次へ: プログラムによるウィジェット作成 >>](05-programmatic-widgets.md)
+[ホーム](../README.md) | [<< 前へ: サイズと配置](03-sizing-positioning.md) | **コンテナウィジェット** | [次へ: プログラムによるウィジェット作成 >>](05-programmatic-widgets.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Rozdział 7.1: Wzorzec Singleton
 
-[Strona główna](../../README.md) | **Wzorzec Singleton** | [Dalej: Systemy modułów >>](02-module-systems.md)
+[Strona główna](../README.md) | **Wzorzec Singleton** | [Dalej: Systemy modułów >>](02-module-systems.md)
 
 ---
 
@@ -547,4 +547,4 @@ Przed wdrożeniem singletona zweryfikuj:
 
 ---
 
-[Strona główna](../../README.md) | **Wzorzec Singleton** | [Dalej: Systemy modułów >>](02-module-systems.md)
+[Strona główna](../README.md) | **Wzorzec Singleton** | [Dalej: Systemy modułów >>](02-module-systems.md)

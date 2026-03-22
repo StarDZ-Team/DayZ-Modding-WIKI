@@ -1,6 +1,6 @@
 # Chapter 8.13: 診断メニュー（Diag Menu）
 
-[Home](../../README.md) | [<< 前へ: トレーディングシステムの構築](12-trading-system.md) | **診断メニュー**
+[Home](../README.md) | [<< 前へ: トレーディングシステムの構築](12-trading-system.md) | **診断メニュー**
 
 ---
 

@@ -1,6 +1,6 @@
 # Rozdział 6.5: Efekty post-processingu (PPE)
 
-[Strona główna](../../README.md) | [<< Poprzedni: Kamery](04-cameras.md) | **Efekty post-processingu** | [Następny: Powiadomienia >>](06-notifications.md)
+[Strona główna](../README.md) | [<< Poprzedni: Kamery](04-cameras.md) | **Efekty post-processingu** | [Następny: Powiadomienia >>](06-notifications.md)
 
 ---
 

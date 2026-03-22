@@ -1,6 +1,6 @@
 # Kapitola 7.2: Systémy modulů / pluginů
 
-[Domů](../../README.md) | [<< Předchozí: Vzor Singleton](01-singletons.md) | **Systémy modulů / pluginů** | [Další: Vzory RPC >>](03-rpc-patterns.md)
+[Domů](../README.md) | [<< Předchozí: Vzor Singleton](01-singletons.md) | **Systémy modulů / pluginů** | [Další: Vzory RPC >>](03-rpc-patterns.md)
 
 ---
 
@@ -568,4 +568,4 @@ Zvolte přístup, který odpovídá profilu závislostí vašeho modu. Pokud ji�
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Vzor Singleton](01-singletons.md) | **Systémy modulů / pluginů** | [Další: Vzory RPC >>](03-rpc-patterns.md)
+[Domů](../README.md) | [<< Předchozí: Vzor Singleton](01-singletons.md) | **Systémy modulů / pluginů** | [Další: Vzory RPC >>](03-rpc-patterns.md)

@@ -1,6 +1,6 @@
 # Kapitola 8.9: Profesionální šablona modu
 
-[Domů](../../README.md) | [<< Předchozí: Tvorba HUD překryvu](08-hud-overlay.md) | **Profesionální šablona modu** | [Další: Vytvoření vlastního vozidla >>](10-vehicle-mod.md)
+[Domů](../README.md) | [<< Předchozí: Tvorba HUD překryvu](08-hud-overlay.md) | **Profesionální šablona modu** | [Další: Vytvoření vlastního vozidla >>](10-vehicle-mod.md)
 
 ---
 
@@ -1791,4 +1791,4 @@ S touto profesionální šablonou v provozu můžete:
 
 ---
 
-**Předchozí:** [Kapitola 8.8: Tvorba HUD překryvu](08-hud-overlay.md) | [Domů](../../README.md)
+**Předchozí:** [Kapitola 8.8: Tvorba HUD překryvu](08-hud-overlay.md) | [Domů](../README.md)

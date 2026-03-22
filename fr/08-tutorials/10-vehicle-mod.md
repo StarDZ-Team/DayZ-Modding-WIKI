@@ -1,6 +1,6 @@
 # Chapitre 8.10 : Créer un mod de véhicule personnalisé
 
-[Accueil](../../README.md) | [<< Précédent : Modèle de mod professionnel](09-professional-template.md) | **Créer un véhicule personnalisé** | [Suivant : Créer des vêtements personnalisés >>](11-clothing-mod.md)
+[Accueil](../README.md) | [<< Précédent : Modèle de mod professionnel](09-professional-template.md) | **Créer un véhicule personnalisé** | [Suivant : Créer des vêtements personnalisés >>](11-clothing-mod.md)
 
 ---
 

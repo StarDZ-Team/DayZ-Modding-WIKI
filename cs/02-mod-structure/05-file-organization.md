@@ -1,6 +1,6 @@
 # Chapter 2.5: File Organization Best Practices
 
-[Domů](../../README.md) | [<< Předchozí: Minimální funkční mod](04-minimum-viable-mod.md) | **Organizace souborů** | [Další: Server vs Client Architecture >>](06-server-client-split.md)
+[Domů](../README.md) | [<< Předchozí: Minimální funkční mod](04-minimum-viable-mod.md) | **Organizace souborů** | [Další: Server vs Client Architecture >>](06-server-client-split.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第 8.4 章：添加聊天命令
 
-[首页](../../README.md) | [<< 上一章：构建管理员面板](03-admin-panel.md) | **添加聊天命令** | [下一章：使用 DayZ 模组模板 >>](05-mod-template.md)
+[首页](../README.md) | [<< 上一章：构建管理员面板](03-admin-panel.md) | **添加聊天命令** | [下一章：使用 DayZ 模组模板 >>](05-mod-template.md)
 
 ---
 

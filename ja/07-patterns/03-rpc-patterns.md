@@ -1,6 +1,6 @@
 # 第7.3章: RPC通信パターン
 
-[ホーム](../../README.md) | [<< 前へ: モジュールシステム](02-module-systems.md) | **RPC通信パターン** | [次へ: 設定の永続化 >>](04-config-persistence.md)
+[ホーム](../README.md) | [<< 前へ: モジュールシステム](02-module-systems.md) | **RPC通信パターン** | [次へ: 設定の永続化 >>](04-config-persistence.md)
 
 ---
 
@@ -657,4 +657,4 @@ override void OnMissionFinish()
 
 ---
 
-[ホーム](../../README.md) | [<< 前へ: モジュールシステム](02-module-systems.md) | **RPC通信パターン** | [次へ: 設定の永続化 >>](04-config-persistence.md)
+[ホーム](../README.md) | [<< 前へ: モジュールシステム](02-module-systems.md) | **RPC通信パターン** | [次へ: 設定の永続化 >>](04-config-persistence.md)

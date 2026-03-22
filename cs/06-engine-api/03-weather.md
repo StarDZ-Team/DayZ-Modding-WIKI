@@ -1,6 +1,6 @@
 # Kapitola 6.3: Systém počasí
 
-[Domů](../../README.md) | [<< Předchozí: Vozidla](02-vehicles.md) | **Počasí** | [Další: Kamery >>](04-cameras.md)
+[Domů](../README.md) | [<< Předchozí: Vozidla](02-vehicles.md) | **Počasí** | [Další: Kamery >>](04-cameras.md)
 
 ---
 

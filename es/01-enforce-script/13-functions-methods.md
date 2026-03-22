@@ -1,6 +1,6 @@
 # Capítulo 1.13: Funciones y Métodos
 
-[Inicio](../../README.md) | [<< Anterior: Gotchas](12-gotchas.md) | **Functions & Methods**
+[Inicio](../README.md) | [<< Anterior: Gotchas](12-gotchas.md) | **Functions & Methods**
 
 ---
 

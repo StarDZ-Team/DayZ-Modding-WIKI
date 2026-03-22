@@ -1,6 +1,6 @@
 # Chapter 1.8: Memory Management
 
-[Home](../../README.md) | [<< Previous: Math & Vectors](07-math-vectors.md) | **Memory Management** | [Next: Casting & Reflection >>](09-casting-reflection.md)
+[Home](../README.md) | [<< Previous: Math & Vectors](07-math-vectors.md) | **Memory Management** | [Next: Casting & Reflection >>](09-casting-reflection.md)
 
 ---
 
@@ -673,4 +673,4 @@ class Child  { Parent m_Parent; }        // Weak   -- child observes parent
 
 ---
 
-[<< 1.7: Math & Vectors](07-math-vectors.md) | [Home](../../README.md) | [1.9: Casting & Reflection >>](09-casting-reflection.md)
+[<< 1.7: Math & Vectors](07-math-vectors.md) | [Home](../README.md) | [1.9: Casting & Reflection >>](09-casting-reflection.md)

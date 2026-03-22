@@ -1,6 +1,6 @@
 # Kapitel 3.6: Ereignisbehandlung
 
-[Startseite](../../README.md) | [<< Zurück: Programmatische Widget-Erstellung](05-programmatic-widgets.md) | **Ereignisbehandlung** | [Weiter: Stile, Schriftarten & Bilder >>](07-styles-fonts.md)
+[Startseite](../README.md) | [<< Zurück: Programmatische Widget-Erstellung](05-programmatic-widgets.md) | **Ereignisbehandlung** | [Weiter: Stile, Schriftarten & Bilder >>](07-styles-fonts.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第 3.7 章：样式、字体与图像
 
-[首页](../../README.md) | [<< 上一章：事件处理](06-event-handling.md) | **样式、字体与图像** | [下一章：对话框与模态框 >>](08-dialogs-modals.md)
+[首页](../README.md) | [<< 上一章：事件处理](06-event-handling.md) | **样式、字体与图像** | [下一章：对话框与模态框 >>](08-dialogs-modals.md)
 
 ---
 

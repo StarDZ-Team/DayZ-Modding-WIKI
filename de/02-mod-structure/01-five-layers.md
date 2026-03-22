@@ -1,6 +1,6 @@
 # Kapitel 2.1: Die 5-Schichten-Skript-Hierarchie
 
-[Startseite](../../README.md) | **Die 5-Schichten-Skript-Hierarchie** | [Weiter: config.cpp im Detail >>](02-config-cpp.md)
+[Startseite](../README.md) | **Die 5-Schichten-Skript-Hierarchie** | [Weiter: config.cpp im Detail >>](02-config-cpp.md)
 
 ---
 

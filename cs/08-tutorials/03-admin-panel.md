@@ -1,6 +1,6 @@
 # Kapitola 8.3: Tvorba modulu administrátorského panelu
 
-[Domů](../../README.md) | [<< Předchozí: Vytvoření vlastního předmětu](02-custom-item.md) | **Tvorba administrátorského panelu** | [Další: Přidání chatových příkazů >>](04-chat-commands.md)
+[Domů](../README.md) | [<< Předchozí: Vytvoření vlastního předmětu](02-custom-item.md) | **Tvorba administrátorského panelu** | [Další: Přidání chatových příkazů >>](04-chat-commands.md)
 
 ---
 

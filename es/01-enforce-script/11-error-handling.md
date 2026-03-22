@@ -1,6 +1,6 @@
 # Capítulo 1.11: Manejo de Errores
 
-[Inicio](../../README.md) | [<< Anterior: Enums & Preprocessor](10-enums-preprocessor.md) | **Error Handling** | [Siguiente: Gotchas >>](12-gotchas.md)
+[Inicio](../README.md) | [<< Anterior: Enums & Preprocessor](10-enums-preprocessor.md) | **Error Handling** | [Siguiente: Gotchas >>](12-gotchas.md)
 
 ---
 

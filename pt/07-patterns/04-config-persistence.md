@@ -1,6 +1,6 @@
 # Chapter 7.4: Config Persistence
 
-[Home](../../README.md) | [<< Previous: RPC Patterns](03-rpc-patterns.md) | **Config Persistence** | [Next: Permission Systems >>](05-permissions.md)
+[Home](../README.md) | [<< Previous: RPC Patterns](03-rpc-patterns.md) | **Config Persistence** | [Next: Permission Systems >>](05-permissions.md)
 
 ---
 
@@ -281,4 +281,4 @@ class MyDataManager
 
 ---
 
-[<< Anterior: Padrões RPC](03-rpc-patterns.md) | [Início](../../README.md) | [Próximo: Sistemas de Permissão >>](05-permissions.md)
+[<< Anterior: Padrões RPC](03-rpc-patterns.md) | [Início](../README.md) | [Próximo: Sistemas de Permissão >>](05-permissions.md)

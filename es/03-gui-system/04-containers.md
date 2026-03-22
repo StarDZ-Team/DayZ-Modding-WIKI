@@ -1,6 +1,6 @@
 # Capítulo 3.4: Container Widgets
 
-[Inicio](../../README.md) | [<< Anterior: Sizing & Positioning](03-sizing-positioning.md) | **Container Widgets** | [Siguiente: Programmatic Widgets >>](05-programmatic-widgets.md)
+[Inicio](../README.md) | [<< Anterior: Sizing & Positioning](03-sizing-positioning.md) | **Container Widgets** | [Siguiente: Programmatic Widgets >>](05-programmatic-widgets.md)
 
 ---
 

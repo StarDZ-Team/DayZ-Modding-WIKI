@@ -1,6 +1,6 @@
 # Kapitola 7.1: Vzor Singleton
 
-[Domů](../../README.md) | **Vzor Singleton** | [Další: Systémy modulů >>](02-module-systems.md)
+[Domů](../README.md) | **Vzor Singleton** | [Další: Systémy modulů >>](02-module-systems.md)
 
 ---
 
@@ -547,4 +547,4 @@ Před nasazením singletonu ověřte:
 
 ---
 
-[Domů](../../README.md) | **Vzor Singleton** | [Další: Systémy modulů >>](02-module-systems.md)
+[Domů](../README.md) | **Vzor Singleton** | [Další: Systémy modulů >>](02-module-systems.md)

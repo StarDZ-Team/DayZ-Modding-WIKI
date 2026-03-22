@@ -1,6 +1,6 @@
 # Aide-mémoire Enforce Script
 
-[Accueil](../README.md) | **Aide-mémoire**
+[Accueil](./README.md) | **Aide-mémoire**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true si multijoueur
 
 ---
 
-*Documentation complète : [Wiki de modding DayZ](../README.md) | [Pièges](01-enforce-script/12-gotchas.md) | [Gestion des erreurs](01-enforce-script/11-error-handling.md)*
+*Documentation complète : [Wiki de modding DayZ](./README.md) | [Pièges](01-enforce-script/12-gotchas.md) | [Gestion des erreurs](01-enforce-script/11-error-handling.md)*

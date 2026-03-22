@@ -1,6 +1,6 @@
 # 第 3.4 章：容器组件
 
-[首页](../../README.md) | [<< 上一章：尺寸与定位](03-sizing-positioning.md) | **容器组件** | [下一章：程序化组件 >>](05-programmatic-widgets.md)
+[首页](../README.md) | [<< 上一章：尺寸与定位](03-sizing-positioning.md) | **容器组件** | [下一章：程序化组件 >>](05-programmatic-widgets.md)
 
 ---
 

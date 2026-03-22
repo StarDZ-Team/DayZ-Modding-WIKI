@@ -1,6 +1,6 @@
 # Chapter 8.7: Steam Workshopへの公開
 
-[Home](../../README.md) | [<< 前へ: デバッグとテスト](06-debugging-testing.md) | **Steam Workshopへの公開** | [次へ: HUDオーバーレイの構築 >>](08-hud-overlay.md)
+[Home](../README.md) | [<< 前へ: デバッグとテスト](06-debugging-testing.md) | **Steam Workshopへの公開** | [次へ: HUDオーバーレイの構築 >>](08-hud-overlay.md)
 
 ---
 

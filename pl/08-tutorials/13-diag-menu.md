@@ -1,6 +1,6 @@
 # Rozdział 8.13: Menu diagnostyczne (Diag Menu)
 
-[Strona główna](../../README.md) | [<< Poprzedni: Budowanie systemu handlowego](12-trading-system.md) | **Menu diagnostyczne**
+[Strona główna](../README.md) | [<< Poprzedni: Budowanie systemu handlowego](12-trading-system.md) | **Menu diagnostyczne**
 
 ---
 

@@ -1,6 +1,6 @@
 # Rozdział 8.5: Korzystanie z szablonu moda DayZ
 
-[Strona główna](../../README.md) | [<< Poprzedni: Dodawanie komend czatu](04-chat-commands.md) | **Korzystanie z szablonu moda DayZ** | [Następny: Debugowanie i testowanie >>](06-debugging-testing.md)
+[Strona główna](../README.md) | [<< Poprzedni: Dodawanie komend czatu](04-chat-commands.md) | **Korzystanie z szablonu moda DayZ** | [Następny: Debugowanie i testowanie >>](06-debugging-testing.md)
 
 ---
 
@@ -413,4 +413,4 @@ Z twoim modem opartym na szablonie działającym, możesz:
 
 ---
 
-**Poprzedni:** [Rozdział 8.4: Dodawanie komend czatu](04-chat-commands.md) | [Strona główna](../../README.md)
+**Poprzedni:** [Rozdział 8.4: Dodawanie komend czatu](04-chat-commands.md) | [Strona główna](../README.md)

@@ -1,6 +1,6 @@
 # 6.6. fejezet: Értesítési rendszer
 
-[Kezdőlap](../../README.md) | [<< Előző: Utófeldolgozási effektek](05-ppe.md) | **Értesítések** | [Következő: Időzítők és CallQueue >>](07-timers.md)
+[Kezdőlap](../README.md) | [<< Előző: Utófeldolgozási effektek](05-ppe.md) | **Értesítések** | [Következő: Időzítők és CallQueue >>](07-timers.md)
 
 ---
 

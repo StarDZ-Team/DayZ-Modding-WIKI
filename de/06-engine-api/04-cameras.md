@@ -1,6 +1,6 @@
 # Kapitel 6.4: Kamerasystem
 
-[Startseite](../../README.md) | [<< Zurück: Wetter](03-weather.md) | **Kameras** | [Weiter: Nachbearbeitungseffekte >>](05-ppe.md)
+[Startseite](../README.md) | [<< Zurück: Wetter](03-weather.md) | **Kameras** | [Weiter: Nachbearbeitungseffekte >>](05-ppe.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 4.5. fejezet: DayZ Tools munkafolyamat
 
-[Főoldal](../../README.md) | [<< Előző: Hang](04-audio.md) | **DayZ Tools** | [Következő: PBO csomagolás >>](06-pbo-packing.md)
+[Főoldal](../README.md) | [<< Előző: Hang](04-audio.md) | **DayZ Tools** | [Következő: PBO csomagolás >>](06-pbo-packing.md)
 
 ---
 

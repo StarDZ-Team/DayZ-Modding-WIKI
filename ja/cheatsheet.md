@@ -1,6 +1,6 @@
 # Enforce Script チートシート
 
-[ホーム](../README.md) | **チートシート**
+[ホーム](./README.md) | **チートシート**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // マルチプレイヤーなら true
 
 ---
 
-*完全なドキュメント: [DayZ Modding Wiki](../README.md) | [注意点](01-enforce-script/12-gotchas.md) | [エラーハンドリング](01-enforce-script/11-error-handling.md)*
+*完全なドキュメント: [DayZ Modding Wiki](./README.md) | [注意点](01-enforce-script/12-gotchas.md) | [エラーハンドリング](01-enforce-script/11-error-handling.md)*

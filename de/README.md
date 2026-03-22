@@ -1,7 +1,6 @@
-<p align="center">
-  <strong>DayZ Modding - Kompletter Leitfaden</strong><br/>
-  Umfassende DayZ-Modding-Dokumentation — 92 Kapitel, von Null zum fertigen Mod.
-</p>
+# DayZ Modding - Kompletter Leitfaden
+
+> Umfassende DayZ-Modding-Dokumentation — 92 Kapitel, von Null zum fertigen Mod.
 
 <p align="center">
   <a href="../en/README.md"><img src="https://flagsapi.com/US/flat/48.png" alt="English" /></a>

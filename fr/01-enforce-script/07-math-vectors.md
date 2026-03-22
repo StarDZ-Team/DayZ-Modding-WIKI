@@ -1,6 +1,6 @@
 # Chapitre 1.7 : Math & Opérations vectorielles
 
-[Accueil](../../README.md) | [<< Précédent : Opérations sur les chaînes](06-strings.md) | **Math & Opérations vectorielles** | [Suivant : Gestion de la mémoire >>](08-memory-management.md)
+[Accueil](../README.md) | [<< Précédent : Opérations sur les chaînes](06-strings.md) | **Math & Opérations vectorielles** | [Suivant : Gestion de la mémoire >>](08-memory-management.md)
 
 ---
 
@@ -754,4 +754,4 @@ vector.Zero  vector.Up  vector.Aside  vector.Forward
 
 ---
 
-[<< 1.6 : Opérations sur les chaînes](06-strings.md) | [Accueil](../../README.md) | [1.8 : Gestion de la mémoire >>](08-memory-management.md)
+[<< 1.6 : Opérations sur les chaînes](06-strings.md) | [Accueil](../README.md) | [1.8 : Gestion de la mémoire >>](08-memory-management.md)

@@ -1,6 +1,6 @@
 # Rozdział 3.7: Style, czcionki i obrazy
 
-[Strona główna](../../README.md) | [<< Poprzedni: Obsługa zdarzeń](06-event-handling.md) | **Style, czcionki i obrazy** | [Dalej: Dialogi i modale >>](08-dialogs-modals.md)
+[Strona główna](../README.md) | [<< Poprzedni: Obsługa zdarzeń](06-event-handling.md) | **Style, czcionki i obrazy** | [Dalej: Dialogi i modale >>](08-dialogs-modals.md)
 
 ---
 

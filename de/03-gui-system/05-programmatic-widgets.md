@@ -1,6 +1,6 @@
 # Kapitel 3.5: Programmatische Widget-Erstellung
 
-[Startseite](../../README.md) | [<< Zurück: Container-Widgets](04-containers.md) | **Programmatische Widget-Erstellung** | [Weiter: Event-Handling >>](06-event-handling.md)
+[Startseite](../README.md) | [<< Zurück: Container-Widgets](04-containers.md) | **Programmatische Widget-Erstellung** | [Weiter: Event-Handling >>](06-event-handling.md)
 
 ---
 

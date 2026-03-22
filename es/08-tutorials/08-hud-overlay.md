@@ -1,6 +1,6 @@
 # Capítulo 8.8: Construyendo una Superposición HUD
 
-[Inicio](../../README.md) | [<< Anterior: Publicando en el Steam Workshop](07-publishing-workshop.md) | **Construyendo una Superposición HUD** | [Siguiente: Plantilla Profesional de Mod >>](09-professional-template.md)
+[Inicio](../README.md) | [<< Anterior: Publicando en el Steam Workshop](07-publishing-workshop.md) | **Construyendo una Superposición HUD** | [Siguiente: Plantilla Profesional de Mod >>](09-professional-template.md)
 
 ---
 

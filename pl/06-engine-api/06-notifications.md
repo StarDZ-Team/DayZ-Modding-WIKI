@@ -1,6 +1,6 @@
 # Rozdział 6.6: System powiadomień
 
-[Strona główna](../../README.md) | [<< Poprzedni: Efekty post-processingu](05-ppe.md) | **Powiadomienia** | [Następny: Liczniki czasu i CallQueue >>](07-timers.md)
+[Strona główna](../README.md) | [<< Poprzedni: Efekty post-processingu](05-ppe.md) | **Powiadomienia** | [Następny: Liczniki czasu i CallQueue >>](07-timers.md)
 
 ---
 

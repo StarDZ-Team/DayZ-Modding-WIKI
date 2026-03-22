@@ -1,6 +1,6 @@
 # Capítulo 6.5: Efectos de Post-Procesado (PPE)
 
-[Inicio](../../README.md) | [<< Anterior: Cameras](04-cameras.md) | **Post-Process Effects** | [Siguiente: Notifications >>](06-notifications.md)
+[Inicio](../README.md) | [<< Anterior: Cameras](04-cameras.md) | **Post-Process Effects** | [Siguiente: Notifications >>](06-notifications.md)
 
 ---
 

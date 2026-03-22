@@ -1,6 +1,6 @@
 # Chapitre 8.8 : Construire une surcouche HUD
 
-[Accueil](../../README.md) | [<< Précédent : Publier sur le Steam Workshop](07-publishing-workshop.md) | **Construire une surcouche HUD** | [Suivant : Modèle de mod professionnel >>](09-professional-template.md)
+[Accueil](../README.md) | [<< Précédent : Publier sur le Steam Workshop](07-publishing-workshop.md) | **Construire une surcouche HUD** | [Suivant : Modèle de mod professionnel >>](09-professional-template.md)
 
 ---
 

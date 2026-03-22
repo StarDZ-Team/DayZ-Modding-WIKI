@@ -1,6 +1,6 @@
 # Capitolo 5.1: stringtable.csv --- Localizzazione
 
-[Home](../../README.md) | **stringtable.csv** | [Successivo: inputs.xml >>](02-inputs-xml.md)
+[Home](../README.md) | **stringtable.csv** | [Successivo: inputs.xml >>](02-inputs-xml.md)
 
 ---
 

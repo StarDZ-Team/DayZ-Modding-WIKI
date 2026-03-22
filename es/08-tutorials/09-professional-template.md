@@ -1,6 +1,6 @@
 # Capítulo 8.9: Plantilla Profesional de Mod
 
-[Inicio](../../README.md) | [<< Anterior: Construyendo una Superposición HUD](08-hud-overlay.md) | **Plantilla Profesional de Mod** | [Siguiente: Creando un Vehículo Personalizado >>](10-vehicle-mod.md)
+[Inicio](../README.md) | [<< Anterior: Construyendo una Superposición HUD](08-hud-overlay.md) | **Plantilla Profesional de Mod** | [Siguiente: Creando un Vehículo Personalizado >>](10-vehicle-mod.md)
 
 ---
 
@@ -1422,4 +1422,4 @@ Con esta plantilla profesional funcionando, puedes:
 
 ---
 
-**Anterior:** [Capítulo 8.8: Construyendo una Superposición HUD](08-hud-overlay.md) | [Inicio](../../README.md)
+**Anterior:** [Capítulo 8.8: Construyendo una Superposición HUD](08-hud-overlay.md) | [Inicio](../README.md)

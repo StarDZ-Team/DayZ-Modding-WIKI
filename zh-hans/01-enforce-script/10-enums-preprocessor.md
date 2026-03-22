@@ -1,6 +1,6 @@
 # 第 1.10 章：枚举与预处理器
 
-[首页](../../README.md) | [<< 上一章：类型转换与反射](09-casting-reflection.md) | **枚举与预处理器** | [下一章：错误处理 >>](11-error-handling.md)
+[首页](../README.md) | [<< 上一章：类型转换与反射](09-casting-reflection.md) | **枚举与预处理器** | [下一章：错误处理 >>](11-error-handling.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Rozdział 7.3: Wzorce komunikacji RPC
 
-[Strona główna](../../README.md) | [<< Poprzedni: Systemy modułów](02-module-systems.md) | **Wzorce komunikacji RPC** | [Dalej: Trwałość konfiguracji >>](04-config-persistence.md)
+[Strona główna](../README.md) | [<< Poprzedni: Systemy modułów](02-module-systems.md) | **Wzorce komunikacji RPC** | [Dalej: Trwałość konfiguracji >>](04-config-persistence.md)
 
 ---
 
@@ -631,4 +631,4 @@ Lub użyj scentralizowanego `Cleanup()` który czyści całą mapę handlerów (
 
 ---
 
-[Strona główna](../../README.md) | [<< Poprzedni: Systemy modułów](02-module-systems.md) | **Wzorce komunikacji RPC** | [Dalej: Trwałość konfiguracji >>](04-config-persistence.md)
+[Strona główna](../README.md) | [<< Poprzedni: Systemy modułów](02-module-systems.md) | **Wzorce komunikacji RPC** | [Dalej: Trwałość konfiguracji >>](04-config-persistence.md)

@@ -1,6 +1,6 @@
 # Chapter 7.5: パーミッションシステム
 
-[ホーム](../../README.md) | [<< 前: 設定の永続化](04-config-persistence.md) | **パーミッションシステム** | [次: イベント駆動アーキテクチャ >>](06-events.md)
+[ホーム](../README.md) | [<< 前: 設定の永続化](04-config-persistence.md) | **パーミッションシステム** | [次: イベント駆動アーキテクチャ >>](06-events.md)
 
 ---
 
@@ -600,4 +600,4 @@ void LoadLegacyAndMigrate()
 
 ---
 
-[ホーム](../../README.md) | [<< 前: 設定の永続化](04-config-persistence.md) | **パーミッションシステム** | [次: イベント駆動アーキテクチャ >>](06-events.md)
+[ホーム](../README.md) | [<< 前: 設定の永続化](04-config-persistence.md) | **パーミッションシステム** | [次: イベント駆動アーキテクチャ >>](06-events.md)

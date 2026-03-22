@@ -1,6 +1,6 @@
 # Capitulo 8.2: Crear un Item Personalizado
 
-[Inicio](../../README.md) | [<< Anterior: Tu Primer Mod](01-first-mod.md) | **Crear un Item Personalizado** | [Siguiente: Construir un Panel de Admin >>](03-admin-panel.md)
+[Inicio](../README.md) | [<< Anterior: Tu Primer Mod](01-first-mod.md) | **Crear un Item Personalizado** | [Siguiente: Construir un Panel de Admin >>](03-admin-panel.md)
 
 ---
 

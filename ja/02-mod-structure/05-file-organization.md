@@ -1,6 +1,6 @@
 # 第2.5章: ファイル構成のベストプラクティス
 
-[ホーム](../../README.md) | [<< 前へ: 最小限のMOD](04-minimum-viable-mod.md) | **ファイル構成** | [次へ: サーバーvsクライアントアーキテクチャ >>](06-server-client-split.md)
+[ホーム](../README.md) | [<< 前へ: 最小限のMOD](04-minimum-viable-mod.md) | **ファイル構成** | [次へ: サーバーvsクライアントアーキテクチャ >>](06-server-client-split.md)
 
 ---
 

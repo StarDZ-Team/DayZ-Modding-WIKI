@@ -1,6 +1,6 @@
 # Chapitre 2.4 : Votre premier mod -- Minimum Viable
 
-[Accueil](../../README.md) | [<< Précédent : mod.cpp & Workshop](03-mod-cpp.md) | **Mod Minimum Viable** | [Suivant : Organisation des fichiers >>](05-file-organization.md)
+[Accueil](../README.md) | [<< Précédent : mod.cpp & Workshop](03-mod-cpp.md) | **Mod Minimum Viable** | [Suivant : Organisation des fichiers >>](05-file-organization.md)
 
 ---
 

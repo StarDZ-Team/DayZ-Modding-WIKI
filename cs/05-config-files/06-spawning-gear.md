@@ -1,6 +1,6 @@
 # Kapitola 5.6: Konfigurace výbavy při spawnu
 
-[Domů](../../README.md) | [<< Předchozí: Konfigurační soubory serveru](05-server-configs.md) | **Konfigurace výbavy při spawnu**
+[Domů](../README.md) | [<< Předchozí: Konfigurační soubory serveru](05-server-configs.md) | **Konfigurace výbavy při spawnu**
 
 ---
 
@@ -1158,4 +1158,4 @@ cfgplayerspawnpoints.xml
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Konfigurační soubory serveru](05-server-configs.md) | **Konfigurace výbavy při spawnu**
+[Domů](../README.md) | [<< Předchozí: Konfigurační soubory serveru](05-server-configs.md) | **Konfigurace výbavy při spawnu**

@@ -1,6 +1,6 @@
 # 3.7. fejezet: Stílusok, betűtípusok és képek
 
-[Kezdőlap](../../README.md) | [<< Előző: Események kezelése](06-event-handling.md) | **Stílusok, betűtípusok és képek** | [Következő: Párbeszédablakok és modális ablakok >>](08-dialogs-modals.md)
+[Kezdőlap](../README.md) | [<< Előző: Események kezelése](06-event-handling.md) | **Stílusok, betűtípusok és képek** | [Következő: Párbeszédablakok és modális ablakok >>](08-dialogs-modals.md)
 
 ---
 

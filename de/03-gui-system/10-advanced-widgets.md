@@ -1,6 +1,6 @@
 # Kapitel 3.10: Erweiterte Widgets
 
-[Startseite](../../README.md) | [<< Zurück: Echte Mod-UI-Muster](09-real-mod-patterns.md) | **Erweiterte Widgets**
+[Startseite](../README.md) | [<< Zurück: Echte Mod-UI-Muster](09-real-mod-patterns.md) | **Erweiterte Widgets**
 
 ---
 

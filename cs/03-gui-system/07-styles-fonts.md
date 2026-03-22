@@ -1,6 +1,6 @@
 # Kapitola 3.7: Styly, písma a obrázky
 
-[Domů](../../README.md) | [<< Předchozí: Zpracování událostí](06-event-handling.md) | **Styly, písma a obrázky** | [Další: Dialogy a modální okna >>](08-dialogs-modals.md)
+[Domů](../README.md) | [<< Předchozí: Zpracování událostí](06-event-handling.md) | **Styly, písma a obrázky** | [Další: Dialogy a modální okna >>](08-dialogs-modals.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第5.1章：stringtable.csv --- 本地化
 
-[首页](../../README.md) | **stringtable.csv** | [下一章：inputs.xml >>](02-inputs-xml.md)
+[首页](../README.md) | **stringtable.csv** | [下一章：inputs.xml >>](02-inputs-xml.md)
 
 ---
 

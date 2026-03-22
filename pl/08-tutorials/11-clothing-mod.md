@@ -1,6 +1,6 @@
 # Rozdział 8.11: Tworzenie niestandardowej odzieży
 
-[Strona główna](../../README.md) | [<< Poprzedni: Tworzenie niestandardowego pojazdu](10-vehicle-mod.md) | **Tworzenie niestandardowej odzieży** | [Następny: Budowanie systemu handlowego >>](12-trading-system.md)
+[Strona główna](../README.md) | [<< Poprzedni: Tworzenie niestandardowego pojazdu](10-vehicle-mod.md) | **Tworzenie niestandardowej odzieży** | [Następny: Budowanie systemu handlowego >>](12-trading-system.md)
 
 ---
 

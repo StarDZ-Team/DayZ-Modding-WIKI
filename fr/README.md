@@ -1,7 +1,6 @@
-<p align="center">
-  <strong>Guide Complet du Modding DayZ</strong><br/>
-  Documentation complete pour le modding DayZ — 92 chapitres, de zero au mod publie.
-</p>
+# Guide Complet du Modding DayZ
+
+> Documentation complete pour le modding DayZ — 92 chapitres, de zero au mod publie.
 
 <p align="center">
   <a href="../en/README.md"><img src="https://flagsapi.com/US/flat/48.png" alt="English" /></a>

@@ -1,6 +1,6 @@
 # Chapitre 6.15: Sound System
 
-[Accueil](../../README.md) | [<< Précédent : Player System](14-player-system.md) | **Sound System** | [Suivant : Crafting System >>](16-crafting-system.md)
+[Accueil](../README.md) | [<< Précédent : Player System](14-player-system.md) | **Sound System** | [Suivant : Crafting System >>](16-crafting-system.md)
 
 ---
 
@@ -1063,4 +1063,4 @@ Available controller names include: `rain`, `night`, `meadow`, `trees`, `hills`,
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Player System](14-player-system.md) | **Sound System** | [Suivant : Crafting System >>](16-crafting-system.md)
+[Accueil](../README.md) | [<< Précédent : Player System](14-player-system.md) | **Sound System** | [Suivant : Crafting System >>](16-crafting-system.md)

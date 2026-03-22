@@ -1,6 +1,6 @@
 # Chapitre 8.1 : Votre premier mod (Hello World)
 
-[Accueil](../../README.md) | **Votre premier mod** | [Suivant : Créer un objet personnalisé >>](02-custom-item.md)
+[Accueil](../README.md) | **Votre premier mod** | [Suivant : Créer un objet personnalisé >>](02-custom-item.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Ściągawka Enforce Script
 
-[Strona główna](../README.md) | **Ściągawka**
+[Strona główna](./README.md) | **Ściągawka**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true jeśli multiplayer
 
 ---
 
-*Pełna dokumentacja: [Wiki moddingu DayZ](../README.md) | [Pułapki](01-enforce-script/12-gotchas.md) | [Obsługa błędów](01-enforce-script/11-error-handling.md)*
+*Pełna dokumentacja: [Wiki moddingu DayZ](./README.md) | [Pułapki](01-enforce-script/12-gotchas.md) | [Obsługa błędów](01-enforce-script/11-error-handling.md)*

@@ -1,6 +1,6 @@
 # Capitolo 8.11: Creare Abbigliamento Personalizzato
 
-[Home](../../README.md) | [<< Precedente: Creare un Veicolo Personalizzato](10-vehicle-mod.md) | **Creare Abbigliamento Personalizzato** | [Successivo: Costruire un Sistema di Scambio >>](12-trading-system.md)
+[Home](../README.md) | [<< Precedente: Creare un Veicolo Personalizzato](10-vehicle-mod.md) | **Creare Abbigliamento Personalizzato** | [Successivo: Costruire un Sistema di Scambio >>](12-trading-system.md)
 
 ---
 

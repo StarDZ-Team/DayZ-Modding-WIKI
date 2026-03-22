@@ -1,6 +1,6 @@
 # 第1.9章: キャストとリフレクション
 
-[ホーム](../../README.md) | [<< 前へ: メモリ管理](08-memory-management.md) | **キャストとリフレクション** | [次へ: 列挙型とプリプロセッサ >>](10-enums-preprocessor.md)
+[ホーム](../README.md) | [<< 前へ: メモリ管理](08-memory-management.md) | **キャストとリフレクション** | [次へ: 列挙型とプリプロセッサ >>](10-enums-preprocessor.md)
 
 ---
 

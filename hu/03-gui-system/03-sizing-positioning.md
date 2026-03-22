@@ -1,6 +1,6 @@
 # 3.3. fejezet: Méretezés és pozícionálás
 
-[Kezdőlap](../../README.md) | [<< Előző: Layout fájl formátum](02-layout-files.md) | **Méretezés és pozícionálás** | [Következő: Konténer widgetek >>](04-containers.md)
+[Kezdőlap](../README.md) | [<< Előző: Layout fájl formátum](02-layout-files.md) | **Méretezés és pozícionálás** | [Következő: Konténer widgetek >>](04-containers.md)
 
 ---
 

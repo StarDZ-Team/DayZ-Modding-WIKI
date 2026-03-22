@@ -1,6 +1,6 @@
 # Capítulo 8.3: Construyendo un Módulo de Panel de Administración
 
-[Inicio](../../README.md) | [<< Anterior: Creando un Objeto Personalizado](02-custom-item.md) | **Construyendo un Panel de Administración** | [Siguiente: Agregando Comandos de Chat >>](04-chat-commands.md)
+[Inicio](../README.md) | [<< Anterior: Creando un Objeto Personalizado](02-custom-item.md) | **Construyendo un Panel de Administración** | [Siguiente: Agregando Comandos de Chat >>](04-chat-commands.md)
 
 ---
 

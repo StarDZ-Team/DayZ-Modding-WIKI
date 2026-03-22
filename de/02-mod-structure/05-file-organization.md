@@ -1,6 +1,6 @@
 # Kapitel 2.5: Bewährte Praktiken der Dateiorganisation
 
-[Startseite](../../README.md) | [<< Zurück: Minimaler funktionsfähiger Mod](04-minimum-viable-mod.md) | **Dateiorganisation** | [Weiter: Server- vs. Client-Architektur >>](06-server-client-split.md)
+[Startseite](../README.md) | [<< Zurück: Minimaler funktionsfähiger Mod](04-minimum-viable-mod.md) | **Dateiorganisation** | [Weiter: Server- vs. Client-Architektur >>](06-server-client-split.md)
 
 ---
 

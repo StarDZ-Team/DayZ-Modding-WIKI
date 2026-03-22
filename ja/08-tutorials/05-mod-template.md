@@ -1,6 +1,6 @@
 # 第8.5章: DayZ Mod テンプレートの使い方
 
-[ホーム](../../README.md) | [<< 前へ: チャットコマンドの追加](04-chat-commands.md) | **DayZ Mod テンプレートの使い方** | [次へ: デバッグとテスト >>](06-debugging-testing.md)
+[ホーム](../README.md) | [<< 前へ: チャットコマンドの追加](04-chat-commands.md) | **DayZ Mod テンプレートの使い方** | [次へ: デバッグとテスト >>](06-debugging-testing.md)
 
 ---
 
@@ -413,4 +413,4 @@ pause
 
 ---
 
-**前へ:** [第8.4章: チャットコマンドの追加](04-chat-commands.md) | [ホーム](../../README.md)
+**前へ:** [第8.4章: チャットコマンドの追加](04-chat-commands.md) | [ホーム](../README.md)

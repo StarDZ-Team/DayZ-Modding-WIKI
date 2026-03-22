@@ -1,6 +1,6 @@
 # Глава 7.1: Паттерн «Одиночка» (Singleton)
 
-[Главная](../../README.md) | **Паттерн Singleton** | [Следующая: Модульные системы >>](02-module-systems.md)
+[Главная](../README.md) | **Паттерн Singleton** | [Следующая: Модульные системы >>](02-module-systems.md)
 
 ---
 
@@ -547,4 +547,4 @@ class MyLog
 
 ---
 
-[Главная](../../README.md) | **Паттерн Singleton** | [Следующая: Модульные системы >>](02-module-systems.md)
+[Главная](../README.md) | **Паттерн Singleton** | [Следующая: Модульные системы >>](02-module-systems.md)

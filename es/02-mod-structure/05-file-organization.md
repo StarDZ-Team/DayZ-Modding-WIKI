@@ -1,6 +1,6 @@
 # Capítulo 2.5: File Organization Best Practices
 
-[Inicio](../../README.md) | [<< Anterior: Minimum Viable Mod](04-minimum-viable-mod.md) | **File Organization** | [Siguiente: Server vs Client Architecture >>](06-server-client-split.md)
+[Inicio](../README.md) | [<< Anterior: Minimum Viable Mod](04-minimum-viable-mod.md) | **File Organization** | [Siguiente: Server vs Client Architecture >>](06-server-client-split.md)
 
 ---
 

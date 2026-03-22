@@ -1,6 +1,6 @@
 # Chapitre 3.7 : Styles, polices et images
 
-[Accueil](../../README.md) | [<< Précédent : Gestion des événements](06-event-handling.md) | **Styles, polices et images** | [Suivant : Dialogues et modales >>](08-dialogs-modals.md)
+[Accueil](../README.md) | [<< Précédent : Gestion des événements](06-event-handling.md) | **Styles, polices et images** | [Suivant : Dialogues et modales >>](08-dialogs-modals.md)
 
 ---
 

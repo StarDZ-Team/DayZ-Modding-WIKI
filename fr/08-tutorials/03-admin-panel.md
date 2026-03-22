@@ -1,6 +1,6 @@
 # Chapitre 8.3 : Construire un module de panneau d'administration
 
-[Accueil](../../README.md) | [<< Précédent : Créer un objet personnalisé](02-custom-item.md) | **Construire un panneau d'administration** | [Suivant : Ajouter des commandes de chat >>](04-chat-commands.md)
+[Accueil](../README.md) | [<< Précédent : Créer un objet personnalisé](02-custom-item.md) | **Construire un panneau d'administration** | [Suivant : Ajouter des commandes de chat >>](04-chat-commands.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Capitolo 6.4: Sistema telecamere
 
-[Home](../../README.md) | [<< Precedente: Meteo](03-weather.md) | **Telecamere** | [Successivo: Effetti di post-elaborazione >>](05-ppe.md)
+[Home](../README.md) | [<< Precedente: Meteo](03-weather.md) | **Telecamere** | [Successivo: Effetti di post-elaborazione >>](05-ppe.md)
 
 ---
 

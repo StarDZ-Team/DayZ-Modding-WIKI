@@ -1,6 +1,6 @@
 # Chapter 7.7: Performance Optimization
 
-[Home](../../README.md) | [<< Previous: Event-Driven Architecture](06-events.md) | **Performance Optimization**
+[Home](../README.md) | [<< Previous: Event-Driven Architecture](06-events.md) | **Performance Optimization**
 
 ---
 
@@ -388,4 +388,4 @@ Antes de publicar código sensível a performance, verifique:
 
 ---
 
-[<< Anterior: Arquitetura Orientada a Eventos](06-events.md) | [Início](../../README.md)
+[<< Anterior: Arquitetura Orientada a Eventos](06-events.md) | [Início](../README.md)

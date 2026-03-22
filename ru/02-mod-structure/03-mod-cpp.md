@@ -1,6 +1,6 @@
 # Глава 2.3: mod.cpp и Workshop
 
-[Главная](../../README.md) | [<< Предыдущая: config.cpp подробно](02-config-cpp.md) | **mod.cpp и Workshop** | [Следующая: Минимальный мод >>](04-minimum-viable-mod.md)
+[Главная](../README.md) | [<< Предыдущая: config.cpp подробно](02-config-cpp.md) | **mod.cpp и Workshop** | [Следующая: Минимальный мод >>](04-minimum-viable-mod.md)
 
 ---
 

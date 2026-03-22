@@ -1,6 +1,6 @@
 # 3.10. fejezet: Haladó widgetek
 
-[Főoldal](../../README.md) | [<< Előző: Valós mod UI minták](09-real-mod-patterns.md) | **Haladó widgetek**
+[Főoldal](../README.md) | [<< Előző: Valós mod UI minták](09-real-mod-patterns.md) | **Haladó widgetek**
 
 ---
 

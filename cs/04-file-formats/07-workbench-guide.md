@@ -1,6 +1,6 @@
 # Kapitola 4.7: Průvodce Workbenchem
 
-[Domů](../../README.md) | [<< Předchozí: Balení PBO](06-pbo-packing.md) | **Průvodce Workbenchem** | [Další: Modelování budov >>](08-building-modeling.md)
+[Domů](../README.md) | [<< Předchozí: Balení PBO](06-pbo-packing.md) | **Průvodce Workbenchem** | [Další: Modelování budov >>](08-building-modeling.md)
 
 ---
 

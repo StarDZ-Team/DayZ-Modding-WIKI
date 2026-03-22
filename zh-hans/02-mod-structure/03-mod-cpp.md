@@ -1,6 +1,6 @@
 # 第 2.3 章：mod.cpp 与 Workshop
 
-[首页](../../README.md) | [<< 上一章：config.cpp 深入解析](02-config-cpp.md) | **mod.cpp 与 Workshop** | [下一章：最小可行模组 >>](04-minimum-viable-mod.md)
+[首页](../README.md) | [<< 上一章：config.cpp 深入解析](02-config-cpp.md) | **mod.cpp 与 Workshop** | [下一章：最小可行模组 >>](04-minimum-viable-mod.md)
 
 ---
 

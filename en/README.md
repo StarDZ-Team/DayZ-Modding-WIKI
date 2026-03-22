@@ -2,7 +2,7 @@
 
 > The most comprehensive DayZ modding documentation available. From zero to published mod.
 >
-> **Note:** This is the English version. For other languages, see the [root README](../README.md).
+> **Note:** This is the English version. For other languages, see the [home page](../).
 
 [![English](https://flagsapi.com/US/flat/48.png)](README.md) [![Portugues](https://flagsapi.com/BR/flat/48.png)](../pt/README.md) [![Deutsch](https://flagsapi.com/DE/flat/48.png)](../de/README.md) [![Russkij](https://flagsapi.com/RU/flat/48.png)](../ru/README.md) [![Cestina](https://flagsapi.com/CZ/flat/48.png)](../cs/README.md) [![Polski](https://flagsapi.com/PL/flat/48.png)](../pl/README.md) [![Magyar](https://flagsapi.com/HU/flat/48.png)](../hu/README.md) [![Italiano](https://flagsapi.com/IT/flat/48.png)](../it/README.md) [![Espanol](https://flagsapi.com/ES/flat/48.png)](../es/README.md) [![Francais](https://flagsapi.com/FR/flat/48.png)](../fr/README.md) [![Nihongo](https://flagsapi.com/JP/flat/48.png)](../ja/README.md) [![简体中文](https://flagsapi.com/CN/flat/48.png)](../zh-hans/README.md)
 

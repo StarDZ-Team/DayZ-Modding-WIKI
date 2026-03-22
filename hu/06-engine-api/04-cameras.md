@@ -1,6 +1,6 @@
 # 6.4. fejezet: Kamerarendszer
 
-[Kezdőlap](../../README.md) | [<< Előző: Időjárás](03-weather.md) | **Kamerák** | [Következő: Utófeldolgozási effektek >>](05-ppe.md)
+[Kezdőlap](../README.md) | [<< Előző: Időjárás](03-weather.md) | **Kamerák** | [Következő: Utófeldolgozási effektek >>](05-ppe.md)
 
 ---
 

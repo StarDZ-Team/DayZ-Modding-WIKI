@@ -1,6 +1,6 @@
 # 第 7.3 章：RPC 通信模式
 
-[首页](../../README.md) | [<< 上一章：模块系统](02-module-systems.md) | **RPC 通信模式** | [下一章：配置持久化 >>](04-config-persistence.md)
+[首页](../README.md) | [<< 上一章：模块系统](02-module-systems.md) | **RPC 通信模式** | [下一章：配置持久化 >>](04-config-persistence.md)
 
 ---
 
@@ -659,4 +659,4 @@ override void OnMissionFinish()
 
 ---
 
-[首页](../../README.md) | [<< 上一章：模块系统](02-module-systems.md) | **RPC 通信模式** | [下一章：配置持久化 >>](04-config-persistence.md)
+[首页](../README.md) | [<< 上一章：模块系统](02-module-systems.md) | **RPC 通信模式** | [下一章：配置持久化 >>](04-config-persistence.md)

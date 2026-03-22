@@ -1,6 +1,6 @@
 # 7.6. fejezet: Eseményvezérelt architektúra
 
-[Kezdőlap](../../README.md) | [<< Előző: Jogosultsági rendszerek](05-permissions.md) | **Eseményvezérelt architektúra** | [Következő: Teljesítményoptimalizálás >>](07-performance.md)
+[Kezdőlap](../README.md) | [<< Előző: Jogosultsági rendszerek](05-permissions.md) | **Eseményvezérelt architektúra** | [Következő: Teljesítményoptimalizálás >>](07-performance.md)
 
 ---
 
@@ -552,4 +552,4 @@ OnKillEvent.Invoke(killData);
 
 ---
 
-[Kezdőlap](../../README.md) | [<< Előző: Jogosultsági rendszerek](05-permissions.md) | **Eseményvezérelt architektúra** | [Következő: Teljesítményoptimalizálás >>](07-performance.md)
+[Kezdőlap](../README.md) | [<< Előző: Jogosultsági rendszerek](05-permissions.md) | **Eseményvezérelt architektúra** | [Következő: Teljesítményoptimalizálás >>](07-performance.md)

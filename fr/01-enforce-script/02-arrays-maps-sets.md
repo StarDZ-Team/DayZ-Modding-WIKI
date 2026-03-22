@@ -1,6 +1,6 @@
 # Chapitre 1.2 : Tableaux, Maps & Sets
 
-[Accueil](../../README.md) | [<< Précédent : Variables & Types](01-variables-types.md) | **Tableaux, Maps & Sets** | [Suivant : Classes & Héritage >>](03-classes-inheritance.md)
+[Accueil](../README.md) | [<< Précédent : Variables & Types](01-variables-types.md) | **Tableaux, Maps & Sets** | [Suivant : Classes & Héritage >>](03-classes-inheritance.md)
 
 ---
 
@@ -918,4 +918,4 @@ Créez une classe avec deux maps permettant la recherche dans les deux sens : é
 
 ---
 
-[Accueil](../../README.md) | [<< Précédent : Variables & Types](01-variables-types.md) | **Tableaux, Maps & Sets** | [Suivant : Classes & Héritage >>](03-classes-inheritance.md)
+[Accueil](../README.md) | [<< Précédent : Variables & Types](01-variables-types.md) | **Tableaux, Maps & Sets** | [Suivant : Classes & Héritage >>](03-classes-inheritance.md)

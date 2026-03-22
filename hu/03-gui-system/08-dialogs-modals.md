@@ -1,6 +1,6 @@
 # 3.8. fejezet: Dialógusok és modális ablakok
 
-[Főoldal](../../README.md) | [<< Előző: Stílusok, betűtípusok és képek](07-styles-fonts.md) | **Dialógusok és modális ablakok** | [Következő: Valós mod UI minták >>](09-real-mod-patterns.md)
+[Főoldal](../README.md) | [<< Előző: Stílusok, betűtípusok és képek](07-styles-fonts.md) | **Dialógusok és modális ablakok** | [Következő: Valós mod UI minták >>](09-real-mod-patterns.md)
 
 ---
 

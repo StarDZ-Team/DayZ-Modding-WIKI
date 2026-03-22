@@ -1,6 +1,6 @@
 # 8.13. fejezet: A diagnosztikai menü (Diag Menu)
 
-[Kezdőlap](../../README.md) | [<< Előző: Kereskedési rendszer építése](12-trading-system.md) | **A diagnosztikai menü**
+[Kezdőlap](../README.md) | [<< Előző: Kereskedési rendszer építése](12-trading-system.md) | **A diagnosztikai menü**
 
 ---
 

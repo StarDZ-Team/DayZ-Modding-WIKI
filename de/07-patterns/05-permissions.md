@@ -1,6 +1,6 @@
 # Chapter 7.5: Permission Systems
 
-[Home](../../README.md) | [<< Previous: Config Persistence](04-config-persistence.md) | **Permission Systems** | [Next: Event-Driven Architecture >>](06-events.md)
+[Home](../README.md) | [<< Previous: Config Persistence](04-config-persistence.md) | **Permission Systems** | [Next: Event-Driven Architecture >>](06-events.md)
 
 ---
 
@@ -605,4 +605,4 @@ This is exactly the pattern MyMod uses to migrate from its original flat `AdminU
 
 ---
 
-[<< Zurück: Config Persistence](04-config-persistence.md) | [Startseite](../../README.md) | [Next: Event-Driven Architecture >>](06-events.md)
+[<< Zurück: Config Persistence](04-config-persistence.md) | [Startseite](../README.md) | [Next: Event-Driven Architecture >>](06-events.md)

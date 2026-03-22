@@ -1,6 +1,6 @@
 # Capítulo 6.17: Sistema de Construção
 
-[Início](../../README.md) | [<< Anterior: Sistema de Crafting](16-crafting-system.md) | **Sistema de Construção** | [Próximo: Sistema de Animação >>](18-animation-system.md)
+[Início](../README.md) | [<< Anterior: Sistema de Crafting](16-crafting-system.md) | **Sistema de Construção** | [Próximo: Sistema de Animação >>](18-animation-system.md)
 
 ---
 

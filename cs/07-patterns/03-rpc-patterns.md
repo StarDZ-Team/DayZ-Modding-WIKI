@@ -1,6 +1,6 @@
 # Chapter 7.3: RPC Communication Patterns
 
-[Domů](../../README.md) | [<< Předchozí: Systémy modulů](02-module-systems.md) | **RPC Communication Patterns** | [Další: Perzistence konfigurace >>](04-config-persistence.md)
+[Domů](../README.md) | [<< Předchozí: Systémy modulů](02-module-systems.md) | **RPC Communication Patterns** | [Další: Perzistence konfigurace >>](04-config-persistence.md)
 
 ---
 
@@ -659,4 +659,4 @@ Or use a centralized `Cleanup()` that clears the celý handler map (as `MyRPC.Cl
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Systémy modulů](02-module-systems.md) | **RPC Communication Patterns** | [Další: Perzistence konfigurace >>](04-config-persistence.md)
+[Domů](../README.md) | [<< Předchozí: Systémy modulů](02-module-systems.md) | **RPC Communication Patterns** | [Další: Perzistence konfigurace >>](04-config-persistence.md)

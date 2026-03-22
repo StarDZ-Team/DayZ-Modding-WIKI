@@ -1,6 +1,6 @@
 # 引擎 API 快速参考
 
-[首页](../../README.md) | **引擎 API 快速参考**
+[首页](../README.md) | **引擎 API 快速参考**
 
 ---
 
@@ -656,4 +656,4 @@ override void SetActions()
 
 ---
 
-*完整文档：[首页](../../README.md) | [速查表](../cheatsheet.md) | [实体系统](01-entity-system.md) | [载具](02-vehicles.md) | [天气](03-weather.md) | [定时器](07-timers.md) | [文件 I/O](08-file-io.md) | [网络](09-networking.md) | [任务钩子](11-mission-hooks.md) | [动作系统](12-action-system.md)*
+*完整文档：[首页](../README.md) | [速查表](../cheatsheet.md) | [实体系统](01-entity-system.md) | [载具](02-vehicles.md) | [天气](03-weather.md) | [定时器](07-timers.md) | [文件 I/O](08-file-io.md) | [网络](09-networking.md) | [任务钩子](11-mission-hooks.md) | [动作系统](12-action-system.md)*

@@ -1,6 +1,6 @@
 # 第 6.11 章：任务钩子
 
-[首页](../../README.md) | [<< 上一章：中央经济](10-central-economy.md) | **任务钩子** | [下一章：动作系统 >>](12-action-system.md)
+[首页](../README.md) | [<< 上一章：中央经济](10-central-economy.md) | **任务钩子** | [下一章：动作系统 >>](12-action-system.md)
 
 ---
 
@@ -588,4 +588,4 @@ override void OnInit()                      override void OnInit()
 
 ---
 
-[首页](../../README.md) | [<< 上一章：中央经济](10-central-economy.md) | **任务钩子** | [下一章：动作系统 >>](12-action-system.md)
+[首页](../README.md) | [<< 上一章：中央经济](10-central-economy.md) | **任务钩子** | [下一章：动作系统 >>](12-action-system.md)

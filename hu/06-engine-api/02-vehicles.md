@@ -1,6 +1,6 @@
 # 6.2. fejezet: Járműrendszer
 
-[Kezdőlap](../../README.md) | [<< Előző: Entitásrendszer](01-entity-system.md) | **Járművek** | [Következő: Időjárás >>](03-weather.md)
+[Kezdőlap](../README.md) | [<< Előző: Entitásrendszer](01-entity-system.md) | **Járművek** | [Következő: Időjárás >>](03-weather.md)
 
 ---
 
@@ -408,4 +408,4 @@ void FindAllVehicles(out array<Transport> vehicles)
 
 ---
 
-[Kezdőlap](../../README.md) | [<< Előző: Entitásrendszer](01-entity-system.md) | **Járművek** | [Következő: Időjárás >>](03-weather.md)
+[Kezdőlap](../README.md) | [<< Előző: Entitásrendszer](01-entity-system.md) | **Járművek** | [Következő: Időjárás >>](03-weather.md)

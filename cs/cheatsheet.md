@@ -1,6 +1,6 @@
 # Tahák pro Enforce Script
 
-[Domů](../README.md) | **Tahák**
+[Domů](./README.md) | **Tahák**
 
 ---
 
@@ -393,4 +393,4 @@ GetGame().IsMultiplayer()          // true pokud multiplayer
 
 ---
 
-*Kompletní dokumentace: [Wiki pro moddování DayZ](../README.md) | [Úskalí](01-enforce-script/12-gotchas.md) | [Zpracování chyb](01-enforce-script/11-error-handling.md)*
+*Kompletní dokumentace: [Wiki pro moddování DayZ](./README.md) | [Úskalí](01-enforce-script/12-gotchas.md) | [Zpracování chyb](01-enforce-script/11-error-handling.md)*

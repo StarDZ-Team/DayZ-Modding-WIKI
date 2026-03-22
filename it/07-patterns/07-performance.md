@@ -1,6 +1,6 @@
 # Capitolo 7.7: Ottimizzazione delle Prestazioni
 
-[Home](../../README.md) | [<< Precedente: Architettura Event-Driven](06-events.md) | **Ottimizzazione delle Prestazioni**
+[Home](../README.md) | [<< Precedente: Architettura Event-Driven](06-events.md) | **Ottimizzazione delle Prestazioni**
 
 ---
 

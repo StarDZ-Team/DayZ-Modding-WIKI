@@ -1,6 +1,6 @@
 # 8.3. fejezet: Admin panel modul építése
 
-[Kezdőlap](../../README.md) | [<< Előző: Egyedi tárgy készítése](02-custom-item.md) | **Admin panel építése** | [Következő: Chat parancsok hozzáadása >>](04-chat-commands.md)
+[Kezdőlap](../README.md) | [<< Előző: Egyedi tárgy készítése](02-custom-item.md) | **Admin panel építése** | [Következő: Chat parancsok hozzáadása >>](04-chat-commands.md)
 
 ---
 

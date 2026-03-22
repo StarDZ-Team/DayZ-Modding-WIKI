@@ -1,6 +1,6 @@
 # Capitolo 6.5: Effetti Post-Process (PPE)
 
-[Home](../../README.md) | [<< Precedente: Telecamere](04-cameras.md) | **Effetti Post-Process** | [Successivo: Notifiche >>](06-notifications.md)
+[Home](../README.md) | [<< Precedente: Telecamere](04-cameras.md) | **Effetti Post-Process** | [Successivo: Notifiche >>](06-notifications.md)
 
 ---
 

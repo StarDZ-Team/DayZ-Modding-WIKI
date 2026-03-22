@@ -1,6 +1,6 @@
 # Rozdział 4.4: Audio (.ogg, .wss)
 
-[Strona główna](../../README.md) | [<< Poprzedni: Materiały](03-materials.md) | **Audio** | [Dalej: Przebieg pracy DayZ Tools >>](05-dayz-tools.md)
+[Strona główna](../README.md) | [<< Poprzedni: Materiały](03-materials.md) | **Audio** | [Dalej: Przebieg pracy DayZ Tools >>](05-dayz-tools.md)
 
 ---
 

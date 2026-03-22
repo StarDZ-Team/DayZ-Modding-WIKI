@@ -1,6 +1,6 @@
 # Chapitre 3.4 : Widgets conteneurs
 
-[Accueil](../../README.md) | [<< Précédent : Dimensionnement et positionnement](03-sizing-positioning.md) | **Widgets conteneurs** | [Suivant : Création programmatique de widgets >>](05-programmatic-widgets.md)
+[Accueil](../README.md) | [<< Précédent : Dimensionnement et positionnement](03-sizing-positioning.md) | **Widgets conteneurs** | [Suivant : Création programmatique de widgets >>](05-programmatic-widgets.md)
 
 ---
 

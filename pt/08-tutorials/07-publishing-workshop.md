@@ -1,6 +1,6 @@
 # Chapter 8.7: Publicando na Steam Workshop
 
-[Inicio](../../README.md) | [<< Anterior: Depuração & Testes](06-debugging-testing.md) | **Publicando na Steam Workshop** | [Próximo: Construindo um HUD Overlay >>](08-hud-overlay.md)
+[Inicio](../README.md) | [<< Anterior: Depuração & Testes](06-debugging-testing.md) | **Publicando na Steam Workshop** | [Próximo: Construindo um HUD Overlay >>](08-hud-overlay.md)
 
 ---
 

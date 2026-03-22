@@ -1,6 +1,6 @@
 # Capítulo 6.23: Sistemas de Configuração de Mundo
 
-[Início](../../README.md) | [<< Anterior: Administração e Gerenciamento de Servidor](22-admin-server.md) | **Sistemas de Mundo**
+[Início](../README.md) | [<< Anterior: Administração e Gerenciamento de Servidor](22-admin-server.md) | **Sistemas de Mundo**
 
 ---
 
@@ -794,4 +794,4 @@ Todos os cinco sistemas compartilham estas características:
 
 ---
 
-[Início](../../README.md) | [<< Anterior: Administração e Gerenciamento de Servidor](22-admin-server.md) | **Sistemas de Mundo**
+[Início](../README.md) | [<< Anterior: Administração e Gerenciamento de Servidor](22-admin-server.md) | **Sistemas de Mundo**

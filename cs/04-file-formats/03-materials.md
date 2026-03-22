@@ -1,6 +1,6 @@
 # Kapitola 4.3: Materiály (.rvmat)
 
-[Domů](../../README.md) | [<< Předchozí: 3D modely](02-models.md) | **Materiály** | [Další: Zvuk >>](04-audio.md)
+[Domů](../README.md) | [<< Předchozí: 3D modely](02-models.md) | **Materiály** | [Další: Zvuk >>](04-audio.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第 4.5 章：DayZ Tools 工作流程
 
-[首页](../../README.md) | [<< 上一章：音频](04-audio.md) | **DayZ Tools** | [下一章：PBO 打包 >>](06-pbo-packing.md)
+[首页](../README.md) | [<< 上一章：音频](04-audio.md) | **DayZ Tools** | [下一章：PBO 打包 >>](06-pbo-packing.md)
 
 ---
 

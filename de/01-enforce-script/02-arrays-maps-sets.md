@@ -1,6 +1,6 @@
 # Kapitel 1.2: Arrays, Maps & Sets
 
-[Startseite](../../README.md) | [<< Zurück: Variablen & Typen](01-variables-types.md) | **Arrays, Maps & Sets** | [Weiter: Klassen & Vererbung >>](03-classes-inheritance.md)
+[Startseite](../README.md) | [<< Zurück: Variablen & Typen](01-variables-types.md) | **Arrays, Maps & Sets** | [Weiter: Klassen & Vererbung >>](03-classes-inheritance.md)
 
 ---
 
@@ -950,4 +950,4 @@ Erstellen Sie eine Klasse mit zwei Maps, die Suche in beide Richtungen ermöglic
 
 ---
 
-[Startseite](../../README.md) | [<< Zurück: Variablen & Typen](01-variables-types.md) | **Arrays, Maps & Sets** | [Weiter: Klassen & Vererbung >>](03-classes-inheritance.md)
+[Startseite](../README.md) | [<< Zurück: Variablen & Typen](01-variables-types.md) | **Arrays, Maps & Sets** | [Weiter: Klassen & Vererbung >>](03-classes-inheritance.md)

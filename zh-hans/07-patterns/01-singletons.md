@@ -1,6 +1,6 @@
 # 第 7.1 章：单例模式
 
-[首页](../../README.md) | **单例模式** | [下一章：模块系统 >>](02-module-systems.md)
+[首页](../README.md) | **单例模式** | [下一章：模块系统 >>](02-module-systems.md)
 
 ---
 
@@ -547,4 +547,4 @@ class MyLog
 
 ---
 
-[首页](../../README.md) | **单例模式** | [下一章：模块系统 >>](02-module-systems.md)
+[首页](../README.md) | **单例模式** | [下一章：模块系统 >>](02-module-systems.md)

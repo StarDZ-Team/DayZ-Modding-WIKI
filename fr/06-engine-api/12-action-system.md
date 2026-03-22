@@ -1,6 +1,6 @@
 # Chapitre 6.12: Action System
 
-[Accueil](../../README.md) | [<< Précédent : Mission Hooks](11-mission-hooks.md) | **Action System** | [Suivant : Input System >>](13-input-system.md)
+[Accueil](../README.md) | [<< Précédent : Mission Hooks](11-mission-hooks.md) | **Action System** | [Suivant : Input System >>](13-input-system.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # チャプター 8.9: プロフェッショナルModテンプレート
 
-[ホーム](../../README.md) | [<< 前へ: HUDオーバーレイの構築](08-hud-overlay.md) | **プロフェッショナルModテンプレート** | [次へ: カスタム車両の作成 >>](10-vehicle-mod.md)
+[ホーム](../README.md) | [<< 前へ: HUDオーバーレイの構築](08-hud-overlay.md) | **プロフェッショナルModテンプレート** | [次へ: カスタム車両の作成 >>](10-vehicle-mod.md)
 
 ---
 
@@ -1794,4 +1794,4 @@ text "#STR_MYMOD_BOUNTY_PLACED"
 
 ---
 
-**前へ:** [チャプター 8.8: HUDオーバーレイの構築](08-hud-overlay.md) | [ホーム](../../README.md)
+**前へ:** [チャプター 8.8: HUDオーバーレイの構築](08-hud-overlay.md) | [ホーム](../README.md)

@@ -1,6 +1,6 @@
 # Chapitre 5.2 : inputs.xml --- Raccourcis clavier personnalisés
 
-[Accueil](../../README.md) | [<< Précédent : stringtable.csv](01-stringtable.md) | **inputs.xml** | [Suivant : Credits.json >>](03-credits-json.md)
+[Accueil](../README.md) | [<< Précédent : stringtable.csv](01-stringtable.md) | **inputs.xml** | [Suivant : Credits.json >>](03-credits-json.md)
 
 ---
 

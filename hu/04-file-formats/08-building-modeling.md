@@ -1,6 +1,6 @@
 # 4.8. fejezet: Épület modellezés -- Ajtók és létrák
 
-[Főoldal](../../README.md) | [<< Előző: Workbench útmutató](07-workbench-guide.md) | **Épület modellezés**
+[Főoldal](../README.md) | [<< Előző: Workbench útmutató](07-workbench-guide.md) | **Épület modellezés**
 
 ---
 

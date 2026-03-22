@@ -1,6 +1,6 @@
 # Chapter 6.15: Sound System
 
-[Home](../../README.md) | [<< Previous: Player System](14-player-system.md) | **Sound System** | [Next: Crafting System >>](16-crafting-system.md)
+[Home](../README.md) | [<< Previous: Player System](14-player-system.md) | **Sound System** | [Next: Crafting System >>](16-crafting-system.md)
 
 ---
 
@@ -1063,4 +1063,4 @@ Available controller names include: `rain`, `night`, `meadow`, `trees`, `hills`,
 
 ---
 
-[Fooldal](../../README.md) | [<< Elozo: Player System](14-player-system.md) | **Sound System**
+[Fooldal](../README.md) | [<< Elozo: Player System](14-player-system.md) | **Sound System**

@@ -1,6 +1,6 @@
 # Kapitola 5.5: Konfigurační soubory serveru
 
-[Domů](../../README.md) | [<< Předchozí: Formát ImageSet](04-imagesets.md) | **Konfigurační soubory serveru** | [Další: Konfigurace výbavy při spawnu >>](06-spawning-gear.md)
+[Domů](../README.md) | [<< Předchozí: Formát ImageSet](04-imagesets.md) | **Konfigurační soubory serveru** | [Další: Konfigurace výbavy při spawnu >>](06-spawning-gear.md)
 
 ---
 

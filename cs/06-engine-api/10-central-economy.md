@@ -1,6 +1,6 @@
 # Chapter 6.10: Central Economy
 
-[Domů](../../README.md) | [<< Předchozí: Síťování a RPC](09-networking.md) | **Centrální ekonomika** | [Další: Háčky misí >>](11-mission-hooks.md)
+[Domů](../README.md) | [<< Předchozí: Síťování a RPC](09-networking.md) | **Centrální ekonomika** | [Další: Háčky misí >>](11-mission-hooks.md)
 
 ---
 
@@ -548,4 +548,4 @@ Přidejte a nový `<event>` block in `events.xml` and corresponding spawn positi
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Síťování a RPC](09-networking.md) | **Centrální ekonomika** | [Další: Háčky misí >>](11-mission-hooks.md)
+[Domů](../README.md) | [<< Předchozí: Síťování a RPC](09-networking.md) | **Centrální ekonomika** | [Další: Háčky misí >>](11-mission-hooks.md)

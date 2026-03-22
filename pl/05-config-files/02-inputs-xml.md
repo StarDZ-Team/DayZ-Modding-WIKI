@@ -1,6 +1,6 @@
 # Rozdział 5.2: inputs.xml --- Własne skróty klawiszowe
 
-[Strona główna](../../README.md) | [<< Poprzedni: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Następny: Credits.json >>](03-credits-json.md)
+[Strona główna](../README.md) | [<< Poprzedni: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Następny: Credits.json >>](03-credits-json.md)
 
 ---
 

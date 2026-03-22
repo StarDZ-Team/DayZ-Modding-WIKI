@@ -1,6 +1,6 @@
 # Kapitel 6.3: Wettersystem
 
-[Startseite](../../README.md) | [<< Zurück: Fahrzeuge](02-vehicles.md) | **Wetter** | [Weiter: Kameras >>](04-cameras.md)
+[Startseite](../README.md) | [<< Zurück: Fahrzeuge](02-vehicles.md) | **Wetter** | [Weiter: Kameras >>](04-cameras.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapter 4.6: PBOパッキング
 
-[ホーム](../../README.md) | [<< 前: DayZ Toolsワークフロー](05-dayz-tools.md) | **PBOパッキング** | [次: Workbenchガイド >>](07-workbench-guide.md)
+[ホーム](../README.md) | [<< 前: DayZ Toolsワークフロー](05-dayz-tools.md) | **PBOパッキング** | [次: Workbenchガイド >>](07-workbench-guide.md)
 
 ---
 

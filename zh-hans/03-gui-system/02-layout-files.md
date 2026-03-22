@@ -1,6 +1,6 @@
 # 第 3.2 章：布局文件格式（.layout）
 
-[首页](../../README.md) | [<< 上一章：控件类型](01-widget-types.md) | **布局文件格式** | [下一章：尺寸与定位 >>](03-sizing-positioning.md)
+[首页](../README.md) | [<< 上一章：控件类型](01-widget-types.md) | **布局文件格式** | [下一章：尺寸与定位 >>](03-sizing-positioning.md)
 
 ---
 

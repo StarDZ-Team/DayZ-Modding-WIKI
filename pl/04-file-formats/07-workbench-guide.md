@@ -1,6 +1,6 @@
 # Rozdział 4.7: Przewodnik po Workbench
 
-[Strona główna](../../README.md) | [<< Poprzedni: Pakowanie PBO](06-pbo-packing.md) | **Przewodnik po Workbench** | [Następny: Modelowanie budynków >>](08-building-modeling.md)
+[Strona główna](../README.md) | [<< Poprzedni: Pakowanie PBO](06-pbo-packing.md) | **Przewodnik po Workbench** | [Następny: Modelowanie budynków >>](08-building-modeling.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapitre 6.4 : Système de caméras
 
-[Accueil](../../README.md) | [<< Précédent : Météo](03-weather.md) | **Caméras** | [Suivant : Effets de post-traitement >>](05-ppe.md)
+[Accueil](../README.md) | [<< Précédent : Météo](03-weather.md) | **Caméras** | [Suivant : Effets de post-traitement >>](05-ppe.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # 第2.4章: はじめてのMod -- 最小構成
 
-[ホーム](../../README.md) | [<< 前へ: mod.cppとWorkshop](03-mod-cpp.md) | **最小構成Mod** | [次へ: ファイル構成 >>](05-file-organization.md)
+[ホーム](../README.md) | [<< 前へ: mod.cppとWorkshop](03-mod-cpp.md) | **最小構成Mod** | [次へ: ファイル構成 >>](05-file-organization.md)
 
 ---
 

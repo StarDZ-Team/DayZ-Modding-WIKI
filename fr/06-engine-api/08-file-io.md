@@ -1,6 +1,6 @@
 # Chapitre 6.8 : E/S fichiers et JSON
 
-[Accueil](../../README.md) | [<< Precedent : Timers & CallQueue](07-timers.md) | **E/S fichiers & JSON** | [Suivant : Reseau & RPC >>](09-networking.md)
+[Accueil](../README.md) | [<< Precedent : Timers & CallQueue](07-timers.md) | **E/S fichiers & JSON** | [Suivant : Reseau & RPC >>](09-networking.md)
 
 ---
 

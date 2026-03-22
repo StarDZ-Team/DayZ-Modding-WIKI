@@ -1,6 +1,6 @@
 # Kapitel 6.1: Entitätssystem
 
-[Startseite](../../README.md) | **Entitätssystem** | [Weiter: Fahrzeuge >>](02-vehicles.md)
+[Startseite](../README.md) | **Entitätssystem** | [Weiter: Fahrzeuge >>](02-vehicles.md)
 
 ---
 
@@ -892,4 +892,4 @@ void DamageEntity(EntityAI target, float amount)
 
 ---
 
-[Startseite](../../README.md) | **Entitätssystem** | [Weiter: Fahrzeuge >>](02-vehicles.md)
+[Startseite](../README.md) | **Entitätssystem** | [Weiter: Fahrzeuge >>](02-vehicles.md)

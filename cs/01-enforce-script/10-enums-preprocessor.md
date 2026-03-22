@@ -1,6 +1,6 @@
 # Chapter 1.10: Enums & Preprocessor
 
-[Domů](../../README.md) | [<< Předchozí: Přetypování a reflexe](09-casting-reflection.md) | **Výčty a preprocesor** | [Další: Zpracování chyb >>](11-error-handling.md)
+[Domů](../README.md) | [<< Předchozí: Přetypování a reflexe](09-casting-reflection.md) | **Výčty a preprocesor** | [Další: Zpracování chyb >>](11-error-handling.md)
 
 ---
 

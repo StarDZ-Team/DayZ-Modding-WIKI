@@ -1,6 +1,6 @@
 # 第5.2章：inputs.xml --- 自定义按键绑定
 
-[首页](../../README.md) | [<< 上一章：stringtable.csv](01-stringtable.md) | **inputs.xml** | [下一章：Credits.json >>](03-credits-json.md)
+[首页](../README.md) | [<< 上一章：stringtable.csv](01-stringtable.md) | **inputs.xml** | [下一章：Credits.json >>](03-credits-json.md)
 
 ---
 

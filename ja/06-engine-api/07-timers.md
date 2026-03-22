@@ -1,6 +1,6 @@
 # 第6.7章: タイマーとCallQueue
 
-[ホーム](../../README.md) | [<< 前へ: 通知](06-notifications.md) | **タイマーとCallQueue** | [次へ: ファイルI/OとJSON >>](08-file-io.md)
+[ホーム](../README.md) | [<< 前へ: 通知](06-notifications.md) | **タイマーとCallQueue** | [次へ: ファイルI/OとJSON >>](08-file-io.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Chapter 1.2: Arrays, Maps & Sets
 
-[Domů](../../README.md) | [<< Předchozí: Proměnné a typy](01-variables-types.md) | **Pole, mapy a množiny** | [Další: Třídy a dědičnost >>](03-classes-inheritance.md)
+[Domů](../README.md) | [<< Předchozí: Proměnné a typy](01-variables-types.md) | **Pole, mapy a množiny** | [Další: Třídy a dědičnost >>](03-classes-inheritance.md)
 
 ---
 
@@ -950,4 +950,4 @@ Vytvořte a class with two maps that allows lookup in oba directions: given hrá
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Proměnné a typy](01-variables-types.md) | **Pole, mapy a množiny** | [Další: Třídy a dědičnost >>](03-classes-inheritance.md)
+[Domů](../README.md) | [<< Předchozí: Proměnné a typy](01-variables-types.md) | **Pole, mapy a množiny** | [Další: Třídy a dědičnost >>](03-classes-inheritance.md)

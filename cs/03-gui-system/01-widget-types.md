@@ -1,6 +1,6 @@
 # Kapitola 3.1: Typy widgetů
 
-[Domů](../../README.md) | **Typy widgetů** | [Další: Soubory layoutů >>](02-layout-files.md)
+[Domů](../README.md) | **Typy widgetů** | [Další: Soubory layoutů >>](02-layout-files.md)
 
 ---
 

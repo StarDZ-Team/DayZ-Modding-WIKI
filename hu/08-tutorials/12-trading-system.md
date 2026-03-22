@@ -1,6 +1,6 @@
 # 8.12. fejezet: Kereskedési rendszer építése
 
-[Kezdőlap](../../README.md) | [<< Előző: Egyedi ruházat készítése](11-clothing-mod.md) | **Kereskedési rendszer építése** | [Következő: A diagnosztikai menü >>](13-diag-menu.md)
+[Kezdőlap](../README.md) | [<< Előző: Egyedi ruházat készítése](11-clothing-mod.md) | **Kereskedési rendszer építése** | [Következő: A diagnosztikai menü >>](13-diag-menu.md)
 
 ---
 

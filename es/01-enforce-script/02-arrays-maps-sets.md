@@ -1,6 +1,6 @@
 # Capítulo 1.2: Arrays, Maps y Sets
 
-[Inicio](../../README.md) | [<< Anterior: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Siguiente: Classes & Inheritance >>](03-classes-inheritance.md)
+[Inicio](../README.md) | [<< Anterior: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Siguiente: Classes & Inheritance >>](03-classes-inheritance.md)
 
 ---
 
@@ -950,4 +950,4 @@ Create a class with two maps that allows lookup in both directions: given a play
 
 ---
 
-[Inicio](../../README.md) | [<< Anterior: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Siguiente: Classes & Inheritance >>](03-classes-inheritance.md)
+[Inicio](../README.md) | [<< Anterior: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Siguiente: Classes & Inheritance >>](03-classes-inheritance.md)

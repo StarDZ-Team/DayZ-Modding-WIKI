@@ -1,6 +1,6 @@
 # Chapter 7.5: Permission Systems
 
-[Domů](../../README.md) | [<< Předchozí: Perzistence konfigurace](04-config-persistence.md) | **Permission Systems** | [Další: Event-Driven Architecture >>](06-events.md)
+[Domů](../README.md) | [<< Předchozí: Perzistence konfigurace](04-config-persistence.md) | **Permission Systems** | [Další: Event-Driven Architecture >>](06-events.md)
 
 ---
 
@@ -653,4 +653,4 @@ This is běžný pattern used to migrate from its original flat `AdminUIDs` arra
 
 ---
 
-[Domů](../../README.md) | [<< Předchozí: Perzistence konfigurace](04-config-persistence.md) | **Permission Systems** | [Další: Event-Driven Architecture >>](06-events.md)
+[Domů](../README.md) | [<< Předchozí: Perzistence konfigurace](04-config-persistence.md) | **Permission Systems** | [Další: Event-Driven Architecture >>](06-events.md)

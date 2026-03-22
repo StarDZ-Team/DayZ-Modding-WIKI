@@ -1,6 +1,6 @@
 # Przewodnik rozwiazywania problemow
 
-[Strona glowna](../README.md) | **Przewodnik rozwiazywania problemow**
+[Strona glowna](./README.md) | **Przewodnik rozwiazywania problemow**
 
 ---
 

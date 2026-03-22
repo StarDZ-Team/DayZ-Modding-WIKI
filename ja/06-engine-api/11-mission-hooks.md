@@ -1,6 +1,6 @@
 # Chapter 6.11: ミッションフック
 
-[ホーム](../../README.md) | [<< 前: Central Economy](10-central-economy.md) | **ミッションフック** | [次: アクションシステム >>](12-action-system.md)
+[ホーム](../README.md) | [<< 前: Central Economy](10-central-economy.md) | **ミッションフック** | [次: アクションシステム >>](12-action-system.md)
 
 ---
 

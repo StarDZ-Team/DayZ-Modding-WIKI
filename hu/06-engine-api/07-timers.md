@@ -1,6 +1,6 @@
 # 6.7. fejezet: Időzítők és CallQueue
 
-[Kezdőlap](../../README.md) | [<< Előző: Értesítések](06-notifications.md) | **Időzítők és CallQueue** | [Következő: Fájl I/O és JSON >>](08-file-io.md)
+[Kezdőlap](../README.md) | [<< Előző: Értesítések](06-notifications.md) | **Időzítők és CallQueue** | [Következő: Fájl I/O és JSON >>](08-file-io.md)
 
 ---
 

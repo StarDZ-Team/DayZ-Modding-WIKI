@@ -1,6 +1,6 @@
 # Capitulo 8.6: Depuracion y Pruebas de Tu Mod
 
-[Inicio](../../README.md) | [<< Anterior: Usar la Plantilla de Mod de DayZ](05-mod-template.md) | **Depuracion y Pruebas** | [Siguiente: Publicar en el Steam Workshop >>](07-publishing-workshop.md)
+[Inicio](../README.md) | [<< Anterior: Usar la Plantilla de Mod de DayZ](05-mod-template.md) | **Depuracion y Pruebas** | [Siguiente: Publicar en el Steam Workshop >>](07-publishing-workshop.md)
 
 ---
 
