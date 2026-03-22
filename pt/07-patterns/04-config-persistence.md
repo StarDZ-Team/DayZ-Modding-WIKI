@@ -261,4 +261,24 @@ class MyDataManager
 
 ---
 
+## Compatibilidade & Impacto
+
+- **Multi-Mod:** Cada mod escreve em seu próprio diretório `$profile:NomeDoMod/`. Conflitos só acontecem se dois mods usam o mesmo nome de diretório. Use um prefixo único e reconhecível para a pasta do seu mod.
+- **Ordem de Carregamento:** Carregamento de config acontece em `OnInit` ou `OnMissionStart`, ambos controlados pelo ciclo de vida do próprio mod. Sem problemas de ordem de carregamento cross-mod a menos que dois mods tentem ler/escrever o mesmo arquivo (o que nunca devem fazer).
+- **Listen Server:** Arquivos de config são apenas server-side (`$profile:` resolve no servidor). Em listen servers, código client-side pode tecnicamente acessar `$profile:`, mas configs devem ser carregadas apenas por módulos server para evitar ambiguidade.
+- **Performance:** `JsonFileLoader` é síncrono e bloqueia a thread principal. Para configs grandes (100+ KB), carregue durante `OnInit` (antes do gameplay começar). Timers de auto-save previnem escritas repetidas; o padrão dirty-flag garante que I/O de disco só aconteça quando dados realmente mudaram.
+- **Migração:** Adicionar novos campos a uma classe de config é seguro --- `JsonFileLoader` ignora chaves JSON ausentes e mantém o valor padrão da classe. Remover ou renomear campos requer um passo de migração versionada para evitar perda silenciosa de dados.
+
+---
+
+## Teoria vs Prática
+
+| Livro-Texto Diz | Realidade do DayZ |
+|-----------------|-------------------|
+| Use I/O de arquivo async para evitar bloqueio | Enforce Script não tem I/O de arquivo async; todas as leituras/escritas são síncronas. Carregue no startup, salve em timers. |
+| Valide JSON com um schema | Nenhuma validação de schema JSON existe; valide campos em `OnAfterLoad()` ou com cláusulas de guarda após o carregamento. |
+| Use um banco de dados para dados estruturados | Sem acesso a banco de dados do Enforce Script; arquivos JSON em `$profile:` são o único mecanismo de persistência. |
+
+---
+
 [<< Anterior: Padrões RPC](03-rpc-patterns.md) | [Início](../../README.md) | [Próximo: Sistemas de Permissão >>](05-permissions.md)
