@@ -1,4 +1,4 @@
-# Chapter 4.3: Materials (.rvmat)
+# Kapitola 4.3: Materiály (.rvmat)
 
 [Domů](../../README.md) | [<< Předchozí: 3D modely](02-models.md) | **Materiály** | [Další: Zvuk >>](04-audio.md)
 
@@ -6,71 +6,55 @@
 
 ## Úvod
 
-A material in DayZ is the bridge mezi a 3D model and its visual appearance. Zatímco textures provide raw image data, the **RVMAT** (Real Virtuality Material) file defines how those textures are combined, which shader interprets them, and what surface properties engine should simulate -- shininess, transparency, self-illumination, and more. Every face on každý P3D model in the game references an RVMAT file, and understanding how to create and configure them is essential for jakýkoli visual mod.
+Materiál v DayZ je most mezi 3D modelem a jeho vizuálním vzhledem. Zatímco textury poskytují surová obrazová data, soubor **RVMAT** (Real Virtuality Material) definuje, jak jsou tyto textury kombinovány, který shader je interpretuje a jaké povrchové vlastnosti by měl engine simulovat -- lesklost, průhlednost, samozáření a další. Každá plocha na každém P3D modelu ve hře odkazuje na soubor RVMAT a pochopení jejich vytváření a konfigurace je nezbytné pro jakýkoli vizuální mod.
 
-This chapter covers the RVMAT file format, shader types, texture stage configuration, material properties, the damage-level material swap system, and practical examples drawn from DayZ-Samples.
-
----
-
-## Obsah
-
-- [RVMAT Format Overview](#rvmat-format-overview)
-- [File Structure](#file-structure)
-- [Shader Types](#shader-types)
-- [Texture Stages](#texture-stages)
-- [Material Properties](#material-properties)
-- [Health Levels (Damage Material Swaps)](#health-levels-damage-material-swaps)
-- [How Materials Reference Textures](#how-materials-reference-textures)
-- [Creating an RVMAT from Scratch](#creating-an-rvmat-from-scratch)
-- [Real Examples](#real-examples)
-- [Běžné Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+Tato kapitola pokrývá formát souboru RVMAT, typy shaderů, konfiguraci fází textur, vlastnosti materiálů, systém výměny materiálů podle úrovně poškození a praktické příklady čerpané z DayZ-Samples.
 
 ---
 
-## RVMAT Format Overview
+## Přehled formátu RVMAT
 
-An **RVMAT** file is a text-based configuration file (not binary) that defines a material. Despite the vlastní extension, the format is plain text using Bohemia's config-style syntax with classes and key-value pairs.
+Soubor **RVMAT** je textový konfigurační soubor (ne binární), který definuje materiál. Navzdory vlastní příponě je formát prostý text používající konfigurační syntaxi Bohemie s třídami a páry klíč-hodnota.
 
-### Key Characteristics
+### Klíčové vlastnosti
 
-- **Text format:** Editable in jakýkoli text editor (Notepad++, VS Code).
-- **Shader binding:** Každý RVMAT specifies which rendering shader to use.
-- **Texture mapping:** Defines which texture files are assigned to which shader inputs (diffuse, normal, specular, etc.).
-- **Surface properties:** Controls specular intensity, emissive glow, transparency, and more.
-- **Referenced by P3D models:** Faces in Object Builder's Resolution LOD are assigned an RVMAT. Engine loads the RVMAT and all textures it references.
-- **Referenced by config.cpp:** `hiddenSelectionsMaterials[]` can override materials za běhu.
+- **Textový formát:** Editovatelný v jakémkoli textovém editoru (Notepad++, VS Code).
+- **Vazba na shader:** Každý RVMAT specifikuje, který renderovací shader použít.
+- **Mapování textur:** Definuje, které soubory textur jsou přiřazeny kterým vstupům shaderu (difuzní, normálová, spekulární atd.).
+- **Vlastnosti povrchu:** Řídí intenzitu odlesků, emisivní záření, průhlednost a další.
+- **Odkazován P3D modely:** Plochám v Resolution LOD Object Builderu je přiřazen RVMAT. Engine načte RVMAT a všechny textury, na které odkazuje.
+- **Odkazován config.cpp:** `hiddenSelectionsMaterials[]` může přepsat materiály za běhu.
 
-### Path Convention
+### Konvence cest
 
-RVMAT files live alongside their textures, typicky in a `data/` directory:
+Soubory RVMAT žijí vedle svých textur, typicky v adresáři `data/`:
 
 ```
 MyMod/
   data/
-    my_item.rvmat              <-- Material definition
-    my_item_co.paa             <-- Diffuse texture (referenced by the RVMAT)
-    my_item_nohq.paa           <-- Normal map (referenced by the RVMAT)
-    my_item_smdi.paa           <-- Specular map (referenced by the RVMAT)
+    my_item.rvmat              <-- Definice materiálu
+    my_item_co.paa             <-- Difuzní textura (odkazovaná RVMAT)
+    my_item_nohq.paa           <-- Normálová mapa (odkazovaná RVMAT)
+    my_item_smdi.paa           <-- Spekulární mapa (odkazovaná RVMAT)
 ```
 
 ---
 
-## File Structure
+## Struktura souboru
 
-An RVMAT file has a consistent structure. Here is a complete, annotated example:
+Soubor RVMAT má konzistentní strukturu. Zde je kompletní, anotovaný příklad:
 
 ```cpp
-ambient[] = {1.0, 1.0, 1.0, 1.0};        // Ambient color multiplier (RGBA)
-diffuse[] = {1.0, 1.0, 1.0, 1.0};        // Diffuse color multiplier (RGBA)
-forcedDiffuse[] = {0.0, 0.0, 0.0, 0.0};  // Additive diffuse override
-emmisive[] = {0.0, 0.0, 0.0, 0.0};       // Emissive (self-illumination) color
-specular[] = {0.7, 0.7, 0.7, 1.0};       // Specular highlight color
-specularPower = 80;                        // Specular sharpness (higher = tighter highlight)
-PixelShaderID = "Super";                   // Shader program to use
-VertexShaderID = "Super";                  // Vertex shader program
+ambient[] = {1.0, 1.0, 1.0, 1.0};        // Násobič barvy okolního světla (RGBA)
+diffuse[] = {1.0, 1.0, 1.0, 1.0};        // Násobič barvy difuzního světla (RGBA)
+forcedDiffuse[] = {0.0, 0.0, 0.0, 0.0};  // Aditivní přepis difuze
+emmisive[] = {0.0, 0.0, 0.0, 0.0};       // Emisivní (samozáření) barva
+specular[] = {0.7, 0.7, 0.7, 1.0};       // Barva spekulárního odlesku
+specularPower = 80;                        // Ostrost spekulárních odlesků (vyšší = těsnější odlesk)
+PixelShaderID = "Super";                   // Program pixel shaderu
+VertexShaderID = "Super";                  // Program vertex shaderu
 
-class Stage1                               // Texture stage: Normal map
+class Stage1                               // Fáze textury: Normálová mapa
 {
     texture = "MyMod\data\my_item_nohq.paa";
     uvSource = "tex";
@@ -83,7 +67,7 @@ class Stage1                               // Texture stage: Normal map
     };
 };
 
-class Stage2                               // Texture stage: Diffuse/Color map
+class Stage2                               // Fáze textury: Difuzní/barevná mapa
 {
     texture = "MyMod\data\my_item_co.paa";
     uvSource = "tex";
@@ -96,7 +80,7 @@ class Stage2                               // Texture stage: Diffuse/Color map
     };
 };
 
-class Stage3                               // Texture stage: Specular/Metallic map
+class Stage3                               // Fáze textury: Spekulární/kovová mapa
 {
     texture = "MyMod\data\my_item_smdi.paa";
     uvSource = "tex";
@@ -110,312 +94,151 @@ class Stage3                               // Texture stage: Specular/Metallic m
 };
 ```
 
-### Top-Level Properties
-
-These are declared before the Stage classes and control the material's overall behavior:
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `ambient[]` | float[4] | Ambient light color multiplier. `{1,1,1,1}` = plný, `{0,0,0,0}` = no ambient. |
-| `diffuse[]` | float[4] | Diffuse light color multiplier. Usually `{1,1,1,1}`. |
-| `forcedDiffuse[]` | float[4] | Additive override to diffuse. Usually `{0,0,0,0}`. |
-| `emmisive[]` | float[4] | Self-illumination color. Non-zero values make the surface glow. Note: Bohemia uses the misspelling `emmisive`, not `emissive`. |
-| `specular[]` | float[4] | Specular highlight color and intensity. |
-| `specularPower` | float | Sharpness of specular highlights. Range 1-200. Higher = tighter, more focused reflection. |
-| `PixelShaderID` | string | Name of the pixel shader program. |
-| `VertexShaderID` | string | Name of the vertex shader program. |
-
 ---
 
-## Shader Types
+## Typy shaderů
 
-The `PixelShaderID` and `VertexShaderID` values determine which rendering pipeline processes the material. Oba should obvykle be set to the stejný value.
+Hodnoty `PixelShaderID` a `VertexShaderID` určují, který renderovací pipeline zpracovává materiál. Oba by měly být obvykle nastaveny na stejnou hodnotu.
 
-### Available Shaders
+### Dostupné shadery
 
-| Shader | Use Case | Texture Stages Required |
+| Shader | Případ použití | Požadované fáze textur |
 |--------|----------|------------------------|
-| **Super** | Standard opaque surfaces (weapons, clothing, items) | Normal, Diffuse, Specular/Metallic |
-| **Multi** | Multi-layered terrain and complex surfaces | Multiple diffuse/normal pairs |
-| **Glass** | Transparent and semi-transparent surfaces | Diffuse with alpha |
-| **Water** | Water surfaces with reflection and refraction | Special water textures |
-| **Terrain** | Terrain ground surfaces | Satellite, mask, material layers |
-| **NormalMap** | Simplified normal-mapped surface | Normal, Diffuse |
-| **NormalMapSpecular** | Normal-mapped with specular | Normal, Diffuse, Specular |
-| **Hair** | Character hair rendering | Diffuse with alpha, special translucency |
-| **Skin** | Character skin with subsurface scattering | Diffuse, Normal, Specular |
-| **AlphaTest** | Hard-edge transparency (foliage, fences) | Diffuse with alpha |
-| **AlphaBlend** | Smooth transparency (glass, smoke) | Diffuse with alpha |
+| **Super** | Standardní neprůhledné povrchy (zbraně, oblečení, předměty) | Normálová, difuzní, spekulární/kovová |
+| **Multi** | Vícevrstevný terén a složité povrchy | Více difuzních/normálových párů |
+| **Glass** | Průhledné a poloprůhledné povrchy | Difuzní s alfou |
+| **Water** | Vodní povrchy s odrazem a lomem | Speciální textury vody |
+| **Terrain** | Povrchy terénu | Satelit, maska, vrstvy materiálů |
+| **AlphaTest** | Tvrdá průhlednost (listí, ploty) | Difuzní s alfou |
+| **AlphaBlend** | Hladká průhlednost (sklo, kouř) | Difuzní s alfou |
 
-### Super Shader (Most Common)
+### Shader Super (nejběžnější)
 
-The **Super** shader is the standard physically-based rendering shader used for the vast majority of items in DayZ. It expects three texture stages:
+Shader **Super** je standardní fyzikálně založený renderovací shader používaný pro naprostou většinu předmětů v DayZ. Očekává tři fáze textur:
 
 ```
-Stage1 = Normal map (_nohq)
-Stage2 = Diffuse/Color map (_co)
-Stage3 = Specular/Metallic map (_smdi)
+Stage1 = Normálová mapa (_nohq)
+Stage2 = Difuzní/barevná mapa (_co)
+Stage3 = Spekulární/kovová mapa (_smdi)
 ```
 
-Pokud are creating a mod item (weapon, clothing, přílišl, container), you will almost vždy use the Super shader.
-
-### Glass Shader
-
-The **Glass** shader handles transparent surfaces. It reads alpha from the diffuse texture to determine transparency:
-
-```cpp
-PixelShaderID = "Glass";
-VertexShaderID = "Glass";
-
-class Stage1
-{
-    texture = "MyMod\data\glass_nohq.paa";
-    uvSource = "tex";
-    class uvTransform { /* ... */ };
-};
-
-class Stage2
-{
-    texture = "MyMod\data\glass_ca.paa";    // Note: _ca suffix for color+alpha
-    uvSource = "tex";
-    class uvTransform { /* ... */ };
-};
-```
+Pokud vytváříte modový předmět (zbraň, oblečení, nástroj, kontejner), téměř vždy budete používat shader Super.
 
 ---
 
-## Texture Stages
+## Fáze textur
 
-Each `Stage` class in the RVMAT assigns a texture to a specifický shader input. The stage number determines what role the texture plays.
+Každá třída `Stage` v RVMAT přiřazuje texturu specifickému vstupu shaderu. Číslo fáze určuje, jakou roli textura hraje.
 
-### Stage Assignments for the Super Shader
+### Přiřazení fází pro shader Super
 
-| Stage | Texture Role | Typical Suffix | Description |
+| Fáze | Role textury | Typická přípona | Popis |
 |-------|-------------|----------------|-------------|
-| **Stage1** | Normal map | `_nohq` | Surface detail, bumps, grooves |
-| **Stage2** | Diffuse / Color map | `_co` or `_ca` | Base color of the surface |
-| **Stage3** | Specular / Metallic map | `_smdi` | Shininess, metallic properties, detail |
-| **Stage4** | Ambient Shadow | `_as` | Pre-baked ambient occlusion (volitelný) |
-| **Stage5** | Macro map | `_mc` | Large-scale color variation (volitelný) |
-| **Stage6** | Detail map | `_de` | Tiling micro-detail (volitelný) |
-| **Stage7** | Emissive / Light map | `_li` | Self-illumination (volitelný) |
-
-### Stage Properties
-
-Každý stage contains:
-
-```cpp
-class Stage1
-{
-    texture = "path\to\texture.paa";    // Path relative to P: drive
-    uvSource = "tex";                    // UV source: "tex" (model UVs) or "tex1" (2nd UV set)
-    class uvTransform                    // UV transformation matrix
-    {
-        aside[] = {1.0, 0.0, 0.0};     // U-axis scale and direction
-        up[] = {0.0, 1.0, 0.0};        // V-axis scale and direction
-        dir[] = {0.0, 0.0, 0.0};       // Not typically used
-        pos[] = {0.0, 0.0, 0.0};       // UV offset (translation)
-    };
-};
-```
-
-### UV Transform for Tiling
-
-To tile a texture (repeat it across a surface), modify the `aside` and `up` values:
-
-```cpp
-class uvTransform
-{
-    aside[] = {4.0, 0.0, 0.0};     // Tile 4x horizontally
-    up[] = {0.0, 4.0, 0.0};        // Tile 4x vertically
-    dir[] = {0.0, 0.0, 0.0};
-    pos[] = {0.0, 0.0, 0.0};
-};
-```
-
-This is běžně used for terrain materials and building surfaces where the stejný detail texture repeats.
+| **Stage1** | Normálová mapa | `_nohq` | Detail povrchu, nerovnosti, drážky |
+| **Stage2** | Difuzní / barevná mapa | `_co` nebo `_ca` | Základní barva povrchu |
+| **Stage3** | Spekulární / kovová mapa | `_smdi` | Lesklost, kovové vlastnosti, detail |
+| **Stage4** | Okolní stín | `_as` | Předpečená okolní okluze (volitelné) |
+| **Stage5** | Makro mapa | `_mc` | Velkoplošná barevná variace (volitelné) |
+| **Stage6** | Detailní mapa | `_de` | Dlaždicový mikro-detail (volitelné) |
+| **Stage7** | Emisivní / světelná mapa | `_li` | Samozáření (volitelné) |
 
 ---
 
-## Material Properties
+## Vlastnosti materiálu
 
-### Specular Control
+### Řízení spekuláru
 
-The `specular[]` and `specularPower` values work together to define how shiny a surface appears:
+Hodnoty `specular[]` a `specularPower` spolupracují na definici toho, jak lesklý povrch vypadá:
 
-| Material Type | specular[] | specularPower | Appearance |
+| Typ materiálu | specular[] | specularPower | Vzhled |
 |---------------|-----------|---------------|------------|
-| **Matte plastic** | `{0.1, 0.1, 0.1, 1.0}` | 10 | Dull, wide highlight |
-| **Worn metal** | `{0.3, 0.3, 0.3, 1.0}` | 40 | Moderate shine |
-| **Polished metal** | `{0.8, 0.8, 0.8, 1.0}` | 120 | Bright, tight highlight |
-| **Chrome** | `{1.0, 1.0, 1.0, 1.0}` | 200 | Mirror-like reflection |
-| **Rubber** | `{0.02, 0.02, 0.02, 1.0}` | 5 | Almost no highlight |
-| **Wet surface** | `{0.6, 0.6, 0.6, 1.0}` | 80 | Slick, medium-sharp highlight |
+| **Matný plast** | `{0.1, 0.1, 0.1, 1.0}` | 10 | Matný, široký odlesk |
+| **Opotřebovaný kov** | `{0.3, 0.3, 0.3, 1.0}` | 40 | Mírný lesk |
+| **Leštěný kov** | `{0.8, 0.8, 0.8, 1.0}` | 120 | Jasný, těsný odlesk |
+| **Chrom** | `{1.0, 1.0, 1.0, 1.0}` | 200 | Zrcadlový odraz |
+| **Guma** | `{0.02, 0.02, 0.02, 1.0}` | 5 | Téměř žádný odlesk |
+| **Mokrý povrch** | `{0.6, 0.6, 0.6, 1.0}` | 80 | Kluzký, středně ostrý odlesk |
 
-### Emissive (Self-Illumination)
+### Emisivní (samozáření)
 
-To make a surface glow (LED lights, screens, glowing elements):
-
-```cpp
-emmisive[] = {0.2, 0.8, 0.2, 1.0};   // Green glow
-```
-
-The emissive color is added to the final pixel color bez ohledu na lighting. An `_li` emissive map in a later texture stage can mask which parts of the surface glow.
-
-### Two-Sided Rendering
-
-For thin surfaces that should be visible from oba sides (flags, foliage, cloth):
+Aby povrch svítil (LED světla, obrazovky, svítící prvky):
 
 ```cpp
-renderFlags[] = {"noZWrite", "noAlpha", "twoSided"};
+emmisive[] = {0.2, 0.8, 0.2, 1.0};   // Zelená záře
 ```
 
-This is not a top-level RVMAT property but is configured in config.cpp or through the material's shader settings depending on the případ užití.
+Emisivní barva se přidá ke konečné barvě pixelu bez ohledu na osvětlení. Emisivní mapa `_li` v pozdější fázi textury může maskovat, které části povrchu svítí.
+
+> **Poznámka:** Bohemia používá překlep `emmisive` (dvojité m, jedno s). Použití správného anglického pravopisu `emissive` nebude fungovat.
 
 ---
 
-## Health Levels (Damage Material Swaps)
+## Úrovně zdraví (výměny materiálů při poškození)
 
-DayZ items degrade over time. Engine supports automatický material swapping at odlišný damage thresholds, defined in `config.cpp` using the `healthLevels[]` array. This creates the visual progression from pristine to ruined.
+Předměty DayZ se časem degradují. Engine podporuje automatickou výměnu materiálů při různých prazích poškození, definovaných v `config.cpp` pomocí pole `healthLevels[]`. To vytváří vizuální progresi od nedotčeného po zničený.
 
-### healthLevels[] Structure
+### Struktura healthLevels[]
 
 ```cpp
 class MyItem: Inventory_Base
 {
-    // ... other config ...
-
     healthLevels[] =
     {
-        // {health_threshold, {"material_set"}},
-
-        {1.0, {"MyMod\data\my_item.rvmat"}},           // Pristine (100% health)
-        {0.7, {"MyMod\data\my_item_worn.rvmat"}},       // Worn (70% health)
-        {0.5, {"MyMod\data\my_item_damaged.rvmat"}},     // Damaged (50% health)
-        {0.3, {"MyMod\data\my_item_badly_damaged.rvmat"}},// Badly Damaged (30% health)
-        {0.0, {"MyMod\data\my_item_ruined.rvmat"}}       // Ruined (0% health)
+        {1.0, {"MyMod\data\my_item.rvmat"}},           // Nedotčený (100% zdraví)
+        {0.7, {"MyMod\data\my_item_worn.rvmat"}},       // Opotřebovaný (70% zdraví)
+        {0.5, {"MyMod\data\my_item_damaged.rvmat"}},     // Poškozený (50% zdraví)
+        {0.3, {"MyMod\data\my_item_badly_damaged.rvmat"}},// Vážně poškozený (30% zdraví)
+        {0.0, {"MyMod\data\my_item_ruined.rvmat"}}       // Zničený (0% zdraví)
     };
 };
 ```
 
 ### Jak to funguje
 
-1. Engine monitors the item's health value (0.0 to 1.0).
-2. When health drops níže a threshold, engine swaps the material to the corresponding RVMAT.
-3. Each RVMAT can reference odlišný textures -- typicky progressively more damaged-looking variants.
-4. The swap is automatický. No script code is needed.
-
-### Damage Texture Progression
-
-A typical damage progression:
-
-| Level | Health | Visual Change |
-|-------|--------|---------------|
-| **Pristine** | 1.0 | Clean, factory-new appearance |
-| **Worn** | 0.7 | Slight scuffing, minor scratches |
-| **Damaged** | 0.5 | Visible scratches, discoloration, dirt |
-| **Badly Damaged** | 0.3 | Heavy wear, rust, cracks, peeling paint |
-| **Ruined** | 0.0 | Severely degraded, broken appearance |
-
-### Creating Damage Materials
-
-For každý damage level, create a oddělený RVMAT that references progressively more damaged textures:
-
-```
-data/
-  my_item.rvmat                    --> my_item_co.paa (clean)
-  my_item_worn.rvmat               --> my_item_worn_co.paa (light damage)
-  my_item_damaged.rvmat            --> my_item_damaged_co.paa (moderate damage)
-  my_item_badly_damaged.rvmat      --> my_item_badly_damaged_co.paa (heavy damage)
-  my_item_ruined.rvmat             --> my_item_ruined_co.paa (destroyed)
-```
-
-> **Tip:** You ne vždy need unique textures for každý damage level. A common optimization is to share the normal and specular maps across all levels and pouze change the diffuse texture:
->
-> ```
-> my_item.rvmat           --> my_item_co.paa
-> my_item_worn.rvmat      --> my_item_co.paa  (same diffuse, lower specular)
-> my_item_damaged.rvmat   --> my_item_damaged_co.paa
-> my_item_ruined.rvmat    --> my_item_ruined_co.paa
-> ```
-
-### Using Vanilla Damage Materials
-
-DayZ provides a set of generic damage overlay materials that lze použít if you ne want to create vlastní damage textures:
-
-```cpp
-healthLevels[] =
-{
-    {1.0, {"MyMod\data\my_item.rvmat"}},
-    {0.7, {"DZ\data\data\default_worn.rvmat"}},
-    {0.5, {"DZ\data\data\default_damaged.rvmat"}},
-    {0.3, {"DZ\data\data\default_badly_damaged.rvmat"}},
-    {0.0, {"DZ\data\data\default_ruined.rvmat"}}
-};
-```
+1. Engine sleduje hodnotu zdraví předmětu (0.0 až 1.0).
+2. Když zdraví klesne pod práh, engine vymění materiál za odpovídající RVMAT.
+3. Každý RVMAT může odkazovat na jiné textury -- typicky postupně více poškozené varianty.
+4. Výměna je automatická. Není potřeba žádný skriptový kód.
 
 ---
 
-## How Materials Reference Textures
+## Jak materiály odkazují na textury
 
-The connection mezi models, materials, and textures forms a chain:
+Spojení mezi modely, materiály a texturami tvoří řetězec:
 
 ```
-P3D Model (Object Builder)
+P3D model (Object Builder)
   |
-  |--> Face assigned to RVMAT
+  |--> Plocha přiřazena RVMAT
          |
-         |--> Stage1.texture = "path\to\normal_nohq.paa"
-         |--> Stage2.texture = "path\to\color_co.paa"
-         |--> Stage3.texture = "path\to\specular_smdi.paa"
+         |--> Stage1.texture = "cesta\k\normal_nohq.paa"
+         |--> Stage2.texture = "cesta\k\color_co.paa"
+         |--> Stage3.texture = "cesta\k\specular_smdi.paa"
 ```
 
-### Path Resolution
+### Řešení cest
 
-All texture paths in RVMAT files are relative to the **P: drive** root:
+Všechny cesty textur v souborech RVMAT jsou relativní ke kořeni **disku P:**:
 
 ```cpp
-// Correct: relative to P: drive
+// Správně: relativní k disku P:
 texture = "MyMod\data\textures\my_item_co.paa";
 
-// This means: P:\MyMod\data\textures\my_item_co.paa
+// To znamená: P:\MyMod\data\textures\my_item_co.paa
 ```
-
-When packed into a PBO, cesta prefix must match the PBO's prefix:
-
-```
-PBO prefix: MyMod
-Internal path: data\textures\my_item_co.paa
-Full reference: MyMod\data\textures\my_item_co.paa
-```
-
-### hiddenSelectionsMaterials Override
-
-Config.cpp can override which material is applied to a named selection za běhu:
-
-```cpp
-class MyItem_Green: MyItem
-{
-    hiddenSelections[] = {"camo"};
-    hiddenSelectionsTextures[] = {"MyMod\data\my_item_green_co.paa"};
-    hiddenSelectionsMaterials[] = {"MyMod\data\my_item_green.rvmat"};
-};
-```
-
-This allows creating item variants (color schemes, camo patterns) that share the stejný P3D model but use odlišný materials.
 
 ---
 
-## Creating an RVMAT from Scratch
+## Vytvoření RVMAT od nuly
 
-### Step-by-Step: Standard Opaque Item
+### Krok za krokem: Standardní neprůhledný předmět
 
-1. **Vytvořte your texture files:**
-   - `my_item_co.paa` (diffuse color)
-   - `my_item_nohq.paa` (normal map)
-   - `my_item_smdi.paa` (specular/metallic)
+1. **Vytvořte soubory textur:**
+   - `my_item_co.paa` (difuzní barva)
+   - `my_item_nohq.paa` (normálová mapa)
+   - `my_item_smdi.paa` (spekulární/kovová)
 
-2. **Vytvořte the RVMAT file** (plain text):
+2. **Vytvořte soubor RVMAT** (prostý text):
 
 ```cpp
 ambient[] = {1.0, 1.0, 1.0, 1.0};
@@ -467,151 +290,58 @@ class Stage3
 };
 ```
 
-3. **Assign in Object Builder:**
-   - Otevřete your P3D model.
-   - Vyberte faces in the Resolution LOD.
-   - Right-click --> **Face Properties**.
-   - Browse to your RVMAT file.
+3. **Přiřaďte v Object Builderu:**
+   - Otevřete svůj model P3D.
+   - Vyberte plochy v Resolution LOD.
+   - Klikněte pravým --> **Face Properties**.
+   - Přejděte k vašemu souboru RVMAT.
 
-4. **Testujte ve hře** via file patching or PBO build.
-
----
-
-## Reálné příklady
-
-### DayZ-Samples Test_ClothingRetexture
-
-The official DayZ-Samples include a `Test_ClothingRetexture` example that demonstrates the standard material workflow:
-
-```cpp
-// From DayZ-Samples retexture example
-ambient[] = {1.0, 1.0, 1.0, 1.0};
-diffuse[] = {1.0, 1.0, 1.0, 1.0};
-forcedDiffuse[] = {0.0, 0.0, 0.0, 0.0};
-emmisive[] = {0.0, 0.0, 0.0, 0.0};
-specular[] = {0.3, 0.3, 0.3, 1.0};
-specularPower = 50;
-PixelShaderID = "Super";
-VertexShaderID = "Super";
-
-class Stage1
-{
-    texture = "DZ_Samples\Test_ClothingRetexture\data\tshirt_nohq.paa";
-    uvSource = "tex";
-    class uvTransform
-    {
-        aside[] = {1.0, 0.0, 0.0};
-        up[] = {0.0, 1.0, 0.0};
-        dir[] = {0.0, 0.0, 0.0};
-        pos[] = {0.0, 0.0, 0.0};
-    };
-};
-
-class Stage2
-{
-    texture = "DZ_Samples\Test_ClothingRetexture\data\tshirt_co.paa";
-    uvSource = "tex";
-    class uvTransform
-    {
-        aside[] = {1.0, 0.0, 0.0};
-        up[] = {0.0, 1.0, 0.0};
-        dir[] = {0.0, 0.0, 0.0};
-        pos[] = {0.0, 0.0, 0.0};
-    };
-};
-
-class Stage3
-{
-    texture = "DZ_Samples\Test_ClothingRetexture\data\tshirt_smdi.paa";
-    uvSource = "tex";
-    class uvTransform
-    {
-        aside[] = {1.0, 0.0, 0.0};
-        up[] = {0.0, 1.0, 0.0};
-        dir[] = {0.0, 0.0, 0.0};
-        pos[] = {0.0, 0.0, 0.0};
-    };
-};
-```
-
-### Metallic Weapon Material
-
-A polished weapon barrel with high metallic response:
-
-```cpp
-ambient[] = {1.0, 1.0, 1.0, 1.0};
-diffuse[] = {1.0, 1.0, 1.0, 1.0};
-forcedDiffuse[] = {0.0, 0.0, 0.0, 0.0};
-emmisive[] = {0.0, 0.0, 0.0, 0.0};
-specular[] = {0.9, 0.9, 0.9, 1.0};        // High specular for metal
-specularPower = 150;                        // Tight, focused highlight
-PixelShaderID = "Super";
-VertexShaderID = "Super";
-
-// ... Stage definitions with weapon textures ...
-```
-
-### Emissive Material (Glowing Screen)
-
-A material for a device screen that emits light:
-
-```cpp
-ambient[] = {1.0, 1.0, 1.0, 1.0};
-diffuse[] = {1.0, 1.0, 1.0, 1.0};
-forcedDiffuse[] = {0.0, 0.0, 0.0, 0.0};
-emmisive[] = {0.05, 0.3, 0.05, 1.0};      // Soft green glow
-specular[] = {0.5, 0.5, 0.5, 1.0};
-specularPower = 80;
-PixelShaderID = "Super";
-VertexShaderID = "Super";
-
-// ... Stage definitions including _li emissive map in Stage7 ...
-```
+4. **Testujte ve hře** přes file patching nebo sestavení PBO.
 
 ---
 
 ## Časté chyby
 
-### 1. Wrong Stage Order
+### 1. Špatné pořadí fází
 
-**Symptom:** Texture appears scrambled, normal map shows as color, color shows as bumps.
-**Fix:** Zajistěte Stage1 = normal, Stage2 = diffuse, Stage3 = specular (for the Super shader).
+**Příznak:** Textura se zobrazuje zkomoleně, normálová mapa se zobrazuje jako barva, barva se zobrazuje jako nerovnosti.
+**Oprava:** Ujistěte se, že Stage1 = normálová, Stage2 = difuzní, Stage3 = spekulární (pro shader Super).
 
-### 2. Misspelling `emmisive`
+### 2. Překlep `emmisive`
 
-**Symptom:** Emissive ne work.
-**Fix:** Bohemia uses `emmisive` (double m, jeden s). Using the correct English spelling `emissive` will not work. This is a known historical quirk.
+**Příznak:** Emisivní efekt nefunguje.
+**Oprava:** Bohemia používá `emmisive` (dvojité m, jedno s). Použití správného anglického pravopisu `emissive` nebude fungovat. Toto je známá historická zvláštnost.
 
-### 3. Texture Path Mismatch
+### 3. Nesoulad cesty textury
 
-**Symptom:** Model appears with výchozí gray or magenta material.
-**Fix:** Ověřte that texture paths in the RVMAT exactly match soubor locations relative to P: drive. Paths use backslashes. Zkontrolujte capitalization -- některé systems are case-sensitive.
+**Příznak:** Model se zobrazuje s výchozím šedým nebo magentovým materiálem.
+**Oprava:** Ověřte, že cesty textur v RVMAT přesně odpovídají umístění souborů relativně k disku P:. Cesty používají zpětná lomítka. Zkontrolujte velikost písmen -- některé systémy rozlišují velká a malá písmena.
 
-### 4. Missing RVMAT Assignment in P3D
+### 4. Chybějící přiřazení RVMAT v P3D
 
-**Symptom:** Model renders with no material (flat gray or výchozí shader).
-**Fix:** Otevřete the model in Object Builder, select faces, and assign the RVMAT via **Face Properties**.
+**Příznak:** Model se vykresluje bez materiálu (plochá šedá nebo výchozí shader).
+**Oprava:** Otevřete model v Object Builderu, vyberte plochy a přiřaďte RVMAT přes **Face Properties**.
 
-### 5. Using Wrong Shader for Transparent Items
+### 5. Použití špatného shaderu pro průhledné předměty
 
-**Symptom:** Transparent texture appears opaque, or celý surface vanishes.
-**Fix:** Use `Glass`, `AlphaTest`, or `AlphaBlend` shader místo `Super` for transparent surfaces. Use `_ca` suffix textures with proper alpha channels.
+**Příznak:** Průhledná textura se zobrazuje jako neprůhledná nebo celý povrch zmizí.
+**Oprava:** Pro průhledné povrchy použijte shader `Glass`, `AlphaTest` nebo `AlphaBlend` místo `Super`. Používejte textury s příponou `_ca` se správnými alfa kanály.
 
 ---
 
 ## Osvědčené postupy
 
-1. **Spusťte from a working example.** Copy an RVMAT from DayZ-Samples or a vanilla item and modify it. Starting od nuly invites typos.
+1. **Začněte od fungujícího příkladu.** Zkopírujte RVMAT z DayZ-Samples nebo vanilla předmětu a upravte ho. Začínání od nuly zvyšuje riziko překlepů.
 
-2. **Udržujte materials and textures together.** Store the RVMAT in the stejný `data/` directory as its textures. This makes the relationship obvious and simplifies path management.
+2. **Uchovávejte materiály a textury pohromadě.** Ukládejte RVMAT do stejného adresáře `data/` jako jeho textury. To činí vztah zřejmým a zjednodušuje správu cest.
 
-3. **Use the Super shader unless you have a reason not to.** It handles 95% of případ užitís správně.
+3. **Používejte shader Super, pokud nemáte důvod jinak.** Správně zvládá 95% případů použití.
 
-4. **Vytvořte damage materials dokonce for simple items.** Players notice when items ne visually degrade. Minimálně, use vanilla výchozí damage materials for the lower health levels.
+4. **Vytvořte materiály poškození i pro jednoduché předměty.** Hráči si všimnou, když se předměty vizuálně nedegradují. Minimálně použijte vanilla výchozí materiály poškození pro nižší úrovně zdraví.
 
-5. **Testujte specular ve hře, not jen in Object Builder.** The editor lighting and ve hře lighting produce velmi odlišný results. What looks perfect in Object Builder may be příliš shiny or příliš dull under DayZ's dynamic lighting.
+5. **Testujte spekulár ve hře, nejen v Object Builderu.** Osvětlení editoru a osvětlení ve hře produkují velmi odlišné výsledky. Co vypadá perfektně v Object Builderu, může být příliš lesklé nebo příliš matné pod dynamickým osvětlením DayZ.
 
-6. **Document your material settings.** Když find specular/power values that work well for a surface type, record them. You will reuse these settings across mnoho items.
+6. **Dokumentujte svá nastavení materiálů.** Když najdete hodnoty spekuláru/výkonu, které fungují dobře pro typ povrchu, zaznamenejte je. Tato nastavení budete opakovaně používat napříč mnoha předměty.
 
 ---
 
@@ -619,22 +349,22 @@ VertexShaderID = "Super";
 
 | Vzor | Mod | Detail |
 |---------|-----|--------|
-| Shared damage RVMAT across all items | Expansion (multiple modules) | Reuses běžný set of damage-level RVMATs (`worn`, `damaged`, `ruined`) místo per-item variants to reduce file count |
-| Emissive materials for screen glow | COT (Admin Tools) | Uses `emmisive[]` values in RVMAT for tablet/device screen effects visible at night |
-| Glass shader for vehicle windows | DayZ-Samples (Test_Vehicle) | Demonstrates `PixelShaderID = "Glass"` with `_ca` textures for transparent windshield panels |
+| Sdílené RVMAT poškození napříč všemi předměty | Expansion (více modulů) | Znovupoužívá společnou sadu RVMAT úrovní poškození (`worn`, `damaged`, `ruined`) místo variant pro jednotlivé předměty pro snížení počtu souborů |
+| Emisivní materiály pro záři obrazovky | COT (Admin Tools) | Používá hodnoty `emmisive[]` v RVMAT pro efekty obrazovky tabletu/zařízení viditelné v noci |
+| Shader Glass pro okna vozidel | DayZ-Samples (Test_Vehicle) | Demonstruje `PixelShaderID = "Glass"` s texturami `_ca` pro průhledné panely čelního skla |
 
 ---
 
 ## Kompatibilita a dopad
 
-- **Více modů:** RVMAT paths are per-PBO and ne collide across mods. Nicméně `hiddenSelectionsMaterials[]` overrides in config.cpp follow last-loaded-wins priority, so two mods overriding the stejný vanilla item's material will conflict.
-- **Výkon:** Each unique RVMAT referenced on a jeden P3D model creates a oddělený draw call. Consolidating faces under fewer materials reduces GPU overhead, especially for complex scenes.
-- **Verze:** The RVMAT text format and shader names (Super, Glass, AlphaTest) have been stable since DayZ 1.0. No structural changes have been introduced in recent updates.
+- **Více modů:** Cesty RVMAT jsou per-PBO a nekolidují napříč mody. Nicméně přepisy `hiddenSelectionsMaterials[]` v config.cpp následují prioritu poslední-načtený-vyhrává, takže dva mody přepisující materiál stejného vanilla předmětu budou v konfliktu.
+- **Výkon:** Každý unikátní RVMAT odkazovaný na jednom P3D modelu vytváří oddělený draw call. Konsolidace ploch pod méně materiály snižuje režii GPU, zejména pro složité scény.
+- **Verze:** Textový formát RVMAT a názvy shaderů (Super, Glass, AlphaTest) jsou stabilní od DayZ 1.0. V nedávných aktualizacích nebyly zavedeny žádné strukturální změny.
 
 ---
 
 ## Navigace
 
-| Previous | Up | Next |
+| Předchozí | Nahoru | Další |
 |----------|----|------|
-| [4.2 3D Models](02-models.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.4 Audio](04-audio.md) |
+| [4.2 3D modely](02-models.md) | [Část 4: Formáty souborů a DayZ Tools](01-textures.md) | [4.4 Zvuk](04-audio.md) |

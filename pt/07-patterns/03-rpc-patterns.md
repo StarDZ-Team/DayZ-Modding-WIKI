@@ -237,6 +237,27 @@ rpc.Send(null, MY_RPC_ID, true, targetIdentity);
 5. **Mantenha payloads pequenos.** DayZ tem um limite prático de tamanho por RPC. Para dados grandes, divida em múltiplos RPCs ou use paginação.
 6. **Registre handlers cedo.** `OnInit()` é o lugar mais seguro.
 7. **Limpe handlers no shutdown.** Desregistre individualmente ou limpe todo o registro em `OnMissionFinish()`.
+8. **Use `CreateRPC()` para payloads, `Send()` para sinais.** Se você não tem dados para enviar (apenas um sinal "faça isso"), use o `Send()` apenas com header. Se tem dados, use `CreateRPC()` + writes manuais + `rpc.Send()` manual.
+
+---
+
+## Compatibilidade & Impacto
+
+- **Multi-Mod:** RPCs integer-range são propensos a colisão --- dois mods escolhendo o mesmo ID silenciosamente interceptam as mensagens um do outro. RPCs string-routed ou CF-named evitam isso usando namespace + nome de função como chave.
+- **Ordem de Carregamento:** A ordem de registro de handlers RPC importa apenas quando múltiplos mods fazem `modded class DayZGame` e sobrescrevem `OnRPC`. Cada um deve chamar `super.OnRPC()` para IDs não tratados, ou mods downstream nunca recebem seus RPCs. Sistemas string-routed evitam isso usando um único ID de engine.
+- **Listen Server:** Em listen servers, tanto cliente quanto servidor rodam no mesmo processo. Um RPC enviado com `identity = null` do lado do servidor também será recebido localmente. Proteja handlers com `if (type != CallType.Server) return;` ou verifique `GetGame().IsServer()` / `GetGame().IsClient()` conforme apropriado.
+- **Performance:** Overhead de despacho de RPC é mínimo (lookup de string ou switch de inteiro). O gargalo é o tamanho do payload --- DayZ tem um limite prático por RPC (~64 KB). Para dados grandes (sync de config), pagine entre múltiplos RPCs.
+- **Migração:** IDs de RPC são um detalhe interno do mod e não são afetados por atualizações de versão do DayZ. Se você mudar seu wire format de RPC (adicionar/remover campos), clientes antigos falando com um novo servidor vão silenciosamente dessincronizar. Versione seus payloads de RPC ou force atualizações de cliente.
+
+---
+
+## Teoria vs Prática
+
+| Livro-Texto Diz | Realidade do DayZ |
+|-----------------|-------------------|
+| Use protocol buffers ou serialização baseada em schema | Enforce Script não tem suporte a protobuf; você manualmente faz `Write`/`Read` de primitivos em ordem combinada |
+| Valide todos os inputs com aplicação de schema | Nenhuma validação de schema existe; todo valor de retorno de `ctx.Read()` deve ser verificado individualmente |
+| RPCs devem ser idempotentes | Prático no DayZ apenas para RPCs de consulta; RPCs de mutação (spawn, delete, teleport) são inerentemente não-idempotentes --- proteja com verificações de permissão ao invés |
 
 ---
 

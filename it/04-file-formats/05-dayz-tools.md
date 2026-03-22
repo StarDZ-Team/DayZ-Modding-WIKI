@@ -1,363 +1,278 @@
-# Chapter 4.5: DayZ Tools Workflow
+# Capitolo 4.5: Flusso di Lavoro DayZ Tools
 
-[Home](../../README.md) | [<< Previous: Audio](04-audio.md) | **DayZ Tools** | [Next: PBO Packing >>](06-pbo-packing.md)
+[Home](../../README.md) | [<< Precedente: Audio](04-audio.md) | **DayZ Tools** | [Successivo: Impacchettamento PBO >>](06-pbo-packing.md)
 
 ---
 
 ## Introduzione
 
-DayZ Tools is a free suite of development applications distributed through Steam, provided by Bohemia Interactive for modders. It contains everything needed to create, convert, and package game assets: a 3D model editor, texture viewer, terrain editor, script debugger, and the binarization pipeline that transforms human-readable source files into optimized game-ready formats. No DayZ mod can be built without at least some interaction with these tools.
+DayZ Tools è una suite gratuita di applicazioni di sviluppo distribuita tramite Steam, fornita da Bohemia Interactive per i modder. Contiene tutto il necessario per creare, convertire e impacchettare gli asset di gioco: un editor di modelli 3D, un visualizzatore di texture, un editor di terreni, un debugger di script e la pipeline di binarizzazione che trasforma file sorgente leggibili dall'uomo in formati ottimizzati pronti per il gioco. Nessuna mod DayZ può essere costruita senza almeno qualche interazione con questi strumenti.
 
-Questo capitolo fornisce an overview of each tool in the suite, explains the P: drive (workdrive) system that underpins the entire workflow, covers file patching for rapid development iteration, and walks through the complete asset pipeline from source files to playable mod.
+Questo capitolo fornisce una panoramica di ogni strumento nella suite, spiega il sistema del drive P: (workdrive) che sta alla base dell'intero flusso di lavoro, copre il file patching per un'iterazione rapida nello sviluppo e guida attraverso la pipeline completa degli asset dai file sorgente alla mod giocabile.
 
 ---
 
 ## Indice dei Contenuti
 
-- [DayZ Tools Suite Overview](#dayz-tools-suite-overview)
-- [Installation and Setup](#installation-and-setup)
-- [P: Drive (Workdrive)](#p-drive-workdrive)
+- [Panoramica della Suite DayZ Tools](#panoramica-della-suite-dayz-tools)
+- [Installazione e Configurazione](#installazione-e-configurazione)
+- [Drive P: (Workdrive)](#drive-p-workdrive)
 - [Object Builder](#object-builder)
 - [TexView2](#texview2)
 - [Terrain Builder](#terrain-builder)
 - [Binarize](#binarize)
 - [AddonBuilder](#addonbuilder)
 - [Workbench](#workbench)
-- [File Patching Mode](#file-patching-mode)
-- [Complete Workflow: Source to Game](#complete-workflow-source-to-game)
-- [Common Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+- [Modalità File Patching](#modalità-file-patching)
+- [Flusso di Lavoro Completo: dalla Sorgente al Gioco](#flusso-di-lavoro-completo-dalla-sorgente-al-gioco)
+- [Errori Comuni](#errori-comuni)
+- [Buone Pratiche](#buone-pratiche)
 
 ---
 
 ## Panoramica della Suite DayZ Tools
 
-DayZ Tools is available as a free download on Steam under the **Tools** category. It installs a collection of applications, each serving a specific role in the modding pipeline.
+DayZ Tools è disponibile come download gratuito su Steam nella categoria **Tools**. Installa una collezione di applicazioni, ognuna con un ruolo specifico nella pipeline di modding.
 
-| Tool | Scopo | Principale Users |
+| Strumento | Scopo | Utenti Principali |
 |------|---------|---------------|
-| **Object Builder** | 3D model creation and editing (.p3d) | 3D artists, modelers |
-| **TexView2** | Texture viewing and conversion (.paa, .tga, .png) | Texture artists, all modders |
-| **Terrain Builder** | Terrain/map creation and editing | Map makers |
-| **Binarize** | Source-to-game format conversion | Build pipeline (usually automated) |
-| **AddonBuilder** | PBO packing with opzionale binarization | All modders |
-| **Workbench** | Script debugging, testing, profiling | Scripters |
-| **DayZ Tools Launcher** | Central hub for launching tools and configuring P: drive | All modders |
+| **Object Builder** | Creazione e modifica di modelli 3D (.p3d) | Artisti 3D, modellatori |
+| **TexView2** | Visualizzazione e conversione texture (.paa, .tga, .png) | Artisti texture, tutti i modder |
+| **Terrain Builder** | Creazione e modifica del terreno/mappe | Creatori di mappe |
+| **Binarize** | Conversione dal formato sorgente al formato di gioco | Pipeline di build (di solito automatizzata) |
+| **AddonBuilder** | Impacchettamento PBO con binarizzazione opzionale | Tutti i modder |
+| **Workbench** | Debug, test e profilazione degli script | Scripter |
+| **DayZ Tools Launcher** | Hub centrale per avviare gli strumenti e configurare il drive P: | Tutti i modder |
 
-### Where They Live on Disk
+### Dove Si Trovano su Disco
 
-After Steam installation, the tools are typically located at:
+Dopo l'installazione su Steam, gli strumenti si trovano tipicamente in:
 
 ```
 C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\
   Bin\
     AddonBuilder\
-      AddonBuilder.exe          <-- PBO packer
+      AddonBuilder.exe          <-- Impacchettatore PBO
     Binarize\
-      Binarize.exe              <-- Asset converter
+      Binarize.exe              <-- Convertitore asset
     TexView2\
-      TexView2.exe              <-- Texture tool
+      TexView2.exe              <-- Strumento texture
     ObjectBuilder\
-      ObjectBuilder.exe         <-- 3D model editor
+      ObjectBuilder.exe         <-- Editor modelli 3D
     Workbench\
-      workbenchApp.exe          <-- Script debugger
+      workbenchApp.exe          <-- Debugger script
   TerrainBuilder\
-    TerrainBuilder.exe          <-- Terrain editor
+    TerrainBuilder.exe          <-- Editor terreni
 ```
 
 ---
 
 ## Installazione e Configurazione
 
-### Step 1: Install DayZ Tools from Steam
+### Passo 1: Installa DayZ Tools da Steam
 
-1. Open Steam Library.
-2. Enable **Tools** filter in the dropdown.
-3. Search for "DayZ Tools".
-4. Install (free, approximately 2 GB).
+1. Apri la Libreria Steam.
+2. Abilita il filtro **Tools** nel menu a tendina.
+3. Cerca "DayZ Tools".
+4. Installa (gratuito, circa 2 GB).
 
-### Step 2: Launch DayZ Tools
+### Passo 2: Avvia DayZ Tools
 
-1. Launch "DayZ Tools" from Steam.
-2. The DayZ Tools Launcher opens -- a central hub application.
-3. From here you can launch any individual tool and configure settings.
+1. Avvia "DayZ Tools" da Steam.
+2. Si apre il DayZ Tools Launcher -- un'applicazione hub centrale.
+3. Da qui puoi avviare qualsiasi strumento individuale e configurare le impostazioni.
 
-### Step 3: Configure P: Drive
+### Passo 3: Configura il Drive P:
 
-The launcher provides a button to create and mount the P: drive (workdrive). Questo e' the virtual drive that all DayZ tools use as their root path.
+Il launcher fornisce un pulsante per creare e montare il drive P: (workdrive). Questo è il drive virtuale che tutti gli strumenti DayZ usano come percorso radice.
 
-1. Click **Setup Workdrive** (or the P: drive configuration button).
-2. The tool creates a subst-mapped P: drive pointing to a directory on your real disk.
-3. Extract or symlink vanilla DayZ data to P: so the tools can reference game assets.
+1. Clicca **Setup Workdrive** (o il pulsante di configurazione del drive P:).
+2. Lo strumento crea un drive P: mappato tramite subst che punta a una directory sul tuo disco reale.
+3. Estrai o crea symlink dei dati vanilla DayZ su P: così gli strumenti possono riferire gli asset di gioco.
 
 ---
 
 ## Drive P: (Workdrive)
 
-The **P: drive** is a Windows virtual drive (created via `subst` or junction) that serves as the unified root path for all DayZ modding. Every path in P3D models, RVMAT materials, config.cpp references, and build scripts is relative to P:.
+Il **drive P:** è un drive virtuale Windows (creato tramite `subst` o junction) che serve come percorso radice unificato per tutto il modding DayZ. Ogni percorso nei modelli P3D, materiali RVMAT, riferimenti config.cpp e script di build è relativo a P:.
 
-### Why P: Drive Exists
+### Perché Esiste il Drive P:
 
-DayZ's asset pipeline was designed around a fixed root path. When a material references `MyMod\data\texture_co.paa`, the engine looks for `P:\MyMod\data\texture_co.paa`. This convention ensures:
+La pipeline degli asset di DayZ è stata progettata attorno a un percorso radice fisso. Quando un materiale riferisce `MyMod\data\texture_co.paa`, il motore cerca `P:\MyMod\data\texture_co.paa`. Questa convenzione assicura:
 
-- All tools agree on where files are.
-- Paths in packed PBOs match paths during development.
-- Multiple mods can coexist under one root.
+- Tutti gli strumenti concordano su dove si trovano i file.
+- I percorsi nei PBO impacchettati corrispondono ai percorsi durante lo sviluppo.
+- Mod multiple possono coesistere sotto una sola radice.
 
-### Structure
+### Struttura
 
 ```
 P:\
-  DZ\                          <-- Vanilla DayZ extracted data
+  DZ\                          <-- Dati vanilla DayZ estratti
     characters\
     weapons\
     data\
     ...
-  DayZ Tools\                  <-- Tools installation (or symlink)
-  MyMod\                       <-- Your mod source
+  DayZ Tools\                  <-- Installazione strumenti (o symlink)
+  MyMod\                       <-- Sorgente della tua mod
     config.cpp
     Scripts\
     data\
-  AnotherMod\                  <-- Another mod's source
+  AnotherMod\                  <-- Sorgente di un'altra mod
     ...
 ```
 
 ### SetupWorkdrive.bat
 
-Many mod projects include a `SetupWorkdrive.bat` script that automates P: drive creation and junction setup. A typical script:
+Molti progetti di mod includono uno script `SetupWorkdrive.bat` che automatizza la creazione del drive P: e la configurazione delle junction. Uno script tipico:
 
 ```batch
 @echo off
-REM Create P: drive pointing to the workspace
+REM Crea il drive P: che punta al workspace
 subst P: "D:\DayZModding"
 
-REM Create junctions for vanilla game data
+REM Crea junction per i dati di gioco vanilla
 mklink /J "P:\DZ" "C:\Program Files (x86)\Steam\steamapps\common\DayZ\dta"
 
-REM Create junction for tools
+REM Crea junction per gli strumenti
 mklink /J "P:\DayZ Tools" "C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools"
 
-echo Workdrive P: configured.
+echo Workdrive P: configurato.
 pause
 ```
 
-> **Suggerimento:** The workdrive must be mounted before launching any DayZ tool. If Object Builder or Binarize cannot find files, the first thing to check is whether P: is mounted.
+> **Suggerimento:** Il workdrive deve essere montato prima di avviare qualsiasi strumento DayZ. Se Object Builder o Binarize non trovano i file, la prima cosa da controllare è se P: è montato.
 
 ---
 
 ## Object Builder
 
-Object Builder is the 3D model editor for P3D files. E' covered in detail in [Chapter 4.2: 3D Models](02-models.md). Ecco un summary of its role in the toolchain.
+Object Builder è l'editor di modelli 3D per i file P3D. È coperto in dettaglio nel [Capitolo 4.2: Modelli 3D](02-models.md). Ecco un riepilogo del suo ruolo nella catena di strumenti.
 
-### Key Capabilities
+### Funzionalità Principali
 
-- Create and edit P3D model files.
-- Define LODs (Level of Dettaglio) for visual, collision, and shadow meshes.
-- Assign materials (RVMAT) and textures (PAA) to model faces.
-- Create named selections for animations and texture swaps.
-- Place memory points and proxy objects.
-- Import geometry from FBX, OBJ, and 3DS formats.
-- Validate models for engine compatibility.
-
-### Launching
-
-```
-DayZ Tools Launcher --> Object Builder
-```
-
-Or directly: `P:\DayZ Tools\Bin\ObjectBuilder\ObjectBuilder.exe`
-
-### Integration with Other Tools
-
-- **References TexView2** for texture previews (double-click a texture in face properties).
-- **Outputs P3D files** consumed by Binarize and AddonBuilder.
-- **Reads P3D files** from vanilla data on P: drive for reference.
+- Crea e modifica file modello P3D.
+- Definisci LOD (Livello di Dettaglio) per mesh visive, di collisione e ombra.
+- Assegna materiali (RVMAT) e texture (PAA) alle facce del modello.
+- Crea selezioni nominate per animazioni e scambi texture.
+- Posiziona punti di memoria e oggetti proxy.
+- Importa geometria da formati FBX, OBJ e 3DS.
+- Valida modelli per compatibilità con il motore.
 
 ---
 
 ## TexView2
 
-TexView2 is the texture viewing and conversion utility. It handles all texture format conversions needed for DayZ modding.
+TexView2 è l'utilità di visualizzazione e conversione texture. Gestisce tutte le conversioni di formato texture necessarie per il modding DayZ.
 
-### Key Capabilities
+### Funzionalità Principali
 
-- Open and preview PAA, TGA, PNG, EDDS, and DDS files.
-- Convert between formats (TGA/PNG to PAA, PAA to TGA, etc.).
-- View individual channels (R, G, B, A) separately.
-- Display mipmap levels.
-- Show texture dimensions and compression type.
-- Batch conversion via command line.
+- Apri e visualizza in anteprima file PAA, TGA, PNG, EDDS e DDS.
+- Converti tra formati (TGA/PNG in PAA, PAA in TGA, ecc.).
+- Visualizza canali individuali (R, G, B, A) separatamente.
+- Mostra livelli mipmap.
+- Mostra dimensioni texture e tipo di compressione.
+- Conversione batch tramite riga di comando.
 
-### Launching
+### Operazioni Comuni
 
-```
-DayZ Tools Launcher --> TexView2
-```
-
-Or directly: `P:\DayZ Tools\Bin\TexView2\TexView2.exe`
-
-### Comune Operations
-
-**Convert TGA to PAA:**
-1. File --> Open --> select your TGA file.
-2. Verifica the image looks correct.
-3. File --> Save As --> choose PAA format.
-4. Select compression (DXT1 for opaque, DXT5 for alpha).
-5. Save.
-
-**Inspect a vanilla PAA texture:**
-1. File --> Open --> browse to `P:\DZ\...` and select a PAA file.
-2. View the image. Click channel buttons (R, G, B, A) to inspect individual channels.
-3. Note the dimensions and compression type shown in the status bar.
-
-**Command-line conversion:**
-```bash
-TexView2.exe -i "P:\MyMod\data\texture_co.tga" -o "P:\MyMod\data\texture_co.paa"
-```
+**Converti TGA in PAA:**
+1. File --> Open --> seleziona il tuo file TGA.
+2. Verifica che l'immagine appaia corretta.
+3. File --> Save As --> scegli il formato PAA.
+4. Seleziona la compressione (DXT1 per opaco, DXT5 per alfa).
+5. Salva.
 
 ---
 
 ## Terrain Builder
 
-Terrain Builder is a specialized tool for creating custom maps (terrains). Map making is one of the most complex modding tasks in DayZ, involving satellite imagery, height maps, surface masks, and object placement.
+Terrain Builder è uno strumento specializzato per creare mappe (terreni) personalizzate. La creazione di mappe è una delle attività di modding più complesse in DayZ, che coinvolge immagini satellitari, mappe di altezza, maschere di superficie e posizionamento oggetti.
 
-### Key Capabilities
-
-- Import satellite imagery and height maps.
-- Define terrain layers (grass, dirt, rock, sand, etc.).
-- Place objects (buildings, trees, rocks) on the map.
-- Configure surface textures and materials.
-- Export terrain data for Binarize.
-
-### When You Need Terrain Builder
-
-- Creating a new map from scratch.
-- Modifying an existing terrain (adding/removing objects, changing terrain shape).
-- Terrain Builder is NOT needed for item mods, weapon mods, UI mods, or script-only mods.
-
-### Launching
-
-```
-DayZ Tools Launcher --> Terrain Builder
-```
-
-> **Nota:** Terrain creation is an advanced topic that warrants its own dedicated guide. Questo capitolo copre Terrain Builder only as part of the tools overview.
+> **Nota:** La creazione di terreni è un argomento avanzato che merita una guida dedicata. Questo capitolo copre Terrain Builder solo come parte della panoramica degli strumenti.
 
 ---
 
 ## Binarize
 
-Binarize is the core conversion engine that transforms human-readable source files into optimized, game-ready binary formats. It runs behind the scenes during PBO packing (via AddonBuilder) but can also be invoked directly.
+Binarize è il motore di conversione principale che trasforma i file sorgente leggibili dall'uomo in formati binari ottimizzati e pronti per il gioco. Funziona dietro le quinte durante l'impacchettamento PBO (tramite AddonBuilder) ma può anche essere invocato direttamente.
 
-### What Binarize Converts
+### Cosa Converte Binarize
 
-| Source Format | Output Format | Descrizione |
+| Formato Sorgente | Formato Output | Descrizione |
 |---------------|---------------|-------------|
-| MLOD `.p3d` | ODOL `.p3d` | Optimized 3D model |
-| `.tga` / `.png` / `.edds` | `.paa` | Compressed texture |
-| `.cpp` (config) | `.bin` | Binarized config (faster parsing) |
-| `.rvmat` | `.rvmat` (processed) | Material with resolved paths |
-| `.wrp` | `.wrp` (optimized) | Terrain world |
+| MLOD `.p3d` | ODOL `.p3d` | Modello 3D ottimizzato |
+| `.tga` / `.png` / `.edds` | `.paa` | Texture compressa |
+| `.cpp` (config) | `.bin` | Config binarizzato (parsing più veloce) |
+| `.rvmat` | `.rvmat` (elaborato) | Materiale con percorsi risolti |
+| `.wrp` | `.wrp` (ottimizzato) | Mondo terreno |
 
-### When Binarization is Needed
+### Quando Serve la Binarizzazione
 
-| Content Type | Binarize? | Motivo |
+| Tipo Contenuto | Binarizzare? | Motivo |
 |-------------|-----------|--------|
-| Config.cpp with CfgVehicles | **Yes** | Engine requires binarized configs for item definitions |
-| Config.cpp (scripts only) | Opzionale | Script-only configs work unbinarized |
-| P3D models | **Yes** | ODOL is faster to load, smaller, engine-optimized |
-| Textures (TGA/PNG) | **Yes** | PAA is richiesto at runtime |
-| Scripts (.c files) | **No** | Scripts are loaded as-is (text) |
-| Audio (.ogg) | **No** | OGG is already game-ready |
-| Layouts (.layout) | **No** | Loaded as-is |
-
-### Direct Invocation
-
-```bash
-Binarize.exe -targetPath="P:\build\MyMod" -sourcePath="P:\MyMod" -noLogs
-```
-
-In pratica, you rarely call Binarize directly -- AddonBuilder wraps it as part of the PBO packing process.
+| Config.cpp con CfgVehicles | **Sì** | Il motore richiede config binarizzati per le definizioni degli oggetti |
+| Config.cpp (solo script) | Opzionale | Config solo-script funzionano non binarizzati |
+| Modelli P3D | **Sì** | ODOL è più veloce da caricare, più piccolo, ottimizzato per il motore |
+| Texture (TGA/PNG) | **Sì** | PAA è richiesto a runtime |
+| Script (file .c) | **No** | Gli script vengono caricati così come sono (testo) |
+| Audio (.ogg) | **No** | OGG è già pronto per il gioco |
+| Layout (.layout) | **No** | Caricati così come sono |
 
 ---
 
 ## AddonBuilder
 
-AddonBuilder is the PBO packing tool. It takes a source directory and creates a `.pbo` archive, optionally running Binarize on the content first. Questo e' covered in detail in [Chapter 4.6: PBO Packing](06-pbo-packing.md).
+AddonBuilder è lo strumento di impacchettamento PBO. Prende una directory sorgente e crea un archivio `.pbo`, eseguendo opzionalmente Binarize sul contenuto prima. Questo è coperto in dettaglio nel [Capitolo 4.6: Impacchettamento PBO](06-pbo-packing.md).
 
 ### Riferimento Rapido
 
 ```bash
-# Pack with binarization (for item/weapon mods with configs, models, textures)
+# Impacchetta con binarizzazione (per mod con config, modelli, texture)
 AddonBuilder.exe "P:\MyMod" "P:\output" -prefix="MyMod" -sign="MyKey"
 
-# Pack without binarization (for script-only mods)
+# Impacchetta senza binarizzazione (per mod solo-script)
 AddonBuilder.exe "P:\MyMod" "P:\output" -prefix="MyMod" -packonly
 ```
-
-### Launching
-
-From the DayZ Tools Launcher, or directly:
-```
-P:\DayZ Tools\Bin\AddonBuilder\AddonBuilder.exe
-```
-
-AddonBuilder has both a GUI mode and a command-line mode. The GUI provides a visual file browser and option checkboxes. The command-line mode is used by automated build scripts.
 
 ---
 
 ## Workbench
 
-Workbench is a script development environment included with DayZ Tools. It provides script editing, debugging, and profiling capabilities.
+Workbench è un ambiente di sviluppo script incluso con DayZ Tools. Fornisce funzionalità di editing, debug e profilazione degli script.
 
-### Key Capabilities
+### Funzionalità Principali
 
-- **Script editing** with syntax highlighting for Enforce Script.
-- **Debugging** with breakpoints, step execution, and variable inspection.
-- **Profiling** to identify performance bottlenecks in scripts.
-- **Console** for evaluating expressions and testing snippets.
-- **Resource browser** for inspecting game data.
-
-### Launching
-
-```
-DayZ Tools Launcher --> Workbench
-```
-
-Or directly: `P:\DayZ Tools\Bin\Workbench\workbenchApp.exe`
-
-### Debugging Workflow
-
-1. Open Workbench.
-2. Configure the project to point at your mod's scripts.
-3. Set breakpoints in your `.c` files.
-4. Launch the game through Workbench (it starts DayZ in debug mode).
-5. When execution hits a breakpoint, Workbench pauses the game and shows the call stack, local variables, and allows step-through.
+- **Editing script** con evidenziazione sintassi per Enforce Script.
+- **Debug** con breakpoint, esecuzione passo-passo e ispezione variabili.
+- **Profilazione** per identificare colli di bottiglia nelle prestazioni degli script.
+- **Console** per valutare espressioni e testare frammenti.
+- **Browser risorse** per ispezionare i dati di gioco.
 
 ### Limitazioni
 
-- Workbench's Enforce Script support has some gaps -- not all engine APIs are fully documented in its autocomplete.
-- Some modders prefer external editors (VS Code with community Enforce Script extensions) for writing code and use Workbench only for debugging.
-- Workbench can be unstable with large mods or complex breakpoint configurations.
+- Il supporto Enforce Script di Workbench ha alcune lacune -- non tutte le API del motore sono completamente documentate nel suo autocompletamento.
+- Alcuni modder preferiscono editor esterni (VS Code con estensioni Enforce Script della community) per scrivere codice e usano Workbench solo per il debug.
+- Workbench può essere instabile con mod grandi o configurazioni di breakpoint complesse.
 
 ---
 
-## Modalita' File Patching
+## Modalità File Patching
 
-**File patching** is a development shortcut that allows the game to load loose files from disk invece of requiring them to be packed into PBOs. This dramatically speeds up iteration during development.
+Il **file patching** è una scorciatoia di sviluppo che permette al gioco di caricare file sfusi dal disco invece di richiedere che siano impacchettati in PBO. Questo accelera drasticamente l'iterazione durante lo sviluppo.
 
-### How File Patching Works
+### Come Funziona il File Patching
 
-When DayZ is launched with the `-filePatching` parameter, the engine checks the P: drive for files before looking in PBOs. If a file exists on P:, the loose version is loaded invece of the PBO version.
+Quando DayZ viene avviato con il parametro `-filePatching`, il motore controlla il drive P: per i file prima di cercare nei PBO. Se un file esiste su P:, la versione sfusa viene caricata invece della versione PBO.
 
 ```
-Normal mode:   Game loads --> PBO --> files
-File patching: Game loads --> P: drive (if file exists) --> PBO (fallback)
+Modalità normale:     Il gioco carica --> PBO --> file
+File patching:        Il gioco carica --> drive P: (se il file esiste) --> PBO (fallback)
 ```
 
-### Enabling File Patching
+### Abilitare il File Patching
 
-Add the `-filePatching` launch parameter to DayZ:
+Aggiungi il parametro di lancio `-filePatching` a DayZ:
 
 ```bash
 # Client
@@ -367,174 +282,166 @@ DayZDiag_x64.exe -filePatching -mod="MyMod" -connect=127.0.0.1
 DayZDiag_x64.exe -filePatching -server -mod="MyMod" -config=serverDZ.cfg
 ```
 
-> **Importante:** File patching requires the **Diag** (diagnostic) executable (`DayZDiag_x64.exe`), not the retail executable. The retail build ignores `-filePatching` for security.
+> **Importante:** Il file patching richiede l'eseguibile **Diag** (diagnostico) (`DayZDiag_x64.exe`), non l'eseguibile retail. La build retail ignora `-filePatching` per sicurezza.
 
-### What File Patching Can Do
+### Cosa Può Fare il File Patching
 
-| Asset Type | File Patching Works? | Note |
+| Tipo Asset | Funziona il File Patching? | Note |
 |------------|---------------------|-------|
-| Scripts (.c) | **Yes** | Fastest iteration -- edit, restart, test |
-| Layouts (.layout) | **Yes** | UI changes without rebuild |
-| Textures (.paa) | **Yes** | Swap textures without rebuild |
-| Config.cpp | **Partial** | Unbinarized configs only |
-| Models (.p3d) | **Yes** | Unbinarized MLOD P3D only |
-| Audio (.ogg) | **Yes** | Swap sounds without rebuild |
-
-### Workflow with File Patching
-
-1. Set up P: drive with your mod's source files.
-2. Launch server and client with `-filePatching`.
-3. Edit a script file in your editor.
-4. Restart the game (or reconnect) to pick up the changes.
-5. No PBO rebuild needed.
-
-> **Suggerimento:** For script-only changes, file patching eliminates the build step entirely. You edit `.c` files, restart, and test. Questo e' the fastest development loop available.
+| Script (.c) | **Sì** | Iterazione più veloce -- modifica, riavvia, testa |
+| Layout (.layout) | **Sì** | Modifiche UI senza rebuild |
+| Texture (.paa) | **Sì** | Scambia texture senza rebuild |
+| Config.cpp | **Parziale** | Solo config non binarizzati |
+| Modelli (.p3d) | **Sì** | Solo P3D MLOD non binarizzati |
+| Audio (.ogg) | **Sì** | Scambia suoni senza rebuild |
 
 ### Limitazioni
 
-- **No binarized content.** Config.cpp with `CfgVehicles` entries may not work correctly without binarization. Script-only configs work fine.
-- **No key signing.** File-patched content is not signed, so it only works in development (not on public servers).
-- **Diag build only.** The retail executable ignores file patching.
-- **P: drive must be mounted.** If the workdrive is not mounted, file patching has nothing to read from.
+- **Nessun contenuto binarizzato.** Config.cpp con voci `CfgVehicles` potrebbe non funzionare correttamente senza binarizzazione. I config solo-script funzionano bene.
+- **Nessuna firma delle chiavi.** Il contenuto file-patched non è firmato, quindi funziona solo in sviluppo (non su server pubblici).
+- **Solo build Diag.** L'eseguibile retail ignora il file patching.
+- **Il drive P: deve essere montato.** Se il workdrive non è montato, il file patching non ha nulla da cui leggere.
+
+> **Suggerimento:** Per le modifiche solo-script, il file patching elimina completamente il passaggio di build. Modifichi i file `.c`, riavvii e testi. Questo è il loop di sviluppo più veloce disponibile.
 
 ---
 
 ## Flusso di Lavoro Completo: dalla Sorgente al Gioco
 
-Ecco il end-to-end pipeline for turning source assets into a playable mod:
+Ecco la pipeline end-to-end per trasformare gli asset sorgente in una mod giocabile:
 
-### Phase 1: Create Source Assets
-
-```
-3D Software (Blender/3dsMax)  -->  FBX export
-Image Editor (Photoshop/GIMP) -->  TGA/PNG export
-Audio Editor (Audacity)       -->  OGG export
-Text Editor (VS Code)         -->  .c scripts, config.cpp, .layout files
-```
-
-### Phase 2: Import and Convert
+### Fase 1: Crea gli Asset Sorgente
 
 ```
-FBX  -->  Object Builder  -->  P3D (with LODs, selections, materials)
-TGA  -->  TexView2         -->  PAA (compressed texture)
-PNG  -->  TexView2         -->  PAA (compressed texture)
-OGG  -->  (no conversion needed, game-ready)
+Software 3D (Blender/3dsMax)     -->  Esportazione FBX
+Editor Immagini (Photoshop/GIMP) -->  Esportazione TGA/PNG
+Editor Audio (Audacity)          -->  Esportazione OGG
+Editor Testo (VS Code)           -->  Script .c, config.cpp, file .layout
 ```
 
-### Phase 3: Organize on P: Drive
+### Fase 2: Importa e Converti
+
+```
+FBX  -->  Object Builder  -->  P3D (con LOD, selezioni, materiali)
+TGA  -->  TexView2         -->  PAA (texture compressa)
+PNG  -->  TexView2         -->  PAA (texture compressa)
+OGG  -->  (nessuna conversione necessaria, pronto per il gioco)
+```
+
+### Fase 3: Organizza sul Drive P:
 
 ```
 P:\MyMod\
-  config.cpp                    <-- Mod configuration
+  config.cpp                    <-- Configurazione della mod
   Scripts\
-    3_Game\                     <-- Early-load scripts
-    4_World\                    <-- Entity/manager scripts
-    5_Mission\                  <-- UI/mission scripts
+    3_Game\                     <-- Script a caricamento precoce
+    4_World\                    <-- Script entità/manager
+    5_Mission\                  <-- Script UI/missione
   data\
     models\
-      my_item.p3d               <-- 3D model
+      my_item.p3d               <-- Modello 3D
     textures\
-      my_item_co.paa            <-- Diffuse texture
+      my_item_co.paa            <-- Texture diffuse
       my_item_nohq.paa          <-- Normal map
-      my_item_smdi.paa          <-- Specular map
+      my_item_smdi.paa          <-- Mappa speculare
     materials\
-      my_item.rvmat             <-- Material definition
+      my_item.rvmat             <-- Definizione materiale
   sound\
-    my_sound.ogg                <-- Audio file
+    my_sound.ogg                <-- File audio
   GUI\
     layouts\
-      my_panel.layout           <-- UI layout
+      my_panel.layout           <-- Layout UI
 ```
 
-### Phase 4: Test with File Patching (Development)
+### Fase 4: Testa con File Patching (Sviluppo)
 
 ```
-Launch DayZDiag with -filePatching
+Avvia DayZDiag con -filePatching
   |
-  |--> Engine reads loose files from P:\MyMod\
-  |--> Test in-game
-  |--> Edit files directly on P:
-  |--> Restart to pick up changes
-  |--> Iterate rapidly
+  |--> Il motore legge i file sfusi da P:\MyMod\
+  |--> Testa nel gioco
+  |--> Modifica i file direttamente su P:
+  |--> Riavvia per applicare le modifiche
+  |--> Itera rapidamente
 ```
 
-### Phase 5: Pack PBO (Release)
+### Fase 5: Impacchetta PBO (Rilascio)
 
 ```
-AddonBuilder / build script
+AddonBuilder / script di build
   |
-  |--> Reads source from P:\MyMod\
-  |--> Binarize converts: P3D-->ODOL, TGA-->PAA, config.cpp-->.bin
-  |--> Packs everything into MyMod.pbo
-  |--> Signs with key: MyMod.pbo.MyKey.bisign
+  |--> Legge la sorgente da P:\MyMod\
+  |--> Binarize converte: P3D-->ODOL, TGA-->PAA, config.cpp-->.bin
+  |--> Impacchetta tutto in MyMod.pbo
+  |--> Firma con la chiave: MyMod.pbo.MyKey.bisign
   |--> Output: @MyMod\addons\MyMod.pbo
 ```
 
-### Phase 6: Distribute
+### Fase 6: Distribuisci
 
 ```
 @MyMod\
   addons\
-    MyMod.pbo                   <-- The packed mod
-    MyMod.pbo.MyKey.bisign      <-- Signature for server verification
+    MyMod.pbo                   <-- La mod impacchettata
+    MyMod.pbo.MyKey.bisign      <-- Firma per la verifica del server
   keys\
-    MyKey.bikey                 <-- Public key for server admins
-  mod.cpp                       <-- Mod metadata (name, author, etc.)
+    MyKey.bikey                 <-- Chiave pubblica per gli admin dei server
+  mod.cpp                       <-- Metadati della mod (nome, autore, ecc.)
 ```
 
-Players subscribe to the mod on Steam Workshop, or server admins install it manually.
+I giocatori si iscrivono alla mod su Steam Workshop, o gli admin dei server la installano manualmente.
 
 ---
 
 ## Errori Comuni
 
-### 1. P: Drive Not Mounted
+### 1. Drive P: Non Montato
 
-**Sintomo:** All tools report "file not found" errors. Object Builder shows blank textures.
-**Soluzione:** Run your `SetupWorkdrive.bat` or mount P: via DayZ Tools Launcher before launching any tool.
+**Sintomo:** Tutti gli strumenti segnalano errori "file non trovato". Object Builder mostra texture vuote.
+**Soluzione:** Esegui il tuo `SetupWorkdrive.bat` o monta P: tramite il DayZ Tools Launcher prima di avviare qualsiasi strumento.
 
-### 2. Wrong Tool for the Job
+### 2. Strumento Sbagliato per il Lavoro
 
-**Sintomo:** Trying to edit a PAA file in a text editor, or opening a P3D in Notepad.
-**Soluzione:** PAA is binary -- use TexView2. P3D is binary -- use Object Builder. Config.cpp is text -- use any text editor.
+**Sintomo:** Tentativo di modificare un file PAA in un editor di testo, o apertura di un P3D in Notepad.
+**Soluzione:** PAA è binario -- usa TexView2. P3D è binario -- usa Object Builder. Config.cpp è testo -- usa qualsiasi editor di testo.
 
-### 3. Forgetting to Extract Vanilla Data
+### 3. Dimenticanza di Estrarre i Dati Vanilla
 
-**Sintomo:** Object Builder cannot display vanilla textures on referenced models. Materials show pink/magenta.
-**Soluzione:** Extract vanilla DayZ data to `P:\DZ\` so tools can resolve cross-references to game content.
+**Sintomo:** Object Builder non può visualizzare le texture vanilla sui modelli riferiti. I materiali mostrano rosa/magenta.
+**Soluzione:** Estrai i dati vanilla DayZ in `P:\DZ\` così gli strumenti possono risolvere i riferimenti incrociati al contenuto di gioco.
 
-### 4. File Patching with Retail Executable
+### 4. File Patching con Eseguibile Retail
 
-**Sintomo:** Changes to files on P: drive are not reflected in-game.
-**Soluzione:** Use `DayZDiag_x64.exe`, not `DayZ_x64.exe`. Only the Diag build supports `-filePatching`.
+**Sintomo:** Le modifiche ai file sul drive P: non si riflettono nel gioco.
+**Soluzione:** Usa `DayZDiag_x64.exe`, non `DayZ_x64.exe`. Solo la build Diag supporta `-filePatching`.
 
-### 5. Building Without P: Drive
+### 5. Build Senza Drive P:
 
-**Sintomo:** AddonBuilder or Binarize fails with path resolution errors.
-**Soluzione:** Mount P: drive before running any build tool. All paths in models and materials are P:-relative.
+**Sintomo:** AddonBuilder o Binarize fallisce con errori di risoluzione percorsi.
+**Soluzione:** Monta il drive P: prima di eseguire qualsiasi strumento di build. Tutti i percorsi nei modelli e materiali sono relativi a P:.
 
 ---
 
 ## Buone Pratiche
 
-1. **Sempre use the P: drive.** Resist the temptation to use absolute paths. P: is the standard and all tools expect it.
+1. **Usa sempre il drive P:.** Resisti alla tentazione di usare percorsi assoluti. P: è lo standard e tutti gli strumenti lo aspettano.
 
-2. **Use file patching during development.** It cuts iteration time from minutes (PBO rebuild) to seconds (game restart). Only build PBOs for release testing and distribution.
+2. **Usa il file patching durante lo sviluppo.** Riduce il tempo di iterazione da minuti (rebuild PBO) a secondi (riavvio gioco). Costruisci PBO solo per test di rilascio e distribuzione.
 
-3. **Automate your build pipeline.** Use scripts (`build_pbos.bat`, `dev.py`) to automate the AddonBuilder invocation. Manual GUI packing is error-prone and slow for multi-PBO mods.
+3. **Automatizza la tua pipeline di build.** Usa script (`build_pbos.bat`, `dev.py`) per automatizzare l'invocazione di AddonBuilder. L'impacchettamento manuale tramite GUI è soggetto a errori e lento per mod multi-PBO.
 
-4. **Keep source and output separate.** Source files live on P:. Built PBOs go to a separate output directory. Mai mix them.
+4. **Mantieni sorgente e output separati.** I file sorgente vivono su P:. I PBO costruiti vanno in una directory di output separata. Non mescolarli mai.
 
-5. **Learn keyboard shortcuts.** Object Builder and TexView2 have extensive keyboard shortcuts that dramatically speed up work. Invest time learning them.
+5. **Impara le scorciatoie da tastiera.** Object Builder e TexView2 hanno scorciatoie da tastiera estese che accelerano drammaticamente il lavoro. Investi tempo per impararle.
 
-6. **Extract and study vanilla data.** The best way to learn how DayZ assets are structured is to examine existing ones. Extract vanilla PBOs and open models, materials, and textures in the appropriate tools.
+6. **Estrai e studia i dati vanilla.** Il modo migliore per imparare come sono strutturati gli asset DayZ è esaminare quelli esistenti. Estrai i PBO vanilla e apri modelli, materiali e texture negli strumenti appropriati.
 
-7. **Use Workbench for debugging, external editors for writing.** VS Code with Enforce Script extensions provides better editing. Workbench provides better debugging. Use both.
+7. **Usa Workbench per il debug, editor esterni per la scrittura.** VS Code con estensioni Enforce Script fornisce editing migliore. Workbench fornisce debug migliore. Usa entrambi.
 
 ---
 
 ## Navigazione
 
-| Precedente | Up | Successivo |
+| Precedente | Su | Successivo |
 |----------|----|------|
-| [4.4 Audio](04-audio.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.6 PBO Packing](06-pbo-packing.md) |
+| [4.4 Audio](04-audio.md) | [Parte 4: Formati File e DayZ Tools](01-textures.md) | [4.6 Impacchettamento PBO](06-pbo-packing.md) |
