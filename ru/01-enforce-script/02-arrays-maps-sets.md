@@ -1,34 +1,31 @@
-# Chapter 1.2: Arrays, Maps & Sets
+# Глава 1.2: Массивы, словари и множества
 
-[Home](../../README.md) | [<< Previous: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Next: Classes & Inheritance >>](03-classes-inheritance.md)
+[Главная](../../README.md) | [<< Назад: Переменные и типы](01-variables-types.md) | **Массивы, словари и множества** | [Далее: Классы и наследование >>](03-classes-inheritance.md)
 
----
 ---
 
 ## Введение
 
+Реальные моды DayZ работают с коллекциями объектов: списками игроков, инвентарями предметов, соответствиями идентификаторов игроков правам доступа, наборами активных зон. Enforce Script предоставляет три типа коллекций для этих нужд:
 
-Real DayZ mods deal with collections of things: lists of players, inventories of items, mappings from player IDs to permissions, sets of active zones. Enforce Script provides three collection types to handle these needs:
+- **`array<T>`** --- Динамический упорядоченный список с изменяемым размером (коллекция, которую вы будете использовать чаще всего)
+- **`map<K,V>`** --- Ассоциативный контейнер ключ-значение (хеш-таблица)
+- **`set<T>`** --- Упорядоченная коллекция с удалением по значению
 
-- **`array<T>`** --- Dynamic, ordered, resizable list (the collection you will use most)
-- **`map<K,V>`** --- Key-value associative container (hash map)
-- **`set<T>`** --- Ordered collection with value-based removal
-
-There are also **static arrays** (`int arr[5]`) for fixed-size data known at compile time. Эта глава охватывает all of them in depth, including every available method, iteration patterns, and the subtle pitfalls that cause real bugs in production mods.
+Также существуют **статические массивы** (`int arr[5]`) для данных фиксированного размера, известного на этапе компиляции. Эта глава подробно рассматривает все типы коллекций, включая каждый доступный метод, шаблоны итерации и тонкие подводные камни, которые вызывают реальные ошибки в рабочих модах.
 
 ---
 
 ## Статические массивы
 
+Статические массивы имеют фиксированный размер, определяемый на этапе компиляции. Они не могут увеличиваться или уменьшаться. Они полезны для небольших коллекций известного размера и более эффективны по памяти, чем динамические массивы.
 
-Static arrays have a fixed size determined at compile time. They cannot grow or shrink. They are useful for small, known-size collections and are more memory-efficient than dynamic arrays.
-
-### Declaration and Usage
+### Объявление и использование
 
 ```c
 void StaticArrayBasics()
 {
-    // Declare with literal size
+    // Объявление с литеральным размером
     int numbers[5];
     numbers[0] = 10;
     numbers[1] = 20;
@@ -36,18 +33,18 @@ void StaticArrayBasics()
     numbers[3] = 40;
     numbers[4] = 50;
 
-    // Declare with initializer list
+    // Объявление со списком инициализации
     float damages[3] = {10.5, 25.0, 50.0};
 
-    // Declare with const size
+    // Объявление с константным размером
     const int GRID_SIZE = 4;
     string labels[GRID_SIZE];
 
-    // Access elements
+    // Доступ к элементам
     int first = numbers[0];     // 10
     float maxDmg = damages[2];  // 50.0
 
-    // Iterate with for loop
+    // Итерация циклом for
     for (int i = 0; i < 5; i++)
     {
         Print(numbers[i]);
@@ -57,14 +54,13 @@ void StaticArrayBasics()
 
 ### Правила статических массивов
 
-
-1. Size must be a compile-time constant (literal or `const int`)
-2. You **cannot** use a variable as the size: `int arr[myVar]` is a compile error
-3. Accessing an out-of-bounds index causes undefined behavior (no runtime bounds check)
-4. Static arrays are passed by reference to functions (unlike primitives)
+1. Размер должен быть константой времени компиляции (литерал или `const int`)
+2. Вы **не можете** использовать переменную как размер: `int arr[myVar]` — ошибка компиляции
+3. Обращение к индексу за пределами массива вызывает неопределённое поведение (проверка границ во время выполнения отсутствует)
+4. Статические массивы передаются в функции по ссылке (в отличие от примитивов)
 
 ```c
-// Static arrays as function parameters
+// Статические массивы как параметры функций
 void FillArray(int arr[3])
 {
     arr[0] = 100;
@@ -76,43 +72,40 @@ void Test()
 {
     int myArr[3];
     FillArray(myArr);
-    Print(myArr[0]);  // 100 -- the original was modified (passed by reference)
+    Print(myArr[0]);  // 100 -- оригинал изменён (передан по ссылке)
 }
 ```
 
 ### Когда использовать статические массивы
 
+Используйте статические массивы для:
+- Данных вектор/матрица (`vector mat[3]` для матриц вращения 3x3)
+- Небольших фиксированных таблиц поиска
+- Критичных по производительности горячих путей, где важно выделение памяти
 
-Use static arrays for:
-- Vector/matrix data (`vector mat[3]` for 3x3 rotation matrices)
-- Small fixed lookup tables
-- Performance-critical hot paths where allocation matters
-
-Use dynamic `array<T>` for everything else.
+Для всего остального используйте динамический `array<T>`.
 
 ---
 
 ## Динамические массивы: `array<T>`
 
-
-Dynamic arrays are the most commonly used collection in DayZ modding. They can grow and shrink at runtime, support generics, and provide a rich set of methods.
+Динамические массивы — наиболее часто используемая коллекция в моддинге DayZ. Они могут увеличиваться и уменьшаться во время выполнения, поддерживают обобщённые типы и предоставляют богатый набор методов.
 
 ### Создание
-
 
 ```c
 void CreateArrays()
 {
-    // Method 1: new operator
+    // Способ 1: оператор new
     array<string> names = new array<string>;
 
-    // Method 2: Initializer list
+    // Способ 2: список инициализации
     array<int> scores = {100, 85, 92, 78};
 
-    // Method 3: Using typedef
-    TStringArray items = new TStringArray;  // same as array<string>
+    // Способ 3: использование typedef
+    TStringArray items = new TStringArray;  // то же самое, что array<string>
 
-    // Arrays of any type
+    // Массивы любого типа
     array<float> distances = new array<float>;
     array<bool> flags = new array<bool>;
     array<vector> positions = new array<vector>;
@@ -120,10 +113,9 @@ void CreateArrays()
 }
 ```
 
-### Предопределённые Typedefs
+### Предопределённые typedef
 
-
-DayZ provides shorthand typedefs for the most common array types:
+DayZ предоставляет сокращённые typedef для наиболее распространённых типов массивов:
 
 ```c
 typedef array<string>  TStringArray;
@@ -133,32 +125,30 @@ typedef array<bool>    TBoolArray;
 typedef array<vector>  TVectorArray;
 ```
 
-You will encounter `TStringArray` constantly in DayZ code --- config parsing, chat messages, loot tables, and more.
+Вы будете постоянно встречать `TStringArray` в коде DayZ --- парсинг конфигураций, сообщения чата, таблицы лута и многое другое.
 
 ---
 
-## Полный справочник методов Array
-
+## Полный справочник методов массива
 
 ### Добавление элементов
-
 
 ```c
 void AddingElements()
 {
     array<string> items = new array<string>;
 
-    // Insert: append to end, returns the new index
+    // Insert: добавить в конец, возвращает новый индекс
     int idx = items.Insert("Bandage");     // idx == 0
     idx = items.Insert("Morphine");        // idx == 1
     idx = items.Insert("Saline");          // idx == 2
     // items: ["Bandage", "Morphine", "Saline"]
 
-    // InsertAt: insert at specific index, shifts existing elements right
+    // InsertAt: вставить по указанному индексу, сдвигает существующие элементы вправо
     items.InsertAt("Epinephrine", 1);
     // items: ["Bandage", "Epinephrine", "Morphine", "Saline"]
 
-    // InsertAll: append all elements from another array
+    // InsertAll: добавить все элементы из другого массива
     array<string> moreItems = {"Tetracycline", "Charcoal"};
     items.InsertAll(moreItems);
     // items: ["Bandage", "Epinephrine", "Morphine", "Saline", "Tetracycline", "Charcoal"]
@@ -167,26 +157,25 @@ void AddingElements()
 
 ### Доступ к элементам
 
-
 ```c
 void AccessingElements()
 {
     array<string> items = {"Apple", "Banana", "Cherry", "Date"};
 
-    // Get: access by index
+    // Get: доступ по индексу
     string first = items.Get(0);       // "Apple"
     string third = items.Get(2);       // "Cherry"
 
-    // Bracket operator: same as Get
+    // Оператор квадратных скобок: то же самое, что Get
     string second = items[1];          // "Banana"
 
-    // Set: replace element at index
-    items.Set(1, "Blueberry");         // items[1] is now "Blueberry"
+    // Set: замена элемента по индексу
+    items.Set(1, "Blueberry");         // items[1] теперь "Blueberry"
 
-    // Count: number of elements
+    // Count: количество элементов
     int count = items.Count();         // 4
 
-    // IsValidIndex: bounds check
+    // IsValidIndex: проверка границ
     bool valid = items.IsValidIndex(3);   // true
     bool invalid = items.IsValidIndex(4); // false
     bool negative = items.IsValidIndex(-1); // false
@@ -195,55 +184,53 @@ void AccessingElements()
 
 ### Поиск
 
-
 ```c
 void SearchingArrays()
 {
     array<string> weapons = {"AKM", "M4A1", "Mosin", "IZH18", "AKM"};
 
-    // Find: returns first index of element, or -1 if not found
+    // Find: возвращает первый индекс элемента, или -1 если не найден
     int idx = weapons.Find("Mosin");    // 2
     int notFound = weapons.Find("FAL");  // -1
 
-    // Check existence
+    // Проверка существования
     if (weapons.Find("M4A1") != -1)
         Print("M4A1 found!");
 
-    // GetRandomElement: returns a random element
+    // GetRandomElement: возвращает случайный элемент
     string randomWeapon = weapons.GetRandomElement();
 
-    // GetRandomIndex: returns a random valid index
+    // GetRandomIndex: возвращает случайный допустимый индекс
     int randomIdx = weapons.GetRandomIndex();
 }
 ```
 
 ### Удаление элементов
 
-
-This is where the most common bugs occur. Pay close attention to the difference between `Remove` and `RemoveOrdered`.
+Именно здесь возникают наиболее частые ошибки. Обратите особое внимание на разницу между `Remove` и `RemoveOrdered`.
 
 ```c
 void RemovingElements()
 {
     array<string> items = {"A", "B", "C", "D", "E"};
 
-    // Remove(index): FAST but UNORDERED
-    // Swaps the element at index with the LAST element, then shrinks the array
-    items.Remove(1);  // Removes "B" by swapping with "E"
-    // items is now: ["A", "E", "C", "D"]  -- ORDER CHANGED!
+    // Remove(index): БЫСТРОЕ, но НЕУПОРЯДОЧЕННОЕ удаление
+    // Меняет местами элемент по индексу с ПОСЛЕДНИМ элементом, затем уменьшает массив
+    items.Remove(1);  // Удаляет "B", поменяв местами с "E"
+    // items теперь: ["A", "E", "C", "D"]  -- ПОРЯДОК ИЗМЕНЁН!
 
-    // RemoveOrdered(index): SLOW but preserves order
-    // Shifts all elements after the index left by one
+    // RemoveOrdered(index): МЕДЛЕННОЕ, но сохраняет порядок
+    // Сдвигает все элементы после индекса влево на один
     items = {"A", "B", "C", "D", "E"};
-    items.RemoveOrdered(1);  // Removes "B", shifts C,D,E left
-    // items is now: ["A", "C", "D", "E"]  -- order preserved
+    items.RemoveOrdered(1);  // Удаляет "B", сдвигает C,D,E влево
+    // items теперь: ["A", "C", "D", "E"]  -- порядок сохранён
 
-    // RemoveItem(value): finds the element and removes it (ordered)
+    // RemoveItem(value): находит элемент и удаляет его (упорядоченно)
     items = {"A", "B", "C", "D", "E"};
     items.RemoveItem("C");
-    // items is now: ["A", "B", "D", "E"]
+    // items теперь: ["A", "B", "D", "E"]
 
-    // Clear: remove all elements
+    // Clear: удалить все элементы
     items.Clear();
     // items.Count() == 0
 }
@@ -251,22 +238,21 @@ void RemovingElements()
 
 ### Размер и ёмкость
 
-
 ```c
 void SizingArrays()
 {
     array<int> data = new array<int>;
 
-    // Reserve: pre-allocate internal capacity (does NOT change Count)
-    // Use when you know how many elements you will add
+    // Reserve: предварительно выделить внутреннюю ёмкость (НЕ изменяет Count)
+    // Используйте, когда знаете, сколько элементов добавите
     data.Reserve(100);
-    // data.Count() == 0, but internal buffer is ready for 100 elements
+    // data.Count() == 0, но внутренний буфер готов для 100 элементов
 
-    // Resize: change the Count, filling new slots with default values
+    // Resize: изменить Count, заполняя новые слоты значениями по умолчанию
     data.Resize(10);
-    // data.Count() == 10, all elements are 0
+    // data.Count() == 10, все элементы равны 0
 
-    // Resize smaller truncates
+    // Resize до меньшего размера обрезает
     data.Resize(5);
     // data.Count() == 5
 }
@@ -274,46 +260,44 @@ void SizingArrays()
 
 ### Сортировка и перемешивание
 
-
 ```c
 void OrderingArrays()
 {
     array<int> numbers = {5, 2, 8, 1, 9, 3};
 
-    // Sort ascending
+    // Сортировка по возрастанию
     numbers.Sort();
     // numbers: [1, 2, 3, 5, 8, 9]
 
-    // Sort descending
+    // Сортировка по убыванию
     numbers.Sort(true);
     // numbers: [9, 8, 5, 3, 2, 1]
 
-    // Invert (reverse) the array
+    // Invert (обратный порядок) массива
     numbers = {1, 2, 3, 4, 5};
     numbers.Invert();
     // numbers: [5, 4, 3, 2, 1]
 
-    // Shuffle randomly
+    // Случайное перемешивание
     numbers.ShuffleArray();
-    // numbers: [3, 1, 5, 2, 4]  (random order)
+    // numbers: [3, 1, 5, 2, 4]  (случайный порядок)
 }
 ```
 
 ### Копирование
-
 
 ```c
 void CopyingArrays()
 {
     array<string> original = {"A", "B", "C"};
 
-    // Copy: replaces all contents with a copy of another array
+    // Copy: заменяет всё содержимое копией другого массива
     array<string> copy = new array<string>;
     copy.Copy(original);
     // copy: ["A", "B", "C"]
-    // Modifying copy does NOT affect original
+    // Изменение copy НЕ влияет на original
 
-    // InsertAll: appends (does not replace)
+    // InsertAll: добавляет (не заменяет)
     array<string> combined = {"X", "Y"};
     combined.InsertAll(original);
     // combined: ["X", "Y", "A", "B", "C"]
@@ -322,15 +306,14 @@ void CopyingArrays()
 
 ### Отладка
 
-
 ```c
 void DebuggingArrays()
 {
     array<string> items = {"Bandage", "Morphine", "Saline"};
 
-    // Debug: prints all elements to script log
+    // Debug: выводит все элементы в лог скриптов
     items.Debug();
-    // Output:
+    // Вывод:
     // [0] => Bandage
     // [1] => Morphine
     // [2] => Saline
@@ -341,8 +324,7 @@ void DebuggingArrays()
 
 ## Итерация по массивам
 
-
-### for Loop (Index-Based)
+### Цикл for (по индексу)
 
 ```c
 void ForLoopIteration()
@@ -359,7 +341,7 @@ void ForLoopIteration()
 }
 ```
 
-### foreach (Value Only)
+### foreach (только значение)
 
 ```c
 void ForEachValue()
@@ -376,7 +358,7 @@ void ForEachValue()
 }
 ```
 
-### foreach (Index + Value)
+### foreach (индекс + значение)
 
 ```c
 void ForEachIndexValue()
@@ -393,8 +375,7 @@ void ForEachIndexValue()
 }
 ```
 
-### Пример из практики: Finding the Nearest Player
-
+### Реальный пример: Поиск ближайшего игрока
 
 ```c
 PlayerBase FindNearestPlayer(vector origin, float maxRange)
@@ -428,28 +409,26 @@ PlayerBase FindNearestPlayer(vector origin, float maxRange)
 
 ---
 
-## Maps: `map<K,V>`
+## Словари: `map<K,V>`
 
-Maps store key-value pairs. They are used when you need to look up a value by a key --- player data by UID, item prices by class name, permissions by role name, and so on.
+Словари хранят пары ключ-значение. Они используются, когда нужно искать значение по ключу --- данные игрока по UID, цены предметов по имени класса, права по имени роли и так далее.
 
 ### Создание
-
 
 ```c
 void CreateMaps()
 {
-    // Standard creation
+    // Стандартное создание
     map<string, int> prices = new map<string, int>;
 
-    // Maps of various types
+    // Словари различных типов
     map<string, float> multipliers = new map<string, float>;
     map<int, string> idToName = new map<int, string>;
     map<string, ref array<string>> categories = new map<string, ref array<string>>;
 }
 ```
 
-### Предопределённые Typedefs для Map
-
+### Предопределённые typedef для словарей
 
 ```c
 typedef map<string, int>     TStringIntMap;
@@ -460,34 +439,31 @@ typedef map<string, float>   TStringFloatMap;
 
 ---
 
-## Полный справочник методов Map
-
+## Полный справочник методов словаря
 
 ### Вставка и обновление
-
 
 ```c
 void MapInsertUpdate()
 {
     map<string, int> inventory = new map<string, int>;
 
-    // Insert: add a new key-value pair
-    // Returns true if the key was new, false if it already existed
-    bool isNew = inventory.Insert("Bandage", 5);    // true (new key)
-    isNew = inventory.Insert("Bandage", 10);         // false (key exists, value NOT updated)
-    // inventory["Bandage"] is still 5!
+    // Insert: добавить новую пару ключ-значение
+    // Возвращает true если ключ новый, false если уже существует
+    bool isNew = inventory.Insert("Bandage", 5);    // true (новый ключ)
+    isNew = inventory.Insert("Bandage", 10);         // false (ключ существует, значение НЕ обновлено)
+    // inventory["Bandage"] по-прежнему 5!
 
-    // Set: insert OR update (this is what you usually want)
-    inventory.Set("Bandage", 10);    // Now inventory["Bandage"] == 10
-    inventory.Set("Morphine", 3);    // New key added
-    inventory.Set("Morphine", 7);    // Existing key updated to 7
+    // Set: вставить ИЛИ обновить (обычно это то, что нужно)
+    inventory.Set("Bandage", 10);    // Теперь inventory["Bandage"] == 10
+    inventory.Set("Morphine", 3);    // Новый ключ добавлен
+    inventory.Set("Morphine", 7);    // Существующий ключ обновлён до 7
 }
 ```
 
-**Critical distinction:** `Insert()` does **not** update existing keys. `Set()` does. When in doubt, use `Set()`.
+**Критическое различие:** `Insert()` **не** обновляет существующие ключи. `Set()` обновляет. Если сомневаетесь, используйте `Set()`.
 
 ### Доступ к значениям
-
 
 ```c
 void MapAccess()
@@ -497,26 +473,25 @@ void MapAccess()
     prices.Set("M4A1", 7500);
     prices.Set("Mosin", 2000);
 
-    // Get: returns value, or default (0 for int) if key not found
+    // Get: возвращает значение, или значение по умолчанию (0 для int) если ключ не найден
     int akmPrice = prices.Get("AKM");         // 5000
-    int falPrice = prices.Get("FAL");          // 0 (not found, returns default)
+    int falPrice = prices.Get("FAL");          // 0 (не найден, возвращает значение по умолчанию)
 
-    // Find: safe access, returns true if key exists and sets the out parameter
+    // Find: безопасный доступ, возвращает true если ключ существует и устанавливает выходной параметр
     int price;
     bool found = prices.Find("M4A1", price);  // found == true, price == 7500
-    bool notFound = prices.Find("SVD", price); // notFound == false, price unchanged
+    bool notFound = prices.Find("SVD", price); // notFound == false, price не изменён
 
-    // Contains: check if key exists (no value retrieval)
+    // Contains: проверка наличия ключа (без получения значения)
     bool hasAKM = prices.Contains("AKM");     // true
     bool hasFAL = prices.Contains("FAL");     // false
 
-    // Count: number of key-value pairs
+    // Count: количество пар ключ-значение
     int count = prices.Count();  // 3
 }
 ```
 
 ### Удаление
-
 
 ```c
 void MapRemove()
@@ -526,11 +501,11 @@ void MapRemove()
     data.Set("b", 2);
     data.Set("c", 3);
 
-    // Remove: remove by key
+    // Remove: удалить по ключу
     data.Remove("b");
-    // data now has: {"a": 1, "c": 3}
+    // data теперь содержит: {"a": 1, "c": 3}
 
-    // Clear: remove all entries
+    // Clear: удалить все записи
     data.Clear();
     // data.Count() == 0
 }
@@ -538,8 +513,7 @@ void MapRemove()
 
 ### Доступ по индексу
 
-
-Maps support positional access, but it is `O(n)` --- use it for iteration, not frequent lookups.
+Словари поддерживают позиционный доступ, но он `O(n)` --- используйте его для итерации, а не для частых поисков.
 
 ```c
 void MapIndexAccess()
@@ -549,7 +523,7 @@ void MapIndexAccess()
     data.Set("beta", 2);
     data.Set("gamma", 3);
 
-    // Access by internal index (O(n), order is insertion order)
+    // Доступ по внутреннему индексу (O(n), порядок — порядок вставки)
     for (int i = 0; i < data.Count(); i++)
     {
         string key = data.GetKey(i);
@@ -561,7 +535,6 @@ void MapIndexAccess()
 
 ### Извлечение ключей и значений
 
-
 ```c
 void MapExtraction()
 {
@@ -570,24 +543,23 @@ void MapExtraction()
     prices.Set("M4A1", 7500);
     prices.Set("Mosin", 2000);
 
-    // Get all keys as an array
+    // Получить все ключи в виде массива
     array<string> keys = prices.GetKeyArray();
     // keys: ["AKM", "M4A1", "Mosin"]
 
-    // Get all values as an array
+    // Получить все значения в виде массива
     array<int> values = prices.GetValueArray();
     // values: [5000, 7500, 2000]
 }
 ```
 
-### Пример из практики: Player Tracking
-
+### Реальный пример: Отслеживание игроков
 
 ```c
 class PlayerTracker
 {
-    protected ref map<string, vector> m_LastPositions;  // UID -> position
-    protected ref map<string, float> m_PlayTime;        // UID -> seconds
+    protected ref map<string, vector> m_LastPositions;  // UID -> позиция
+    protected ref map<string, float> m_PlayTime;        // UID -> секунды
 
     void PlayerTracker()
     {
@@ -626,35 +598,35 @@ class PlayerTracker
 
 ---
 
-## Sets: `set<T>`
+## Множества: `set<T>`
 
-Sets are ordered collections similar to arrays, but with semantics oriented toward value-based operations (find and remove by value). They are less commonly used than arrays and maps.
+Множества — упорядоченные коллекции, аналогичные массивам, но с семантикой, ориентированной на операции по значению (поиск и удаление по значению). Они используются реже, чем массивы и словари.
 
 ```c
 void SetExamples()
 {
     set<string> activeZones = new set<string>;
 
-    // Insert: add an element
+    // Insert: добавить элемент
     activeZones.Insert("NWAF");
     activeZones.Insert("Tisy");
     activeZones.Insert("Balota");
 
-    // Find: returns index or -1
+    // Find: возвращает индекс или -1
     int idx = activeZones.Find("Tisy");    // 1
     int missing = activeZones.Find("Zelenogorsk");  // -1
 
-    // Get: access by index
+    // Get: доступ по индексу
     string first = activeZones.Get(0);     // "NWAF"
 
     // Count
     int count = activeZones.Count();       // 3
 
-    // Remove by index
+    // Remove по индексу
     activeZones.Remove(0);
     // activeZones: ["Tisy", "Balota"]
 
-    // RemoveItem: remove by value
+    // RemoveItem: удаление по значению
     activeZones.RemoveItem("Tisy");
     // activeZones: ["Balota"]
 
@@ -665,22 +637,20 @@ void SetExamples()
 
 ### Когда использовать Set vs Array
 
+На практике большинство моддеров DayZ используют `array<T>` почти для всего, потому что:
+- `set<T>` имеет меньше методов, чем `array<T>`
+- `array<T>` предоставляет `Find()` для поиска и `RemoveItem()` для удаления по значению
+- Нужный API обычно уже есть в `array<T>`
 
-На практике most DayZ modders use `array<T>` for almost everything because:
-- `set<T>` has fewer methods than `array<T>`
-- `array<T>` provides `Find()` for search and `RemoveItem()` for value-based removal
-- The API you need is typically on `array<T>` already
-
-Use `set<T>` when your code semantically represents a set (no meaningful order, focused on membership testing), or when you encounter it in vanilla DayZ code and need to interface with it.
+Используйте `set<T>`, когда ваш код семантически представляет множество (порядок не важен, акцент на проверке принадлежности), или когда вы встречаете его в ванильном коде DayZ и нужно с ним взаимодействовать.
 
 ---
 
-## Итерация по Maps
+## Итерация по словарям
 
+Словари поддерживают `foreach` для удобной итерации:
 
-Maps support `foreach` for convenient iteration:
-
-### foreach with Key-Value
+### foreach с ключом и значением
 
 ```c
 void IterateMap()
@@ -690,7 +660,7 @@ void IterateMap()
     scores.Set("Bob", 230);
     scores.Set("Charlie", 180);
 
-    // foreach with key and value
+    // foreach с ключом и значением
     foreach (string name, int score : scores)
     {
         Print(string.Format("%1: %2 points", name, score));
@@ -701,7 +671,7 @@ void IterateMap()
 }
 ```
 
-### Index-Based for Loop
+### Цикл for по индексу
 
 ```c
 void IterateMapByIndex()
@@ -723,20 +693,19 @@ void IterateMapByIndex()
 
 ## Вложенные коллекции
 
-
-Collections can contain other collections. When storing reference types (like arrays) inside a map, use `ref` to manage ownership.
+Коллекции могут содержать другие коллекции. При хранении ссылочных типов (таких как массивы) внутри словаря используйте `ref` для управления владением.
 
 ```c
 class LootTable
 {
-    // Map from category name to list of class names
+    // Словарь: имя категории -> список имён классов
     protected ref map<string, ref array<string>> m_Categories;
 
     void LootTable()
     {
         m_Categories = new map<string, ref array<string>>;
 
-        // Create category arrays
+        // Создание массивов категорий
         ref array<string> medical = new array<string>;
         medical.Insert("Bandage");
         medical.Insert("Morphine");
@@ -766,107 +735,139 @@ class LootTable
 
 ---
 
+## Лучшие практики
+
+- Всегда используйте `new` для создания коллекций перед использованием -- `array<string> items;` является `null`, а не пустым массивом.
+- Предпочитайте `map.Set()` вместо `map.Insert()` для обновлений -- `Insert` молча игнорирует существующие ключи.
+- При удалении элементов во время итерации используйте обратный цикл `for` или создайте отдельный список для удаления -- никогда не изменяйте коллекцию внутри `foreach`.
+- Используйте `Reserve()`, когда заранее знаете ожидаемое количество элементов, чтобы избежать повторных внутренних перевыделений памяти.
+- Защищайте каждый доступ к элементу проверкой `IsValidIndex()` или `Count() > 0` -- доступ за границами массива вызывает тихие сбои.
+
+---
+
+## Наблюдается в реальных модах
+
+> Шаблоны подтверждены изучением исходного кода профессиональных модов DayZ.
+
+| Шаблон | Мод | Описание |
+|--------|-----|----------|
+| Обратный цикл `for` для удаления | Expansion / COT | При удалении отфильтрованных элементов всегда итерируют от `Count()-1` до `0` |
+| `map<string, ref ClassName>` для реестров | Dabs Framework | Все реестры менеджеров используют `ref` в значениях словаря для поддержания жизни объектов |
+| Typedef `TStringArray` повсюду | Vanilla / VPP | Парсинг конфигов, сообщения чата и таблицы лута используют `TStringArray` вместо `array<string>` |
+| Защита от null + пустоты перед доступом | Expansion Market | Каждая функция, получающая массив, начинается с `if (!arr \|\| arr.Count() == 0) return;` |
+
+---
+
+## Теория vs практика
+
+| Концепция | Теория | Реальность |
+|-----------|--------|------------|
+| `Remove(index)` — «быстрое удаление» | Должен просто удалить элемент | Сначала меняет местами с последним элементом, молча изменяя порядок массива |
+| `map.Insert()` добавляет ключ | Ожидается обновление при существующем ключе | Возвращает `false` и ничего не делает, если ключ уже присутствует |
+| `set<T>` для уникальных коллекций | Должен вести себя как математическое множество | Большинство моддеров используют `array<T>` с `Find()` вместо этого, потому что `set` имеет меньше методов |
+
+---
+
 ## Распространённые ошибки
 
+### 1. `Remove` vs `RemoveOrdered`: Тихая ошибка
 
-### 1. `Remove` vs `RemoveOrdered`: The Silent Bug
-
-`Remove(index)` is fast but **changes the order** by swapping with the last element. If you are iterating forward and removing, this causes skipped elements:
+`Remove(index)` быстр, но **меняет порядок**, обменивая элемент с последним. Если вы итерируете вперёд и удаляете, это приводит к пропуску элементов:
 
 ```c
-// BAD: skips elements because Remove swaps order
+// ПЛОХО: пропускает элементы, потому что Remove меняет порядок
 array<int> nums = {1, 2, 3, 4, 5};
 for (int i = 0; i < nums.Count(); i++)
 {
     if (nums[i] % 2 == 0)
-        nums.Remove(i);  // After removing index 1, element at index 1 is now "5"
-                          // and we skip to index 2, missing "5"
+        nums.Remove(i);  // После удаления индекса 1, элемент по индексу 1 теперь "5"
+                          // и мы перескакиваем к индексу 2, пропуская "5"
 }
 
-// GOOD: iterate backward when removing
+// ХОРОШО: итерация в обратном направлении при удалении
 array<int> nums2 = {1, 2, 3, 4, 5};
 for (int j = nums2.Count() - 1; j >= 0; j--)
 {
     if (nums2[j] % 2 == 0)
-        nums2.Remove(j);  // Safe: removing from the end doesn't affect lower indices
+        nums2.Remove(j);  // Безопасно: удаление с конца не влияет на меньшие индексы
 }
 
-// ALSO GOOD: use RemoveOrdered with backward iteration for order preservation
+// ТОЖЕ ХОРОШО: RemoveOrdered с обратной итерацией для сохранения порядка
 array<int> nums3 = {1, 2, 3, 4, 5};
 for (int k = nums3.Count() - 1; k >= 0; k--)
 {
     if (nums3[k] % 2 == 0)
         nums3.RemoveOrdered(k);
 }
-// nums3: [1, 3, 5] in original order
+// nums3: [1, 3, 5] в исходном порядке
 ```
 
-### 2. Array Index Out of Bounds
+### 2. Выход за границы массива
 
-Enforce Script does not throw exceptions for out-of-bounds access ---- он silently returns garbage or crashes. Always check bounds.
+Enforce Script не выбрасывает исключений при обращении за границами --- он молча возвращает мусор или вылетает. Всегда проверяйте границы.
 
 ```c
-// BAD: no bounds check
+// ПЛОХО: нет проверки границ
 array<string> items = {"A", "B", "C"};
-string fourth = items[3];  // UNDEFINED BEHAVIOR: index 3 doesn't exist
+string fourth = items[3];  // НЕОПРЕДЕЛЁННОЕ ПОВЕДЕНИЕ: индекс 3 не существует
 
-// GOOD: check bounds
+// ХОРОШО: проверка границ
 if (items.IsValidIndex(3))
 {
     string fourth2 = items[3];
 }
 
-// GOOD: check count
+// ХОРОШО: проверка количества
 if (items.Count() > 0)
 {
     string last = items[items.Count() - 1];
 }
 ```
 
-### 3. Forgetting to Create the Collection
+### 3. Забыли создать коллекцию
 
-Collections are objects and must be instantiated with `new`:
+Коллекции — это объекты, и их нужно создать с помощью `new`:
 
 ```c
-// BAD: null reference crash
+// ПЛОХО: вылет с null reference
 array<string> items;
-items.Insert("Test");  // CRASH: items is null
+items.Insert("Test");  // ВЫЛЕТ: items равен null
 
-// GOOD: create first
+// ХОРОШО: сначала создать
 array<string> items2 = new array<string>;
 items2.Insert("Test");
 
-// ALSO GOOD: initializer list creates automatically
+// ТОЖЕ ХОРОШО: список инициализации создаёт автоматически
 array<string> items3 = {"Test"};
 ```
 
-### 4. `Insert` vs `Set` on Maps
+### 4. `Insert` vs `Set` для словарей
 
-`Insert` does not update existing keys ---- он returns `false` and leaves the value unchanged:
+`Insert` не обновляет существующие ключи --- возвращает `false` и оставляет значение без изменений:
 
 ```c
 map<string, int> data = new map<string, int>;
 data.Insert("key", 100);
-data.Insert("key", 200);   // Returns false, value is STILL 100!
+data.Insert("key", 200);   // Возвращает false, значение ПО-ПРЕЖНЕМУ 100!
 
-// Use Set to update
-data.Set("key", 200);      // Now value is 200
+// Используйте Set для обновления
+data.Set("key", 200);      // Теперь значение 200
 ```
 
-### 5. Modifying a Collection During foreach
+### 5. Изменение коллекции во время foreach
 
-Do not add or remove elements from a collection while iterating over it with `foreach`. Build a separate list of elements to remove, then remove them afterward.
+Не добавляйте и не удаляйте элементы из коллекции во время итерации по ней с помощью `foreach`. Создайте отдельный список элементов для удаления, затем удалите их после.
 
 ```c
-// BAD: modifying during iteration
+// ПЛОХО: изменение во время итерации
 array<string> items = {"A", "B", "C", "D"};
 foreach (string item : items)
 {
     if (item == "B")
-        items.RemoveItem(item);  // UNDEFINED: invalidates iterator
+        items.RemoveItem(item);  // НЕОПРЕДЕЛЁННОЕ ПОВЕДЕНИЕ: инвалидация итератора
 }
 
-// GOOD: collect then remove
+// ХОРОШО: собрать, затем удалить
 array<string> toRemove = new array<string>;
 foreach (string item2 : items)
 {
@@ -879,14 +880,14 @@ foreach (string rem : toRemove)
 }
 ```
 
-### 6. Empty Array Safety
+### 6. Безопасность пустого массива
 
-Always check if an array is both non-null and non-empty before accessing elements:
+Всегда проверяйте, что массив не null и не пуст, прежде чем обращаться к элементам:
 
 ```c
 string GetFirstItem(array<string> items)
 {
-    // Guard clause: null check + empty check
+    // Защитная проверка: null + проверка пустоты
     if (!items || items.Count() == 0)
         return "";
 
@@ -898,62 +899,55 @@ string GetFirstItem(array<string> items)
 
 ## Практические упражнения
 
+### Упражнение 1: Счётчик инвентаря
+Создайте функцию, которая принимает `array<string>` имён классов предметов (с дубликатами) и возвращает `map<string, int>`, считающий количество каждого предмета.
 
-### Упражнение 1: Inventory Counter
+Пример: `{"Bandage", "Morphine", "Bandage", "Saline", "Bandage"}` должно дать `{"Bandage": 3, "Morphine": 1, "Saline": 1}`.
 
-Create a function that takes an `array<string>` of item class names (with duplicates) and returns a `map<string, int>` counting how many of each item exists.
+### Упражнение 2: Удаление дубликатов из массива
+Напишите функцию `array<string> RemoveDuplicates(array<string> input)`, которая возвращает новый массив с удалёнными дубликатами, сохраняя порядок первого вхождения.
 
-Example: `{"Bandage", "Morphine", "Bandage", "Saline", "Bandage"}` should produce `{"Bandage": 3, "Morphine": 1, "Saline": 1}`.
+### Упражнение 3: Таблица лидеров
+Создайте `map<string, int>` имён игроков и числа убийств. Напишите функции для:
+1. Добавления убийства игроку (создавая запись при необходимости)
+2. Получения топ-N игроков, отсортированных по убийствам (подсказка: извлечь в массивы, отсортировать)
+3. Удаления всех игроков с нулём убийств
 
-### Упражнение 2: Array Deduplication
+### Упражнение 4: История позиций
+Создайте класс, который хранит последние 10 позиций игрока (кольцевой буфер на основе массива). Он должен:
+1. Добавлять новую позицию (удаляя старейшую при достижении ёмкости)
+2. Возвращать общее пройденное расстояние по всем сохранённым позициям
+3. Возвращать среднюю позицию
 
-Write a function `array<string> RemoveDuplicates(array<string> input)` that returns a new array with duplicates removed, preserving the order of first occurrence.
-
-### Упражнение 3: Leaderboard
-
-Create a `map<string, int>` of player names to kill counts. Write functions to:
-1. Add a kill for a player (creating the entry if needed)
-2. Get the top N players sorted by kills (hint: extract to arrays, sort)
-3. Remove all players with zero kills
-
-### Упражнение 4: Position History
-
-Create a class that stores the last 10 positions of a player (ring buffer using an array). It should:
-1. Add a new position (dropping the oldest if at capacity)
-2. Return the total distance traveled across all stored positions
-3. Return the average position
-
-### Упражнение 5: Two-Way Lookup
-
-Create a class with two maps that allows lookup in both directions: given a player UID, find their name; given a name, find their UID. Implement `Register(uid, name)`, `GetNameByUID(uid)`, `GetUIDByName(name)`, and `Unregister(uid)`.
+### Упражнение 5: Двустороний поиск
+Создайте класс с двумя словарями, позволяющий поиск в обоих направлениях: по UID игрока найти имя; по имени найти UID. Реализуйте `Register(uid, name)`, `GetNameByUID(uid)`, `GetUIDByName(name)` и `Unregister(uid)`.
 
 ---
 
-## Итоги
+## Итого
 
+| Коллекция | Тип | Применение | Ключевое отличие |
+|-----------|-----|------------|------------------|
+| Статический массив | `int arr[5]` | Фиксированный размер, известный на этапе компиляции | Без изменения размера, без методов |
+| Динамический массив | `array<T>` | Универсальный упорядоченный список | Богатый API, изменяемый размер |
+| Словарь | `map<K,V>` | Поиск по ключу-значению | `Set()` для вставки/обновления |
+| Множество | `set<T>` | Принадлежность по значению | Проще массива, менее распространён |
 
-| Collection | Type | Use Case | Key Difference |
-|-----------|------|----------|----------------|
-| Static array | `int arr[5]` | Fixed-size, compile-time known | No resize, no methods |
-| Dynamic array | `array<T>` | General-purpose ordered list | Rich API, resizable |
-| Map | `map<K,V>` | Key-value lookup | `Set()` to insert/update |
-| Set | `set<T>` | Value-based membership | Simpler than array, less common |
-
-| Operation | Method | Notes |
-|-----------|--------|-------|
-| Add to end | `Insert(val)` | Returns index |
-| Add at position | `InsertAt(val, idx)` | Shifts right |
-| Remove fast | `Remove(idx)` | Swaps with last, **unordered** |
-| Remove ordered | `RemoveOrdered(idx)` | Shifts left, preserves order |
-| Remove by value | `RemoveItem(val)` | Finds then removes (ordered) |
-| Find | `Find(val)` | Returns index or -1 |
-| Count | `Count()` | Number of elements |
-| Bounds check | `IsValidIndex(idx)` | Returns bool |
-| Sort | `Sort()` / `Sort(true)` | Ascending / descending |
-| Random | `GetRandomElement()` | Returns random value |
-| foreach | `foreach (T val : arr)` | Value only |
-| foreach indexed | `foreach (int i, T val : arr)` | Index + value |
+| Операция | Метод | Примечания |
+|----------|-------|------------|
+| Добавить в конец | `Insert(val)` | Возвращает индекс |
+| Добавить по позиции | `InsertAt(val, idx)` | Сдвигает вправо |
+| Быстрое удаление | `Remove(idx)` | Меняет с последним, **неупорядоченное** |
+| Упорядоченное удаление | `RemoveOrdered(idx)` | Сдвигает влево, сохраняет порядок |
+| Удаление по значению | `RemoveItem(val)` | Находит и удаляет (упорядоченно) |
+| Поиск | `Find(val)` | Возвращает индекс или -1 |
+| Количество | `Count()` | Число элементов |
+| Проверка границ | `IsValidIndex(idx)` | Возвращает bool |
+| Сортировка | `Sort()` / `Sort(true)` | По возрастанию / по убыванию |
+| Случайный | `GetRandomElement()` | Возвращает случайное значение |
+| foreach | `foreach (T val : arr)` | Только значение |
+| foreach с индексом | `foreach (int i, T val : arr)` | Индекс + значение |
 
 ---
 
-[Главная](../../README.md) | [<< Предыдущая: Variables & Types](01-variables-types.md) | **Arrays, Maps & Sets** | [Следующая: Classes & Inheritance >>](03-classes-inheritance.md)
+[Главная](../../README.md) | [<< Назад: Переменные и типы](01-variables-types.md) | **Массивы, словари и множества** | [Далее: Классы и наследование >>](03-classes-inheritance.md)

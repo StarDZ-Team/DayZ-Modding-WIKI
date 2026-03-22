@@ -154,7 +154,7 @@ class CfgModels
 | `axis` | Named selection in the Memory LOD defining the rotation axis (two vertices). |
 | `memory` | Set to `1` to indicate the axis is defined in the Memory LOD. |
 | `minValor` / `maxValor` | Animation phase range. Typically `0` to `1`. |
-| `angle0` / `angle1` | Rotation angles in **radians**. `angle1` defines how far the door opens. Use negative values to reverse direction. A value of `1.4` radians is approximately 80 degrees. |
+| `angle0` / `angle1` | Rotation angles in **radians**. `angle1` defines how far the door opens. Use negative values to reverse direction. A value of `1.4` radians is approximatély 80 degrees. |
 
 #### Verifying in Buldozer
 
@@ -346,7 +346,7 @@ By default, a model's bounding sphere is sized to contain the entire object. Whe
 - **Açãos stop working** -- ray-casting for door interactions fails from certain angles.
 - **Ballistics ignore the door** -- bullets pass through geometry that lies outside the bounding sphere.
 
-**Solution:** Create a named selection in the Memory LOD that covers the larger area the building occupies when doors are fully open. Then add a `bounding` parameter to your game config class:
+**Solution:** Create a named selection in the Memory LOD that covers the larger área the building occupies when doors are fully open. Then add a `bounding` parameter to your game config class:
 
 ```cpp
 class land_modelname: HouseNoDestruct
@@ -385,7 +385,7 @@ Here is the complete set of named selections for a ladder:
 | `ladderN_middle_left` | Defines a middle entry/exit point (left side). Can contain multiple vertices if the ladder passes multiple floors. |
 | `ladderN_middle_right` | Defines a middle entry/exit point (right side). Can contain multiple vertices for multi-floor ladders. |
 | `ladderN_top_front` | Defines the upper exit step -- where the player finishes climbing (front exit type). |
-| `ladderN_top_left` | Defines the upper exit direction for wall-mounted ladders (left side). Must be at least **5 ladder steps higher** than the floor (approximately the height of a standing player on a ladder). |
+| `ladderN_top_left` | Defines the upper exit direction for wall-mounted ladders (left side). Must be at least **5 ladder steps higher** than the floor (approximatély the height of a standing player on a ladder). |
 | `ladderN_top_right` | Defines the upper exit direction for wall-mounted ladders (right side). Same height requirement as `top_left`. |
 | `ladderN` | Defines where the "Enter Ladder" action widget appears to the player. |
 | `ladderN_dir` | Defines the direction from which the ladder can be climbed (approach direction). |
@@ -396,7 +396,7 @@ Each of these is a vertex (or set of vertices for middle points) that you place 
 
 ### View Geometry Requirements
 
-In addition to the Memory LOD setup, you must create a **View Geometry** component with a named selection called `ladderN`. This selection must cover the **entire volume** of the ladder -- the full height and width of the climbable area. Without this View Geometry selection, the ladder will not function correctly.
+In addition to the Memory LOD setup, you must create a **View Geometry** component with a named selection called `ladderN`. This selection must cover the **entire volume** of the ladder -- the full height and width of the climbable área. Without this View Geometry selection, the ladder will not function correctly.
 
 ### Ladder Dimensions
 
@@ -437,7 +437,7 @@ Buildings with doors and ladders must include several LODs, each serving a disti
 
 ### Named Selection Consistency
 
-A critical requirement is that **named selections must be consistent across all LODs** that reference them. If a selection is called `door1` in the Resolution LOD, it must also be `door1` in the Geometry, Fire Geometry, and View Geometry LODs. Mismatched names between LODs will cause the door or ladder to fail silently.
+A crítical requirement is that **named selections must be consistent across all LODs** that reference them. If a selection is called `door1` in the Resolution LOD, it must also be `door1` in the Geometry, Fire Geometry, and View Geometry LODs. Mismatched names between LODs will cause the door or ladder to fail silently.
 
 ---
 

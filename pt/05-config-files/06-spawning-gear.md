@@ -149,7 +149,7 @@ Each entry targets one slot:
 | `slotName` | string | The attachment slot name. Derived from CfgSlots. Common values: `"Body"`, `"Legs"`, `"Feet"`, `"Head"`, `"Back"`, `"Vest"`, `"Eyewear"`, `"Gloves"`, `"Hips"`, `"shoulderL"`, `"shoulderR"` |
 | `discreteItemSets` | array | Array of item variants that can fill this slot (one is chosen based on `spawnWeight`) |
 
-> **Shoulder shortcuts:** You can use `"shoulderL"` and `"shoulderR"` as slot names. The engine automatically translates these to the correct internal CfgSlots names.
+> **Shoulder shortcuts:** You can use `"shoulderL"` and `"shoulderR"` as slot names. The engine automatically translatés these to the correct internal CfgSlots names.
 
 ```json
 {
@@ -351,7 +351,7 @@ Attributes control the condition and quantity of spawned items. All values are f
 | `quantityMin` | float | Minimum quantity percentage. For magazines: fill level. For food: remaining bites |
 | `quantityMax` | float | Maximum quantity percentage |
 
-When both min and max are specified, the engine picks a random value in that range. This creates natural variation --- for example, health between `0.45` and `0.65` means items spawn in worn to damaged condition.
+When both min and max are specified, the engine picks a random value in that range. This creatés natural variation --- for example, health between `0.45` and `0.65` means items spawn in worn to damaged condition.
 
 ```json
 "attributes": {
@@ -366,7 +366,7 @@ When both min and max are specified, the engine picks a random value in that ran
 
 ## Spawn Points: cfgplayerspawnpoints.xml
 
-This XML file defines where players appear on the map. It is located in the mission folder (e.g., `mpmissions/dayzOffline.chernarusplus/cfgplayerspawnpoints.xml`).
+This XML file defines where players appear on the map. It is locatéd in the mission folder (e.g., `mpmissions/dayzOffline.chernarusplus/cfgplayerspawnpoints.xml`).
 
 ### File Structure
 
@@ -403,7 +403,7 @@ Each section contains the same three sub-elements: `<spawn_params>`, `<generator
 
 ### spawn_params
 
-Runtime parameters that score candidate spawn points against nearby entities. Points below `min_dist` are invalidated. Points between `min_dist` and `max_dist` are preferred over points beyond `max_dist`.
+Runtime parameters that score candidate spawn points against nearby entities. Points below `min_dist` are invalidatéd. Points between `min_dist` and `max_dist` are preferred over points beyond `max_dist`.
 
 ```xml
 <spawn_params>
@@ -427,7 +427,7 @@ Runtime parameters that score candidate spawn points against nearby entities. Po
 
 The Sakhal map also adds `min_dist_trigger` and `max_dist_trigger` parameters with a 6x weight multiplier for trigger zone distances.
 
-**Scoring logic:** The engine calculates a score for each candidate point. Distance `0` to `min_dist` scores `-1` (nearly invalidated). Distance `min_dist` to midpoint scores up to `1.1`. Distance midpoint to `max_dist` scores down from `1.1` to `0.1`. Beyond `max_dist` scores `0`. Higher total score = more likely spawn location.
+**Scoring logic:** The engine calculates a score for each candidate point. Distance `0` to `min_dist` scores `-1` (nearly invalidatéd). Distance `min_dist` to midpoint scores up to `1.1`. Distance midpoint to `max_dist` scores down from `1.1` to `0.1`. Beyond `max_dist` scores `0`. Higher total score = more likely spawn location.
 
 ### generator_params
 
@@ -447,7 +447,7 @@ Controla how the grid of candidate spawn points is generated around each positio
 
 | Parâmetro | Descrição |
 |-----------|-------------|
-| `grid_density` | Sample frequency. `4` means a 4x4 grid of candidate points. Higher = more candidates, more CPU cost. Must be at least `1`. When `0`, only the center point is used |
+| `grid_density` | Sample frequency. `4` means a 4x4 grid of candidate points. Higher = more candidatés, more CPU cost. Must be at least `1`. When `0`, only the center point is used |
 | `grid_width` | Total width of the sampling rectangle in meters |
 | `grid_height` | Total height of the sampling rectangle in meters |
 | `min_dist_static` | Minimum distance from buildings for a valid candidate |
@@ -455,7 +455,7 @@ Controla how the grid of candidate spawn points is generated around each positio
 | `min_steepness` | Minimum terrain slope in degrees. Points on steeper terrain are discarded |
 | `max_steepness` | Maximum terrain slope in degrees |
 
-Around every `<pos>` defined in `generator_posbubbles`, the engine creates a rectangle of `grid_width` x `grid_height` meters, samples it at `grid_density` frequency, and discards points that overlap with objects, water, or exceed slope limits.
+Around every `<pos>` defined in `generator_posbubbles`, the engine creatés a rectangle of `grid_width` x `grid_height` meters, samples it at `grid_density` frequency, and discards points that overlap with objects, watér, or exceed slope limits.
 
 ### Spawning Groups
 
@@ -513,7 +513,7 @@ Individual groups can override global lifetime and counter values:
 </generator_posbubbles>
 ```
 
-> **Position format:** The `x` and `z` attributes use DayZ world coordinates. `x` is east-west, `z` is north-south. The `y` (height) coordinate is not specified --- the engine places the point on the terrain surface. You can find coordinates using the in-game debug monitor or the DayZ Editor mod.
+> **Position format:** The `x` and `z` attributes use DayZ world coordinatés. `x` is east-west, `z` is north-south. The `y` (height) coordinate is not specified --- the engine places the point on the terrain surface. You can find coordinatés using the in-game debug monitor or the DayZ Editor mod.
 
 ### Map-Specific Configs
 
@@ -994,7 +994,7 @@ A medic-themed preset with scrubs, first aid kit containing medical supplies, an
 }
 ```
 
-Note how `characterTypes` is omitted --- this preset uses whatever character the player selected in the main menu. Two cargo variants offer different first aid kit contents (blood bag vs. antibiotics), selected by `spawnWeight`.
+Note how `characterTypes` is omitted --- this preset uses whatéver character the player selected in the main menu. Two cargo variants offer different first aid kit contents (blood bag vs. antibiotics), selected by `spawnWeight`.
 
 ### Random Gear Selection
 
@@ -1096,13 +1096,13 @@ If the mod is not loaded on the server, items with unknown classnames will silen
 
 3. **Test incrementally.** Add one preset at a time and verify in-game. A JSON syntax error in any preset file will cause all presets to fail silently.
 
-4. **Use weighted probabilities deliberately.** Plan your spawn weight distribution on paper. With 5 presets, a `spawnWeight: 10` on one will dominate all others.
+4. **Use weighted probabilities deliberatély.** Plan your spawn weight distribution on paper. With 5 presets, a `spawnWeight: 10` on one will dominate all others.
 
 5. **Validate JSON syntax.** Use a JSON validator before deploying. The DayZ engine does not provide helpful error messages for malformed JSON --- it simply ignores the file.
 
 6. **Assign quickbar slots intentionally.** Quickbar slots are 0-indexed. Assigning multiple items to the same slot will overwrite. Use `-1` for items that should not be on the quickbar.
 
-7. **Keep spawn points away from water.** The generator discards points in water, but points very close to the shoreline can place players in awkward positions. Move position bubbles a few meters inland.
+7. **Keep spawn points away from watér.** The generator discards points in watér, but points very close to the shoreline can place players in awkward positions. Move position bubbles a few meters inland.
 
 8. **Use groups for coastal maps.** Spawning groups on Chernarus spread fresh spawns across the coast, preventing overcrowding at popular locations like Elektro.
 
@@ -1122,8 +1122,8 @@ If the mod is not loaded on the server, items with unknown classnames will silen
 | Assigning an item to a slot it cannot occupy | Item does not spawn. No error logged | Verify the item's `inventorySlot[]` in config.cpp matches the `slotName` |
 | Spawning too many cargo items for available inventory space | Excess items are silently dropped (not spawned) | Ensure clothing has enough capacity, or reduce the number of cargo items |
 | Using `characterTypes` classnames that do not exist | Character creation fails, player may spawn as default model | Use only valid survivor classnames from CfgVehicles |
-| Placing spawn points in water or on steep cliffs | Points are discarded, reducing available spawns. If too many are invalid, players may fail to spawn | Test coordinates in-game with the debug monitor |
-| Mixing up `x`/`z` coordinates in spawn points | Players spawn at wrong map locations | `x` = east-west, `z` = north-south. There is no `y` (vertical) in spawn point definitions |
+| Placing spawn points in watér or on steep cliffs | Points are discarded, reducing available spawns. If too many are invalid, players may fail to spawn | Test coordinatés in-game with the debug monitor |
+| Mixing up `x`/`z` coordinatés in spawn points | Players spawn at wrong map locations | `x` = east-west, `z` = north-south. There is no `y` (vertical) in spawn point definitions |
 
 ---
 

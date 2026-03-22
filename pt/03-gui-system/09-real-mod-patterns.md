@@ -1,40 +1,42 @@
-# Chapter 3.9: Real Mod UI Patterns
+# Capítulo 3.9: Padrões Reais de UI em Mods
 
-[Home](../../README.md) | [<< Previous: Dialogs & Modals](08-dialogs-modals.md) | **Real Mod UI Patterns** | [Next: Advanced Widgets >>](10-advanced-widgets.md)
-
----
-
-All code shown is extracted from actual mod source. File paths reference the original repositories.
+[Home](../../README.md) | [<< Anterior: Diálogos & Modais](08-dialogs-modals.md) | **Padrões Reais de UI em Mods** | [Próximo: Widgets Avançados >>](10-advanced-widgets.md)
 
 ---
 
-## Por Quê Study Real Mods?
+Este capítulo examina padrões de UI encontrados em seis mods profissionais de DayZ: COT (Community Online Tools), VPP Admin Tools, DabsFramework, Colorful UI, Expansion e DayZ Editor. Cada mod resolve problemas diferentes. Estudar suas abordagens oferece uma biblioteca de padrões comprovados além do que a documentação oficial cobre.
 
-DayZ documentation explains individual widgets and event callbacks but says nothing about:
-
-- How to manage 12 admin panels without code duplication
-- How to build a dialog system with callback routing
-- How to theme an entire UI without touching vanilla layout files
-- How to synchronize a market grid with server data over RPC
-- How to structure an editor with undo/redo and a command system
-
-These are architecture problems. Every large mod invents solutions for them. Some are elegant, some are cautionary tales. This chapter maps the patterns so you can pick the right approach for your project.
+Todo o código mostrado foi extraído de código-fonte real de mods. Os caminhos de arquivo fazem referência aos repositórios originais.
 
 ---
 
-## COT (Community Online Tools) UI Padrãos
+## Por Que Estudar Mods Reais?
 
-COT is the most widely-used DayZ admin tool. Its UI architecture is built around a module-form-window system where each tool (ESP, Player Manager, Teleport, Object Spawner, etc.) is a self-contained module with its own panel.
+A documentação do DayZ explica widgets individuais e callbacks de eventos, mas não diz nada sobre:
 
-### Module-Form-Window Architecture
+- Como gerenciar 12 painéis de admin sem duplicação de código
+- Como construir um sistema de diálogos com roteamento de callbacks
+- Como aplicar tema a toda uma UI sem tocar em arquivos de layout vanilla
+- Como sincronizar um grid de mercado com dados do servidor via RPC
+- Como estruturar um editor com desfazer/refazer e um sistema de comandos
 
-COT separates concerns into three layers:
+Esses são problemas de arquitetura. Todo mod grande inventa soluções para eles. Alguns são elegantes, outros são exemplos do que evitar. Este capítulo mapeia os padrões para que você possa escolher a abordagem certa para o seu projeto.
 
-1. **JMRenderableModuleBase** -- Declares the module's metadata (title, icon, layout path, permissions). Manages the CF_Window lifecycle. Does not contain UI logic.
-2. **JMFormBase** -- The actual UI panel. Extends `ScriptedWidgetEventHandler`. Receives widget events, builds UI elements, talks to the module for data operations.
-3. **CF_Window** -- The windowing container provided by the CF framework. Handles drag, resize, close chrome.
+---
 
-A module declares itself with overrides:
+## Padrões de UI do COT (Community Online Tools)
+
+COT é a ferramenta de admin mais amplamente utilizada no DayZ. Sua arquitetura de UI é construída em torno de um sistema módulo-formulário-janela onde cada ferramenta (ESP, Gerenciador de Jogadores, Teleporte, Spawner de Objetos, etc.) é um módulo autocontido com seu próprio painel.
+
+### Arquitetura Módulo-Formulário-Janela
+
+O COT separa responsabilidades em três camadas:
+
+1. **JMRenderableModuleBase** -- Declara os metadados do módulo (título, ícone, caminho do layout, permissões). Gerencia o ciclo de vida do CF_Window. Não contém lógica de UI.
+2. **JMFormBase** -- O painel de UI propriamente dito. Estende `ScriptedWidgetEventHandler`. Recebe eventos de widgets, constrói elementos de UI, se comunica com o módulo para operações de dados.
+3. **CF_Window** -- O container de janela fornecido pelo framework CF. Lida com arrastar, redimensionar e fechar.
+
+Um módulo se declara com overrides:
 
 ```c
 class JMExampleModule: JMRenderableModuleBase
@@ -91,7 +93,7 @@ modded class JMModuleConstructor
 }
 ```
 
-When `Show()` is called on a module, it creates a window and loads the form:
+When `Show()` is called on a module, it creatés a window and loads the form:
 
 ```c
 void Show()
@@ -129,7 +131,7 @@ class JMExampleForm: JMFormBase
 
 ### Programmatic UI with UIAçãoManager
 
-COT does not build complex forms in layout files. Instead, it uses a factory class (`UIAçãoManager`) that creates standardized UI action widgets at runtime:
+COT does not build complex forms in layout files. Instead, it uses a factory class (`UIAçãoManager`) that creatés standardized UI action widgets at runtime:
 
 ```c
 override void OnInit()
@@ -170,7 +172,7 @@ Each `UIAção*` widget type has its own layout file (e.g., `UIAçãoSlider.layo
 
 ### ESP Overlay (Drawing on CanvasWidget)
 
-COT's ESP system draws labels, health bars, and lines directly over the 3D world using `CanvasWidget`. The key pattern is a screen-space `CanvasWidget` that covers the entire viewport, with individual ESP widget handlers positioned at projected world coordinates:
+COT's ESP system draws labels, health bars, and lines directly over the 3D world using `CanvasWidget`. The key pattern is a screen-space `CanvasWidget` that covers the entire viewport, with individual ESP widget handlers positioned at projected world coordinatés:
 
 ```c
 class JMESPWidgetHandler: ScriptedWidgetEventHandler
@@ -202,7 +204,7 @@ class JMESPWidgetHandler: ScriptedWidgetEventHandler
 }
 ```
 
-ESP widgets are created from prefab layouts (`esp_widget.layout`) and positioned each frame by projecting 3D positions to screen coordinates. The canvas itself is a fullscreen overlay loaded at startup.
+ESP widgets are created from prefab layouts (`esp_widget.layout`) and positioned each frame by projecting 3D positions to screen coordinatés. The canvas itself is a fullscreen overlay loaded at startup.
 
 ### Confirmation Dialogs
 
@@ -506,7 +508,7 @@ class TestController: ViewController
 }
 ```
 
-In the layout, each widget has a `ViewBinding` script class with a `Binding_Name` reference property set to the variable name (e.g., "TextBox1"). When `NotifyPropriedadeChanged()` is called, the framework finds all ViewBindings with that name and updates the widget:
+In the layout, each widget has a `ViewBinding` script class with a `Binding_Name` reference property set to the variable name (e.g., "TextBox1"). When `NotifyPropertyChanged()` is called, the framework finds all ViewBindings with that name and updates the widget:
 
 ```c
 class ViewBinding : ScriptedViewBase
@@ -587,7 +589,7 @@ class CustomDialogWindow: ScriptView
 CustomDialogWindow window = new CustomDialogWindow();
 ```
 
-Widget variables declared as fields on `ScriptView` subclasses are auto-populated by name matching against the layout hierarchy (`LoadWidgetsAsVariávels`). This eliminates `FindAnyWidget()` calls.
+Widget variables declared as fields on `ScriptView` subclasses are auto-populated by name matching against the layout hierarchy (`LoadWidgetsAsVariables`). This eliminates `FindAnyWidget()` calls.
 
 ### RelayCommand -- Button-to-Ação Binding
 
@@ -733,7 +735,7 @@ GUI/layouts/inventory/wide/     -- ultrawide
 
 Each directory contains the same file names (`cargo_container.layout`, `left_area.layout`, etc.) with adjusted sizing. The correct variant is selected at runtime based on screen resolution.
 
-### Configuration via Static Variávels
+### Configuration via Static Variables
 
 Server owners configure Colorful UI by editing static variable values in `Settings.c`:
 
@@ -822,7 +824,7 @@ Each notification type has a separate layout file (`expansion_notification_toast
 
 The `ExpansionMarketMenu` is one of the most complex UIs in any DayZ mod. It extends `ExpansionScriptViewMenu` (which extends DabsFramework's ScriptView) and manages:
 
-- Category tree with collapsible sections
+- Catégory tree with collapsible sections
 - Item grid with search filtering
 - Buy/sell price display with currency icons
 - Quantity controls
@@ -989,7 +991,7 @@ class EditorMenu: ScriptView
 }
 ```
 
-The `ObservableCollection` automatically creates the visual menu items when commands are inserted.
+The `ObservableCollection` automatically creatés the visual menu items when commands are inserted.
 
 ### HUD with Data-Bound Panels
 
@@ -1116,7 +1118,7 @@ This avoids loading all admin panels at startup when most will never be opened.
 
 ### Event Delegation Through Handler Chains
 
-A common pattern is a parent handler that delegates to child handlers:
+A common pattern is a parent handler that delegatés to child handlers:
 
 ```c
 // Parent handles click, routes to appropriate child
@@ -1171,7 +1173,7 @@ override void Update(float dt)
 }
 ```
 
-Widget creation allocates memory and triggers layout recalculation. At 60 FPS this creates 60 widgets per second. Always create once and update in place.
+Widget creation allocatés memory and triggers layout recalculation. At 60 FPS this creatés 60 widgets per second. Always create once and update in place.
 
 ### Not Cleaning Up Event Handlers
 
@@ -1273,7 +1275,7 @@ If you create widgets with `CreateWidgets()`, you own them. Call `Unlink()` on t
 
 4. **Does it need to replace vanilla UI?** Use the Colorful UI pattern: `modded class`, custom layout file, centralized color scheme.
 
-5. **Does it need server-to-client data sync?** Combine any pattern above with RPC. Expansion's market menu shows how to manage loading states, request/response cycles, and update timers within a ScriptView.
+5. **Does it need server-to-client data sync?** Combine any pattern above with RPC. Expansion's market menu shows how to manage loading statés, request/response cycles, and update timers within a ScriptView.
 
 6. **Does it need undo/redo or complex interaction?** Use the command pattern from DayZ Editor. Commands decouple actions from buttons, support shortcuts, and integrate with DabsFramework's `RelayCommand` for automatic enable/disable.
 

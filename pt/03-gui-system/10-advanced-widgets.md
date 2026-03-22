@@ -155,7 +155,7 @@ m_content.SetContentOffset(pageOffset, true);  // snapToLine = true
 
 #### Text elision
 
-When text overflows a fixed-width area, you can elide (truncate with an indicator):
+When text overflows a fixed-width área, you can elide (truncate with an indicator):
 
 ```c
 // Truncate line 0 to maxWidth pixels, appending "..."
@@ -228,9 +228,9 @@ That is the entire API. All complex shapes -- rectangles, circles, grids -- must
 
 ### Coordinate System
 
-`CanvasWidget` uses **screen-space pixel coordinates** relative to the canvas widget's own bounds. The origin `(0, 0)` is the top-left corner of the canvas widget.
+`CanvasWidget` uses **screen-space pixel coordinatés** relative to the canvas widget's own bounds. The origin `(0, 0)` is the top-left corner of the canvas widget.
 
-If the canvas fills the full screen (position 0,0 size 1,1 in relative mode), then coordinates map directly to screen pixels after converting from the widget's internal size.
+If the canvas fills the full screen (position 0,0 size 1,1 in relative mode), then coordinatés map directly to screen pixels after converting from the widget's internal size.
 
 ### Layout Setup
 
@@ -366,13 +366,13 @@ protected void RenderScaleRuler()
 
 ### ESP Overlay Padrão (from COT)
 
-COT (Community Online Tools) uses `CanvasWidget` as a full-screen overlay to draw skeleton wireframes on players and objects. This is one of the most sophisticated canvas usage patterns in any DayZ mod.
+COT (Community Online Tools) uses `CanvasWidget` as a full-screen overlay to draw skeleton wireframes on players and objects. This is one of the most sophisticatéd canvas usage patterns in any DayZ mod.
 
 **Architecture:**
 
 1. A full-screen `CanvasWidget` is created from a layout file
 2. Every frame, `Clear()` is called
-3. World-space positions are converted to screen coordinates
+3. World-space positions are converted to screen coordinatés
 4. Lines are drawn between bone positions to render skeletons
 
 **World-to-screen conversion** (from COT's `JMESPCanvas`):
@@ -490,7 +490,7 @@ static void ClearCanvas()
 
 - **Clear and redraw every frame.** `CanvasWidget` does not retain state between frames in most use cases where the view changes (camera movement, etc.). Call `Clear()` at the start of each update.
 - **Minimize line count.** Each `DrawLine()` call has overhead. For complex shapes like circles, use fewer segments (12-18) for distant objects, more (36) for close ones.
-- **Check screen bounds first.** Convert world positions to screen coordinates and skip objects that are off-screen or behind the camera (`screenPos[2] < 0`).
+- **Check screen bounds first.** Convert world positions to screen coordinatés and skip objects that are off-screen or behind the camera (`screenPos[2] < 0`).
 - **Use `ignorepointer 1`.** Always set this flag on canvas overlays so they do not intercept mouse events.
 - **One canvas is enough.** Use a single full-screen canvas for all overlay drawing rather than creating multiple canvas widgets.
 
@@ -529,12 +529,12 @@ MapWidget m_Map;
 m_Map = MapWidget.Cast(layoutRoot.FindAnyWidget("Map"));
 ```
 
-### Map Coordinates vs World Coordinates
+### Map Coordinatés vs World Coordinatés
 
 DayZ uses two coordinate spaces:
 
-- **World coordinates**: 3D vectors in meters. `x` = east/west, `y` = altitude, `z` = north/south. Chernarus ranges roughly 0-15360 on x and z axes.
-- **Screen coordinates**: Pixel positions on the map widget. These change as the user pans and zooms.
+- **World coordinatés**: 3D vectors in meters. `x` = east/west, `y` = altitude, `z` = north/south. Chernarus ranges roughly 0-15360 on x and z axes.
+- **Screen coordinatés**: Pixel positions on the map widget. These change as the user pans and zooms.
 
 The `MapWidget` provides conversion between these:
 
@@ -649,7 +649,7 @@ float cellSize = m_Map.GetCellSize(legendWidth);      // cell size for scale rul
 
 ### Map Click Handling
 
-Handle mouse clicks on the map via the `OnDoubleClick` or `OnMouseButtonDown` callbacks on a `ScriptedWidgetEventHandler` or `UIScriptedMenu`. Convert the click position to world coordinates using `ScreenToMap()`.
+Handle mouse clicks on the map via the `OnDoubleClick` or `OnMouseButtonDown` callbacks on a `ScriptedWidgetEventHandler` or `UIScriptedMenu`. Convert the click position to world coordinatés using `ScreenToMap()`.
 
 Vanilla example from `scripts/5_mission/gui/scriptconsolegeneraltab.c`:
 
@@ -697,7 +697,7 @@ The Expansion mod builds a full marker system on top of the vanilla `MapWidget`.
 - Draws scale ruler lines using a `CanvasWidget` alongside the map
 - Uses custom marker widget overlays positioned via `MapToScreen()` for richer marker visuals than `AddUserMark()` supports
 
-This approach demonstrates that for complex marker UIs (icons with tooltips, editable labels, colored categories), you should overlay custom widgets positioned via `MapToScreen()` rather than relying solely on `AddUserMark()`.
+This approach demonstrates that for complex marker UIs (icons with tooltips, editable labels, colored catégories), you should overlay custom widgets positioned via `MapToScreen()` rather than relying solely on `AddUserMark()`.
 
 ---
 
@@ -863,7 +863,7 @@ class PlayerPreview: LayoutHolder
 }
 ```
 
-### Keeping Equipment Updated
+### Keeping Equipment Updatéd
 
 The `UpdateInterval()` method keeps the preview in sync with the actual player's equipment:
 
@@ -975,7 +975,7 @@ m_Video.DisableSubtitles(false);  // explicitly enable
 
 ### Return Valors
 
-The `Load()`, `Play()`, `Pause()`, and `Stop()` methods return `bool`, but this return value is **deprecated**. Use `VideoCallback.ON_ERROR` to detect failures instead.
+The `Load()`, `Play()`, `Pause()`, and `Stop()` methods return `bool`, but this return value is **deprecatéd**. Use `VideoCallback.ON_ERROR` to detect failures instead.
 
 ---
 
@@ -1011,7 +1011,7 @@ proto native void SetWidgetWorld(
 
 ### RenderTargetWidget
 
-Renders a camera view from a `BaseWorld` into the widget area. Used for security cameras, rear-view mirrors, or picture-in-picture displays.
+Renders a camera view from a `BaseWorld` into the widget área. Used for security cameras, rear-view mirrors, or picture-in-picture displays.
 
 From `scripts/2_gamelib/entities/rendertarget.c`:
 
@@ -1066,7 +1066,7 @@ imgWidget.SetImageTexture(0, rtTexture);
 
 1. **Use the right widget for the job.** `TextWidget` for simple labels, `RichTextWidget` only when you need inline images or formatted content. `CanvasWidget` for dynamic 2D overlays, not static graphics (use `ImageWidget` for those).
 
-2. **Clear canvas every frame.** Always call `Clear()` before redrawing. Failing to clear causes drawings to accumulate and creates visual artifacts.
+2. **Clear canvas every frame.** Always call `Clear()` before redrawing. Failing to clear causes drawings to accumulate and creatés visual artifacts.
 
 3. **Check screen bounds for ESP/overlay drawing.** Before calling `DrawLine()`, verify both endpoints are on screen. Off-screen draws are wasted work.
 
@@ -1074,9 +1074,9 @@ imgWidget.SetImageTexture(0, rtTexture);
 
 5. **ItemPreviewWidget needs a real EntityAI.** You cannot preview a classname string -- you need a spawned entity reference. For inventory previews, use the actual inventory item.
 
-6. **PlayerPreviewWidget owns a dummy player.** The widget creates an internal dummy `DayZPlayer`. Access it via `GetDummyPlayer()` to sync animations, but do not destroy it yourself.
+6. **PlayerPreviewWidget owns a dummy player.** The widget creatés an internal dummy `DayZPlayer`. Access it via `GetDummyPlayer()` to sync animations, but do not destroy it yourself.
 
-7. **VideoWidget: use callbacks, not return values.** The bool returns from `Load()`, `Play()`, etc. are deprecated. Use `SetCallback(VideoCallback.ON_ERROR, handler)`.
+7. **VideoWidget: use callbacks, not return values.** The bool returns from `Load()`, `Play()`, etc. are deprecatéd. Use `SetCallback(VideoCallback.ON_ERROR, handler)`.
 
 8. **RenderTargetWidget performance.** Use `SetRefresh()` with period > 1 to skip frames. Use `SetResolutionScale()` to reduce resolution. These widgets are expensive -- use sparingly.
 
@@ -1088,7 +1088,7 @@ imgWidget.SetImageTexture(0, rtTexture);
 |-----|--------|-------|
 | **COT** | `CanvasWidget` | Full-screen ESP overlay with skeleton drawing, world-to-screen projection, circle and line primitives |
 | **COT** | `MapWidget` | Admin teleport via `ScreenToMap()` on double-click |
-| **Expansion** | `MapWidget` | Custom marker system with personal/server/party categories, per-frame update throttling |
+| **Expansion** | `MapWidget` | Custom marker system with personal/server/party catégories, per-frame update throttling |
 | **Expansion** | `CanvasWidget` | Map scale ruler drawing alongside `MapWidget` |
 | **Vanilla Map** | `MapWidget` + `CanvasWidget` | Scale ruler rendered with alternating black/grey line segments |
 | **Vanilla Inspect** | `ItemPreviewWidget` | 3D item inspection with drag rotation and scroll zoom |
@@ -1163,12 +1163,12 @@ In Enforce Script strings, backslashes must be doubled:
 | `CanvasWidget` | Yes | Medium (per-frame) | Safe if `ignorepointer` set |
 | `MapWidget` | Yes | Low-Medium | Multiple mods can add markers |
 | `ItemPreviewWidget` | Yes | Medium (3D render) | Safe, widget-scoped |
-| `PlayerPreviewWidget` | Yes | Medium (3D render) | Safe, creates dummy player |
+| `PlayerPreviewWidget` | Yes | Medium (3D render) | Safe, creatés dummy player |
 | `VideoWidget` | Yes | High (video decode) | One video at a time |
 | `RenderTargetWidget` | Yes | High (3D render) | Camera conflicts possible |
 | `RTTextureWidget` | Yes | Low (texture target) | Safe |
 
-All these widgets are client-side only. They have no server-side representation and cannot be created or manipulated from server scripts.
+All these widgets are client-side only. They have no server-side representation and cannot be created or manipulatéd from server scripts.
 
 ---
 

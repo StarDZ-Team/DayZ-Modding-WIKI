@@ -4,21 +4,21 @@
 
 ---
 
-## Sumario
+## Sumário
 
 - [Visao Geral](#visao-geral)
-- [Localizacao do Arquivo](#localizacao-do-arquivo)
+- [Localização do Arquivo](#localização-do-arquivo)
 - [Estrutura XML Completa](#estrutura-xml-completa)
 - [Bloco Actions](#bloco-actions)
 - [Bloco Sorting](#bloco-sorting)
-- [Bloco Preset (Keybindings Padrao)](#bloco-preset-keybindings-padrao)
+- [Bloco Preset (Keybindings Padrão)](#bloco-preset-keybindings-padrão)
 - [Combos com Modificadores](#combos-com-modificadores)
 - [Inputs Ocultos](#inputs-ocultos)
-- [Multiplas Teclas Padrao](#multiplas-teclas-padrao)
+- [Multiplas Teclas Padrão](#múltiplas-teclas-padrão)
 - [Acessando Inputs no Script](#acessando-inputs-no-script)
-- [Referencia de Metodos de Input](#referencia-de-metodos-de-input)
-- [Suprimindo e Desabilitando Inputs](#suprimindo-e-desabilitando-inputs)
-- [Referencia de Nomes de Teclas](#referencia-de-nomes-de-teclas)
+- [Referência de Métodos de Input](#referência-de-métodos-de-input)
+- [Suprimindo é Desabilitando Inputs](#suprimindo-e-desabilitando-inputs)
+- [Referência de Nomes de Teclas](#referência-de-nomes-de-teclas)
 - [Exemplos Reais](#exemplos-reais)
 - [Erros Comuns](#erros-comuns)
 
@@ -26,15 +26,15 @@
 
 ## Visao Geral
 
-Quando seu mod precisa que o jogador pressione uma tecla --- abrindo um menu, alternando uma funcionalidade, comandando uma unidade de IA --- voce registra uma acao de input personalizada no `inputs.xml`. O motor le este arquivo na inicializacao e integra suas acoes ao sistema universal de input. Jogadores veem seus keybindings no menu Settings > Controls do jogo, agrupados sob um cabecalho que voce define.
+Quando seu mod precisa que o jogador pressione uma tecla --- abrindo um menu, alternando uma funcionalidade, comandando uma unidade de IA --- você registra uma acao de input personalizada no `inputs.xml`. O motor le este arquivo na inicializacao é integra suas acoes ao sistema universal de input. Jogadores veem seus keybindings no menu Settings > Controls do jogo, agrupados sob um cabecalho que você define.
 
-Inputs personalizados sao identificados por um nome de acao unico (convencionalmente prefixado com `UA` para "User Action") e podem ter keybindings padrao que os jogadores podem reconfigurar a vontade.
+Inputs personalizados são identificados por um nome de acao único (convencionalmente prefixado com `UA` para "User Action") é podem ter keybindings padrão que os jogadores podem reconfigurar a vontade.
 
 ---
 
-## Localizacao do Arquivo
+## Localização do Arquivo
 
-Coloque `inputs.xml` dentro de uma subpasta `data` do seu diretorio Scripts:
+Coloque `inputs.xml` dentro de uma subpasta `data` do seu diretório Scripts:
 
 ```
 @MyMod/
@@ -48,13 +48,13 @@ Coloque `inputs.xml` dentro de uma subpasta `data` do seu diretorio Scripts:
         5_Mission/
 ```
 
-Alguns mods o colocam diretamente na pasta `Scripts/`. Ambas as localizacoes funcionam. O motor descobre o arquivo automaticamente --- nenhum registro no config.cpp e necessario.
+Alguns mods o colocam diretamente na pasta `Scripts/`. Ambas as localizacoes funcionam. O motor descobre o arquivo automáticamente --- nenhum registro no config.cpp é necessário.
 
 ---
 
 ## Estrutura XML Completa
 
-Um arquivo `inputs.xml` tem tres secoes, todas encapsuladas em um elemento raiz `<modded_inputs>`:
+Um arquivo `inputs.xml` tem três seções, todas encapsuladas em um elemento raiz `<modded_inputs>`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -74,13 +74,13 @@ Um arquivo `inputs.xml` tem tres secoes, todas encapsuladas em um elemento raiz 
 </modded_inputs>
 ```
 
-Todas as tres secoes --- `<actions>`, `<sorting>` e `<preset>` --- trabalham juntas, mas servem a propositos diferentes.
+Todas as três seções --- `<actions>`, `<sorting>` é `<preset>` --- trabalham juntas, mas servem a propósitos diferentes.
 
 ---
 
 ## Bloco Actions
 
-O bloco `<actions>` declara toda acao de input que seu mod fornece. Cada acao e um unico elemento `<input>`.
+O bloco `<actions>` declara toda acao de input que seu mod fornece. Cada acao é um único elemento `<input>`.
 
 ### Sintaxe
 
@@ -93,15 +93,15 @@ O bloco `<actions>` declara toda acao de input que seu mod fornece. Cada acao e 
 
 ### Atributos
 
-| Atributo | Obrigatorio | Descricao |
+| Atributo | Obrigatorio | Descrição |
 |----------|-------------|-----------|
-| `name` | Sim | Identificador unico da acao. Convencao: prefixar com `UA` (User Action). Usado em scripts para consultar este input. |
-| `loc` | Nao | Chave de stringtable para o nome de exibicao no menu de Controles. **Sem prefixo `#`** --- o sistema o adiciona. |
-| `visible` | Nao | Defina como `"false"` para ocultar do menu de Controles. Padrao e `true`. |
+| `name` | Sim | Identificador único da acao. Convencao: prefixar com `UA` (User Action). Usado em scripts para consultar este input. |
+| `loc` | Não | Chave de stringtable para o nome de exibicao no menu de Controles. **Sem prefixo `#`** --- o sistema o adiciona. |
+| `visible` | Não | Defina como `"false"` para ocultar do menu de Controles. Padrão é `true`. |
 
 ### Convencao de Nomenclatura
 
-Nomes de acao devem ser globalmente unicos entre todos os mods carregados. Use o prefixo do seu mod:
+Nomes de acao devem ser globalmente únicos entre todos os mods carregados. Use o prefixo do seu mod:
 
 ```xml
 <input name="UAMyModAdminPanel" loc="STR_MYMOD_INPUT_ADMIN_PANEL" />
@@ -109,13 +109,13 @@ Nomes de acao devem ser globalmente unicos entre todos os mods carregados. Use o
 <input name="eAICommandMenu" loc="STR_EXPANSION_AI_COMMAND_MENU" />
 ```
 
-O prefixo `UA` e convencional mas nao obrigatorio. O Expansion AI usa `eAI` como prefixo, o que tambem funciona.
+O prefixo `UA` é convencional mas não obrigatório. O Expansion AI usa `eAI` como prefixo, o que também funciona.
 
 ---
 
 ## Bloco Sorting
 
-O bloco `<sorting>` controla como seus inputs aparecem nas configuracoes de Controles do jogador. Ele define um grupo nomeado (que se torna um cabecalho de secao) e lista os inputs na ordem de exibicao.
+O bloco `<sorting>` controla como seus inputs aparecem nas configurações de Controles do jogador. Ele define um grupo nomeado (que se torna um cabecalho de seção) é lista os inputs na ordem de exibicao.
 
 ### Sintaxe
 
@@ -129,14 +129,14 @@ O bloco `<sorting>` controla como seus inputs aparecem nas configuracoes de Cont
 
 ### Atributos
 
-| Atributo | Obrigatorio | Descricao |
+| Atributo | Obrigatorio | Descrição |
 |----------|-------------|-----------|
 | `name` | Sim | Identificador interno para este grupo de ordenacao |
 | `loc` | Sim | Chave de stringtable para o cabecalho do grupo exibido em Settings > Controls |
 
 ### Como Aparece
 
-Nas configuracoes de Controles, o jogador ve:
+Nas configurações de Controles, o jogador ve:
 
 ```
 [MyMod]                          <-- do loc do sorting
@@ -144,13 +144,13 @@ Nas configuracoes de Controles, o jogador ve:
   Toggle HUD ............. [H]   <-- do loc do input + preset
 ```
 
-Apenas inputs listados no bloco `<sorting>` aparecem no menu de configuracoes. Inputs definidos em `<actions>` mas nao listados em `<sorting>` sao silenciosamente registrados mas invisiveis para o jogador (mesmo se `visible` nao estiver explicitamente definido como `false`).
+Apenas inputs listados no bloco `<sorting>` aparecem no menu de configurações. Inputs definidos em `<actions>` mas não listados em `<sorting>` são silenciosamente registrados mas invisíveis para o jogador (mesmo se `visible` não estiver explicitamente definido como `false`).
 
 ---
 
-## Bloco Preset (Keybindings Padrao)
+## Bloco Preset (Keybindings Padrão)
 
-O bloco `<preset>` atribui teclas padrao as suas acoes. Estas sao as teclas com as quais o jogador comeca antes de qualquer personalizacao.
+O bloco `<preset>` atribui teclas padrão as suas acoes. Estas são as teclas com as quais o jogador comeca antes de qualquer personalizacao.
 
 ### Binding Simples de Tecla
 
@@ -162,11 +162,11 @@ O bloco `<preset>` atribui teclas padrao as suas acoes. Estas sao as teclas com 
 </preset>
 ```
 
-Isso vincula a tecla `Y` como padrao para `UAMyModOpenMenu`.
+Isso vincula a tecla `Y` como padrão para `UAMyModOpenMenu`.
 
-### Sem Tecla Padrao
+### Sem Tecla Padrão
 
-Se voce omitir uma acao do bloco `<preset>`, ela nao tem binding padrao. O jogador deve atribuir manualmente uma tecla em Settings > Controls. Isso e apropriado para bindings opcionais ou avancados.
+Se você omitir uma acao do bloco `<preset>`, ela não tem binding padrão. O jogador deve atribuir manualmente uma tecla em Settings > Controls. Isso é apropriado para bindings opcionais ou avancados.
 
 ---
 
@@ -184,7 +184,7 @@ Para exigir uma tecla modificadora (Ctrl, Shift, Alt), aninhe elementos `<btn>`:
 </input>
 ```
 
-O `<btn>` externo e o modificador; o `<btn>` interno e a tecla principal. O jogador deve segurar o modificador e entao pressionar a tecla principal.
+O `<btn>` externo é o modificador; o `<btn>` interno é a tecla principal. O jogador deve segurar o modificador é então pressionar a tecla principal.
 
 ### Shift + Tecla
 
@@ -198,15 +198,15 @@ O `<btn>` externo e o modificador; o `<btn>` interno e a tecla principal. O joga
 
 ### Regras de Aninhamento
 
-- O `<btn>` **externo** e sempre o modificador (mantido pressionado)
-- O `<btn>` **interno** e o gatilho (pressionado enquanto o modificador e mantido)
-- Apenas um nivel de aninhamento e tipico; aninhamento mais profundo nao e testado e nao e recomendado
+- O `<btn>` **externo** é sempre o modificador (mantido pressionado)
+- O `<btn>` **interno** é o gatilho (pressionado enquanto o modificador é mantido)
+- Apenas um nível de aninhamento é típico; aninhamento mais profundo não é testado é não é recomendado
 
 ---
 
 ## Inputs Ocultos
 
-Use `visible="false"` para registrar um input que o jogador nao pode ver ou reconfigurar no menu de Controles. Isso e util para inputs internos usados pelo codigo do seu mod que nao devem ser configuraveis pelo jogador.
+Use `visible="false"` para registrar um input que o jogador não pode ver ou reconfigurar no menu de Controles. Isso é util para inputs internos usados pelo código do seu mod que não devem ser configuraveis pelo jogador.
 
 ```xml
 <actions>
@@ -215,7 +215,7 @@ Use `visible="false"` para registrar um input que o jogador nao pode ver ou reco
 </actions>
 ```
 
-Inputs ocultos ainda podem ter atribuicoes de tecla padrao no bloco `<preset>`:
+Inputs ocultos ainda podem ter atribuicoes de tecla padrão no bloco `<preset>`:
 
 ```xml
 <preset>
@@ -227,9 +227,9 @@ Inputs ocultos ainda podem ter atribuicoes de tecla padrao no bloco `<preset>`:
 
 ---
 
-## Multiplas Teclas Padrao
+## Multiplas Teclas Padrão
 
-Uma acao pode ter multiplas teclas padrao. Liste multiplos elementos `<btn>` como irmaos:
+Uma acao pode ter múltiplas teclas padrão. Liste múltiplos elementos `<btn>` como irmaos:
 
 ```xml
 <input name="UAExpansionConfirm">
@@ -238,7 +238,7 @@ Uma acao pode ter multiplas teclas padrao. Liste multiplos elementos `<btn>` com
 </input>
 ```
 
-Tanto `Enter` quanto `Numpad Enter` acionarao `UAExpansionConfirm`. Isso e util para acoes onde multiplas teclas fisicas devem mapear para a mesma acao logica.
+Tanto `Enter` quanto `Numpad Enter` acionarao `UAExpansionConfirm`. Isso é util para acoes onde múltiplas teclas físicas devem mapear para a mesma acao logica.
 
 ---
 
@@ -254,7 +254,7 @@ UAInput input = GetUApi().GetInputByName("UAMyModOpenMenu");
 
 ### Consultando no OnUpdate
 
-Inputs personalizados sao tipicamente consultados em `MissionGameplay.OnUpdate()` ou callbacks similares por frame:
+Inputs personalizados são típicamente consultados em `MissionGameplay.OnUpdate()` ou callbacks similares por frame:
 
 ```c
 modded class MissionGameplay
@@ -276,7 +276,7 @@ modded class MissionGameplay
 
 ### Alternativa: Usando o Nome do Input Diretamente
 
-Muitos mods verificam inputs inline usando os metodos `UAInputAPI` com nomes string:
+Muitos mods verificam inputs inline usando os métodos `UAInputAPI` com nomes string:
 
 ```c
 override void OnUpdate(float timeslice)
@@ -292,19 +292,19 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-O parametro `false` em `LocalPress("name", false)` indica que a verificacao nao deve consumir o evento de input.
+O parâmetro `false` em `LocalPress("name", false)` indica que a verificação não deve consumir o evento de input.
 
 ---
 
-## Referencia de Metodos de Input
+## Referência de Métodos de Input
 
-Uma vez que voce tem uma referencia `UAInput` (de `GetUApi().GetInputByName()`), ou esta usando a classe `Input` diretamente, estes metodos detectam diferentes estados de input:
+Uma vez que você tem uma referência `UAInput` (de `GetUApi().GetInputByName()`), ou esta usando a classe `Input` diretamente, estes métodos detectam diferentes estados de input:
 
-| Metodo | Retorna | Quando e Verdadeiro |
+| Método | Retorna | Quando é Verdadeiro |
 |--------|---------|---------------------|
-| `LocalPress()` | `bool` | A tecla foi pressionada **neste frame** (gatilho unico no key-down) |
-| `LocalRelease()` | `bool` | A tecla foi solta **neste frame** (gatilho unico no key-up) |
-| `LocalClick()` | `bool` | A tecla foi pressionada e solta rapidamente (toque) |
+| `LocalPress()` | `bool` | A tecla foi pressionada **neste frame** (gatilho único no key-down) |
+| `LocalRelease()` | `bool` | A tecla foi solta **neste frame** (gatilho único no key-up) |
+| `LocalClick()` | `bool` | A tecla foi pressionada é solta rapidamente (toque) |
 | `LocalHold()` | `bool` | A tecla foi mantida pressionada por um tempo limite |
 | `LocalDoubleClick()` | `bool` | A tecla foi tocada duas vezes rapidamente |
 | `LocalValue()` | `float` | Valor analogico atual (0.0 ou 1.0 para teclas digitais; variavel para eixos analogicos) |
@@ -350,11 +350,11 @@ if (input.LocalHold("UAExpansionGPSToggle"))
 
 ---
 
-## Suprimindo e Desabilitando Inputs
+## Suprimindo é Desabilitando Inputs
 
 ### ForceDisable
 
-Desabilita temporariamente um input especifico. Comumente usado ao abrir menus para prevenir que acoes do jogo disparem enquanto uma UI esta ativa:
+Desabilita temporariamente um input específico. Comumente usado ao abrir menus para prevenir que acoes do jogo disparem enquanto uma UI esta ativa:
 
 ```c
 // Disable the input while menu is open
@@ -366,13 +366,13 @@ GetUApi().GetInputByName("UAMyModToggle").ForceDisable(false);
 
 ### SupressNextFrame
 
-Suprime todo processamento de input para o proximo frame. Usado durante transicoes de contexto de input (ex.: fechando menus) para prevenir sangramento de input de um frame:
+Suprime todo processamento de input para o próximo frame. Usado durante transicoes de contexto de input (ex.: fechando menus) para prevenir sangramento de input de um frame:
 
 ```c
 GetUApi().SupressNextFrame(true);
 ```
 
-### UpdateControls
+### UpdatéControls
 
 Apos modificar estados de input, chame `UpdateControls()` para aplicar mudancas imediatamente:
 
@@ -383,7 +383,7 @@ GetUApi().UpdateControls();
 
 ### Exclusoes de Input
 
-O sistema de missao vanilla fornece grupos de exclusao. Quando um menu esta ativo, voce pode excluir categorias de inputs:
+O sistema de missao vanilla fornece grupos de exclusao. Quando um menu esta ativo, você pode excluir catégorias de inputs:
 
 ```c
 // Suppress gameplay inputs while inventory is open
@@ -395,19 +395,19 @@ RemoveActiveInputExcludes({"inventory"});
 
 ---
 
-## Referencia de Nomes de Teclas
+## Referência de Nomes de Teclas
 
-Nomes de tecla usados no atributo `<btn name="">` seguem uma convencao de nomenclatura especifica. Aqui esta a referencia completa.
+Nomes de tecla usados no atributo `<btn name="">` seguem uma convencao de nomenclatura específica. Aqui esta a referência completa.
 
 ### Teclas do Teclado
 
-| Categoria | Nomes de Tecla |
+| Catégoria | Nomes de Tecla |
 |-----------|----------------|
 | Letras | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
-| Numeros (linha superior) | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
-| Teclas de funcao | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
+| Números (linha superior) | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
+| Teclas de função | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
 | Modificadores | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
-| Navegacao | `kUp`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPageUp`, `kPageDown` |
+| Navegação | `kUp`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPageUp`, `kPageDown` |
 | Edicao | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
 | Numpad | `kNumpad0` ... `kNumpad9`, `kNumpadEnter`, `kNumpadPlus`, `kNumpadMinus`, `kNumpadMultiply`, `kNumpadDivide`, `kNumpadDecimal` |
 | Pontuacao | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
@@ -420,8 +420,8 @@ Nomes de tecla usados no atributo `<btn name="">` seguem uma convencao de nomenc
 | `mBLeft` | Botao esquerdo do mouse |
 | `mBRight` | Botao direito do mouse |
 | `mBMiddle` | Botao do meio do mouse (clique na roda de scroll) |
-| `mBExtra1` | Botao 4 do mouse (botao lateral traseiro) |
-| `mBExtra2` | Botao 5 do mouse (botao lateral dianteiro) |
+| `mBExtra1` | Botao 4 do mouse (botao latéral traseiro) |
+| `mBExtra2` | Botao 5 do mouse (botao latéral dianteiro) |
 
 ### Eixos do Mouse
 
@@ -432,7 +432,7 @@ Nomes de tecla usados no atributo `<btn name="">` seguem uma convencao de nomenc
 | `mWheelUp` | Roda de scroll para cima |
 | `mWheelDown` | Roda de scroll para baixo |
 
-### Padrao de Nomenclatura
+### Padrão de Nomenclatura
 
 - **Teclado**: prefixo `k` + nome da tecla (ex.: `kT`, `kF5`, `kLControl`)
 - **Botoes do mouse**: prefixo `mB` + nome do botao (ex.: `mBLeft`, `mBRight`)
@@ -444,7 +444,7 @@ Nomes de tecla usados no atributo `<btn name="">` seguem uma convencao de nomenc
 
 ### DayZ Expansion AI
 
-Um inputs.xml bem estruturado com keybindings visiveis, inputs de debug ocultos e combos com modificadores:
+Um inputs.xml bem estruturado com keybindings visíveis, inputs de debug ocultos é combos com modificadores:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -499,13 +499,13 @@ Um inputs.xml bem estruturado com keybindings visiveis, inputs de debug ocultos 
 ```
 
 Observacoes principais:
-- `eAICommandMenu` vinculado a `T` --- visivel nas configuracoes, jogador pode reconfigurar
+- `eAICommandMenu` vinculado a `T` --- visível nas configurações, jogador pode reconfigurar
 - `eAISetWaypoint` usa um combo modificador **Ctrl + Clique Esquerdo**
-- Inputs de teste sao `visible="false"` --- ocultos dos jogadores mas acessiveis no codigo
+- Inputs de teste são `visible="false"` --- ocultos dos jogadores mas acessiveis no código
 
 ### DayZ Expansion Market
 
-Um inputs.xml minimo para um input utilitario oculto com multiplas teclas padrao:
+Um inputs.xml mínimo para um input utilitário oculto com múltiplas teclas padrão:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -525,13 +525,13 @@ Um inputs.xml minimo para um input utilitario oculto com multiplas teclas padrao
 ```
 
 Observacoes principais:
-- Input oculto (`visible="false"`) com `loc` vazio --- nunca mostrado nas configuracoes
-- Duas teclas padrao: tanto Enter quanto Numpad Enter acionam a mesma acao
-- Sem bloco `<sorting>` --- nao necessario ja que o input e oculto
+- Input oculto (`visible="false"`) com `loc` vazio --- nunca mostrado nas configurações
+- Duas teclas padrão: tanto Enter quanto Numpad Enter acionam a mesma acao
+- Sem bloco `<sorting>` --- não necessário já que o input é oculto
 
 ### Template Inicial Completo
 
-Um template minimo mas completo para um novo mod:
+Um template mínimo mas completo para um novo mod:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -579,7 +579,7 @@ Com uma stringtable.csv correspondente:
 <input name="UAMyAction" loc="STR_MYMOD_ACTION" />
 ```
 
-O sistema de input prepende `#` internamente. Adicioná-lo voce mesmo causa um duplo prefixo e a busca falha.
+O sistema de input prepende `#` internamente. Adicioná-lo você mesmo causa um duplo prefixo é a busca falha.
 
 ### Colisao de Nomes de Acao
 
@@ -592,11 +592,11 @@ Se dois mods definem `UAOpenMenu`, apenas um funcionara. Sempre use o prefixo do
 
 ### Entrada de Sorting Ausente
 
-Se voce define uma acao em `<actions>` mas esquece de lista-la em `<sorting>`, a acao funciona no codigo mas fica invisivel no menu de Controles. O jogador nao tem como reconfigura-la.
+Se você define uma acao em `<actions>` mas esquece de lista-la em `<sorting>`, a acao funciona no código mas fica invisível no menu de Controles. O jogador não tem como reconfigura-la.
 
 ### Esquecendo de Definir em Actions
 
-Se voce lista um input em `<sorting>` ou `<preset>` mas nunca o define em `<actions>`, o motor silenciosamente o ignora.
+Se você lista um input em `<sorting>` ou `<preset>` mas nunca o define em `<actions>`, o motor silenciosamente o ignora.
 
 ### Vinculando Teclas Conflitantes
 

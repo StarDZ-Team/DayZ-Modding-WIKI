@@ -4,14 +4,14 @@
 
 ---
 
-## Sumario
+## Sumário
 
 - [Visao Geral](#visao-geral)
-- [Localizacao do Arquivo](#localizacao-do-arquivo)
+- [Localização do Arquivo](#localização-do-arquivo)
 - [Estrutura JSON](#estrutura-json)
 - [Como o DayZ Exibe os Creditos](#como-o-dayz-exibe-os-creditos)
-- [Usando Nomes de Secao Localizados](#usando-nomes-de-secao-localizados)
-- [Templates](#templates)
+- [Usando Nomes de Seção Localizados](#usando-nomes-de-seção-localizados)
+- [Templatés](#templatés)
 - [Exemplos Reais](#exemplos-reais)
 - [Erros Comuns](#erros-comuns)
 
@@ -19,15 +19,15 @@
 
 ## Visao Geral
 
-Quando um jogador seleciona seu mod no launcher do DayZ ou no menu de mods do jogo, o motor procura um arquivo `Credits.json` dentro do PBO do seu mod. Se encontrado, os creditos sao exibidos em uma visualizacao com rolagem organizada em departamentos e secoes --- similar a creditos de cinema.
+Quando um jogador seleciona seu mod no launcher do DayZ ou no menu de mods do jogo, o motor procura um arquivo `Credits.json` dentro do PBO do seu mod. Se encontrado, os creditos são exibidos em uma visualizacao com rolagem organizada em departamentos é seções --- similar a creditos de cinema.
 
-O arquivo e opcional. Se ausente, nenhuma secao de creditos aparece para o seu mod. Mas inclui-lo e uma boa pratica: reconhece o trabalho da sua equipe e da ao seu mod uma aparencia profissional.
+O arquivo é opcional. Se ausente, nenhuma seção de creditos aparece para o seu mod. Mas inclui-lo é uma boa prática: reconhece o trabalho da sua equipe é da ao seu mod uma aparência profissional.
 
 ---
 
-## Localizacao do Arquivo
+## Localização do Arquivo
 
-Coloque `Credits.json` dentro de uma subpasta `Data` do seu diretorio Scripts, ou diretamente na raiz de Scripts:
+Coloque `Credits.json` dentro de uma subpasta `Data` do seu diretório Scripts, ou diretamente na raiz de Scripts:
 
 ```
 @MyMod/
@@ -39,13 +39,13 @@ Coloque `Credits.json` dentro de uma subpasta `Data` do seu diretorio Scripts, o
         Credits.json         <-- Tambem valido (DabsFramework, Colorful-UI)
 ```
 
-Ambas as localizacoes funcionam. O motor varre o conteudo do PBO por um arquivo chamado `Credits.json` (case-sensitive em algumas plataformas).
+Ambas as localizacoes funcionam. O motor varre o conteúdo do PBO por um arquivo chamado `Credits.json` (case-sensitive em algumas plataformas).
 
 ---
 
 ## Estrutura JSON
 
-O arquivo usa uma estrutura JSON direta com tres niveis de hierarquia:
+O arquivo usa uma estrutura JSON direta com três níveis de hierarquia:
 
 ```json
 {
@@ -66,37 +66,37 @@ O arquivo usa uma estrutura JSON direta com tres niveis de hierarquia:
 
 ### Campos de Nivel Superior
 
-| Campo | Tipo | Obrigatorio | Descricao |
+| Campo | Tipo | Obrigatorio | Descrição |
 |-------|------|-------------|-----------|
-| `Header` | string | Nao | Titulo principal exibido no topo dos creditos. Se omitido, nenhum cabecalho e mostrado. |
+| `Header` | string | Não | Titulo principal exibido no topo dos creditos. Se omitido, nenhum cabecalho é mostrado. |
 | `Departments` | array | Sim | Array de objetos de departamento |
 
 ### Objeto Department
 
-| Campo | Tipo | Obrigatorio | Descricao |
+| Campo | Tipo | Obrigatorio | Descrição |
 |-------|------|-------------|-----------|
-| `DepartmentName` | string | Sim | Texto do cabecalho da secao. Pode ser vazio `""` para agrupamento visual sem cabecalho. |
-| `Sections` | array | Sim | Array de objetos de secao dentro deste departamento |
+| `DepartmentName` | string | Sim | Texto do cabecalho da seção. Pode ser vazio `""` para agrupamento visual sem cabecalho. |
+| `Sections` | array | Sim | Array de objetos de seção dentro deste departamento |
 
 ### Objeto Section
 
-Duas variantes existem na pratica para listar nomes. O motor suporta ambas.
+Duas variantes existem na prática para listar nomes. O motor suporta ambas.
 
 **Variante 1: Array `Names`** (usada pelo MyFramework)
 
-| Campo | Tipo | Obrigatorio | Descricao |
+| Campo | Tipo | Obrigatorio | Descrição |
 |-------|------|-------------|-----------|
 | `SectionName` | string | Sim | Sub-cabecalho dentro do departamento |
 | `Names` | array de strings | Sim | Lista de nomes de colaboradores |
 
 **Variante 2: Array `SectionLines`** (usada pelo COT, Expansion, DabsFramework)
 
-| Campo | Tipo | Obrigatorio | Descricao |
+| Campo | Tipo | Obrigatorio | Descrição |
 |-------|------|-------------|-----------|
 | `SectionName` | string | Sim | Sub-cabecalho dentro do departamento |
 | `SectionLines` | array de strings | Sim | Lista de nomes de colaboradores ou linhas de texto |
 
-Tanto `Names` quanto `SectionLines` servem ao mesmo proposito. Use o que preferir --- o motor os renderiza de forma identica.
+Tanto `Names` quanto `SectionLines` servem ao mesmo propósito. Use o que preferir --- o motor os renderiza de forma identica.
 
 ---
 
@@ -125,13 +125,13 @@ A exibicao dos creditos segue esta hierarquia visual:
 ```
 
 - O `Header` aparece uma vez no topo
-- Cada `DepartmentName` atua como um divisor de secao principal
+- Cada `DepartmentName` atua como um divisor de seção principal
 - Cada `SectionName` atua como um sub-cabecalho
 - Nomes rolam verticalmente na visualizacao de creditos
 
 ### Strings Vazias para Espacamento
 
-Expansion usa strings vazias em `DepartmentName` e `SectionName`, alem de entradas somente com espaco em `SectionLines`, para criar espacamento visual:
+Expansion usa strings vazias em `DepartmentName` é `SectionName`, além de entradas somente com espaco em `SectionLines`, para criar espacamento visual:
 
 ```json
 {
@@ -143,13 +143,13 @@ Expansion usa strings vazias em `DepartmentName` e `SectionName`, alem de entrad
 }
 ```
 
-Este e um truque comum para controlar o layout visual na rolagem de creditos.
+Este é um truque comum para controlar o layout visual na rolagem de creditos.
 
 ---
 
-## Usando Nomes de Secao Localizados
+## Usando Nomes de Seção Localizados
 
-Nomes de secao podem referenciar chaves de stringtable usando o prefixo `#`, assim como texto de UI:
+Nomes de seção podem referênciar chaves de stringtable usando o prefixo `#`, assim como texto de UI:
 
 ```json
 {
@@ -158,9 +158,9 @@ Nomes de secao podem referenciar chaves de stringtable usando o prefixo `#`, ass
 }
 ```
 
-Quando o motor renderiza isso, ele resolve `#STR_EXPANSION_CREDITS_SCRIPTERS` para o texto localizado correspondente ao idioma do jogador. Isso e util se seu mod suporta multiplos idiomas e voce quer que os cabecalhos de secao dos creditos sejam traduzidos.
+Quando o motor renderiza isso, ele resolve `#STR_EXPANSION_CREDITS_SCRIPTERS` para o texto localizado correspondente ao idioma do jogador. Isso é util se seu mod suporta múltiplos idiomas é você quer que os cabecalhos de seção dos creditos sejam traduzidos.
 
-Nomes de departamento tambem podem usar referencias de stringtable:
+Nomes de departamento também podem usar referências de stringtable:
 
 ```json
 {
@@ -171,7 +171,7 @@ Nomes de departamento tambem podem usar referencias de stringtable:
 
 ---
 
-## Templates
+## Templatés
 
 ### Desenvolvedor Solo
 
@@ -289,7 +289,7 @@ Nomes de departamento tambem podem usar referencias de stringtable:
 
 ### MyFramework
 
-Um arquivo de creditos minimo mas completo usando a variante `Names`:
+Um arquivo de creditos mínimo mas completo usando a variante `Names`:
 
 ```json
 {
@@ -310,7 +310,7 @@ Um arquivo de creditos minimo mas completo usando a variante `Names`:
 
 ### Community Online Tools (COT)
 
-Usa a variante `SectionLines` com multiplas secoes e agradecimentos:
+Usa a variante `SectionLines` com múltiplas seções é agradecimentos:
 
 ```json
 {
@@ -387,9 +387,9 @@ Notavel: COT omite o campo `Header` inteiramente. O nome do mod vem de outros me
 ### DayZ Expansion
 
 Expansion demonstra o uso mais sofisticado de Credits.json, incluindo:
-- Nomes de secao localizados via referencias de stringtable (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
+- Nomes de seção localizados via referências de stringtable (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
 - Avisos legais como um departamento separado
-- Nomes de departamento e secao vazios para espacamento visual
+- Nomes de departamento é seção vazios para espacamento visual
 - Uma lista de apoiadores com dezenas de nomes
 
 ---
@@ -398,20 +398,20 @@ Expansion demonstra o uso mais sofisticado de Credits.json, incluindo:
 
 ### Sintaxe JSON Invalida
 
-O problema mais comum. JSON e rigoroso sobre:
-- **Virgulas finais**: `["a", "b",]` e JSON invalido (a virgula final apos `"b"`)
-- **Aspas simples**: Use `"aspas duplas"`, nao `'aspas simples'`
+O problema mais comum. JSON é rigoroso sobre:
+- **Virgulas finais**: `["a", "b",]` é JSON inválido (a virgula final após `"b"`)
+- **Aspas simples**: Use `"aspas duplas"`, não `'aspas simples'`
 - **Chaves sem aspas**: `DepartmentName` deve ser `"DepartmentName"`
 
 Use um validador de JSON antes de distribuir.
 
 ### Nome de Arquivo Errado
 
-O arquivo deve ser nomeado exatamente `Credits.json` (C maiusculo). Em sistemas de arquivo case-sensitive, `credits.json` ou `CREDITS.JSON` nao serao encontrados.
+O arquivo deve ser nomeado exatamente `Credits.json` (C maiusculo). Em sistemas de arquivo case-sensitive, `credits.json` ou `CREDITS.JSON` não serão encontrados.
 
-### Misturando Names e SectionLines
+### Misturando Names é SectionLines
 
-Dentro de uma unica secao, use um ou outro:
+Dentro de uma única seção, use um ou outro:
 
 ```json
 {
@@ -421,7 +421,7 @@ Dentro de uma unica secao, use um ou outro:
 }
 ```
 
-Isso e ambiguo. Escolha um formato e use-o consistentemente ao longo do arquivo.
+Isso é ambiguo. Escolha um formato é use-o consistentemente ao longo do arquivo.
 
 ### Problemas de Codificacao
 

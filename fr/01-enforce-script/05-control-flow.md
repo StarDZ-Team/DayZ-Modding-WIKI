@@ -1,18 +1,18 @@
-# Chapitre 1.5: Control Flow
+# Chapitre 1.5 : Flux de contrôle
 
-[Accueil](../../README.md) | [<< Précédent : Modded Classes](04-modded-classes.md) | **Control Flow** | [Suivant : String Operations >>](06-strings.md)
+[Accueil](../../README.md) | [<< Précédent : Classes Moddées](04-modded-classes.md) | **Flux de contrôle** | [Suivant : Opérations sur les chaînes >>](06-strings.md)
 
 ---
 
 ## Introduction
 
-Control flow determines the order in which your code executes. Enforce Script provides the familiar `if/else`, `for`, `while`, `foreach`, and `switch` constructs -- but with several important differences from C/C++ that will catch you off guard if you are not prepared. Ce chapitre couvre every control flow mechanism available, including the pitfalls unique to DayZ's scripting engine.
+Le flux de contrôle détermine l'ordre dans lequel votre code s'exécute. Enforce Script fournit les constructions familières `if/else`, `for`, `while`, `foreach` et `switch` -- mais avec plusieurs différences importantes par rapport au C/C++ qui vous piégeront si vous n'êtes pas préparé. Ce chapitre couvre chaque mécanisme de flux de contrôle disponible, y compris les pièges propres au moteur de script de DayZ.
 
 ---
 
 ## if / else / else if
 
-The `if` statement evaluates a boolean expression and executes a block of code when the result is `true`. You can chain conditions with `else if` and provide a fallback with `else`.
+L'instruction `if` évalue une expression booléenne et exécute un bloc de code lorsque le résultat est `true`. Vous pouvez enchaîner les conditions avec `else if` et fournir un repli avec `else`.
 
 ```c
 void CheckHealth(PlayerBase player)
@@ -21,22 +21,22 @@ void CheckHealth(PlayerBase player)
 
     if (health > 75)
     {
-        Print("Player is healthy");
+        Print("Le joueur est en bonne santé");
     }
     else if (health > 25)
     {
-        Print("Player is wounded");
+        Print("Le joueur est blessé");
     }
     else
     {
-        Print("Player is critical");
+        Print("Le joueur est dans un état critique");
     }
 }
 ```
 
-### Null checks
+### Vérifications null
 
-In Enforce Script, object references evaluate to `false` when null. This est le standard way to guard against null access:
+En Enforce Script, les références d'objets s'évaluent à `false` lorsqu'elles sont null. C'est la manière standard de se protéger contre l'accès null :
 
 ```c
 void ProcessItem(EntityAI item)
@@ -45,36 +45,36 @@ void ProcessItem(EntityAI item)
         return;
 
     string name = item.GetType();
-    Print("Processing: " + name);
+    Print("Traitement : " + name);
 }
 ```
 
-### Logical operators
+### Opérateurs logiques
 
-Combine conditions with `&&` (AND) and `||` (OR). Short-circuit evaluation applies: if the left side of `&&` is `false`, the right side is never evaluated.
+Combinez les conditions avec `&&` (ET) et `||` (OU). L'évaluation en court-circuit s'applique : si le côté gauche de `&&` est `false`, le côté droit n'est jamais évalué.
 
 ```c
 void CheckPlayerState(PlayerBase player)
 {
     if (player && player.IsAlive())
     {
-        // Sûr -- player is checked for null before calling IsAlive()
-        Print("Player is alive");
+        // Sûr -- player est vérifié pour null avant d'appeler IsAlive()
+        Print("Le joueur est vivant");
     }
 
     if (player.GetHealth("", "Blood") < 3000 || player.GetHealth("", "Health") < 25)
     {
-        Print("Player is in danger");
+        Print("Le joueur est en danger");
     }
 }
 ```
 
-### PITFALL: Variable redeclaration in else-if blocks
+### PIÈGE : Redéclaration de variable dans les blocs else-if
 
-This is one of the most common Enforce Script errors. In most languages, variables declared inside one `if` branch are independent from variables in a sibling `else` branch. **Not in Enforce Script.** Declaring the same variable name in sibling `if`/`else if`/`else` blocks causes a **multiple declaration error** à la compilation.
+C'est l'une des erreurs Enforce Script les plus courantes. Dans la plupart des langages, les variables déclarées dans une branche `if` sont indépendantes des variables dans une branche `else` sœur. **Pas en Enforce Script.** Déclarer le même nom de variable dans des blocs `if`/`else if`/`else` frères provoque une **erreur de déclaration multiple** à la compilation.
 
 ```c
-// INCORRECT -- Compile error!
+// INCORRECT -- Erreur de compilation !
 void BadExample(Object obj)
 {
     if (obj.IsKindOf("Car"))
@@ -84,51 +84,51 @@ void BadExample(Object obj)
     }
     else if (obj.IsKindOf("ItemBase"))
     {
-        ItemBase item = ItemBase.Cast(obj);    // OK -- different name
+        ItemBase item = ItemBase.Cast(obj);    // OK -- nom différent
         item.GetQuantity();
     }
     else
     {
-        string msg = "Unknown object";         // Première déclaration of msg
+        string msg = "Objet inconnu";         // Première déclaration de msg
         Print(msg);
     }
 }
 ```
 
-Wait -- that looks fine, right? The problem occurs when you use the **same variable name** in two branches:
+Attendez -- ça a l'air correct, non ? Le problème survient lorsque vous utilisez le **même nom de variable** dans deux branches :
 
 ```c
-// INCORRECT -- Compile error: multiple declaration of 'result'
+// INCORRECT -- Erreur de compilation : déclaration multiple de 'result'
 void ProcessObject(Object obj)
 {
     if (obj.IsKindOf("Car"))
     {
-        string result = "It's a car";
+        string result = "C'est une voiture";
         Print(result);
     }
     else
     {
-        string result = "It's something else";  // ERREUR ! Same name as in the if block
+        string result = "C'est autre chose";  // ERREUR ! Même nom que dans le bloc if
         Print(result);
     }
 }
 ```
 
-**The fix:** Declare the variable **before** the if statement, or use unique names per branch.
+**La solution :** Déclarez la variable **avant** l'instruction if, ou utilisez des noms uniques par branche.
 
 ```c
-// CORRECT -- Declare before the if
+// CORRECT -- Déclarer avant le if
 void ProcessObject(Object obj)
 {
     string result;
 
     if (obj.IsKindOf("Car"))
     {
-        result = "It's a car";
+        result = "C'est une voiture";
     }
     else
     {
-        result = "It's something else";
+        result = "C'est autre chose";
     }
 
     Print(result);
@@ -137,12 +137,12 @@ void ProcessObject(Object obj)
 
 ---
 
-## for Loop
+## Boucle for
 
-The `for` loop is identical to C-style syntax: initializer, condition, and increment.
+La boucle `for` est identique à la syntaxe du style C : initialisateur, condition et incrément.
 
 ```c
-// Afficher les nombres 0 through 9
+// Afficher les nombres de 0 à 9
 void CountToTen()
 {
     for (int i = 0; i < 10; i++)
@@ -152,7 +152,7 @@ void CountToTen()
 }
 ```
 
-### Iterating over an array with for
+### Itérer sur un tableau avec for
 
 ```c
 void ListInventory(PlayerBase player)
@@ -171,10 +171,10 @@ void ListInventory(PlayerBase player)
 }
 ```
 
-### Nested for loops
+### Boucles for imbriquées
 
 ```c
-// Générer une grille of objects
+// Faire apparaître une grille d'objets
 void SpawnGrid(vector origin, int rows, int cols, float spacing)
 {
     for (int r = 0; r < rows; r++)
@@ -192,16 +192,16 @@ void SpawnGrid(vector origin, int rows, int cols, float spacing)
 }
 ```
 
-> **Note :** Do not redeclare the loop variable `i` if there is already a variable named `i` in the enclosing scope. Enforce Script treats this as a multiple declaration error, even in nested scopes.
+> **Note :** Ne redéclarez pas la variable de boucle `i` s'il existe déjà une variable nommée `i` dans la portée englobante. Enforce Script traite cela comme une erreur de déclaration multiple, même dans des portées imbriquées.
 
 ---
 
-## while Loop
+## Boucle while
 
-The `while` loop repeats a block as long as its condition is `true`. The condition is evaluated **before** each iteration.
+La boucle `while` répète un bloc tant que sa condition est `true`. La condition est évaluée **avant** chaque itération.
 
 ```c
-// Supprimer tous les morts zombies from a tracking list
+// Supprimer tous les zombies morts d'une liste de suivi
 void CleanupDeadZombies(array<DayZInfected> zombieList)
 {
     int i = 0;
@@ -211,7 +211,7 @@ void CleanupDeadZombies(array<DayZInfected> zombieList)
         if (Class.CastTo(eai, zombieList.Get(i)) && !eai.IsAlive())
         {
             zombieList.RemoveOrdered(i);
-            // NE PAS incrémenter i -- the next element has shifted into this index
+            // Ne PAS incrémenter i -- l'élément suivant a glissé à cet index
         }
         else
         {
@@ -221,24 +221,24 @@ void CleanupDeadZombies(array<DayZInfected> zombieList)
 }
 ```
 
-### WARNING: There is NO do...while in Enforce Script
+### ATTENTION : Il n'y a PAS de do...while en Enforce Script
 
-The `do...while` keyword does not exist. The compiler will reject it. If you need a loop that always executes at least once, use the flag pattern described below.
+Le mot-clé `do...while` n'existe pas. Le compilateur le rejettera. Si vous avez besoin d'une boucle qui s'exécute au moins une fois, utilisez le pattern de drapeau décrit ci-dessous.
 
 ```c
-// INCORRECT -- This will NOT compile
+// INCORRECT -- Ceci ne compilera PAS
 do
 {
-    // body
+    // corps
 }
 while (someCondition);
 ```
 
 ---
 
-## Simulating do...while with a Flag
+## Simuler do...while avec un drapeau
 
-The standard workaround is to use a `bool` flag that is `true` on the first iteration:
+La solution standard est d'utiliser une variable `bool` qui est `true` à la première itération :
 
 ```c
 void SimulateDoWhile()
@@ -257,11 +257,11 @@ void SimulateDoWhile()
             break;
     }
 
-    Print(string.Format("Found safe position after %1 attempts", attempts));
+    Print(string.Format("Position sûre trouvée après %1 tentatives", attempts));
 }
 ```
 
-An alternative approach using `break`:
+Une approche alternative utilisant `break` :
 
 ```c
 void AlternativeDoWhile()
@@ -282,49 +282,49 @@ void AlternativeDoWhile()
 
 ## foreach
 
-The `foreach` statement is the cleanest way to iterate over arrays, maps, and static arrays. It comes in two forms.
+L'instruction `foreach` est la manière la plus propre d'itérer sur des tableaux, des maps et des tableaux statiques. Elle se présente sous deux formes.
 
-### Simple foreach (value only)
+### foreach simple (valeur uniquement)
 
 ```c
 void AnnounceItems(array<string> itemNames)
 {
     foreach (string name : itemNames)
     {
-        Print("Found item: " + name);
+        Print("Objet trouvé : " + name);
     }
 }
 ```
 
-### foreach with index
+### foreach avec index
 
-When iterating over arrays, the first variable receives the index:
+Lors de l'itération sur des tableaux, la première variable reçoit l'index :
 
 ```c
 void ListPlayers(array<Man> players)
 {
     foreach (int idx, Man player : players)
     {
-        Print(string.Format("Player #%1: %2", idx, player.GetIdentity().GetName()));
+        Print(string.Format("Joueur #%1 : %2", idx, player.GetIdentity().GetName()));
     }
 }
 ```
 
-### foreach over maps
+### foreach sur les maps
 
-For maps, the first variable receives the key and the second receives the value:
+Pour les maps, la première variable reçoit la clé et la seconde reçoit la valeur :
 
 ```c
 void PrintScoreboard(map<string, int> scores)
 {
     foreach (string playerName, int score : scores)
     {
-        Print(string.Format("%1: %2 kills", playerName, score));
+        Print(string.Format("%1 : %2 kills", playerName, score));
     }
 }
 ```
 
-You can also iterate over maps with just the value:
+Vous pouvez également itérer sur les maps avec juste la valeur :
 
 ```c
 void SumScores(map<string, int> scores)
@@ -334,11 +334,11 @@ void SumScores(map<string, int> scores)
     {
         total += score;
     }
-    Print("Total kills: " + total);
+    Print("Total des kills : " + total);
 }
 ```
 
-### foreach over static arrays
+### foreach sur les tableaux statiques
 
 ```c
 void PrintStaticArray()
@@ -356,11 +356,11 @@ void PrintStaticArray()
 
 ## switch / case
 
-The `switch` statement matches a value against a list of `case` labels. It works with `int`, `string`, enum values, and constants.
+L'instruction `switch` compare une valeur à une liste d'étiquettes `case`. Elle fonctionne avec `int`, `string`, les valeurs d'enum et les constantes.
 
-### Important: NO fall-through
+### Important : PAS de fall-through
 
-Unlike C/C++, Enforce Script `switch/case` does **NOT** fall through from one case to the next. Each `case` is independent. You can include `break` for clarity, but it is not required to prevent fall-through.
+Contrairement au C/C++, le `switch/case` d'Enforce Script ne « tombe pas » d'un case au suivant. Chaque `case` est indépendant. Vous pouvez inclure `break` par clarté, mais il n'est pas nécessaire pour empêcher le fall-through.
 
 ```c
 void HandleCommand(string command)
@@ -380,13 +380,13 @@ void HandleCommand(string command)
             break;
 
         default:
-            Print("Unknown command: " + command);
+            Print("Commande inconnue : " + command);
             break;
     }
 }
 ```
 
-### switch with enums
+### switch avec enums
 
 ```c
 enum EDifficulty
@@ -419,11 +419,11 @@ void SetDifficulty(EDifficulty difficulty)
             break;
     }
 
-    Print(string.Format("Zombie multiplier: %1", zombieMultiplier));
+    Print(string.Format("Multiplicateur de zombies : %1", zombieMultiplier));
 }
 ```
 
-### switch with integer constants
+### switch avec constantes entières
 
 ```c
 void DescribeWeaponSlot(int slotId)
@@ -435,36 +435,36 @@ void DescribeWeaponSlot(int slotId)
     switch (slotId)
     {
         case SLOT_SHOULDER:
-            Print("Primary weapon");
+            Print("Arme principale");
             break;
 
         case SLOT_MELEE:
-            Print("Melee weapon");
+            Print("Arme de mêlée");
             break;
 
         case SLOT_PISTOL:
-            Print("Sidearm");
+            Print("Arme de poing");
             break;
 
         default:
-            Print("Unknown slot");
+            Print("Emplacement inconnu");
             break;
     }
 }
 ```
 
-> **Rappel :** Because there is no fall-through, you cannot stack cases to share a handler the way you would in C. Each case must have its own body.
+> **Rappel :** Comme il n'y a pas de fall-through, vous ne pouvez pas empiler les cases pour partager un gestionnaire comme vous le feriez en C. Chaque case doit avoir son propre corps.
 
 ---
 
-## break and continue
+## break et continue
 
 ### break
 
-`break` exits the innermost loop (or switch case) immediately.
+`break` quitte la boucle (ou le case du switch) la plus interne immédiatement.
 
 ```c
-// Trouver le premier joueur within 100 meters
+// Trouver le premier joueur à moins de 100 mètres
 void FindNearbyPlayer(vector origin, array<Man> players)
 {
     foreach (Man player : players)
@@ -472,7 +472,7 @@ void FindNearbyPlayer(vector origin, array<Man> players)
         float dist = vector.Distance(origin, player.GetPosition());
         if (dist < 100)
         {
-            Print("Found nearby player: " + player.GetIdentity().GetName());
+            Print("Joueur proche trouvé : " + player.GetIdentity().GetName());
             break; // Arrêter la recherche
         }
     }
@@ -481,7 +481,7 @@ void FindNearbyPlayer(vector origin, array<Man> players)
 
 ### continue
 
-`continue` skips the rest of the current iteration and jumps to the next one.
+`continue` saute le reste de l'itération courante et passe à la suivante.
 
 ```c
 // Traiter uniquement les joueurs vivants
@@ -497,14 +497,14 @@ void HealAllPlayers(array<Man> players)
             continue; // Mort, passer
 
         player.SetHealth("", "Health", 100);
-        Print("Healed: " + player.GetIdentity().GetName());
+        Print("Soigné : " + player.GetIdentity().GetName());
     }
 }
 ```
 
-### Nested loops with break
+### Boucles imbriquées avec break
 
-`break` only exits the innermost loop. To break out of nested loops, use a flag variable:
+`break` ne quitte que la boucle la plus interne. Pour sortir de boucles imbriquées, utilisez une variable drapeau :
 
 ```c
 void FindItemInGrid(array<array<string>> grid, string target)
@@ -517,9 +517,9 @@ void FindItemInGrid(array<array<string>> grid, string target)
         {
             if (grid.Get(row).Get(col) == target)
             {
-                Print(string.Format("Found '%1' at [%2, %3]", target, row, col));
+                Print(string.Format("'%1' trouvé à [%2, %3]", target, row, col));
                 found = true;
-                break; // Quitte seulement la boucle interne
+                break; // Ne quitte que la boucle interne
             }
         }
 
@@ -531,82 +531,82 @@ void FindItemInGrid(array<array<string>> grid, string target)
 
 ---
 
-## Thread Keyword
+## Mot-clé thread
 
-Enforce Script has a `thread` keyword for asynchronous execution:
+Enforce Script possède un mot-clé `thread` pour l'exécution asynchrone :
 
 ```c
-// Declare a threaded function
+// Déclarer une fonction threadée
 thread void LongOperation()
 {
     // Ceci s'exécute de manière asynchrone
     Sleep(5000);  // Attendre 5 secondes sans bloquer
-    Print("Done!");
+    Print("Terminé !");
 }
 
-// Call it
+// L'appeler
 thread LongOperation();  // Démarre sans bloquer l'appelant
 ```
 
-**Important:** `thread` in Enforce Script is NOT the same as OS threads. It is more like a coroutine --- it runs on the same thread but can yield/sleep without blocking le jeu. Use `CallLater` instead of `thread` for most mod use cases --- it is simpler and more predictable.
+**Important :** `thread` en Enforce Script n'est PAS la même chose que les threads du système d'exploitation. C'est plutôt comme une coroutine --- elle s'exécute sur le même thread mais peut céder/dormir sans bloquer le jeu. Utilisez `CallLater` plutôt que `thread` pour la plupart des cas d'utilisation des mods --- c'est plus simple et plus prévisible.
 
 ### Thread vs CallLater
 
-| Feature | `thread` | `CallLater` |
-|---------|----------|-------------|
-| Syntax | `thread MyFunc();` | `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(this.MyFunc, delayMs, repeat);` |
-| Can sleep/yield | Yes (`Sleep()`) | No (fires once or repeats at interval) |
-| Cancellable | No built-in cancel | Yes (`CallQueue.Remove()`) |
-| Use case | Sequential async logic with waits | Delayed or repeated callbacks |
+| Fonctionnalité | `thread` | `CallLater` |
+|----------------|----------|-------------|
+| Syntaxe | `thread MyFunc();` | `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(this.MyFunc, delayMs, repeat);` |
+| Peut dormir/céder | Oui (`Sleep()`) | Non (se déclenche une fois ou se répète à intervalle) |
+| Annulable | Pas d'annulation intégrée | Oui (`CallQueue.Remove()`) |
+| Cas d'utilisation | Logique asynchrone séquentielle avec attentes | Callbacks différés ou répétés |
 
-Pour la plupart des modding scenarios, `CallLater` with a timer est la méthode préférée approach. Reserve `thread` for cases where you genuinely need sequential logic with intermediate waits (e.g., a multi-step animation sequence).
+Pour la plupart des scénarios de modding DayZ, `CallLater` avec un timer est l'approche préférée. Réservez `thread` aux cas où vous avez genuinement besoin d'une logique séquentielle avec des attentes intermédiaires (par exemple, une séquence d'animation multi-étapes).
 
 ---
 
 ## Bonnes pratiques
 
-- Use guard clauses (`if (!x) return;`) at the top of functions instead of deeply nested `if` blocks -- it keeps the happy path flat and readable.
-- Declare shared variables before `if`/`else` blocks to avoid the sibling-scope redeclaration error unique to Enforce Script.
-- Use `foreach` for simple iteration and `for` with index only when you need to remove elements or access neighbors.
-- Replace `do...while` with `while (first || condition)` using a `bool first = true` flag -- this est le standard Enforce Script workaround.
-- Prefer `CallLater` over `thread` for delayed or repeated actions -- it is cancellable, simpler, and more predictable.
+- Utilisez des clauses de garde (`if (!x) return;`) en haut des fonctions au lieu de blocs `if` profondément imbriqués -- cela garde le chemin normal plat et lisible.
+- Déclarez les variables partagées avant les blocs `if`/`else` pour éviter l'erreur de redéclaration de portée sœur propre à Enforce Script.
+- Utilisez `foreach` pour l'itération simple et `for` avec index uniquement lorsque vous devez supprimer des éléments ou accéder aux voisins.
+- Remplacez `do...while` par `while (first || condition)` en utilisant un drapeau `bool first = true` -- c'est la solution standard d'Enforce Script.
+- Préférez `CallLater` à `thread` pour les actions différées ou répétées -- c'est annulable, plus simple et plus prévisible.
 
 ---
 
-## Observé dans les mods réels
+## Observé dans les vrais mods
 
-> Patrons confirmés par l'étude du code source de mods DayZ professionnels.
+> Patterns confirmés par l'étude du code source de mods DayZ professionnels.
 
-| Patron | Mod | Détail |
+| Pattern | Mod | Détail |
 |---------|-----|--------|
-| Guard clause + `continue` in loops | COT / Expansion | Loops over players always `continue` on failed cast or `!IsAlive()` before doing work |
-| `switch` on string commands | VPP Admin | Chat command handlers use `switch(command)` with string cases like `"!heal"`, `"!tp"` |
-| Flag variable to break nested loops | Expansion Market | Uses `bool found = false` with check after inner loop to exit outer loop |
-| `CallLater` for delayed apparition | Dabs Framework | Prefers `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater()` over `thread` |
+| Clause de garde + `continue` dans les boucles | COT / Expansion | Les boucles sur les joueurs font toujours `continue` sur un cast échoué ou `!IsAlive()` avant de travailler |
+| `switch` sur des commandes string | VPP Admin | Les gestionnaires de commandes chat utilisent `switch(command)` avec des cases string comme `"!heal"`, `"!tp"` |
+| Variable drapeau pour sortir des boucles imbriquées | Expansion Market | Utilise `bool found = false` avec vérification après la boucle interne pour sortir de la boucle externe |
+| `CallLater` pour le spawn différé | Dabs Framework | Préfère `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater()` à `thread` |
 
 ---
 
-## Théorie vs Pratique
+## Théorie vs pratique
 
 | Concept | Théorie | Réalité |
-|---------|--------|---------|
-| `do...while` loop | Standard in most C-like languages | Does not exist in Enforce Script; causes a confusing compile error |
-| `switch` fall-through | C/C++ cases fall through without `break` | Enforce Script cases are independent -- stacking cases does not share handlers |
-| `thread` keyword | Sounds like multithreading | Actually a coroutine on the main thread; `Sleep()` yields, does not block |
-| Variable scope in `if`/`else` | Sibling blocks should have independent scope | Enforce Script treats them as shared scope -- same variable name in both blocks is a compile error |
+|---------|---------|---------|
+| Boucle `do...while` | Standard dans la plupart des langages de type C | N'existe pas en Enforce Script ; provoque une erreur de compilation confuse |
+| Fall-through du `switch` | En C/C++ les cases tombent sans `break` | Les cases d'Enforce Script sont indépendants -- empiler les cases ne partage pas les gestionnaires |
+| Mot-clé `thread` | Ressemble au multithreading | En réalité une coroutine sur le thread principal ; `Sleep()` cède, ne bloque pas |
+| Portée des variables dans `if`/`else` | Les blocs frères devraient avoir une portée indépendante | Enforce Script les traite comme une portée partagée -- le même nom de variable dans les deux blocs est une erreur de compilation |
 
 ---
 
 ## Erreurs courantes
 
 | Erreur | Problème | Solution |
-|---------|---------|-----|
-| Using `do...while` | Does not exist in Enforce Script | Use `while` with a `bool first = true` flag |
-| Declaring same variable in `if` and `else` blocks | Multiple declaration error | Declare the variable before the `if` |
-| Redeclaring loop variable `i` in nested scope | Multiple declaration error | Use different names (`i`, `j`, `k`) or declare outside |
-| Expecting `switch` fall-through | Cases are independent, no fall-through | Each case needs its own complete handler |
-| Modifying array while iterating with `foreach` | Undefined behavior, potential crash | Use index-based `for` loop when removing elements |
-| Infinite `while` loop without `break` | Server freeze / client hang | Always ensure the condition will eventually be `false`, or use `break` |
+|--------|----------|----------|
+| Utiliser `do...while` | N'existe pas en Enforce Script | Utilisez `while` avec un drapeau `bool first = true` |
+| Déclarer la même variable dans les blocs `if` et `else` | Erreur de déclaration multiple | Déclarez la variable avant le `if` |
+| Redéclarer la variable de boucle `i` dans une portée imbriquée | Erreur de déclaration multiple | Utilisez des noms différents (`i`, `j`, `k`) ou déclarez à l'extérieur |
+| S'attendre au fall-through du `switch` | Les cases sont indépendants, pas de fall-through | Chaque case a besoin de son propre gestionnaire complet |
+| Modifier un tableau pendant l'itération avec `foreach` | Comportement indéfini, crash potentiel | Utilisez une boucle `for` basée sur l'index lors de la suppression d'éléments |
+| Boucle `while` infinie sans `break` | Gel du serveur / blocage du client | Assurez-vous toujours que la condition deviendra `false`, ou utilisez `break` |
 
 ---
 
@@ -616,33 +616,33 @@ Pour la plupart des modding scenarios, `CallLater` with a timer est la méthode 
 // if / else if / else
 if (condition) { } else if (other) { } else { }
 
-// for loop
+// boucle for
 for (int i = 0; i < count; i++) { }
 
-// while loop
+// boucle while
 while (condition) { }
 
-// Simulate do...while
+// Simuler do...while
 bool first = true;
-while (first || condition) { first = false; /* body */ }
+while (first || condition) { first = false; /* corps */ }
 
-// foreach (value only)
+// foreach (valeur uniquement)
 foreach (Type value : collection) { }
 
-// foreach (index + value)
+// foreach (index + valeur)
 foreach (int i, Type value : array) { }
 
-// foreach (key + value on map)
+// foreach (clé + valeur sur map)
 foreach (KeyType key, ValueType val : someMap) { }
 
-// switch/case (no fall-through)
+// switch/case (pas de fall-through)
 switch (value) { case X: /* ... */ break; default: break; }
 
-// thread (coroutine-style async)
+// thread (asynchrone style coroutine)
 thread void MyFunc() { Sleep(1000); }
-thread MyFunc();  // non-blocking call
+thread MyFunc();  // appel non-bloquant
 ```
 
 ---
 
-[<< 1.4: Modded Classes](04-modded-classes.md) | [Accueil](../../README.md) | [1.6: String Operations >>](06-strings.md)
+[<< 1.4 : Classes Moddées](04-modded-classes.md) | [Accueil](../../README.md) | [1.6 : Opérations sur les chaînes >>](06-strings.md)

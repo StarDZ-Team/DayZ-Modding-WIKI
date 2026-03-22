@@ -1,42 +1,33 @@
-# Chapter 1.10: Enums & Preprocessor
+# 第1.10章: 列挙型とプリプロセッサ
 
-[Home](../../README.md) | [<< Previous: Casting & Reflection](09-casting-reflection.md) | **Enums & Preprocessor** | [Next: Error Handling >>](11-error-handling.md)
+[ホーム](../../README.md) | [<< 前へ: キャストとリフレクション](09-casting-reflection.md) | **列挙型とプリプロセッサ** | [次へ: エラー処理 >>](11-error-handling.md)
+
+---
+
+> **目標:** 列挙型の宣言、列挙型リフレクションツール、ビットフラグパターン、定数、および条件付きコンパイルのためのプリプロセッサシステムを理解します。
 
 ---
 
 ## 目次
 
-- [Enum Declaration](#enum-declaration)
-  - [Explicit Values](#explicit-values)
-  - [Implicit Values](#implicit-values)
-  - [Enum Inheritance](#enum-inheritance)
-- [Using Enums](#using-enums)
-- [Enum Reflection](#enum-reflection)
-  - [typename.EnumToString](#typenameenumtostring)
-  - [typename.StringToEnum](#typenamestringtoenum)
-- [Bitflags Pattern](#bitflags-pattern)
-- [Constants](#constants)
-- [Preprocessor Directives](#preprocessor-directives)
-  - [#ifdef / #ifndef / #endif](#ifdef--ifndef--endif)
-  - [#define](#define)
-  - [Common Engine Defines](#common-engine-defines)
-  - [Custom Defines via config.cpp](#custom-defines-via-configcpp)
-- [Real-World Examples](#real-world-examples)
-  - [Platform-Specific Code](#platform-specific-code)
-  - [Optional Mod Dependencies](#optional-mod-dependencies)
-  - [Debug-Only Diagnostics](#debug-only-diagnostics)
-  - [Server vs Client Logic](#server-vs-client-logic)
-- [Common Mistakes](#common-mistakes)
-- [Summary](#summary)
-- [Navigation](#navigation)
+- [列挙型の宣言](#列挙型の宣言)
+- [列挙型の使用](#列挙型の使用)
+- [列挙型リフレクション](#列挙型リフレクション)
+- [ビットフラグパターン](#ビットフラグパターン)
+- [定数](#定数)
+- [プリプロセッサディレクティブ](#プリプロセッサディレクティブ)
+- [実践例](#実践例)
+- [よくある間違い](#よくある間違い)
+- [まとめ](#まとめ)
+- [ナビゲーション](#ナビゲーション)
 
 ---
 
-## Enum の宣言
+## 列挙型の宣言
 
-Enforce Script の Enum は型名の下にグループ化された名前付き整数定数を定義します。 内部的には `int` として振る舞います。
+Enforce Scriptの列挙型は、型名でグループ化された名前付き整数定数を定義します。内部的には`int`として動作します。
 
-### Explicit Values
+### 明示的な値
 
 ```c
 enum EDamageState
@@ -49,9 +40,9 @@ enum EDamageState
 };
 ```
 
-### Implicit Values
+### 暗黙的な値
 
-値を省略すると、前の値から自動インクリメントされます（0から開始）：
+値を省略すると、前の値から自動インクリメントされます（0から開始）:
 
 ```c
 enum EWeaponMode
@@ -59,13 +50,13 @@ enum EWeaponMode
     SEMI,       // 0
     BURST,      // 1
     AUTO,       // 2
-    COUNT       // 3 — common trick to get the total count
+    COUNT       // 3 — 合計数を取得するための一般的なテクニック
 };
 ```
 
-### Enum Inheritance
+### 列挙型の継承
 
-Enum は他の Enum を継承できます。 値は親の最後の値から続きます：
+列挙型は他の列挙型を継承できます。値は親の最後の値から続きます:
 
 ```c
 enum EBaseColor
@@ -83,68 +74,68 @@ enum EExtendedColor : EBaseColor
 };
 ```
 
-All parent values are accessible through the child enum:
+すべての親の値は子の列挙型からアクセスできます:
 
 ```c
-int c = EExtendedColor.RED;      // 0 — inherited from EBaseColor
-int d = EExtendedColor.YELLOW;   // 3 — defined in EExtendedColor
+int c = EExtendedColor.RED;      // 0 — EBaseColorから継承
+int d = EExtendedColor.YELLOW;   // 3 — EExtendedColorで定義
 ```
 
-> **注意：** Enum inheritance is useful for extending vanilla enums in modded code without changing the original.
+> **注意:** 列挙型の継承は、元の定義を変更せずにバニラの列挙型をmoddedコードで拡張する場合に便利です。
 
 ---
 
-## Enum の使い方
+## 列挙型の使用
 
-Enum は `int` として機能します — `int` 変数に代入し、比較し、switch 文で使用できます：
+列挙型は`int`として動作します --- `int`変数に代入したり、比較したり、switch文で使用したりできます:
 
 ```c
 EDamageState state = EDamageState.WORN;
 
-// Compare
+// 比較
 if (state == EDamageState.RUINED)
 {
-    Print("Item is ruined!");
+    Print("アイテムは壊れました!");
 }
 
-// Use in switch
+// switchで使用
 switch (state)
 {
     case EDamageState.PRISTINE:
-        Print("Perfect condition");
+        Print("完璧な状態");
         break;
     case EDamageState.WORN:
-        Print("Slightly worn");
+        Print("少し使用感あり");
         break;
     case EDamageState.DAMAGED:
-        Print("Damaged");
+        Print("損傷あり");
         break;
     case EDamageState.BADLY_DAMAGED:
-        Print("Badly damaged");
+        Print("大きく損傷");
         break;
     case EDamageState.RUINED:
-        Print("Ruined!");
+        Print("壊れた!");
         break;
 }
 
-// Assign to int
+// intに代入
 int stateInt = state;  // 1
 
-// Assign from int (no validation — any int value is accepted!)
-EDamageState fromInt = 99;  // No error, even though 99 is not a valid enum value
+// intから代入（検証なし — どんなint値でも受け入れられる!）
+EDamageState fromInt = 99;  // エラーなし、99は有効な列挙値ではないが
 ```
 
-> **警告：** Enforce Script does **not** validate enum assignments. Assigning an out-of-range integer to an enum variable compiles and runs without error.
+> **警告:** Enforce Scriptは列挙型の代入を**検証しません**。範囲外の整数を列挙型変数に代入しても、エラーなくコンパイル・実行されます。
 
 ---
 
-## Enum のリフレクション
+## 列挙型リフレクション
 
-Enforce Script provides built-in functions to convert between enum values and strings.
+Enforce Scriptは列挙値と文字列を変換するための組み込み関数を提供しています。
 
 ### typename.EnumToString
 
-Convert an enum value to its name as a string:
+列挙値を文字列名に変換します:
 
 ```c
 EDamageState state = EDamageState.DAMAGED;
@@ -152,7 +143,7 @@ string name = typename.EnumToString(EDamageState, state);
 Print(name);  // "DAMAGED"
 ```
 
-This is invaluable for logging and UI display:
+これはロギングやUI表示に非常に便利です:
 
 ```c
 void LogDamageState(EntityAI item, EDamageState state)
@@ -164,7 +155,7 @@ void LogDamageState(EntityAI item, EDamageState state)
 
 ### typename.StringToEnum
 
-Convert a string back to an enum value:
+文字列を列挙値に変換します:
 
 ```c
 int value;
@@ -172,16 +163,16 @@ typename.StringToEnum(EDamageState, "RUINED", value);
 Print(value.ToString());  // "4"
 ```
 
-This is used when loading enum values from config files or JSON:
+これは設定ファイルやJSONから列挙値を読み込む場合に使用されます:
 
 ```c
-// Loading from a config string
+// 設定文字列からの読み込み
 string configValue = "BURST";
 int modeInt;
 if (typename.StringToEnum(EWeaponMode, configValue, modeInt))
 {
     EWeaponMode mode = modeInt;
-    Print("Loaded weapon mode: " + typename.EnumToString(EWeaponMode, mode));
+    Print("武器モードを読み込み: " + typename.EnumToString(EWeaponMode, mode));
 }
 ```
 
@@ -189,7 +180,7 @@ if (typename.StringToEnum(EWeaponMode, configValue, modeInt))
 
 ## ビットフラグパターン
 
-Enums with power-of-2 values create bitflags — multiple options combined in a single integer:
+2のべき乗値を持つ列挙型はビットフラグを作成します --- 単一の整数に複数のオプションを組み合わせることができます:
 
 ```c
 enum ESpawnFlags
@@ -203,56 +194,56 @@ enum ESpawnFlags
 };
 ```
 
-Combine with bitwise OR, test with bitwise AND:
+ビットOR演算子で組み合わせ、ビットAND演算子でテストします:
 
 ```c
-// Combine flags
+// フラグの組み合わせ
 int flags = ESpawnFlags.PLACE_ON_GROUND | ESpawnFlags.CREATE_PHYSICS | ESpawnFlags.UPDATE_NAVMESH;
 
-// Test a single flag
+// 単一フラグのテスト
 if (flags & ESpawnFlags.CREATE_PHYSICS)
 {
-    Print("Physics will be created");
+    Print("物理が作成されます");
 }
 
-// Remove a flag
+// フラグの削除
 flags = flags & ~ESpawnFlags.CREATE_LOCAL;
 
-// Add a flag
+// フラグの追加
 flags = flags | ESpawnFlags.NO_LIFETIME;
 ```
 
-DayZ uses this pattern extensively for object creation flags (`ECE_PLACE_ON_SURFACE`, `ECE_CREATEPHYSICS`, `ECE_UPDATEPATHGRAPH`, etc.).
+DayZはオブジェクト作成フラグ（`ECE_PLACE_ON_SURFACE`、`ECE_CREATEPHYSICS`、`ECE_UPDATEPATHGRAPH`など）でこのパターンを広く使用しています。
 
 ---
 
-## Constants
+## 定数
 
-Use `const` to declare immutable values. Constants must be initialized at declaration.
+不変の値を宣言するには`const`を使用します。定数は宣言時に初期化する必要があります。
 
 ```c
-// Integer constants
+// 整数定数
 const int MAX_PLAYERS = 60;
 const int INVALID_INDEX = -1;
 
-// Float constants
+// 浮動小数点定数
 const float GRAVITY = 9.81;
 const float SPAWN_RADIUS = 500.0;
 
-// String constants
+// 文字列定数
 const string MOD_NAME = "MyMod";
 const string CONFIG_PATH = "$profile:MyMod/config.json";
 const string LOG_PREFIX = "[MyMod] ";
 ```
 
-Constants can be used as switch case values and array sizes:
+定数はswitch caseの値や配列サイズとして使用できます:
 
 ```c
-// Array with const size
+// constサイズの配列
 const int BUFFER_SIZE = 256;
 int buffer[BUFFER_SIZE];
 
-// Switch with const values
+// const値を使ったswitch
 const int CMD_HELP = 1;
 const int CMD_SPAWN = 2;
 const int CMD_TELEPORT = 3;
@@ -271,116 +262,116 @@ switch (command)
 }
 ```
 
-> **注意：** There is no `const` for reference types (objects). You cannot make an object reference immutable.
+> **注意:** 参照型（オブジェクト）用の`const`はありません。オブジェクト参照を不変にすることはできません。
 
 ---
 
 ## プリプロセッサディレクティブ
 
-Enforce Script のプリプロセッサはコンパイル前に実行され、条件付きコード包含を可能にします。 C/C++ のプリプロセッサと同様に動作しますが、機能は少ないです。
+Enforce Scriptのプリプロセッサはコンパイル前に実行され、条件付きのコード組み込みを可能にします。C/C++のプリプロセッサと似ていますが、機能は限られています。
 
 ### #ifdef / #ifndef / #endif
 
-Conditionally include code based on whether a symbol is defined:
+シンボルが定義されているかどうかに基づいてコードを条件付きで組み込みます:
 
 ```c
-// Include code only if DEVELOPER is defined
+// DEVELOPERが定義されている場合のみコードを含める
 #ifdef DEVELOPER
-    Print("[DEBUG] Diagnostics enabled");
+    Print("[DEBUG] 診断が有効です");
 #endif
 
-// Include code only if a symbol is NOT defined
+// シンボルが定義されていない場合のみコードを含める
 #ifndef SERVER
-    // Client-only code
+    // クライアント専用コード
     CreateClientUI();
 #endif
 
-// If-else pattern
+// if-elseパターン
 #ifdef SERVER
-    Print("Running on server");
+    Print("サーバーで実行中");
 #else
-    Print("Running on client");
+    Print("クライアントで実行中");
 #endif
 ```
 
 ### #define
 
-Define your own symbols (no value — just existence):
+独自のシンボルを定義します（値なし — 存在のみ）:
 
 ```c
 #define MY_MOD_DEBUG
 
 #ifdef MY_MOD_DEBUG
-    Print("Debug mode active");
+    Print("デバッグモードが有効です");
 #endif
 ```
 
-> **注意：** Enforce Script `#define` only creates existence flags. It does **not** support macro substitution (no `#define MAX_HP 100` — use `const` instead).
+> **注意:** Enforce Scriptの`#define`は存在フラグのみを作成します。マクロ置換はサポートして**いません**（`#define MAX_HP 100`のようなものは不可 --- 代わりに`const`を使用してください）。
 
-### Common Engine Defines
+### エンジンの共通定義
 
-DayZ はビルドタイプとプラットフォームに基づくこれらの組み込み define を提供します：
+DayZはビルドタイプとプラットフォームに基づいて以下の組み込み定義を提供しています:
 
-| Define | 有効な時 | 用途 |
+| 定義 | 利用可能な場合 | 用途 |
 |--------|---------------|---------|
-| `SERVER` | Running on dedicated server | Server-only logic |
-| `DEVELOPER` | Developer build of DayZ | Dev-only features |
-| `DIAG_DEVELOPER` | Diagnostic build | Diagnostic menus, debug tools |
-| `PLATFORM_WINDOWS` | Windows platform | Platform-specific paths |
-| `PLATFORM_XBOX` | Xbox platform | Console-specific UI |
-| `PLATFORM_PS4` | PlayStation platform | Console-specific logic |
-| `BUILD_EXPERIMENTAL` | Experimental branch | Experimental features |
+| `SERVER` | 専用サーバーで実行中 | サーバー専用ロジック |
+| `DEVELOPER` | 開発ビルドのDayZ | 開発専用機能 |
+| `DIAG_DEVELOPER` | 診断ビルド | 診断メニュー、デバッグツール |
+| `PLATFORM_WINDOWS` | Windowsプラットフォーム | プラットフォーム固有のパス |
+| `PLATFORM_XBOX` | Xboxプラットフォーム | コンソール固有のUI |
+| `PLATFORM_PS4` | PlayStationプラットフォーム | コンソール固有のロジック |
+| `BUILD_EXPERIMENTAL` | 実験ブランチ | 実験的機能 |
 
 ```c
 void InitPlatform()
 {
     #ifdef PLATFORM_WINDOWS
-        Print("Running on Windows");
+        Print("Windowsで実行中");
     #endif
 
     #ifdef PLATFORM_XBOX
-        Print("Running on Xbox");
+        Print("Xboxで実行中");
     #endif
 
     #ifdef PLATFORM_PS4
-        Print("Running on PlayStation");
+        Print("PlayStationで実行中");
     #endif
 }
 ```
 
-### Custom Defines via config.cpp
+### config.cppでのカスタム定義
 
-Mod は `config.cpp` の `defines[]` 配列で独自のシンボルを定義できます。 これらはこのModの後にロードされるすべてのスクリプトで利用可能です：
+モッドは`config.cpp`の`defines[]`配列を使用して独自のシンボルを定義できます。これらはこのモッドの後にロードされるすべてのスクリプトで利用可能になります:
 
 ```cpp
 class CfgMods
 {
-    class MyMissions
+    class MyMod_MissionSystem
     {
         // ...
-        defines[] = { "MYMOD_MISSIONS" };
+        defines[] = { "MY_MISSIONS_LOADED" };
         // ...
     };
 };
 ```
 
-Now other mods can detect whether MyMissions is loaded:
+これで、他のモッドがあなたのミッションモッドがロードされているかどうかを検出できます:
 
 ```c
-#ifdef MYMOD_MISSIONS
-    // MyMissions is loaded — use its API
-    MissionManager.Start();
+#ifdef MY_MISSIONS_LOADED
+    // ミッションモッドがロードされている — そのAPIを使用
+    MyMissionManager.Start();
 #else
-    // MyMissions is not loaded — skip or use fallback
-    Print("Missions mod not detected");
+    // ミッションモッドがロードされていない — スキップまたはフォールバックを使用
+    Print("ミッションシステムが検出されませんでした");
 #endif
 ```
 
 ---
 
-## 実践的な例
+## 実践例
 
-### Platform-Specific Code
+### プラットフォーム固有のコード
 
 ```c
 string GetSavePath()
@@ -393,28 +384,26 @@ string GetSavePath()
 }
 ```
 
-### Optional Mod Dependencies
-
-This is the standard pattern for mods that optionally integrate with other mods:
+### オプションのモッド依存
 
 ```c
 class MyModManager
 {
     void Init()
     {
-        Print("[MyMod] Initializing...");
+        Print("[MyMod] 初期化中...");
 
-        // Core features always available
+        // コア機能は常に利用可能
         LoadConfig();
         RegisterRPCs();
 
-        // Optional integration with MyFramework
-        #ifdef MYMOD_CORE
-            MyLog.Info("MyMod", "MyFramework detected — using unified logging");
+        // MyFrameworkとのオプション統合
+        #ifdef MY_FRAMEWORK
+            Print("[MyMod] フレームワークを検出 — 統合ロギングを使用");
             RegisterWithCore();
         #endif
 
-        // Optional integration with Community Framework
+        // Community Frameworkとのオプション統合
         #ifdef JM_CommunityFramework
             GetRPCManager().AddRPC("MyMod", "RPC_Handler", this, 2);
         #endif
@@ -422,7 +411,7 @@ class MyModManager
 }
 ```
 
-### Debug-Only Diagnostics
+### デバッグ専用診断
 
 ```c
 void ProcessAI(DayZInfected zombie)
@@ -430,16 +419,16 @@ void ProcessAI(DayZInfected zombie)
     vector pos = zombie.GetPosition();
     float health = zombie.GetHealth("", "Health");
 
-    // Heavy debug logging — only in diagnostic builds
+    // 重いデバッグログ — 診断ビルドのみ
     #ifdef DIAG_DEVELOPER
-        Print(string.Format("[AI] Zombie %1 at %2, HP: %3",
+        Print(string.Format("[AI] ゾンビ %1 位置 %2, HP: %3",
             zombie.GetType(), pos.ToString(), health.ToString()));
 
-        // Draw debug sphere (only works in diag builds)
+        // デバッグ球体の描画（diagビルドでのみ動作）
         Debug.DrawSphere(pos, 1.0, Colors.RED, ShapeFlags.ONCE);
     #endif
 
-    // Actual logic runs in all builds
+    // 実際のロジックはすべてのビルドで実行
     if (health <= 0)
     {
         HandleZombieDeath(zombie);
@@ -447,7 +436,7 @@ void ProcessAI(DayZInfected zombie)
 }
 ```
 
-### Server vs Client Logic
+### サーバーとクライアントのロジック
 
 ```c
 class MissionHandler
@@ -455,12 +444,12 @@ class MissionHandler
     void OnMissionStart()
     {
         #ifdef SERVER
-            // Server: load mission data, spawn objects
+            // サーバー: ミッションデータを読み込み、オブジェクトをスポーン
             LoadMissionData();
             SpawnMissionObjects();
             NotifyAllPlayers();
         #else
-            // Client: set up UI, subscribe to events
+            // クライアント: UIをセットアップ、イベントに登録
             CreateMissionHUD();
             RegisterClientRPCs();
         #endif
@@ -470,15 +459,48 @@ class MissionHandler
 
 ---
 
+## ベストプラクティス
+
+- 列挙型の最後のエントリとして`COUNT`センチネル値を追加して、簡単にイテレーションや範囲検証ができるようにしてください（例: `for (int i = 0; i < EMode.COUNT; i++)`）。
+- ビットフラグ列挙型には2のべき乗値を使用し、`|`で組み合わせ、`&`でテストし、`& ~FLAG`で削除してください。
+- 数値定数には`#define`の代わりに`const`を使用してください -- Enforce Scriptの`#define`は存在フラグのみを作成し、値マクロではありません。
+- モッドの`config.cpp`に`defines[]`配列を定義して、クロスモッド検出シンボルを公開してください（例: `"STARDZ_CORE"`）。
+- 外部データ（設定、RPC）から読み込んだ列挙値は常に検証してください -- Enforce Scriptはどんな`int`でも範囲チェックなしで列挙型として受け入れます。
+
+---
+
+## 実際のモッドでの使用例
+
+> プロフェッショナルなDayZモッドのソースコード調査で確認されたパターンです。
+
+| パターン | モッド | 詳細 |
+|---------|-----|--------|
+| オプションのモッド統合用`#ifdef` | Expansion / COT | クロスモッドAPIを呼び出す前に`#ifdef JM_CF`や`#ifdef EXPANSIONMOD`をチェック |
+| スポーンオプション用ビットフラグ列挙型 | バニラDayZ | `ECE_PLACE_ON_SURFACE`、`ECE_CREATEPHYSICS`などを`CreateObjectEx`用に`\|`で結合 |
+| ロギング用`typename.EnumToString` | Expansion / Dabs | ダメージ状態やイベントタイプを生のintではなく読みやすい文字列としてログ出力 |
+| config.cppの`defines[]` | StarDZ Core / Expansion | 各モッドが独自のシンボルを宣言し、他のモッドが`#ifdef`で検出できるようにする |
+
+---
+
+## 理論と実践
+
+| 概念 | 理論 | 現実 |
+|---------|--------|---------|
+| 列挙型の代入検証 | コンパイラが無効な値を拒否するはず | `EDamageState state = 999`は問題なくコンパイルされる -- 範囲チェックは一切ない |
+| `#define MAX_HP 100` | C/C++マクロのように動作する | Enforce Scriptの`#define`は存在フラグのみ作成する; 値には`const int`を使用 |
+| `switch` caseのスタック | 複数のcaseが1つのハンドラを共有 | Enforce Scriptではフォールスルーなし -- 各`case`は独立; 代わりに`if`/`\|\|`を使用 |
+
+---
+
 ## よくある間違い
 
-### 1. Using enums as validated types
+### 1. 列挙型を検証済みの型として使用
 
 ```c
-// PROBLEM — no validation, any int is accepted
-EDamageState state = 999;  // Compiles fine, but 999 is not a valid state
+// 問題 — 検証なし、どんなintでも受け入れられる
+EDamageState state = 999;  // 問題なくコンパイルされるが、999は有効な状態ではない
 
-// SOLUTION — validate manually when loading from external data
+// 解決策 — 外部データから読み込む場合は手動で検証
 int rawValue = LoadFromConfig();
 if (rawValue >= 0 && rawValue <= EDamageState.RUINED)
 {
@@ -486,55 +508,55 @@ if (rawValue >= 0 && rawValue <= EDamageState.RUINED)
 }
 ```
 
-### 2. Trying to use #define for value substitution
+### 2. #defineで値置換を使おうとする
 
 ```c
-// WRONG — Enforce Script #define does NOT support values
+// 間違い — Enforce Scriptの#defineは値をサポートしない
 #define MAX_HEALTH 100
-int hp = MAX_HEALTH;  // Compile error!
+int hp = MAX_HEALTH;  // コンパイルエラー!
 
-// CORRECT — use const instead
+// 正しい — 代わりにconstを使用
 const int MAX_HEALTH = 100;
 int hp = MAX_HEALTH;
 ```
 
-### 3. Nesting #ifdef incorrectly
+### 3. #ifdefの誤ったネスト
 
 ```c
-// CORRECT — nested ifdefs are fine
+// 正しい — ネストされたifdefは問題なし
 #ifdef SERVER
-    #ifdef MYMOD_CORE
+    #ifdef MY_FRAMEWORK
         MyLog.Info("MyMod", "Server + Core");
     #endif
 #endif
 
-// WRONG — missing #endif causes mysterious compile errors
+// 間違い — #endifの忘れは謎のコンパイルエラーを引き起こす
 #ifdef SERVER
     DoServerStuff();
-// forgot #endif here!
+// ここで#endifを忘れた!
 ```
 
-### 4. Forgetting that switch/case has no fall-through
+### 4. switch/caseにフォールスルーがないことを忘れる
 
 ```c
-// In C/C++, cases fall through without break.
-// In Enforce Script, each case is INDEPENDENT — no fall-through.
+// C/C++では、breakなしのcaseはフォールスルーする。
+// Enforce Scriptでは、各caseは独立 — フォールスルーなし。
 
 switch (state)
 {
     case EDamageState.PRISTINE:
     case EDamageState.WORN:
-        Print("Good condition");  // Only reached for WORN, not PRISTINE!
+        Print("良好な状態");  // WORNの場合のみ到達し、PRISTINEでは到達しない!
         break;
 }
 ```
 
-If you need multiple cases to share logic, use if/else:
+複数のcaseで同じロジックを共有する必要がある場合、if/elseを使用してください:
 
 ```c
 if (state == EDamageState.PRISTINE || state == EDamageState.WORN)
 {
-    Print("Good condition");
+    Print("良好な状態");
 }
 ```
 
@@ -542,42 +564,42 @@ if (state == EDamageState.PRISTINE || state == EDamageState.WORN)
 
 ## まとめ
 
-### Enums
+### 列挙型
 
 | 機能 | 構文 |
 |---------|--------|
-| Declare | `enum EName { A = 0, B = 1 };` |
-| Implicit | `enum EName { A, B, C };` (0, 1, 2) |
-| Inherit | `enum EChild : EParent { D, E };` |
-| To string | `typename.EnumToString(EName, value)` |
-| From string | `typename.StringToEnum(EName, "A", out val)` |
-| Bitflag combine | `flags = A | B` |
-| Bitflag test | `if (flags & A)` |
+| 宣言 | `enum EName { A = 0, B = 1 };` |
+| 暗黙的 | `enum EName { A, B, C };` (0, 1, 2) |
+| 継承 | `enum EChild : EParent { D, E };` |
+| 文字列へ | `typename.EnumToString(EName, value)` |
+| 文字列から | `typename.StringToEnum(EName, "A", out val)` |
+| ビットフラグ結合 | `flags = A | B` |
+| ビットフラグテスト | `if (flags & A)` |
 
-### Preprocessor
+### プリプロセッサ
 
 | ディレクティブ | 目的 |
 |-----------|---------|
-| `#ifdef SYMBOL` | Compile if symbol exists |
-| `#ifndef SYMBOL` | Compile if symbol does NOT exist |
-| `#else` | Alternate branch |
-| `#endif` | End conditional block |
-| `#define SYMBOL` | Define a symbol (no value) |
+| `#ifdef SYMBOL` | シンボルが存在する場合にコンパイル |
+| `#ifndef SYMBOL` | シンボルが存在しない場合にコンパイル |
+| `#else` | 代替ブランチ |
+| `#endif` | 条件ブロックの終了 |
+| `#define SYMBOL` | シンボルを定義する（値なし） |
 
-### Key Defines
+### 主要な定義
 
-| Define | 意味 |
+| 定義 | 意味 |
 |--------|---------|
-| `SERVER` | Dedicated server |
-| `DEVELOPER` | Developer build |
-| `DIAG_DEVELOPER` | Diagnostic build |
+| `SERVER` | 専用サーバー |
+| `DEVELOPER` | 開発ビルド |
+| `DIAG_DEVELOPER` | 診断ビルド |
 | `PLATFORM_WINDOWS` | Windows OS |
-| Custom: `defines[]` | Your mod's config.cpp |
+| カスタム: `defines[]` | モッドのconfig.cpp |
 
 ---
 
 ## ナビゲーション
 
-| 前 | 上 | 次 |
+| 前へ | 上へ | 次へ |
 |----------|----|------|
-| [1.9 Casting & Reflection](09-casting-reflection.md) | [Part 1: Enforce Script](../README.md) | [1.11 Error Handling](11-error-handling.md) |
+| [1.9 キャストとリフレクション](09-casting-reflection.md) | [第1部: Enforce Script](../README.md) | [1.11 エラー処理](11-error-handling.md) |

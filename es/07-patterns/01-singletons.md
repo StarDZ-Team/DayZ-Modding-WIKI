@@ -1,57 +1,57 @@
-# Capítulo 7.1: Singleton Pattern
+# Capitulo 7.1: Patron Singleton
 
-[Inicio](../../README.md) | **Singleton Pattern** | [Siguiente: Module Systems >>](02-module-systems.md)
+[Inicio](../../README.md) | **Patron Singleton** | [Siguiente: Sistemas de Modulos >>](02-module-systems.md)
 
 ---
 
-## Introducción
+## Introduccion
 
-The singleton pattern guarantees that a class has exactly one instance, accessible globally. In DayZ modding it is the most common architectural pattern --- virtually every manager, cache, registry, and subsystem uses it. COT, VPP, Expansion, Dabs Framework, and others all rely on singletons to coordinate state across the engine's script layers.
+El patron singleton garantiza que una clase tenga exactamente una instancia, accesible globalmente. En el modding de DayZ es el patron arquitectonico mas comun --- practicamente cada manager, cache, registro y subsistema lo utiliza. COT, VPP, Expansion, Dabs Framework y otros dependen de singletons para coordinar el estado a traves de las capas de scripts del motor.
 
-This chapter covers the canonical implementation, lifecycle management, when the pattern is appropriate, and where it goes wrong.
+Este capitulo cubre la implementacion canonica, la gestion del ciclo de vida, cuando el patron es apropiado y donde falla.
 
 ---
 
 ## Tabla de Contenidos
 
-- [The Canonical Implementation](#the-canonical-implementation)
-- [Lazy vs Eager Initialization](#lazy-vs-eager-initialization)
-- [Lifecycle Management](#lifecycle-management)
-- [When to Use Singletons](#when-to-use-singletons)
-- [Real-World Examples](#real-world-examples)
-- [Thread Safety Considerations](#thread-safety-considerations)
-- [Anti-Patterns](#anti-patterns)
-- [Alternative: Static-Only Classes](#alternative-static-only-classes)
-- [Checklist](#checklist)
+- [La Implementacion Canonica](#la-implementacion-canonica)
+- [Inicializacion Lazy vs Eager](#inicializacion-lazy-vs-eager)
+- [Gestion del Ciclo de Vida](#gestion-del-ciclo-de-vida)
+- [Cuando Usar Singletons](#cuando-usar-singletons)
+- [Ejemplos del Mundo Real](#ejemplos-del-mundo-real)
+- [Consideraciones de Seguridad de Hilos](#consideraciones-de-seguridad-de-hilos)
+- [Anti-Patrones](#anti-patrones)
+- [Alternativa: Clases Solo Estaticas](#alternativa-clases-solo-estaticas)
+- [Lista de Verificacion](#lista-de-verificacion)
 
 ---
 
-## The Canonical Implementation
+## La Implementacion Canonica
 
-The standard DayZ singleton follows a simple formula: a `private static ref` field, a static `GetInstance()` accessor, and a static `DestroyInstance()` for cleanup.
+El singleton estandar de DayZ sigue una formula simple: un campo `private static ref`, un accesor estatico `GetInstance()` y un `DestroyInstance()` estatico para limpieza.
 
 ```c
 class LootManager
 {
-    // The single instance. 'ref' keeps it alive; 'private' prevents external tampering.
+    // La instancia unica. 'ref' la mantiene viva; 'private' previene manipulacion externa.
     private static ref LootManager s_Instance;
 
-    // Private data owned by the singleton
+    // Datos privados del singleton
     protected ref map<string, int> m_SpawnCounts;
 
-    // Constructor — called exactly once
+    // Constructor — se llama exactamente una vez
     void LootManager()
     {
         m_SpawnCounts = new map<string, int>();
     }
 
-    // Destructor — called when s_Instance is set to null
+    // Destructor — se llama cuando s_Instance se establece a null
     void ~LootManager()
     {
         m_SpawnCounts = null;
     }
 
-    // Lazy accessor: creates on first call
+    // Accesor lazy: crea en la primera llamada
     static LootManager GetInstance()
     {
         if (!s_Instance)
@@ -61,13 +61,13 @@ class LootManager
         return s_Instance;
     }
 
-    // Explicit teardown
+    // Destruccion explicita
     static void DestroyInstance()
     {
         s_Instance = null;
     }
 
-    // --- Public API ---
+    // --- API Publica ---
 
     void RecordSpawn(string className)
     {
@@ -85,23 +85,23 @@ class LootManager
 };
 ```
 
-### Why `private static ref`?
+### Por que `private static ref`?
 
-| Keyword | Propósito |
+| Palabra clave | Proposito |
 |---------|---------|
-| `private` | Prevents other classes from setting `s_Instance` to null or replacing it |
-| `static` | Shared across all code --- no instance needed to access it |
-| `ref` | Strong reference --- keeps the object alive as long as `s_Instance` is non-null |
+| `private` | Previene que otras clases establezcan `s_Instance` a null o la reemplacen |
+| `static` | Compartido en todo el codigo --- no se necesita instancia para acceder |
+| `ref` | Referencia fuerte --- mantiene el objeto vivo mientras `s_Instance` no sea null |
 
-Without `ref`, the instance would be a weak reference and could be garbage-collected while still in use.
+Sin `ref`, la instancia seria una referencia debil y podria ser recolectada por el garbage collector mientras aun esta en uso.
 
 ---
 
-## Lazy vs Eager Initialization
+## Inicializacion Lazy vs Eager
 
-### Lazy Initialization (Recommended Default)
+### Inicializacion Lazy (Por Defecto Recomendada)
 
-The `GetInstance()` method creates the instance on first access. This is the approach used by most DayZ mods.
+El metodo `GetInstance()` crea la instancia en el primer acceso. Este es el enfoque utilizado por la mayoria de los mods de DayZ.
 
 ```c
 static LootManager GetInstance()
@@ -114,27 +114,27 @@ static LootManager GetInstance()
 }
 ```
 
-**Advantages:**
-- No work done until actually needed
-- No dependency on initialization order between mods
-- Safe if the singleton is optional (some server configurations may never call it)
+**Ventajas:**
+- No se realiza trabajo hasta que realmente se necesita
+- Sin dependencia del orden de inicializacion entre mods
+- Seguro si el singleton es opcional (algunas configuraciones de servidor pueden nunca llamarlo)
 
-**Disadvantage:**
-- First caller pays the construction cost (usually negligible)
+**Desventaja:**
+- El primer llamador paga el costo de construccion (generalmente insignificante)
 
-### Eager Initialization
+### Inicializacion Eager
 
-Some singletons are created explicitly during mission startup, typically from `MissionServer.OnInit()` or a module's `OnMissionStart()`.
+Algunos singletons se crean explicitamente durante el inicio de la mision, tipicamente desde `MissionServer.OnInit()` o el `OnMissionStart()` de un modulo.
 
 ```c
-// In your modded MissionServer.OnInit():
+// En tu MissionServer.OnInit() con modded:
 void OnInit()
 {
     super.OnInit();
-    LootManager.Create();  // Eager: constructed now, not on first use
+    LootManager.Create();  // Eager: construido ahora, no en el primer uso
 }
 
-// In LootManager:
+// En LootManager:
 static void Create()
 {
     if (!s_Instance)
@@ -144,36 +144,36 @@ static void Create()
 }
 ```
 
-**When to prefer eager:**
-- The singleton loads data from disk (configs, JSON files) and you want load errors to surface at startup
-- The singleton registers RPC handlers that must be in place before any client connects
-- Initialization order matters and you need to control it explicitly
+**Cuando preferir eager:**
+- El singleton carga datos del disco (configs, archivos JSON) y quieres que los errores de carga aparezcan al inicio
+- El singleton registra manejadores RPC que deben estar en su lugar antes de que cualquier cliente se conecte
+- El orden de inicializacion importa y necesitas controlarlo explicitamente
 
 ---
 
-## Lifecycle Management
+## Gestion del Ciclo de Vida
 
-The most common source of singleton bugs in DayZ is failing to clean up on mission end. DayZ servers can restart missions without restarting the process, which means static fields survive across mission restarts. If you do not null out `s_Instance` in `OnMissionFinish`, you carry stale references, dead objects, and orphaned callbacks into the next mission.
+La fuente mas comun de bugs de singleton en DayZ es no limpiar al finalizar la mision. Los servidores de DayZ pueden reiniciar misiones sin reiniciar el proceso, lo que significa que los campos estaticos sobreviven entre reinicios de mision. Si no pones `s_Instance` a null en `OnMissionFinish`, llevas referencias obsoletas, objetos muertos y callbacks huerfanos a la siguiente mision.
 
-### The Lifecycle Contract
+### El Contrato de Ciclo de Vida
 
 ```
-Server Process Start
-  └─ MissionServer.OnInit()
-       └─ Create singletons (eager) or let them self-create (lazy)
-  └─ MissionServer.OnMissionStart()
-       └─ Singletons begin operation
-  └─ ... server runs ...
-  └─ MissionServer.OnMissionFinish()
-       └─ DestroyInstance() on every singleton
-       └─ All static refs set to null
-  └─ (Mission may restart)
-       └─ Fresh singletons created again
+Inicio del Proceso del Servidor
+  |-- MissionServer.OnInit()
+       |-- Crear singletons (eager) o dejarlos auto-crearse (lazy)
+  |-- MissionServer.OnMissionStart()
+       |-- Los singletons comienzan a operar
+  |-- ... el servidor funciona ...
+  |-- MissionServer.OnMissionFinish()
+       |-- DestroyInstance() en cada singleton
+       |-- Todas las refs estaticas establecidas a null
+  |-- (La mision puede reiniciar)
+       |-- Singletons frescos creados de nuevo
 ```
 
-### Cleanup Pattern
+### Patron de Limpieza
 
-Always pair your singleton with a `DestroyInstance()` method and call it during shutdown:
+Siempre empareja tu singleton con un metodo `DestroyInstance()` y llamalo durante el cierre:
 
 ```c
 class VehicleRegistry
@@ -189,7 +189,7 @@ class VehicleRegistry
 
     static void DestroyInstance()
     {
-        s_Instance = null;  // Drops the ref, destructor runs
+        s_Instance = null;  // Suelta la ref, el destructor se ejecuta
     }
 
     void ~VehicleRegistry()
@@ -199,7 +199,7 @@ class VehicleRegistry
     }
 };
 
-// In your modded MissionServer:
+// En tu MissionServer con modded:
 modded class MissionServer
 {
     override void OnMissionFinish()
@@ -210,12 +210,12 @@ modded class MissionServer
 };
 ```
 
-### Centralized Shutdown Pattern
+### Patron de Cierre Centralizado
 
-A framework mod can consolidate all singleton cleanup into `MyFramework.ShutdownAll()`, which is called from the modded `MissionServer.OnMissionFinish()`. This prevents the common mistake of forgetting one singleton:
+Un mod framework puede consolidar toda la limpieza de singletons en `MyFramework.ShutdownAll()`, que se llama desde el `MissionServer.OnMissionFinish()` con modded. Esto previene el error comun de olvidar un singleton:
 
 ```c
-// Conceptual pattern (centralized shutdown):
+// Patron conceptual (cierre centralizado):
 static void ShutdownAll()
 {
     MyRPC.Cleanup();
@@ -228,50 +228,50 @@ static void ShutdownAll()
 
 ---
 
-## When to Use Singletons
+## Cuando Usar Singletons
 
-### Good Candidates
+### Buenos Candidatos
 
-| Use Case | Why Singleton Works |
+| Caso de Uso | Por que Funciona el Singleton |
 |----------|-------------------|
-| **Manager classes** (LootManager, VehicleManager) | Exactly one coordinator for a domain |
-| **Caches** (CfgVehicles cache, icon cache) | Single source of truth avoids redundant computation |
-| **Registries** (RPC handler registry, module registry) | Central lookup must be globally accessible |
-| **Config holders** (server settings, permissions) | One config per mod, loaded once from disk |
-| **RPC dispatchers** | Single entry point for all incoming RPCs |
+| **Clases manager** (LootManager, VehicleManager) | Exactamente un coordinador para un dominio |
+| **Caches** (cache de CfgVehicles, cache de iconos) | Una unica fuente de verdad evita computacion redundante |
+| **Registros** (registro de manejadores RPC, registro de modulos) | La busqueda central debe ser accesible globalmente |
+| **Contenedores de config** (configuracion del servidor, permisos) | Una config por mod, cargada una vez del disco |
+| **Despachadores RPC** | Punto de entrada unico para todos los RPCs entrantes |
 
-### Poor Candidates
+### Malos Candidatos
 
-| Use Case | Why Not |
+| Caso de Uso | Por que No |
 |----------|---------|
-| **Per-player data** | One instance per player, not one global instance |
-| **Temporary computations** | Create, use, discard --- no global state needed |
-| **UI views / dialogs** | Multiple can coexist; use the view stack instead |
-| **Entity components** | Attached to individual objects, not global |
+| **Datos por jugador** | Una instancia por jugador, no una instancia global |
+| **Computaciones temporales** | Crear, usar, descartar --- no se necesita estado global |
+| **Vistas / dialogos de UI** | Pueden coexistir multiples; usa la pila de vistas en su lugar |
+| **Componentes de entidad** | Adjuntos a objetos individuales, no globales |
 
 ---
 
-## Real-World Examples
+## Ejemplos del Mundo Real
 
 ### COT (Community Online Tools)
 
-COT uses a module-based singleton pattern through the CF framework. Each tool is a `JMModuleBase` singleton registered at startup:
+COT utiliza un patron singleton basado en modulos a traves del framework CF. Cada herramienta es un singleton `JMModuleBase` registrado al inicio:
 
 ```c
-// COT pattern: CF auto-instantiates modules declared in config.cpp
+// Patron COT: CF auto-instancia modulos declarados en config.cpp
 class JM_COT_ESP : JMModuleBase
 {
-    // CF manages the singleton lifecycle
-    // Access via: JM_COT_ESP.Cast(GetModuleManager().GetModule(JM_COT_ESP));
+    // CF gestiona el ciclo de vida del singleton
+    // Acceso via: JM_COT_ESP.Cast(GetModuleManager().GetModule(JM_COT_ESP));
 }
 ```
 
 ### VPP Admin Tools
 
-VPP uses explicit `GetInstance()` on manager classes:
+VPP usa `GetInstance()` explicito en clases manager:
 
 ```c
-// VPP pattern (simplified)
+// Patron VPP (simplificado)
 class VPPATBanManager
 {
     private static ref VPPATBanManager m_Instance;
@@ -287,38 +287,38 @@ class VPPATBanManager
 
 ### Expansion
 
-Expansion declares singletons for each subsystem and hooks into the mission lifecycle for cleanup:
+Expansion declara singletons para cada subsistema y se engancha al ciclo de vida de la mision para limpieza:
 
 ```c
-// Expansion pattern (simplified)
+// Patron Expansion (simplificado)
 class ExpansionMarketModule : CF_ModuleWorld
 {
-    // CF_ModuleWorld is itself a singleton managed by the CF module system
+    // CF_ModuleWorld es en si mismo un singleton gestionado por el sistema de modulos CF
     // ExpansionMarketModule.Cast(CF_ModuleCoreManager.Get(ExpansionMarketModule));
 }
 ```
 
 ---
 
-## Thread Safety Considerations
+## Consideraciones de Seguridad de Hilos
 
-Enforce Script is single-threaded. All script execution happens on the main thread within the Enfusion engine's game loop. This means:
+Enforce Script es de un solo hilo. Toda la ejecucion de scripts ocurre en el hilo principal dentro del bucle de juego del motor Enfusion. Esto significa:
 
-- There are **no race conditions** between concurrent threads
-- You do **not** need mutexes, locks, or atomic operations
-- `GetInstance()` with lazy initialization is always safe
+- **No hay condiciones de carrera** entre hilos concurrentes
+- **No** necesitas mutexes, locks u operaciones atomicas
+- `GetInstance()` con inicializacion lazy es siempre seguro
 
-However, **re-entrancy** can still cause problems. If `GetInstance()` triggers code that calls `GetInstance()` again during construction, you can get a partially-initialized singleton:
+Sin embargo, la **re-entrancia** aun puede causar problemas. Si `GetInstance()` dispara codigo que llama a `GetInstance()` de nuevo durante la construccion, puedes obtener un singleton parcialmente inicializado:
 
 ```c
-// DANGEROUS: re-entrant singleton construction
+// PELIGROSO: construccion re-entrante del singleton
 class BadManager
 {
     private static ref BadManager s_Instance;
 
     void BadManager()
     {
-        // This calls GetInstance() during construction!
+        // Esto llama a GetInstance() durante la construccion!
         OtherSystem.Register(BadManager.GetInstance());
     }
 
@@ -326,7 +326,7 @@ class BadManager
     {
         if (!s_Instance)
         {
-            // s_Instance is still null here during construction
+            // s_Instance aun es null aqui durante la construccion
             s_Instance = new BadManager();
         }
         return s_Instance;
@@ -334,48 +334,48 @@ class BadManager
 };
 ```
 
-The fix is to assign `s_Instance` before running any initialization that might re-enter:
+La solucion es asignar `s_Instance` antes de ejecutar cualquier inicializacion que pueda re-entrar:
 
 ```c
 static BadManager GetInstance()
 {
     if (!s_Instance)
     {
-        s_Instance = new BadManager();  // Assign first
-        s_Instance.Initialize();         // Then run initialization that may call GetInstance()
+        s_Instance = new BadManager();  // Asignar primero
+        s_Instance.Initialize();         // Luego ejecutar inicializacion que puede llamar GetInstance()
     }
     return s_Instance;
 }
 ```
 
-Or better yet, avoid circular initialization entirely.
+O mejor aun, evita la inicializacion circular por completo.
 
 ---
 
-## Anti-Patterns
+## Anti-Patrones
 
-### 1. Global Mutable State Without Encapsulation
+### 1. Estado Mutable Global Sin Encapsulacion
 
-The singleton pattern gives you global access. That does not mean the data should be globally writable.
+El patron singleton te da acceso global. Eso no significa que los datos deban ser escribibles globalmente.
 
 ```c
-// BAD: Public fields invite uncontrolled mutation
+// MAL: Campos publicos invitan mutacion descontrolada
 class GameState
 {
     private static ref GameState s_Instance;
-    int PlayerCount;         // Anyone can write this
-    bool ServerLocked;       // Anyone can write this
-    string CurrentWeather;   // Anyone can write this
+    int PlayerCount;         // Cualquiera puede escribir esto
+    bool ServerLocked;       // Cualquiera puede escribir esto
+    string CurrentWeather;   // Cualquiera puede escribir esto
 
     static GameState GetInstance() { ... }
 };
 
-// Any code can do:
-GameState.GetInstance().PlayerCount = -999;  // Chaos
+// Cualquier codigo puede hacer:
+GameState.GetInstance().PlayerCount = -999;  // Caos
 ```
 
 ```c
-// GOOD: Controlled access through methods
+// BIEN: Acceso controlado a traves de metodos
 class GameState
 {
     private static ref GameState s_Instance;
@@ -393,31 +393,31 @@ class GameState
 };
 ```
 
-### 2. Missing DestroyInstance
+### 2. DestroyInstance Faltante
 
-If you forget cleanup, the singleton persists across mission restarts with stale data:
+Si olvidas la limpieza, el singleton persiste entre reinicios de mision con datos obsoletos:
 
 ```c
-// BAD: No cleanup path
+// MAL: Sin ruta de limpieza
 class ZombieTracker
 {
     private static ref ZombieTracker s_Instance;
-    ref array<Object> m_TrackedZombies;  // These objects get deleted on mission end!
+    ref array<Object> m_TrackedZombies;  // Estos objetos se eliminan al final de la mision!
 
     static ZombieTracker GetInstance() { ... }
-    // No DestroyInstance() — m_TrackedZombies now holds dead references
+    // Sin DestroyInstance() — m_TrackedZombies ahora tiene referencias muertas
 };
 ```
 
-### 3. Singletons That Own Everything
+### 3. Singletons Que Poseen Todo
 
-When a singleton accumulates too many responsibilities, it becomes a "God object" that is impossible to reason about:
+Cuando un singleton acumula demasiadas responsabilidades, se convierte en un "objeto Dios" que es imposible de razonar:
 
 ```c
-// BAD: One singleton doing everything
+// MAL: Un singleton haciendo todo
 class ServerManager
 {
-    // Manages loot AND vehicles AND weather AND spawns AND bans AND...
+    // Gestiona loot Y vehiculos Y clima Y spawns Y bans Y...
     ref array<Object> m_Loot;
     ref array<Object> m_Vehicles;
     ref WeatherData m_Weather;
@@ -427,38 +427,38 @@ class ServerManager
     void DespawnVehicle() { ... }
     void SetWeather() { ... }
     void BanPlayer() { ... }
-    // 2000 lines later...
+    // 2000 lineas despues...
 };
 ```
 
-Split into focused singletons: `LootManager`, `VehicleManager`, `WeatherManager`, `BanManager`. Each one is small, testable, and has a clear domain.
+Divide en singletons enfocados: `LootManager`, `VehicleManager`, `WeatherManager`, `BanManager`. Cada uno es pequeno, testeable y tiene un dominio claro.
 
-### 4. Accessing Singletons in Constructors of Other Singletons
+### 4. Acceder a Singletons en Constructores de Otros Singletons
 
-This creates hidden initialization-order dependencies:
+Esto crea dependencias ocultas en el orden de inicializacion:
 
 ```c
-// BAD: Constructor depends on another singleton
+// MAL: Constructor depende de otro singleton
 class ModuleA
 {
     void ModuleA()
     {
-        // What if ModuleB hasn't been created yet?
+        // Que pasa si ModuleB aun no ha sido creado?
         ModuleB.GetInstance().Register(this);
     }
 };
 ```
 
-Defer cross-singleton registration to `OnInit()` or `OnMissionStart()`, where initialization order is controlled.
+Difiere el registro entre singletons a `OnInit()` o `OnMissionStart()`, donde el orden de inicializacion esta controlado.
 
 ---
 
-## Alternative: Static-Only Classes
+## Alternativa: Clases Solo Estaticas
 
-Some "singletons" do not need an instance at all. If the class holds no instance state and only has static methods and static fields, skip the `GetInstance()` ceremony entirely:
+Algunos "singletons" no necesitan una instancia en absoluto. Si la clase no tiene estado de instancia y solo tiene metodos estaticos y campos estaticos, omite la ceremonia de `GetInstance()` por completo:
 
 ```c
-// No instance needed — all static
+// No se necesita instancia — todo estatico
 class MyLog
 {
     private static FileHandle s_LogFile;
@@ -487,64 +487,64 @@ class MyLog
 };
 ```
 
-This is the approach used by `MyLog`, `MyRPC`, `MyEventBus`, and `MyModuleManager` in a framework mod. It is simpler, avoids the `GetInstance()` null-check overhead, and makes the intent clear: there is no instance, only shared state.
+Este es el enfoque utilizado por `MyLog`, `MyRPC`, `MyEventBus` y `MyModuleManager` en un mod framework. Es mas simple, evita la sobrecarga de verificacion de null de `GetInstance()` y hace la intencion clara: no hay instancia, solo estado compartido.
 
-**Use a static-only class when:**
-- All methods are stateless or operate on static fields
-- There is no meaningful constructor/destructor logic
-- You never need to pass the "instance" as a parameter
+**Usa una clase solo estatica cuando:**
+- Todos los metodos son sin estado u operan sobre campos estaticos
+- No hay logica significativa de constructor/destructor
+- Nunca necesitas pasar la "instancia" como parametro
 
-**Use a true singleton when:**
-- The class has instance state that benefits from encapsulation (`protected` fields)
-- You need polymorphism (a base class with overridden methods)
-- The object needs to be passed to other systems by reference
+**Usa un singleton verdadero cuando:**
+- La clase tiene estado de instancia que se beneficia de la encapsulacion (campos `protected`)
+- Necesitas polimorfismo (una clase base con metodos sobrescritos)
+- El objeto necesita ser pasado a otros sistemas por referencia
 
 ---
 
-## Checklist
+## Lista de Verificacion
 
-Before shipping a singleton, verify:
+Antes de publicar un singleton, verifica:
 
-- [ ] `s_Instance` is declared `private static ref`
-- [ ] `GetInstance()` handles the null case (lazy init) or you have an explicit `Create()` call
-- [ ] `DestroyInstance()` exists and sets `s_Instance = null`
-- [ ] `DestroyInstance()` is called from `OnMissionFinish()` or a centralized shutdown method
-- [ ] The destructor cleans up owned collections (`.Clear()`, set to `null`)
-- [ ] No public fields --- all mutation goes through methods
-- [ ] The constructor does not call `GetInstance()` on other singletons (defer to `OnInit()`)
+- [ ] `s_Instance` esta declarado `private static ref`
+- [ ] `GetInstance()` maneja el caso null (init lazy) o tienes una llamada explicita a `Create()`
+- [ ] `DestroyInstance()` existe y establece `s_Instance = null`
+- [ ] `DestroyInstance()` se llama desde `OnMissionFinish()` o un metodo de cierre centralizado
+- [ ] El destructor limpia las colecciones propias (`.Clear()`, establecer a `null`)
+- [ ] Sin campos publicos --- toda mutacion pasa por metodos
+- [ ] El constructor no llama a `GetInstance()` en otros singletons (diferir a `OnInit()`)
 
 ---
 
 ## Compatibilidad e Impacto
 
-- **Multi-Mod:** Multiple mods each defining their own singletons coexist safely --- each has its own `s_Instance`. Conflicts only arise if two mods define the same class name, which Enforce Script will flag as a redefinition error at load time.
-- **Load Order:** Lazy singletons are unaffected by mod load order. Eager singletons created in `OnInit()` depend on the `modded class` chain order, which follows `config.cpp` `requiredAddons`.
-- **Listen Server:** Static fields are shared between client and server contexts in the same process. A singleton that should only exist server-side must guard construction with `GetGame().IsServer()`, or it will be accessible (and potentially initialized) from client code as well.
-- **Performance:** Singleton access is a static null check + method call --- negligible overhead. The cost is in what the singleton *does*, not in accessing it.
-- **Migration:** Singletons survive DayZ version updates as long as the APIs they call (e.g., `GetGame()`, `JsonFileLoader`) remain stable. No special migration is needed for the pattern itself.
+- **Multi-Mod:** Multiples mods definiendo cada uno sus propios singletons coexisten de forma segura --- cada uno tiene su propio `s_Instance`. Los conflictos solo surgen si dos mods definen el mismo nombre de clase, lo que Enforce Script marcara como error de redefinicion al cargar.
+- **Orden de Carga:** Los singletons lazy no se ven afectados por el orden de carga de mods. Los singletons eager creados en `OnInit()` dependen del orden de la cadena `modded class`, que sigue los `requiredAddons` de `config.cpp`.
+- **Listen Server:** Los campos estaticos son compartidos entre los contextos de cliente y servidor en el mismo proceso. Un singleton que solo deberia existir del lado del servidor debe proteger la construccion con `GetGame().IsServer()`, o sera accesible (y potencialmente inicializado) desde codigo del cliente tambien.
+- **Rendimiento:** El acceso a singleton es una verificacion de null estatica + llamada a metodo --- sobrecarga insignificante. El costo esta en lo que el singleton *hace*, no en acceder a el.
+- **Migracion:** Los singletons sobreviven a las actualizaciones de version de DayZ mientras las APIs que llaman (ej., `GetGame()`, `JsonFileLoader`) permanezcan estables. No se necesita migracion especial para el patron en si.
 
 ---
 
 ## Errores Comunes
 
-| Error | Impact | Solución |
+| Error | Impacto | Solucion |
 |---------|--------|-----|
-| Missing `DestroyInstance()` call in `OnMissionFinish` | Stale data and dead entity references carry over across mission restarts, causing crashes or ghost state | Always call `DestroyInstance()` from `OnMissionFinish` or a centralized `ShutdownAll()` |
-| Calling `GetInstance()` inside another singleton's constructor | Triggers re-entrant construction; `s_Instance` is still null, so a second instance is created | Defer cross-singleton access to an `Initialize()` method called after construction |
-| Using `public static ref` instead of `private static ref` | Any code can set `s_Instance = null` or replace it, breaking the single-instance guarantee | Always declare `s_Instance` as `private static ref` |
-| Not guarding eager init on listen servers | Singleton is constructed twice (once from server path, once from client path) if `Create()` lacks a null check | Always check `if (!s_Instance)` inside `Create()` |
-| Accumulating state without bounds (unbounded caches) | Memory grows indefinitely on long-running servers; eventual OOM or severe lag | Cap collections with a max size or periodic eviction in `OnUpdate` |
+| Falta llamada a `DestroyInstance()` en `OnMissionFinish` | Datos obsoletos y referencias a entidades muertas se transfieren entre reinicios de mision, causando crashes o estado fantasma | Siempre llamar `DestroyInstance()` desde `OnMissionFinish` o un `ShutdownAll()` centralizado |
+| Llamar `GetInstance()` dentro del constructor de otro singleton | Dispara construccion re-entrante; `s_Instance` aun es null, asi que se crea una segunda instancia | Diferir el acceso entre singletons a un metodo `Initialize()` llamado despues de la construccion |
+| Usar `public static ref` en vez de `private static ref` | Cualquier codigo puede establecer `s_Instance = null` o reemplazarlo, rompiendo la garantia de instancia unica | Siempre declarar `s_Instance` como `private static ref` |
+| No proteger init eager en listen servers | El singleton se construye dos veces (una desde la ruta del servidor, otra desde la del cliente) si `Create()` carece de verificacion de null | Siempre verificar `if (!s_Instance)` dentro de `Create()` |
+| Acumular estado sin limites (caches sin limites) | La memoria crece indefinidamente en servidores de larga duracion; eventual OOM o lag severo | Limitar colecciones con tamano maximo o eviccion periodica en `OnUpdate` |
 
 ---
 
-## Teoría vs Práctica
+## Teoria vs Practica
 
-| Textbook Says | DayZ Reality |
+| Los Libros Dicen | Realidad en DayZ |
 |---------------|-------------|
-| Singletons are an anti-pattern; use dependency injection | Enforce Script has no DI container. Singletons are the standard approach for global managers across all major mods. |
-| Lazy initialization is always sufficient | RPC handlers must be registered before any client connects, so eager init in `OnInit()` is often necessary. |
-| Singletons should never be destroyed | DayZ missions restart without restarting the server process; singletons *must* be destroyed and recreated on each mission cycle. |
+| Los singletons son un anti-patron; usa inyeccion de dependencias | Enforce Script no tiene contenedor DI. Los singletons son el enfoque estandar para managers globales en todos los mods principales. |
+| La inicializacion lazy siempre es suficiente | Los manejadores RPC deben estar registrados antes de que cualquier cliente se conecte, asi que la init eager en `OnInit()` es frecuentemente necesaria. |
+| Los singletons nunca deberian ser destruidos | Las misiones de DayZ reinician sin reiniciar el proceso del servidor; los singletons *deben* ser destruidos y recreados en cada ciclo de mision. |
 
 ---
 
-[Inicio](../../README.md) | **Singleton Pattern** | [Siguiente: Module Systems >>](02-module-systems.md)
+[Inicio](../../README.md) | **Patron Singleton** | [Siguiente: Sistemas de Modulos >>](02-module-systems.md)

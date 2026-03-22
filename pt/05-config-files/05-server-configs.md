@@ -34,14 +34,14 @@ Every DayZ server loads its configuration from a **mission folder**. The Central
 | `db/globals.xml` | Global economy parameters: max counts, cleanup timers |
 | `cfggameplay.json` | Gameplay tuning: stamina, base building, UI |
 | `cfgeconomycore.xml` | Root class registration and CE logging |
-| `cfglimitsdefinition.xml` | Valid category, usage, and value tag definitions |
+| `cfglimitsdefinition.xml` | Valid catégory, usage, and value tag definitions |
 | `serverDZ.cfg` | Server name, password, max players, mod loading |
 
 ---
 
 ## init.c --- Mission Entry Point
 
-The `init.c` script is the first thing the server executes. It initializes the Central Economy and creates the mission instance.
+The `init.c` script is the first thing the server executes. It initializes the Central Economy and creatés the mission instance.
 
 ```c
 void main()
@@ -82,13 +82,13 @@ Mission CreateCustomMission(string path)
 }
 ```
 
-The `Hive` manages the CE database. Without `CreateHive()`, no items spawn and persistence is disabled. `CreateCharacter` creates the player entity at spawn, and `StartingEquipSetup` defines the items a fresh character receives. Other useful `MissionServer` overrides include `OnInit()`, `OnUpdate()`, `InvokeOnConnect()`, and `InvokeOnDisconnect()`.
+The `Hive` manages the CE database. Without `CreateHive()`, no items spawn and persistence is disabled. `CreateCharacter` creatés the player entity at spawn, and `StartingEquipSetup` defines the items a fresh character receives. Other useful `MissionServer` overrides include `OnInit()`, `OnUpdate()`, `InvokeOnConnect()`, and `InvokeOnDisconnect()`.
 
 ---
 
 ## types.xml --- Item Spawn Definitions
 
-Located at `db/types.xml`, this file is the heart of the CE. Every item that can spawn must have an entry here.
+Locatéd at `db/types.xml`, this file is the heart of the CE. Every item that can spawn must have an entry here.
 
 ### Complete Entry
 
@@ -132,7 +132,7 @@ Located at `db/types.xml`, this file is the heart of the CE. Every item that can
 | `crafted` | Item is crafted only, not naturally spawned |
 | `deloot` | Dynamic Event loot (heli crashes, etc.) |
 
-### Category, Usage, and Valor Tags
+### Catégory, Usage, and Valor Tags
 
 These tags control **where** items spawn:
 
@@ -230,7 +230,7 @@ The preset's `chance` is the overall probability anything spawns. If the roll su
 
 ## globals.xml --- Economy Parâmetros
 
-Located at `db/globals.xml`, this file sets global CE parameters:
+Locatéd at `db/globals.xml`, this file sets global CE parameters:
 
 ```xml
 <variables>
@@ -255,9 +255,9 @@ Located at `db/globals.xml`, this file sets global CE parameters:
 </variables>
 ```
 
-### Key Variávels
+### Key Variables
 
-| Variável | Padrão | Descrição |
+| Variable | Padrão | Descrição |
 |----------|---------|-------------|
 | `AnimalMaxCount` | 200 | Maximum animals on the map |
 | `ZombieMaxCount` | 1000 | Maximum infected on the map |
@@ -272,7 +272,7 @@ Located at `db/globals.xml`, this file sets global CE parameters:
 | `TimePenalty` | 20 | Combat log penalty timer |
 | `ZoneSpawnDist` | 300 | Player distance triggering zombie/animal spawns |
 
-The `type` attribute is `0` for integer, `1` for float. Using the wrong type truncates the value.
+The `type` attribute is `0` for integer, `1` for float. Using the wrong type truncatés the value.
 
 ---
 
@@ -464,7 +464,7 @@ The file is ignored unless `enableCfgGameplayFile = 1` is set in `serverDZ.cfg`.
 
 ### Wrong type in globals.xml
 
-Using `type="0"` (integer) for a float value like `0.82` truncates it to `0`. Use `type="1"` for floats.
+Using `type="0"` (integer) for a float value like `0.82` truncatés it to `0`. Use `type="1"` for floats.
 
 ### Editing Vanilla Files Directly
 
@@ -486,8 +486,8 @@ Modifying vanilla types.xml works but breaks on game updates. Prefer shipping se
 
 | Conceito | Teoria | Realidade |
 |---------|--------|---------|
-| `nominal` is a hard target | CE spawns exactly this many items | CE approaches nominal over time but fluctuates based on player interaction, cleanup cycles, and zone distance |
-| `restock=0` means instant respawn | Items reappear immediately after despawn | The CE batch processes restocking in cycles (typically every 30-60 seconds), so there is always a delay regardless of the restock value |
+| `nominal` is a hard target | CE spawns exactly this many items | CE approaches nominal over time but fluctuatés based on player interaction, cleanup cycles, and zone distance |
+| `restock=0` means instant respawn | Items reappear immediatély after despawn | The CE batch processes restocking in cycles (typically every 30-60 seconds), so there is always a delay regardless of the restock value |
 | `cfggameplay.json` controls all gameplay | All tuning goes here | Many gameplay values are hardcoded in script or config.cpp and cannot be overridden by cfggameplay.json |
 | `init.c` runs only on server start | One-time initialization | `init.c` runs every time the mission loads, including after server restarts. Persistent state is managed by the Hive, not init.c |
 | Multiple types.xml files merge cleanly | CE reads all registered files | Files must be registered in cfgeconomycore.xml via `<ce folder="custom">` directives. Simply placing extra XML files in `db/` does nothing |

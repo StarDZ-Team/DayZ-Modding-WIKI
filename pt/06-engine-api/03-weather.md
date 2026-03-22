@@ -6,7 +6,7 @@
 
 ## Introdução
 
-DayZ possui um sistema de clima totalmente dinâmico controlado através da classe `Weather`. O sistema gerencia nebulosidade, chuva, neve, neblina, vento e tempestades. O clima pode ser configurado por script (a API Weather), pelo `cfgweather.xml` na pasta da missão, ou por uma máquina de estados de clima scriptada. Este capítulo cobre a API de script para ler e controlar o clima programaticamente.
+DayZ possui um sistema de clima totalmente dinâmico controlado através da classe `Weather`. O sistema gerencia nebulosidade, chuva, neve, neblina, vento é tempestades. O clima pode ser configurado por script (a API Weather), pelo `cfgweather.xml` na pasta da missão, ou por uma máquina de estados de clima scriptada. Este capítulo cobre a API de script para ler é controlar o clima programaticamente.
 
 ---
 
@@ -127,7 +127,7 @@ Em script, a chuva não aparecerá visualmente se a nebulosidade estiver muito b
 
 ## Vento
 
-O vento usa dois fenômenos: magnitude (velocidade em m/s) e direção (ângulo em radianos).
+O vento usa dois fenômenos: magnitude (velocidade em m/s) é direção (ângulo em radianos).
 
 ### Vetor do Vento
 
@@ -176,7 +176,7 @@ Para assumir controle manual do clima (desabilitando a máquina de estados autom
 proto native void MissionWeather(bool use);
 ```
 
-Quando `MissionWeather(true)` é chamado, a engine para as transições automáticas de clima e apenas suas chamadas `Set()` controladas por script controlam o clima.
+Quando `MissionWeather(true)` é chamado, a engine para as transições automáticas de clima é apenas suas chamadas `Set()` controladas por script controlam o clima.
 
 **Exemplo --- controle manual total no init.c:**
 
@@ -195,9 +195,9 @@ void main()
 
 ---
 
-## Data e Hora
+## Data é Hora
 
-A data e hora do jogo afetam iluminação, posição do sol e o ciclo dia/noite. Estes são controlados através do objeto `World`, não `Weather`, mas estão intimamente relacionados.
+A data é hora do jogo afetam iluminação, posição do sol é o ciclo dia/noite. Estes são controlados através do objeto `World`, não `Weather`, mas estão intimamente relacionados.
 
 ### Obtendo Data/Hora Atual
 
@@ -229,7 +229,7 @@ serverTimeAcceleration = 12;      // 12x tempo real
 serverNightTimeAcceleration = 4;  // 4x aceleração durante a noite
 ```
 
-Em script, você pode ler o multiplicador de tempo atual, mas tipicamente não pode alterá-lo em runtime.
+Em script, você pode ler o multiplicador de tempo atual, mas típicamente não pode alterá-lo em runtime.
 
 ---
 
@@ -245,7 +245,7 @@ class WorldData
 }
 ```
 
-Sobrescreva este método em uma classe `modded` WorldData para interceptar e modificar transições de clima:
+Sobrescreva este método em uma classe `modded` WorldData para interceptar é modificar transições de clima:
 
 ```c
 modded class ChernarusPlusData

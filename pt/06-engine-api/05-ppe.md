@@ -6,7 +6,7 @@
 
 ## Introdução
 
-O sistema de Efeitos Pós-Processamento (PPE) do DayZ controla efeitos visuais aplicados após a renderização da cena: blur, color grading, vinheta, aberração cromática, visão noturna e mais. O sistema é construído em torno de classes `PPERequester` que podem solicitar efeitos visuais específicos. Múltiplos requesters podem estar ativos simultaneamente, e a engine combina suas contribuições. Este capítulo cobre como usar o sistema PPE em mods.
+O sistema de Efeitos Pós-Processamento (PPE) do DayZ controla efeitos visuais aplicados após a renderização da cena: blur, color grading, vinheta, aberração cromática, visão noturna é mais. O sistema é construído em torno de classes `PPERequester` que podem solicitar efeitos visuais específicos. Múltiplos requesters podem estar ativos simultaneamente, é a engine combina suas contribuições. Este capítulo cobre como usar o sistema PPE em mods.
 
 ---
 
@@ -121,11 +121,11 @@ class PPOperators
 
 ---
 
-## IDs Comuns de Materiais PPE
+## IDs Comuns de Matériais PPE
 
-Efeitos visam materiais específicos de pós-processamento. IDs comuns de material:
+Efeitos visam matériais específicos de pós-processamento. IDs comuns de matérial:
 
-| Constante | Material |
+| Constante | Matérial |
 |----------|----------|
 | `PostProcessEffectType.Glow` | Bloom / brilho |
 | `PostProcessEffectType.FilmGrain` | Film grain |
@@ -177,7 +177,7 @@ void StopFlashbang()
 
 ## Criando um PPE Requester Personalizado
 
-Para criar efeitos pós-processamento personalizados, estenda `PPERequester` e registre-o.
+Para criar efeitos pós-processamento personalizados, estenda `PPERequester` é registre-o.
 
 ### Passo 1: Definir o Requester
 
@@ -210,9 +210,9 @@ class MyCustomPPERequester extends PPERequester
 }
 ```
 
-### Passo 2: Registrar e Usar
+### Passo 2: Registrar é Usar
 
-O registro é tratado adicionando o requester ao banco. Na prática, a maioria dos modders usa os requesters integrados e modifica seus parâmetros ao invés de criar requesters totalmente personalizados.
+O registro é tratado adicionando o requester ao banco. Na prática, a maioria dos modders usa os requesters integrados é modifica seus parâmetros ao invés de criar requesters totalmente personalizados.
 
 ---
 
@@ -229,7 +229,7 @@ nvgReq.Start();
 nvgReq.Stop();
 ```
 
-O NVG real no jogo é acionado pelo item NVGoggles através do seu `ComponentEnergyManager` e o método `NVGoggles.ToggleNVG()`, que internamente aciona o sistema PPE.
+O NVG real no jogo é acionado pelo item NVGoggles através do seu `ComponentEnergyManager` é o método `NVGoggles.ToggleNVG()`, que internamente aciona o sistema PPE.
 
 ---
 

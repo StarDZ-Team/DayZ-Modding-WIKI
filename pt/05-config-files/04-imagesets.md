@@ -4,19 +4,19 @@
 
 ---
 
-## Sumario
+## Sumário
 
 - [Visao Geral](#visao-geral)
 - [Como ImageSets Funcionam](#como-imagesets-funcionam)
 - [Formato ImageSet Nativo do DayZ](#formato-imageset-nativo-do-dayz)
 - [Formato ImageSet XML](#formato-imageset-xml)
 - [Registrando ImageSets no config.cpp](#registrando-imagesets-no-configcpp)
-- [Referenciando Imagens em Layouts](#referenciando-imagens-em-layouts)
-- [Referenciando Imagens em Scripts](#referenciando-imagens-em-scripts)
+- [Referênciando Imagens em Layouts](#referênciando-imagens-em-layouts)
+- [Referênciando Imagens em Scripts](#referênciando-imagens-em-scripts)
 - [Flags de Imagem](#flags-de-imagem)
-- [Texturas Multi-Resolucao](#texturas-multi-resolucao)
-- [Criando Conjuntos de Icones Personalizados](#criando-conjuntos-de-icones-personalizados)
-- [Padrao de Integracao Font Awesome](#padrao-de-integracao-font-awesome)
+- [Texturas Multi-Resolução](#texturas-multi-resolução)
+- [Criando Conjuntos de Ícones Personalizados](#criando-conjuntos-de-ícones-personalizados)
+- [Padrão de Integracao Font Awesome](#padrão-de-integracao-font-awesome)
 - [Exemplos Reais](#exemplos-reais)
 - [Erros Comuns](#erros-comuns)
 
@@ -24,11 +24,11 @@
 
 ## Visao Geral
 
-Um atlas de textura e uma unica imagem grande (tipicamente no formato `.edds`) contendo muitos icones menores organizados em uma grade ou layout livre. Um arquivo de imageset mapeia nomes legiveis por humanos para regioes retangulares dentro daquele atlas.
+Um atlas de textura é uma única imagem grande (típicamente no formato `.edds`) contendo muitos ícones menores organizados em uma grade ou layout livre. Um arquivo de imageset mapeia nomes legiveis por humanos para regioes retangulares dentro daquele atlas.
 
-Por exemplo, uma textura 1024x1024 pode conter 64 icones de 64x64 pixels cada. O arquivo de imageset diz "o icone chamado `arrow_down` esta na posicao (128, 64) e tem 64x64 pixels." Seus arquivos de layout e scripts referenciam `arrow_down` pelo nome, e o motor extrai o sub-retangulo correto do atlas no momento da renderizacao.
+Por exemplo, uma textura 1024x1024 pode conter 64 ícones de 64x64 pixels cada. O arquivo de imageset diz "o icone chamado `arrow_down` esta na posição (128, 64) é tem 64x64 pixels." Seus arquivos de layout é scripts referênciam `arrow_down` pelo nome, é o motor extrai o sub-retangulo correto do atlas no momento da renderizacao.
 
-Esta abordagem e eficiente: um unico carregamento de textura na GPU serve a todos os icones, reduzindo draw calls e overhead de memoria.
+Esta abordagem é eficiente: um único carregamento de textura na GPU serve a todos os ícones, reduzindo draw calls é overhead de memória.
 
 ---
 
@@ -36,18 +36,18 @@ Esta abordagem e eficiente: um unico carregamento de textura na GPU serve a todo
 
 O fluxo de dados:
 
-1. **Atlas de textura** (arquivo `.edds`) --- uma unica imagem contendo todos os icones
+1. **Atlas de textura** (arquivo `.edds`) --- uma única imagem contendo todos os ícones
 2. **Definicao de ImageSet** (arquivo `.imageset`) --- mapeia nomes para regioes no atlas
 3. **Registro no config.cpp** --- diz ao motor para carregar o imageset na inicializacao
-4. **Referencia em layout/script** --- usa a sintaxe `set:name image:iconName` para renderizar um icone especifico
+4. **Referência em layout/script** --- usa a sintaxe `set:name image:iconName` para renderizar um icone específico
 
-Uma vez registrado, qualquer widget em qualquer arquivo de layout pode referenciar qualquer imagem do conjunto pelo nome.
+Uma vez registrado, qualquer widget em qualquer arquivo de layout pode referênciar qualquer imagem do conjunto pelo nome.
 
 ---
 
 ## Formato ImageSet Nativo do DayZ
 
-O formato nativo usa a sintaxe baseada em classes do motor Enfusion (similar ao config.cpp). Este e o formato usado pelo jogo vanilla e pela maioria dos mods estabelecidos.
+O formato nativo usa a sintaxe baseada em classes do motor Enfusion (similar ao config.cpp). Este é o formato usado pelo jogo vanilla é pela maioria dos mods estabelecidos.
 
 ### Estrutura
 
@@ -74,30 +74,30 @@ ImageSetClass {
 
 ### Campos de Nivel Superior
 
-| Campo | Descricao |
+| Campo | Descrição |
 |-------|-----------|
-| `Name` | O nome do conjunto. Usado na parte `set:` das referencias de imagem. Deve ser unico entre todos os mods carregados. |
-| `RefSize` | Dimensoes de referencia da textura (largura altura). Usado para mapeamento de coordenadas. |
-| `Textures` | Contem uma ou mais entradas `ImageSetTextureClass` para diferentes niveis de resolucao mip. |
+| `Name` | O nome do conjunto. Usado na parte `set:` das referências de imagem. Deve ser único entre todos os mods carregados. |
+| `RefSize` | Dimensoes de referência da textura (largura altura). Usado para mapeamento de coordenadas. |
+| `Textures` | Contem uma ou mais entradas `ImageSetTextureClass` para diferentes níveis de resolução mip. |
 
 ### Campos de Entrada de Textura
 
-| Campo | Descricao |
+| Campo | Descrição |
 |-------|-----------|
-| `mpix` | Nivel minimo de pixel (nivel mip). `0` = resolucao mais baixa, `1` = resolucao padrao. |
+| `mpix` | Nivel mínimo de pixel (nível mip). `0` = resolução mais baixa, `1` = resolução padrão. |
 | `path` | Caminho para o arquivo de textura `.edds`, relativo a raiz do mod. Pode usar formato GUID do Enfusion (`{GUID}path`) ou caminhos relativos simples. |
 
 ### Campos de Entrada de Imagem
 
-Cada imagem e um `ImageSetDefClass` dentro do bloco `Images`:
+Cada imagem é um `ImageSetDefClass` dentro do bloco `Images`:
 
-| Campo | Descricao |
+| Campo | Descrição |
 |-------|-----------|
 | Nome da classe | Deve corresponder ao campo `Name` (usado para buscas do motor) |
-| `Name` | O identificador da imagem. Usado na parte `image:` das referencias. |
-| `Pos` | Posicao do canto superior esquerdo no atlas (x y), em pixels |
+| `Name` | O identificador da imagem. Usado na parte `image:` das referências. |
+| `Pos` | Posição do canto superior esquerdo no atlas (x y), em pixels |
 | `Size` | Dimensoes (largura altura), em pixels |
-| `Flags` | Flags de comportamento de repeticao (veja [Flags de Imagem](#flags-de-imagem)) |
+| `Flags` | Flags de comportamento de repetição (veja [Flags de Imagem](#flags-de-imagem)) |
 
 ### Exemplo Completo (DayZ Vanilla)
 
@@ -136,7 +136,7 @@ ImageSetClass {
 
 ## Formato ImageSet XML
 
-Um formato alternativo baseado em XML existe e e usado por alguns mods. E mais simples, mas oferece menos recursos (sem suporte multi-resolucao).
+Um formato alternativo baseado em XML existe é e usado por alguns mods. E mais simples, mas oferece menos recursos (sem suporte multi-resolução).
 
 ### Estrutura
 
@@ -153,37 +153,37 @@ Um formato alternativo baseado em XML existe e e usado por alguns mods. E mais s
 
 **Elemento `<imageset>`:**
 
-| Atributo | Descricao |
+| Atributo | Descrição |
 |----------|-----------|
 | `name` | O nome do conjunto (equivalente ao `Name` nativo) |
 | `file` | Caminho para o arquivo de textura (equivalente ao `path` nativo) |
 
 **Elemento `<image>`:**
 
-| Atributo | Descricao |
+| Atributo | Descrição |
 |----------|-----------|
 | `name` | Identificador da imagem |
-| `pos` | Posicao superior esquerda como `"x y"` |
+| `pos` | Posição superior esquerda como `"x y"` |
 | `size` | Dimensoes como `"largura altura"` |
 
 ### Quando Usar Qual Formato
 
 | Recurso | Formato Nativo | Formato XML |
 |---------|----------------|-------------|
-| Multi-resolucao (niveis mip) | Sim | Nao |
-| Flags de repeticao | Sim | Nao |
+| Multi-resolução (níveis mip) | Sim | Não |
+| Flags de repetição | Sim | Não |
 | Caminhos GUID do Enfusion | Sim | Sim |
 | Simplicidade | Menor | Maior |
-| Usado pelo DayZ vanilla | Sim | Nao |
+| Usado pelo DayZ vanilla | Sim | Não |
 | Usado pelo Expansion, MyMod, VPP | Sim | Ocasionalmente |
 
-**Recomendacao:** Use o formato nativo para mods de producao. Use o formato XML para prototipagem rapida ou conjuntos de icones simples que nao precisam de repeticao ou suporte multi-resolucao.
+**Recomendacao:** Use o formato nativo para mods de produção. Use o formato XML para prototipagem rapida ou conjuntos de ícones simples que não precisam de repetição ou suporte multi-resolução.
 
 ---
 
 ## Registrando ImageSets no config.cpp
 
-Arquivos de ImageSet devem ser registrados no `config.cpp` do seu mod sob o bloco `CfgMods` > `class defs` > `class imageSets`. Sem este registro, o motor nunca carrega o imageset e suas referencias de imagem falham silenciosamente.
+Arquivos de ImageSet devem ser registrados no `config.cpp` do seu mod sob o bloco `CfgMods` > `class defs` > `class imageSets`. Sem este registro, o motor nunca carrega o imageset é suas referências de imagem falham silenciosamente.
 
 ### Sintaxe
 
@@ -210,7 +210,7 @@ class CfgMods
 
 ### Exemplo Real: MyFramework
 
-MyFramework registra sete imagesets incluindo conjuntos de icones Font Awesome:
+MyFramework registra sete imagesets incluindo conjuntos de ícones Font Awesome:
 
 ```cpp
 class defs
@@ -263,7 +263,7 @@ class defs
 
 ---
 
-## Referenciando Imagens em Layouts
+## Referênciando Imagens em Layouts
 
 Em arquivos `.layout`, use a propriedade `image0` com a sintaxe `set:name image:imageName`:
 
@@ -283,11 +283,11 @@ set:SETNAME image:IMAGENAME
 ```
 
 - `SETNAME` --- o campo `Name` da definicao do imageset (ex.: `dayz_gui`, `solid`, `brands`)
-- `IMAGENAME` --- o campo `Name` de uma entrada especifica `ImageSetDefClass` (ex.: `icon_refresh`, `arrow_down`)
+- `IMAGENAME` --- o campo `Name` de uma entrada específica `ImageSetDefClass` (ex.: `icon_refresh`, `arrow_down`)
 
 ### Multiplos Estados de Imagem
 
-Alguns widgets suportam multiplos estados de imagem (normal, hover, pressionado):
+Alguns widgets suportam múltiplos estados de imagem (normal, hover, pressionado):
 
 ```
 ImageWidgetClass icon {
@@ -311,7 +311,7 @@ image0 "set:dayz_editor_gui image:eye_open"           -- DayZ Editor: custom ico
 
 ---
 
-## Referenciando Imagens em Scripts
+## Referênciando Imagens em Scripts
 
 No Enforce Script, use `ImageWidget.LoadImageFile()` ou defina propriedades de imagem nos widgets:
 
@@ -322,7 +322,7 @@ ImageWidget icon = ImageWidget.Cast(layoutRoot.FindAnyWidget("MyIcon"));
 icon.LoadImageFile(0, "set:solid image:circle");
 ```
 
-O parametro `0` e o indice da imagem (correspondente a `image0` nos layouts).
+O parâmetro `0` é o índice da imagem (correspondente a `image0` nos layouts).
 
 ### Multiplos Estados via Indice
 
@@ -353,13 +353,13 @@ searchBarIcon.LoadImageFile(0, "set:dayz_gui image:icon_x");
 
 ## Flags de Imagem
 
-O campo `Flags` em entradas de imageset no formato nativo controla o comportamento de repeticao quando a imagem e esticada alem do seu tamanho natural.
+O campo `Flags` em entradas de imageset no formato nativo controla o comportamento de repetição quando a imagem é esticada além do seu tamanho natural.
 
-| Flag | Valor | Descricao |
+| Flag | Valor | Descrição |
 |------|-------|-----------|
-| `0` | 0 | Sem repeticao. A imagem estica para preencher o widget. |
-| `ISHorizontalTile` | 1 | Repete horizontalmente quando o widget e mais largo que a imagem. |
-| `ISVerticalTile` | 2 | Repete verticalmente quando o widget e mais alto que a imagem. |
+| `0` | 0 | Sem repetição. A imagem estica para preencher o widget. |
+| `ISHorizontalTile` | 1 | Repete horizontalmente quando o widget é mais largo que a imagem. |
+| `ISVerticalTile` | 2 | Repete verticalmente quando o widget é mais alto que a imagem. |
 | Ambos | 3 | Repete em ambas as direcoes (`ISHorizontalTile` + `ISVerticalTile`). |
 
 ### Uso
@@ -375,13 +375,13 @@ ImageSetDefClass Gradient {
 
 Esta imagem `Gradient` tem 75x5 pixels. Quando usada em um widget mais alto que 5 pixels, ela repete verticalmente para preencher a altura, criando uma faixa de gradiente repetida.
 
-A maioria dos icones usa `Flags 0` (sem repeticao). Flags de repeticao sao usadas principalmente para elementos de UI como bordas, divisores e padroes repetitivos.
+A maioria dos ícones usa `Flags 0` (sem repetição). Flags de repetição são usadas principalmente para elementos de UI como bordas, divisores é padroes repetitivos.
 
 ---
 
-## Texturas Multi-Resolucao
+## Texturas Multi-Resolução
 
-O formato nativo suporta multiplas texturas de resolucao para o mesmo imageset. Isso permite que o motor use arte de maior resolucao em displays de alta DPI.
+O formato nativo suporta múltiplas texturas de resolução para o mesmo imageset. Isso permite que o motor use arte de maior resolução em displays de alta DPI.
 
 ```
 Textures {
@@ -396,14 +396,14 @@ Textures {
 }
 ```
 
-- `mpix 0` --- baixa resolucao (usada em configuracoes de baixa qualidade ou elementos de UI distantes)
-- `mpix 1` --- resolucao padrao/alta (padrao)
+- `mpix 0` --- baixa resolução (usada em configurações de baixa qualidade ou elementos de UI distantes)
+- `mpix 1` --- resolução padrão/alta (padrão)
 
-A convencao de nomenclatura `@2x` e emprestada do sistema Retina display da Apple, mas nao e obrigatoria --- voce pode nomear o arquivo como quiser.
+A convencao de nomenclatura `@2x` é emprestada do sistema Retina display da Apple, mas não é obrigatoria --- você pode nomear o arquivo como quiser.
 
 ### Na Pratica
 
-A maioria dos mods inclui apenas `mpix 1` (uma unica resolucao). Suporte multi-resolucao e usado principalmente pelo jogo vanilla:
+A maioria dos mods inclui apenas `mpix 1` (uma única resolução). Suporte multi-resolução é usado principalmente pelo jogo vanilla:
 
 ```
 Textures {
@@ -416,16 +416,16 @@ Textures {
 
 ---
 
-## Criando Conjuntos de Icones Personalizados
+## Criando Conjuntos de Ícones Personalizados
 
 ### Fluxo de Trabalho Passo a Passo
 
 **1. Crie o Atlas de Textura**
 
-Use um editor de imagem (Photoshop, GIMP, etc.) para organizar seus icones em uma unica tela:
+Use um editor de imagem (Photoshop, GIMP, etc.) para organizar seus ícones em uma única tela:
 - Escolha um tamanho em potencia de dois (256x256, 512x512, 1024x1024, etc.)
-- Organize icones em uma grade para facilitar o calculo de coordenadas
-- Deixe algum padding entre icones para evitar sangramento de textura
+- Organize ícones em uma grade para facilitar o calculo de coordenadas
+- Deixe algum padding entre ícones para evitar sangramento de textura
 - Salve como `.tga` ou `.png`
 
 **2. Converta para EDDS**
@@ -437,7 +437,7 @@ O DayZ usa o formato `.edds` (Enfusion DDS) para texturas. Use o DayZ Workbench 
 
 **3. Escreva a Definicao do ImageSet**
 
-Mapeie cada icone para uma regiao nomeada. Se seus icones estao em uma grade de 64 pixels:
+Mapeie cada icone para uma regiao nomeada. Se seus ícones estao em uma grade de 64 pixels:
 
 ```
 ImageSetClass {
@@ -486,7 +486,7 @@ class imageSets
 };
 ```
 
-**5. Use em Layouts e Scripts**
+**5. Use em Layouts é Scripts**
 
 ```
 ImageWidgetClass SettingsIcon {
@@ -499,18 +499,18 @@ ImageWidgetClass SettingsIcon {
 
 ---
 
-## Padrao de Integracao Font Awesome
+## Padrão de Integracao Font Awesome
 
-O MyFramework (herdado do DabsFramework) demonstra um padrao poderoso: converter fontes de icones Font Awesome em imagesets do DayZ. Isso da aos mods acesso a milhares de icones de qualidade profissional sem criar arte personalizada.
+O MyFramework (herdado do DabsFramework) demonstra um padrão poderoso: converter fontes de ícones Font Awesome em imagesets do DayZ. Isso da aos mods acesso a milhares de ícones de qualidade profissional sem criar arte personalizada.
 
 ### Como Funciona
 
-1. Icones do Font Awesome sao renderizados em um atlas de textura em um tamanho fixo de grade (64x64 por icone)
+1. Ícones do Font Awesome são renderizados em um atlas de textura em um tamanho fixo de grade (64x64 por icone)
 2. Cada estilo de icone ganha seu proprio imageset: `solid`, `regular`, `light`, `thin`, `brands`
 3. Nomes de icone no imageset correspondem aos nomes do Font Awesome (ex.: `circle`, `arrow_down`, `discord`)
-4. Os imagesets sao registrados no config.cpp e disponiveis para qualquer layout ou script
+4. Os imagesets são registrados no config.cpp é disponíveis para qualquer layout ou script
 
-### Conjuntos de Icones do MyFramework / DabsFramework
+### Conjuntos de Ícones do MyFramework / DabsFramework
 
 ```
 MyFramework/GUI/icons/
@@ -539,17 +539,17 @@ CollapseIcon.LoadImageFile(1, "set:solid image:square_minus");
 CollapseIcon.LoadImageFile(0, "set:regular image:square_plus");
 ```
 
-### Por Que Este Padrao Funciona Bem
+### Por Que Este Padrão Funciona Bem
 
-- **Biblioteca massiva de icones**: Milhares de icones disponiveis sem nenhuma criacao de arte
-- **Estilo consistente**: Todos os icones compartilham o mesmo peso visual e estilo
+- **Biblioteca massiva de ícones**: Milhares de ícones disponíveis sem nenhuma criacao de arte
+- **Estilo consistente**: Todos os ícones compartilham o mesmo peso visual é estilo
 - **Multiplos pesos**: Escolha solid, regular, light ou thin para diferentes contextos visuais
-- **Icones de marca**: Logos prontos para Discord, Steam, GitHub, etc.
-- **Nomes padrao**: Nomes de icone seguem convencoes do Font Awesome, tornando a descoberta facil
+- **Ícones de marca**: Logos prontos para Discord, Steam, GitHub, etc.
+- **Nomes padrão**: Nomes de icone seguem convenções do Font Awesome, tornando a descoberta facil
 
 ### A Estrutura do Atlas
 
-O imageset solid, por exemplo, tem um `RefSize` de 3648x3712 com icones organizados em intervalos de 64 pixels:
+O imageset solid, por exemplo, tem um `RefSize` de 3648x3712 com ícones organizados em intervalos de 64 pixels:
 
 ```
 ImageSetClass {
@@ -585,7 +585,7 @@ ImageSetClass {
 
 ### VPP Admin Tools
 
-VPP empacota todos os icones de ferramentas admin em um unico atlas 1920x1080 com posicionamento livre (nao uma grade rigida):
+VPP empacota todos os ícones de ferramentas admin em um único atlas 1920x1080 com posicionamento livre (não uma grade rigida):
 
 ```
 ImageSetClass {
@@ -614,14 +614,14 @@ ImageSetClass {
 }
 ```
 
-Referenciado em layouts como:
+Referênciado em layouts como:
 ```
 image0 "set:dayz_gui_vpp image:vpp_icon_cloud"
 ```
 
 ### MyWeapons Mod
 
-Icones de armas e acessorios empacotados em atlas grandes com tamanhos variados de icone:
+Ícones de armas é acessórios empacotados em atlas grandes com tamanhos variados de icone:
 
 ```
 ImageSetClass {
@@ -650,7 +650,7 @@ ImageSetClass {
 }
 ```
 
-Isso mostra que icones nao precisam ser de tamanho uniforme --- icones de inventario para armas usam 300x300 enquanto icones de UI tipicamente usam 64x64.
+Isso mostra que ícones não precisam ser de tamanho uniforme --- ícones de inventario para armas usam 300x300 enquanto ícones de UI típicamente usam 64x64.
 
 ### MyFramework Prefabs
 
@@ -683,7 +683,7 @@ ImageSetClass {
 }
 ```
 
-Notavel: nomes de imagem podem conter espacos quando entre aspas (ex.: `"Alpha 10"`). Porem, referenciar estes em layouts requer o nome exato incluindo o espaco.
+Notavel: nomes de imagem podem conter espacos quando entre aspas (ex.: `"Alpha 10"`). Porem, referênciar estes em layouts requer o nome exato incluindo o espaco.
 
 ### MyMod Market Hub (Formato XML)
 
@@ -702,7 +702,7 @@ Um imageset XML mais simples para o modulo market hub:
 </imageset>
 ```
 
-Referenciado como:
+Referênciado como:
 ```
 image0 "set:mh_icons image:icon_store"
 ```
@@ -713,11 +713,11 @@ image0 "set:mh_icons image:icon_store"
 
 ### Esquecendo o Registro no config.cpp
 
-O problema mais comum. Se seu arquivo de imageset existe mas nao esta listado em `class imageSets { files[] = { ... }; };` no config.cpp, o motor nunca o carrega. Todas as referencias de imagem falharao silenciosamente (widgets aparecem em branco).
+O problema mais comum. Se seu arquivo de imageset existe mas não esta listado em `class imageSets { files[] = { ... }; };` no config.cpp, o motor nunca o carrega. Todas as referências de imagem falharao silenciosamente (widgets aparecem em branco).
 
 ### Colisao de Nomes de Conjunto
 
-Se dois mods registram imagesets com o mesmo `Name`, apenas um e carregado (o ultimo vence). Use um prefixo unico:
+Se dois mods registram imagesets com o mesmo `Name`, apenas um é carregado (o ultimo vence). Use um prefixo único:
 
 ```
 Name "mymod_icons"     -- Bom
@@ -734,17 +734,17 @@ path "GUI/imagesets/icons.edds"            -- Errado se a raiz do PBO e MyMod/
 path "C:/Users/dev/icons.edds"            -- Errado: caminhos absolutos nao funcionam
 ```
 
-### RefSize Incompativel
+### RefSize Incompatível
 
-O `RefSize` deve corresponder as dimensoes reais em pixels da sua textura. Se voce especificar `RefSize 512 512` mas sua textura e 1024x1024, todas as posicoes de icone estarao deslocadas por um fator de dois.
+O `RefSize` deve corresponder as dimensoes reais em pixels da sua textura. Se você específicar `RefSize 512 512` mas sua textura é 1024x1024, todas as posicoes de icone estarao deslocadas por um fator de dois.
 
 ### Coordenadas Pos com Offset de Um
 
-`Pos` e o canto superior esquerdo da regiao do icone. Se seus icones estao em intervalos de 64 pixels mas voce acidentalmente desloca por 1 pixel, icones terao uma fatia fina do icone adjacente visivel.
+`Pos` é o canto superior esquerdo da regiao do icone. Se seus ícones estao em intervalos de 64 pixels mas você acidentalmente desloca por 1 pixel, ícones terao uma fatia fina do icone adjacente visível.
 
 ### Usando .png ou .tga Diretamente
 
-O motor requer formato `.edds` para atlas de textura referenciados por imagesets. Arquivos `.png` ou `.tga` brutos nao serao carregados. Sempre converta para `.edds` usando o DayZ Workbench ou as ferramentas do Mikero.
+O motor requer formato `.edds` para atlas de textura referênciados por imagesets. Arquivos `.png` ou `.tga` brutos não serão carregados. Sempre converta para `.edds` usando o DayZ Workbench ou as ferramentas do Mikero.
 
 ### Espacos em Nomes de Imagem
 

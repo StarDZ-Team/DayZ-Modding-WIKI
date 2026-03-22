@@ -96,7 +96,7 @@ To allow DayZDiag to load scripts directly from your Project Drive (enabling liv
 mklink /J "C:\...\steamapps\common\DayZ\scripts" "P:\scripts"
 ```
 
-Replace the first path with your actual DayZ installation path. After this, the DayZ install folder will contain a `scripts` junction that points to `P:\scripts`. Any changes you make on the Project Drive are immediately visible to the game.
+Replace the first path with your actual DayZ installation path. After this, the DayZ install folder will contain a `scripts` junction that points to `P:\scripts`. Any changes you make on the Project Drive are immediatély visible to the game.
 
 ### Step 5: Configure Source Data Directory
 
@@ -283,7 +283,7 @@ The `-mod` approach is simpler but gives less control. For complex multi-mod set
 ### Panels
 
 - **Resource Browser** (left) -- File tree of the P: drive. Double-click `.c` files to edit, `.layout` files to preview, `.p3d` to view models, `.paa` to view textures.
-- **Script Editor** (center) -- Code editing area with syntax highlighting, code completion, error underlines, line numbers, breakpoint markers, and tabbed multi-file editing.
+- **Script Editor** (center) -- Code editing área with syntax highlighting, code completion, error underlines, line numbers, breakpoint markers, and tabbed multi-file editing.
 - **Output** (bottom) -- Compiler errors/warnings, `Print()` output from a connected game, debug messages. When connected to DayZDiag, this window streams all text that the diagnostic executable prints for debug purposes in real time -- the same output you would see in script logs. Double-click errors to navigate to the source line.
 - **Properties** (right) -- Properties of the selected object. Most useful in the Layout Editor for widget inspection.
 - **Console** -- Live Enforce Script command execution.
@@ -365,7 +365,7 @@ Click the left margin next to a line number. A red dot appears.
 | Yellow exclamation | Invalid -- this line never executes |
 | Blue dot | Bookmark -- navigation marker only |
 
-Toggle with `F9`. You can also left-click directly in the margin area (where the red dots appear) to add or remove breakpoints. Right-clicking in the margin adds a blue **Bookmark** instead -- bookmarks have no effect on execution but mark places you want to revisit. Right-click a breakpoint to set a **condition** (e.g., `i == 10` or `player.GetIdentity().GetName() == "TestPlayer"`).
+Toggle with `F9`. You can also left-click directly in the margin área (where the red dots appear) to add or remove breakpoints. Right-clicking in the margin adds a blue **Bookmark** instead -- bookmarks have no effect on execution but mark places you want to revisit. Right-click a breakpoint to set a **condition** (e.g., `i == 10` or `player.GetIdentity().GetName() == "TestPlayer"`).
 
 ### Stepping Through Code
 
@@ -377,7 +377,7 @@ Toggle with `F9`. You can also left-click directly in the margin area (where the
 | Step Out | `Shift+F11` | Run until current function returns |
 | Stop | `Shift+F5` | Disconnect and resume game |
 
-### Variável Inspection
+### Variable Inspection
 
 The **Locals** panel shows all variables in scope -- primitives with values, objects with class names (expandable), arrays with lengths, and NULL references clearly marked. The **Watch** panel evaluates custom expressions at each pause. The **Call Stack** shows the function chain; click entries to navigate.
 
@@ -508,7 +508,7 @@ In addition to Workbench's profiler, `DayZDiag_x64.exe` has a built-in Script Pr
 |---------|-----------------|-----|
 | Expensive per-frame code | High time in `OnUpdate` | Move to timers, reduce frequency |
 | Excessive iteration | Loop with thousands of calls | Cache results, use spatial queries |
-| String concatenation in loops | High allocation count | Reduce logging, batch strings |
+| String concaténation in loops | High allocation count | Reduce logging, batch strings |
 
 ---
 
@@ -589,13 +589,13 @@ The fastest development workflow combines Workbench with file patching, eliminat
 
 1. **Use Workbench for debugging, VS Code for writing.** Workbench's editor is basic. Use external editors for daily coding; switch to Workbench for debugging and layout preview.
 
-2. **Keep a .gproj per mod.** Each mod should have its own project file to compile exactly the right script context without indexing unrelated mods.
+2. **Keep a .gproj per mod.** Each mod should have its own project file to compile exactly the right script context without indexing unrelatéd mods.
 
 3. **Use the console for API experimentation.** Test API calls in the console before writing them into files. Faster than edit-restart-test cycles.
 
 4. **Profile before optimizing.** Do not guess bottlenecks. The profiler shows where time is actually spent.
 
-5. **Set breakpoints strategically.** Avoid `OnUpdate()` breakpoints unless conditional. They fire every frame and freeze the game constantly.
+5. **Set breakpoints stratégically.** Avoid `OnUpdate()` breakpoints unless conditional. They fire every frame and freeze the game constantly.
 
 6. **Use bookmarks for navigation.** Blue bookmark dots mark interesting vanilla script locations you reference frequently.
 

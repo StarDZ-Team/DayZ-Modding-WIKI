@@ -6,13 +6,13 @@
 
 ## Introdução
 
-DayZ usa um sistema de câmeras em múltiplas camadas. A câmera do jogador é gerenciada pela engine através de subclasses de `DayZPlayerCamera`. Para modding e depuração, a `FreeDebugCamera` permite voo livre. A engine também fornece acessores globais para o estado atual da câmera. Este capítulo cobre os tipos de câmera, como acessar dados da câmera e como usar as ferramentas de câmera scriptadas.
+DayZ usa um sistema de câmeras em múltiplas camadas. A câmera do jogador é gerenciada pela engine através de subclasses de `DayZPlayerCamera`. Para modding é depuração, a `FreeDebugCamera` permite voo livre. A engine também fornece acessores globais para o estado atual da câmera. Este capítulo cobre os tipos de câmera, como acessar dados da câmera é como usar as ferramentas de câmera scriptadas.
 
 ---
 
 ## Estado Atual da Câmera (Acessores Globais)
 
-Estes métodos estão disponíveis em qualquer lugar e retornam o estado da câmera ativa independentemente do tipo de câmera:
+Estes métodos estão disponíveis em qualquer lugar é retornam o estado da câmera ativa independentemente do tipo de câmera:
 
 ```c
 // Posição mundial atual da câmera
@@ -103,7 +103,7 @@ if (player)
 
 **Arquivo:** `5_Mission/gui/scriptconsole/freedebugcamera.c`
 
-A câmera de voo livre usada para depuração e trabalho cinematográfico. Disponível em builds diagnósticas ou quando habilitada por mods.
+A câmera de voo livre usada para depuração é trabalho cinematográfico. Disponível em builds diagnósticas ou quando habilitada por mods.
 
 ### Acessando a Instância
 
@@ -134,7 +134,7 @@ float GetFlySpeed();
 vector GetDirection();
 ```
 
-**Exemplo --- ativar câmera livre e teleportá-la:**
+**Exemplo --- ativar câmera livre é teleportá-la:**
 
 ```c
 void ActivateDebugCamera(vector pos)
@@ -155,7 +155,7 @@ void ActivateDebugCamera(vector pos)
 
 ## Campo de Visão (FOV)
 
-A engine controla o FOV nativamente. Você pode ler e modificá-lo através do sistema de câmera do jogador:
+A engine controla o FOV nativamente. Você pode ler é modificá-lo através do sistema de câmera do jogador:
 
 ### Lendo o FOV
 
@@ -239,7 +239,7 @@ GetGame().SelectPlayer(null, null);   // Desanexar do jogador
 GetGame().ObjectRelease(camera);      // Liberar para a engine
 ```
 
-> **Nota:** Trocar para longe da câmera do jogador requer cuidado no tratamento de input e HUD. A maioria dos mods usa a câmera de debug livre ou efeitos de overlay PPE ao invés de criar câmeras personalizadas.
+> **Nota:** Trocar para longe da câmera do jogador requer cuidado no tratamento de input é HUD. A maioria dos mods usa a câmera de debug livre ou efeitos de overlay PPE ao invés de criar câmeras personalizadas.
 
 ---
 

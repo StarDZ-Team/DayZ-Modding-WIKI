@@ -1,21 +1,18 @@
-# Chapter 1.5: Control Flow
+# Глава 1.5: Управление потоком выполнения
 
-[Home](../../README.md) | [<< Previous: Modded Classes](04-modded-classes.md) | **Control Flow** | [Next: String Operations >>](06-strings.md)
+[Главная](../../README.md) | [<< Назад: Modded-классы](04-modded-classes.md) | **Управление потоком выполнения** | [Далее: Строковые операции >>](06-strings.md)
 
----
 ---
 
 ## Введение
 
-
-Control flow determines the order in which your code executes. Enforce Script provides the familiar `if/else`, `for`, `while`, `foreach`, and `switch` constructs -- but with several important differences from C/C++ that will catch you off guard if you are not prepared. Эта глава охватывает every control flow mechanism available, including the pitfalls unique to DayZ's scripting engine.
+Управление потоком выполнения определяет порядок, в котором выполняется ваш код. Enforce Script предоставляет знакомые конструкции `if/else`, `for`, `while`, `foreach` и `switch` -- но с несколькими важными отличиями от C/C++, которые застанут вас врасплох, если вы не будете к ним готовы. Эта глава охватывает все механизмы управления потоком, включая подводные камни, уникальные для скриптового движка DayZ.
 
 ---
 
 ## if / else / else if
 
-
-The `if` statement evaluates a boolean expression and executes a block of code when the result is `true`. You can chain conditions with `else if` and provide a fallback with `else`.
+Оператор `if` вычисляет логическое выражение и выполняет блок кода, когда результат равен `true`. Условия можно объединять в цепочку с помощью `else if` и предоставлять запасной вариант с помощью `else`.
 
 ```c
 void CheckHealth(PlayerBase player)
@@ -39,8 +36,7 @@ void CheckHealth(PlayerBase player)
 
 ### Проверки на null
 
-
-In Enforce Script, object references evaluate to `false` when null. Это standard way to guard against null access:
+В Enforce Script ссылки на объекты возвращают `false`, когда равны null. Это стандартный способ защиты от обращения к null:
 
 ```c
 void ProcessItem(EntityAI item)
@@ -55,15 +51,14 @@ void ProcessItem(EntityAI item)
 
 ### Логические операторы
 
-
-Combine conditions with `&&` (AND) and `||` (OR). Short-circuit evaluation applies: if the left side of `&&` is `false`, the right side is never evaluated.
+Объединяйте условия с помощью `&&` (И) и `||` (ИЛИ). Применяется сокращённое вычисление: если левая часть `&&` равна `false`, правая часть не вычисляется.
 
 ```c
 void CheckPlayerState(PlayerBase player)
 {
     if (player && player.IsAlive())
     {
-        // Safe -- player is checked for null before calling IsAlive()
+        // Безопасно -- player сначала проверяется на null перед вызовом IsAlive()
         Print("Player is alive");
     }
 
@@ -74,13 +69,12 @@ void CheckPlayerState(PlayerBase player)
 }
 ```
 
-### ЛОВУШКА: переобъявление переменных в блоках else-if
+### ПОДВОДНЫЙ КАМЕНЬ: Повторное объявление переменной в блоках else-if
 
-
-This is one of the most common Enforce Script errors. In most languages, variables declared inside one `if` branch are independent from variables in a sibling `else` branch. **Not in Enforce Script.** Declaring the same variable name in sibling `if`/`else if`/`else` blocks causes a **multiple declaration error** at compile time.
+Это одна из самых частых ошибок Enforce Script. В большинстве языков переменные, объявленные внутри одной ветви `if`, независимы от переменных в соседней ветви `else`. **В Enforce Script не так.** Объявление одинакового имени переменной в соседних блоках `if`/`else if`/`else` вызывает **ошибку множественного объявления** на этапе компиляции.
 
 ```c
-// WRONG -- Compile error!
+// НЕПРАВИЛЬНО -- Ошибка компиляции!
 void BadExample(Object obj)
 {
     if (obj.IsKindOf("Car"))
@@ -90,21 +84,21 @@ void BadExample(Object obj)
     }
     else if (obj.IsKindOf("ItemBase"))
     {
-        ItemBase item = ItemBase.Cast(obj);    // OK -- different name
+        ItemBase item = ItemBase.Cast(obj);    // OK -- другое имя
         item.GetQuantity();
     }
     else
     {
-        string msg = "Unknown object";         // First declaration of msg
+        string msg = "Unknown object";         // Первое объявление msg
         Print(msg);
     }
 }
 ```
 
-Wait -- that looks fine, right? The problem occurs when you use the **same variable name** in two branches:
+Подождите -- выглядит нормально, верно? Проблема возникает, когда вы используете **одинаковое имя переменной** в двух ветвях:
 
 ```c
-// WRONG -- Compile error: multiple declaration of 'result'
+// НЕПРАВИЛЬНО -- Ошибка компиляции: множественное объявление 'result'
 void ProcessObject(Object obj)
 {
     if (obj.IsKindOf("Car"))
@@ -114,16 +108,16 @@ void ProcessObject(Object obj)
     }
     else
     {
-        string result = "It's something else";  // ERROR! Same name as in the if block
+        string result = "It's something else";  // ОШИБКА! То же имя, что и в блоке if
         Print(result);
     }
 }
 ```
 
-**The fix:** Declare the variable **before** the if statement, or use unique names per branch.
+**Решение:** Объявите переменную **перед** оператором if или используйте уникальные имена для каждой ветви.
 
 ```c
-// CORRECT -- Declare before the if
+// ПРАВИЛЬНО -- Объявить перед if
 void ProcessObject(Object obj)
 {
     string result;
@@ -145,11 +139,10 @@ void ProcessObject(Object obj)
 
 ## Цикл for
 
-
-The `for` loop is identical to C-style syntax: initializer, condition, and increment.
+Цикл `for` идентичен синтаксису в стиле C: инициализатор, условие и инкремент.
 
 ```c
-// Print numbers 0 through 9
+// Вывести числа от 0 до 9
 void CountToTen()
 {
     for (int i = 0; i < 10; i++)
@@ -159,8 +152,7 @@ void CountToTen()
 }
 ```
 
-### Итерация по массиву с for
-
+### Итерация по массиву с помощью for
 
 ```c
 void ListInventory(PlayerBase player)
@@ -181,9 +173,8 @@ void ListInventory(PlayerBase player)
 
 ### Вложенные циклы for
 
-
 ```c
-// Spawn a grid of objects
+// Создание сетки объектов
 void SpawnGrid(vector origin, int rows, int cols, float spacing)
 {
     for (int r = 0; r < rows; r++)
@@ -201,17 +192,16 @@ void SpawnGrid(vector origin, int rows, int cols, float spacing)
 }
 ```
 
-> **Примечание:** Do not redeclare the loop variable `i` if there is already a variable named `i` in the enclosing scope. Enforce Script treats this as a multiple declaration error, even in nested scopes.
+> **Примечание:** Не объявляйте повторно переменную цикла `i`, если в охватывающей области видимости уже есть переменная с именем `i`. Enforce Script считает это ошибкой множественного объявления, даже во вложенных областях.
 
 ---
 
 ## Цикл while
 
-
-The `while` loop repeats a block as long as its condition is `true`. The condition is evaluated **before** each iteration.
+Цикл `while` повторяет блок, пока его условие равно `true`. Условие вычисляется **перед** каждой итерацией.
 
 ```c
-// Remove all dead zombies from a tracking list
+// Удалить всех мёртвых зомби из списка отслеживания
 void CleanupDeadZombies(array<DayZInfected> zombieList)
 {
     int i = 0;
@@ -221,7 +211,7 @@ void CleanupDeadZombies(array<DayZInfected> zombieList)
         if (Class.CastTo(eai, zombieList.Get(i)) && !eai.IsAlive())
         {
             zombieList.RemoveOrdered(i);
-            // Do NOT increment i -- the next element has shifted into this index
+            // НЕ увеличиваем i -- следующий элемент сдвинулся на этот индекс
         }
         else
         {
@@ -231,16 +221,15 @@ void CleanupDeadZombies(array<DayZInfected> zombieList)
 }
 ```
 
-### ВНИМАНИЕ: в Enforce Script НЕТ do...while
+### ВНИМАНИЕ: В Enforce Script НЕТ do...while
 
-
-The `do...while` keyword does not exist. The compiler will reject it. If you need a loop that always executes at least once, use the flag pattern described below.
+Ключевое слово `do...while` не существует. Компилятор отклонит его. Если вам нужен цикл, который всегда выполняется хотя бы один раз, используйте шаблон с флагом, описанный ниже.
 
 ```c
-// WRONG -- This will NOT compile
+// НЕПРАВИЛЬНО -- Это НЕ скомпилируется
 do
 {
-    // body
+    // тело
 }
 while (someCondition);
 ```
@@ -249,8 +238,7 @@ while (someCondition);
 
 ## Имитация do...while с помощью флага
 
-
-The standard workaround is to use a `bool` flag that is `true` on the first iteration:
+Стандартный обходной путь -- использовать переменную `bool`, которая равна `true` на первой итерации:
 
 ```c
 void SimulateDoWhile()
@@ -273,17 +261,17 @@ void SimulateDoWhile()
 }
 ```
 
-An alternative approach using `break`:
+Альтернативный подход с использованием `break`:
 
 ```c
 void AlternativeDoWhile()
 {
     while (true)
     {
-        // Body executes at least once
+        // Тело выполняется хотя бы один раз
         DoSomething();
 
-        // Check the exit condition at the END
+        // Проверка условия выхода В КОНЦЕ
         if (!ShouldContinue())
             break;
     }
@@ -294,11 +282,9 @@ void AlternativeDoWhile()
 
 ## foreach
 
-
-The `foreach` statement is the cleanest way to iterate over arrays, maps, and static arrays. It comes in two forms.
+Оператор `foreach` — наиболее чистый способ итерации по массивам, словарям и статическим массивам. Он имеет две формы.
 
 ### Простой foreach (только значение)
-
 
 ```c
 void AnnounceItems(array<string> itemNames)
@@ -312,8 +298,7 @@ void AnnounceItems(array<string> itemNames)
 
 ### foreach с индексом
 
-
-When iterating over arrays, the first variable receives the index:
+При итерации по массивам первая переменная получает индекс:
 
 ```c
 void ListPlayers(array<Man> players)
@@ -325,10 +310,9 @@ void ListPlayers(array<Man> players)
 }
 ```
 
-### foreach по maps
+### foreach по словарям
 
-
-For maps, the first variable receives the key and the second receives the value:
+Для словарей первая переменная получает ключ, а вторая — значение:
 
 ```c
 void PrintScoreboard(map<string, int> scores)
@@ -340,7 +324,7 @@ void PrintScoreboard(map<string, int> scores)
 }
 ```
 
-You can also iterate over maps with just the value:
+Можно также итерировать по словарям, получая только значение:
 
 ```c
 void SumScores(map<string, int> scores)
@@ -355,7 +339,6 @@ void SumScores(map<string, int> scores)
 ```
 
 ### foreach по статическим массивам
-
 
 ```c
 void PrintStaticArray()
@@ -373,13 +356,11 @@ void PrintStaticArray()
 
 ## switch / case
 
+Оператор `switch` сопоставляет значение со списком меток `case`. Он работает с `int`, `string`, значениями перечислений и константами.
 
-The `switch` statement matches a value against a list of `case` labels. It works with `int`, `string`, enum values, and constants.
+### Важно: НЕТ проваливания (fall-through)
 
-### Важно: БЕЗ проваливания
-
-
-Unlike C/C++, Enforce Script `switch/case` does **NOT** fall through from one case to the next. Each `case` is independent. You can include `break` for clarity, but it is not required to prevent fall-through.
+В отличие от C/C++, `switch/case` в Enforce Script **НЕ** проваливается из одного case в следующий. Каждый `case` независим. Вы можете включить `break` для ясности, но он не требуется для предотвращения проваливания.
 
 ```c
 void HandleCommand(string command)
@@ -405,8 +386,7 @@ void HandleCommand(string command)
 }
 ```
 
-### switch с enums
-
+### switch с перечислениями
 
 ```c
 enum EDifficulty
@@ -445,7 +425,6 @@ void SetDifficulty(EDifficulty difficulty)
 
 ### switch с целочисленными константами
 
-
 ```c
 void DescribeWeaponSlot(int slotId)
 {
@@ -474,20 +453,18 @@ void DescribeWeaponSlot(int slotId)
 }
 ```
 
-> **Запомните:** Because there is no fall-through, you cannot stack cases to share a handler the way you would in C. Each case must have its own body.
+> **Помните:** Поскольку проваливания нет, вы не можете складывать case для общего обработчика, как в C. Каждый case должен иметь собственное тело.
 
 ---
 
 ## break и continue
 
-
 ### break
 
-
-`break` exits the innermost loop (or switch case) immediately.
+`break` немедленно выходит из самого внутреннего цикла (или case оператора switch).
 
 ```c
-// Find the first player within 100 meters
+// Найти первого игрока в пределах 100 метров
 void FindNearbyPlayer(vector origin, array<Man> players)
 {
     foreach (Man player : players)
@@ -496,7 +473,7 @@ void FindNearbyPlayer(vector origin, array<Man> players)
         if (dist < 100)
         {
             Print("Found nearby player: " + player.GetIdentity().GetName());
-            break; // Stop searching
+            break; // Прекратить поиск
         }
     }
 }
@@ -504,21 +481,20 @@ void FindNearbyPlayer(vector origin, array<Man> players)
 
 ### continue
 
-
-`continue` skips the rest of the current iteration and jumps to the next one.
+`continue` пропускает оставшуюся часть текущей итерации и переходит к следующей.
 
 ```c
-// Process only alive players
+// Обработать только живых игроков
 void HealAllPlayers(array<Man> players)
 {
     foreach (Man man : players)
     {
         PlayerBase player;
         if (!Class.CastTo(player, man))
-            continue; // Not a PlayerBase, skip
+            continue; // Не PlayerBase, пропустить
 
         if (!player.IsAlive())
-            continue; // Dead, skip
+            continue; // Мёртв, пропустить
 
         player.SetHealth("", "Health", 100);
         Print("Healed: " + player.GetIdentity().GetName());
@@ -528,8 +504,7 @@ void HealAllPlayers(array<Man> players)
 
 ### Вложенные циклы с break
 
-
-`break` only exits the innermost loop. To break out of nested loops, use a flag variable:
+`break` выходит только из самого внутреннего цикла. Для выхода из вложенных циклов используйте переменную-флаг:
 
 ```c
 void FindItemInGrid(array<array<string>> grid, string target)
@@ -544,62 +519,130 @@ void FindItemInGrid(array<array<string>> grid, string target)
             {
                 Print(string.Format("Found '%1' at [%2, %3]", target, row, col));
                 found = true;
-                break; // Only exits inner loop
+                break; // Выходит только из внутреннего цикла
             }
         }
 
         if (found)
-            break; // Exits outer loop
+            break; // Выход из внешнего цикла
     }
 }
 ```
 
 ---
 
-## Распространённые ошибки
+## Ключевое слово thread
 
+Enforce Script имеет ключевое слово `thread` для асинхронного выполнения:
 
-| Mistake | Problem | Fix |
-|---------|---------|-----|
-| Using `do...while` | Does not exist in Enforce Script | Use `while` with a `bool first = true` flag |
-| Declaring same variable in `if` and `else` blocks | Multiple declaration error | Declare the variable before the `if` |
-| Redeclaring loop variable `i` in nested scope | Multiple declaration error | Use different names (`i`, `j`, `k`) or declare outside |
-| Expecting `switch` fall-through | Cases are independent, no fall-through | Each case needs its own complete handler |
-| Modifying array while iterating with `foreach` | Undefined behavior, potential crash | Use index-based `for` loop when removing elements |
-| Infinite `while` loop without `break` | Server freeze / client hang | Always ensure the condition will eventually be `false`, or use `break` |
+```c
+// Объявление потоковой функции
+thread void LongOperation()
+{
+    // Это выполняется асинхронно
+    Sleep(5000);  // Ожидание 5 секунд без блокировки
+    Print("Done!");
+}
+
+// Вызов
+thread LongOperation();  // Запускается без блокировки вызывающего кода
+```
+
+**Важно:** `thread` в Enforce Script — это НЕ то же самое, что потоки ОС. Это скорее корутина --- она выполняется в том же потоке, но может уступать/засыпать без блокировки игры. Используйте `CallLater` вместо `thread` для большинства случаев в модах --- это проще и предсказуемее.
+
+### Thread vs CallLater
+
+| Возможность | `thread` | `CallLater` |
+|-------------|----------|-------------|
+| Синтаксис | `thread MyFunc();` | `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(this.MyFunc, delayMs, repeat);` |
+| Может засыпать/уступать | Да (`Sleep()`) | Нет (срабатывает один раз или повторяется с интервалом) |
+| Отменяемый | Нет встроенной отмены | Да (`CallQueue.Remove()`) |
+| Применение | Последовательная асинхронная логика с ожиданиями | Отложенные или повторяющиеся обратные вызовы |
+
+Для большинства сценариев моддинга DayZ `CallLater` с таймером является предпочтительным подходом. Используйте `thread` только в случаях, когда вам действительно нужна последовательная логика с промежуточными ожиданиями (например, многоэтапная анимационная последовательность).
 
 ---
 
-## Краткая справка
+## Лучшие практики
 
+- Используйте защитные проверки (`if (!x) return;`) в начале функций вместо глубоко вложенных блоков `if` -- это делает основной путь плоским и читаемым.
+- Объявляйте общие переменные перед блоками `if`/`else`, чтобы избежать ошибки повторного объявления в смежных областях, уникальной для Enforce Script.
+- Используйте `foreach` для простой итерации и `for` с индексом только когда нужно удалять элементы или обращаться к соседним.
+- Заменяйте `do...while` на `while (first || condition)` с флагом `bool first = true` -- это стандартный обходной путь в Enforce Script.
+- Предпочитайте `CallLater` вместо `thread` для отложенных или повторяющихся действий -- он отменяем, проще и предсказуемее.
+
+---
+
+## Наблюдается в реальных модах
+
+> Шаблоны подтверждены изучением исходного кода профессиональных модов DayZ.
+
+| Шаблон | Мод | Описание |
+|--------|-----|----------|
+| Защитная проверка + `continue` в циклах | COT / Expansion | Циклы по игрокам всегда используют `continue` при неудачном приведении типа или `!IsAlive()` перед выполнением работы |
+| `switch` по строковым командам | VPP Admin | Обработчики команд чата используют `switch(command)` со строковыми case типа `"!heal"`, `"!tp"` |
+| Переменная-флаг для выхода из вложенных циклов | Expansion Market | Используют `bool found = false` с проверкой после внутреннего цикла для выхода из внешнего |
+| `CallLater` для отложенного спавна | Dabs Framework | Предпочитают `GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater()` вместо `thread` |
+
+---
+
+## Теория vs практика
+
+| Концепция | Теория | Реальность |
+|-----------|--------|------------|
+| Цикл `do...while` | Стандарт в большинстве C-подобных языков | Не существует в Enforce Script; вызывает непонятную ошибку компиляции |
+| Проваливание `switch` | В C/C++ case проваливаются без `break` | В Enforce Script case независимы -- складывание case не разделяет обработчики |
+| Ключевое слово `thread` | Звучит как многопоточность | На самом деле корутина в основном потоке; `Sleep()` уступает, а не блокирует |
+| Область видимости переменных в `if`/`else` | Смежные блоки должны иметь независимую область | Enforce Script рассматривает их как общую область -- одинаковое имя переменной в обоих блоках — ошибка компиляции |
+
+---
+
+## Распространённые ошибки
+
+| Ошибка | Проблема | Решение |
+|--------|----------|---------|
+| Использование `do...while` | Не существует в Enforce Script | Используйте `while` с флагом `bool first = true` |
+| Объявление одной переменной в блоках `if` и `else` | Ошибка множественного объявления | Объявите переменную перед `if` |
+| Повторное объявление переменной цикла `i` во вложенной области | Ошибка множественного объявления | Используйте разные имена (`i`, `j`, `k`) или объявите снаружи |
+| Ожидание проваливания `switch` | Case независимы, нет проваливания | Каждый case должен иметь свой полный обработчик |
+| Изменение массива при итерации через `foreach` | Неопределённое поведение, возможный вылет | Используйте цикл `for` с индексом при удалении элементов |
+| Бесконечный цикл `while` без `break` | Зависание сервера / клиента | Всегда убеждайтесь, что условие станет `false`, или используйте `break` |
+
+---
+
+## Краткий справочник
 
 ```c
 // if / else if / else
 if (condition) { } else if (other) { } else { }
 
-// for loop
+// цикл for
 for (int i = 0; i < count; i++) { }
 
-// while loop
+// цикл while
 while (condition) { }
 
-// Simulate do...while
+// Имитация do...while
 bool first = true;
-while (first || condition) { first = false; /* body */ }
+while (first || condition) { first = false; /* тело */ }
 
-// foreach (value only)
+// foreach (только значение)
 foreach (Type value : collection) { }
 
-// foreach (index + value)
+// foreach (индекс + значение)
 foreach (int i, Type value : array) { }
 
-// foreach (key + value on map)
+// foreach (ключ + значение для словаря)
 foreach (KeyType key, ValueType val : someMap) { }
 
-// switch/case (no fall-through)
+// switch/case (без проваливания)
 switch (value) { case X: /* ... */ break; default: break; }
+
+// thread (корутинный стиль асинхронности)
+thread void MyFunc() { Sleep(1000); }
+thread MyFunc();  // неблокирующий вызов
 ```
 
 ---
 
-[<< 1.4: Modded Classes](04-modded-classes.md) | [Главная](../../README.md) | [1.6: String Operations >>](06-strings.md)
+[<< 1.4: Modded-классы](04-modded-classes.md) | [Главная](../../README.md) | [1.6: Строковые операции >>](06-strings.md)
