@@ -1,66 +1,64 @@
-# Chapter 1.11: Error Handling
+# Глава 1.11: Обработка ошибок
 
-[Home](../../README.md) | [<< Previous: Enums & Preprocessor](10-enums-preprocessor.md) | **Error Handling** | [Next: Gotchas >>](12-gotchas.md)
-
----
+[Главная](../../README.md) | [<< Назад: Перечисления и препроцессор](10-enums-preprocessor.md) | **Обработка ошибок** | [Далее: Подводные камни >>](12-gotchas.md)
 
 ---
 
-## Содержание
+> **Цель:** Научиться обрабатывать ошибки в языке без try/catch. Освоить защитные проверки, оборонительное программирование и паттерны структурированного логирования, которые сохраняют стабильность вашего мода.
 
+---
 
-- [The Fundamental Rule: No try/catch](#the-fundamental-rule-no-trycatch)
-- [Guard Clause Pattern](#guard-clause-pattern)
-  - [Single Guard](#single-guard)
-  - [Multiple Guards (Stacked)](#multiple-guards-stacked)
-  - [Guard With Logging](#guard-with-logging)
-- [Null Checking](#null-checking)
-  - [Before Every Operation](#before-every-operation)
-  - [Chained Null Checks](#chained-null-checks)
-  - [The notnull Keyword](#the-notnull-keyword)
-- [ErrorEx — Engine Error Reporting](#errorex--engine-error-reporting)
-  - [Severity Levels](#severity-levels)
-  - [When to Use Each Level](#when-to-use-each-level)
-- [DumpStackString — Stack Traces](#dumpstackstring--stack-traces)
-- [Debug Printing](#debug-printing)
-  - [Basic Print](#basic-print)
-  - [Conditional Debug with #ifdef](#conditional-debug-with-ifdef)
-- [Structured Logging Patterns](#structured-logging-patterns)
-  - [Simple Prefix Pattern](#simple-prefix-pattern)
-  - [Level-Based Logger Class](#level-based-logger-class)
-  - [MyLog Style (Production Pattern)](#mylog-style-production-pattern)
-- [Real-World Examples](#real-world-examples)
-  - [Safe Function With Multiple Guards](#safe-function-with-multiple-guards)
-  - [Safe Config Loading](#safe-config-loading)
-  - [Safe RPC Handler](#safe-rpc-handler)
-  - [Safe Inventory Operation](#safe-inventory-operation)
-- [Defensive Patterns Summary](#defensive-patterns-summary)
-- [Common Mistakes](#common-mistakes)
-- [Summary](#summary)
-- [Navigation](#navigation)
+## Оглавление
+
+- [Фундаментальное правило: нет try/catch](#фундаментальное-правило-нет-trycatch)
+- [Паттерн защитных проверок (Guard Clause)](#паттерн-защитных-проверок-guard-clause)
+  - [Одиночная проверка](#одиночная-проверка)
+  - [Множественные проверки (стек)](#множественные-проверки-стек)
+  - [Проверка с логированием](#проверка-с-логированием)
+- [Проверка на null](#проверка-на-null)
+  - [Перед каждой операцией](#перед-каждой-операцией)
+  - [Цепочки проверок на null](#цепочки-проверок-на-null)
+  - [Ключевое слово notnull](#ключевое-слово-notnull)
+- [ErrorEx — сообщение об ошибке движка](#errorex--сообщение-об-ошибке-движка)
+  - [Уровни серьёзности](#уровни-серьёзности)
+  - [Когда использовать каждый уровень](#когда-использовать-каждый-уровень)
+- [DumpStackString — трассировка стека](#dumpstackstring--трассировка-стека)
+- [Отладочная печать](#отладочная-печать)
+  - [Базовый Print](#базовый-print)
+  - [Условная отладка с #ifdef](#условная-отладка-с-ifdef)
+- [Паттерны структурированного логирования](#паттерны-структурированного-логирования)
+  - [Простой паттерн с префиксом](#простой-паттерн-с-префиксом)
+  - [Класс логгера с уровнями](#класс-логгера-с-уровнями)
+  - [Стиль MyLog (продакшн-паттерн)](#стиль-mylog-продакшн-паттерн)
+- [Реальные примеры](#реальные-примеры)
+  - [Безопасная функция с множественными проверками](#безопасная-функция-с-множественными-проверками)
+  - [Безопасная загрузка конфигурации](#безопасная-загрузка-конфигурации)
+  - [Безопасный обработчик RPC](#безопасный-обработчик-rpc)
+  - [Безопасная операция с инвентарём](#безопасная-операция-с-инвентарём)
+- [Сводка оборонительных паттернов](#сводка-оборонительных-паттернов)
+- [Частые ошибки](#частые-ошибки)
+- [Итоги](#итоги)
+- [Навигация](#навигация)
 
 ---
 
 ## Фундаментальное правило: нет try/catch
 
+Enforce Script **не имеет обработки исключений**. Нет `try`, нет `catch`, нет `throw`, нет `finally`. Если что-то пошло не так во время выполнения (разыменование null, некорректное приведение типа, выход за границы массива), движок либо:
 
-Enforce Script has **no exception handling**. There is no `try`, no `catch`, no `throw`, no `finally`. If something goes wrong at runtime (null dereference, invalid cast, array out of bounds), the engine either:
+1. **Тихо падает** — функция прекращает выполнение, сообщение об ошибке отсутствует
+2. **Записывает ошибку скрипта** — видимую в лог-файле `.RPT`
+3. **Вызывает крах сервера/клиента** — в тяжёлых случаях
 
-1. **Crashes silently** — the function stops executing, no error message
-2. **Logs a script error** — visible in the `.RPT` log file
-3. **Crashes the server/client** — in severe cases
-
-Это означает **every potential failure point must be guarded manually**. The primary defense is the **guard clause pattern**.
+Это означает, что **каждая потенциальная точка отказа должна быть защищена вручную**. Основная защита — **паттерн защитных проверок (guard clause)**.
 
 ---
 
-## Паттерн защитных проверок
+## Паттерн защитных проверок (Guard Clause)
 
-
-A guard clause checks a precondition at the top of a function and returns early if it fails. This keeps the "happy path" un-nested and readable.
+Защитная проверка проверяет предусловие в начале функции и делает ранний возврат, если оно не выполнено. Это сохраняет «счастливый путь» ненагруженным вложенностью и читаемым.
 
 ### Одиночная проверка
-
 
 ```c
 void TeleportPlayer(PlayerBase player, vector destination)
@@ -74,29 +72,28 @@ void TeleportPlayer(PlayerBase player, vector destination)
 
 ### Множественные проверки (стек)
 
-
-Stack guards at the top of the function — each checks one precondition:
+Ставьте проверки в начале функции — каждая проверяет одно предусловие:
 
 ```c
 void GiveItemToPlayer(PlayerBase player, string className, int quantity)
 {
-    // Guard 1: player exists
+    // Проверка 1: игрок существует
     if (!player)
         return;
 
-    // Guard 2: player is alive
+    // Проверка 2: игрок жив
     if (!player.IsAlive())
         return;
 
-    // Guard 3: valid class name
+    // Проверка 3: корректное имя класса
     if (className == "")
         return;
 
-    // Guard 4: valid quantity
+    // Проверка 4: корректное количество
     if (quantity <= 0)
         return;
 
-    // All preconditions met — safe to proceed
+    // Все предусловия выполнены — можно продолжать
     for (int i = 0; i < quantity; i++)
     {
         player.GetInventory().CreateInInventory(className);
@@ -106,32 +103,31 @@ void GiveItemToPlayer(PlayerBase player, string className, int quantity)
 
 ### Проверка с логированием
 
-
-In production code, always log why a guard triggered — silent failures are hard to debug:
+В продакшн-коде всегда логируйте причину срабатывания проверки — тихие отказы крайне сложно отладить:
 
 ```c
 void StartMission(PlayerBase initiator, string missionId)
 {
     if (!initiator)
     {
-        Print("[Missions] ERROR: StartMission called with null initiator");
+        Print("[Missions] ERROR: StartMission вызван с null-инициатором");
         return;
     }
 
     if (missionId == "")
     {
-        Print("[Missions] ERROR: StartMission called with empty missionId");
+        Print("[Missions] ERROR: StartMission вызван с пустым missionId");
         return;
     }
 
     if (!initiator.IsAlive())
     {
-        Print("[Missions] WARN: Player " + initiator.GetIdentity().GetName() + " is dead, cannot start mission");
+        Print("[Missions] WARN: Игрок " + initiator.GetIdentity().GetName() + " мёртв, нельзя начать миссию");
         return;
     }
 
-    // Proceed with mission start
-    Print("[Missions] Starting mission " + missionId);
+    // Приступаем к запуску миссии
+    Print("[Missions] Запуск миссии " + missionId);
     // ...
 }
 ```
@@ -140,17 +136,15 @@ void StartMission(PlayerBase initiator, string missionId)
 
 ## Проверка на null
 
-
-Null references are the most common crash source in DayZ modding. Every reference type can be `null`.
+Null-ссылки — самый частый источник крашей в моддинге DayZ. Каждый ссылочный тип может быть `null`.
 
 ### Перед каждой операцией
 
-
 ```c
-// WRONG — crashes if player, identity, or name is null at any point
+// НЕПРАВИЛЬНО — крашится, если player, identity или name равны null
 string name = player.GetIdentity().GetName();
 
-// CORRECT — check at each step
+// ПРАВИЛЬНО — проверяем каждый шаг
 if (!player)
     return;
 
@@ -161,10 +155,9 @@ if (!identity)
 string name = identity.GetName();
 ```
 
-### Цепочка проверок на null
+### Цепочки проверок на null
 
-
-When you need to traverse a chain of references, check each link:
+Когда нужно пройти по цепочке ссылок, проверяйте каждое звено:
 
 ```c
 void PrintHandItemName(PlayerBase player)
@@ -180,78 +173,74 @@ void PrintHandItemName(PlayerBase player)
     if (!handItem)
         return;
 
-    Print("Player is holding: " + handItem.GetType());
+    Print("Игрок держит: " + handItem.GetType());
 }
 ```
 
 ### Ключевое слово notnull
 
-
-`notnull` is a parameter modifier that makes the compiler reject `null` arguments at the call site:
+`notnull` — модификатор параметра, который заставляет компилятор отклонять `null`-аргументы на стороне вызова:
 
 ```c
 void ProcessItem(notnull EntityAI item)
 {
-    // Compiler guarantees item is not null
-    // No null check needed inside the function
+    // Компилятор гарантирует, что item не null
+    // Проверка на null внутри функции не нужна
     Print(item.GetType());
 }
 
-// Usage:
+// Использование:
 EntityAI item = GetSomeItem();
 if (item)
 {
-    ProcessItem(item);  // OK — compiler knows item is not null here
+    ProcessItem(item);  // OK — компилятор знает, что item не null
 }
-ProcessItem(null);      // Compile error!
+ProcessItem(null);      // Ошибка компиляции!
 ```
 
-> **Limitation:** `notnull` only catches literal `null` and obviously-null variables at the call site. It does not prevent a variable that was non-null at check time from becoming null due to engine deletion.
+> **Ограничение:** `notnull` ловит только литеральный `null` и очевидно-null переменные на стороне вызова. Он не предотвращает ситуацию, когда переменная, бывшая ненулевой в момент проверки, станет null из-за удаления движком.
 
 ---
 
-## ErrorEx — отчёты об ошибках движка
+## ErrorEx — сообщение об ошибке движка
 
-
-`ErrorEx` writes an error message to the script log (`.RPT` file). It does **not** stop execution or throw an exception.
+`ErrorEx` записывает сообщение об ошибке в лог скриптов (файл `.RPT`). Она **не** останавливает выполнение и не выбрасывает исключение.
 
 ```c
-ErrorEx("Something went wrong");
+ErrorEx("Что-то пошло не так");
 ```
 
 ### Уровни серьёзности
 
-
-`ErrorEx` accepts an optional second parameter of type `ErrorExSeverity`:
+`ErrorEx` принимает необязательный второй параметр типа `ErrorExSeverity`:
 
 ```c
-// INFO — informational, not an error
-ErrorEx("Config loaded successfully", ErrorExSeverity.INFO);
+// INFO — информационное сообщение, не ошибка
+ErrorEx("Конфигурация успешно загружена", ErrorExSeverity.INFO);
 
-// WARNING — potential problem, execution continues
-ErrorEx("Config file not found, using defaults", ErrorExSeverity.WARNING);
+// WARNING — потенциальная проблема, выполнение продолжается
+ErrorEx("Файл конфигурации не найден, используются значения по умолчанию", ErrorExSeverity.WARNING);
 
-// ERROR — definite problem (default severity if omitted)
-ErrorEx("Failed to create object: class not found");
-ErrorEx("Critical failure in RPC handler", ErrorExSeverity.ERROR);
+// ERROR — определённая проблема (серьёзность по умолчанию, если не указана)
+ErrorEx("Не удалось создать объект: класс не найден");
+ErrorEx("Критический сбой в обработчике RPC", ErrorExSeverity.ERROR);
 ```
 
-| Severity | When to Use |
+| Серьёзность | Когда использовать |
 |----------|-------------|
-| `ErrorExSeverity.INFO` | Informational messages you want in the error log |
-| `ErrorExSeverity.WARNING` | Recoverable problems (missing config, fallback used) |
-| `ErrorExSeverity.ERROR` | Definite bugs or unrecoverable states |
+| `ErrorExSeverity.INFO` | Информационные сообщения, которые нужно записать в лог ошибок |
+| `ErrorExSeverity.WARNING` | Восстановимые проблемы (отсутствует конфиг, используется запасной вариант) |
+| `ErrorExSeverity.ERROR` | Определённые баги или невосстановимые состояния |
 
 ### Когда использовать каждый уровень
-
 
 ```c
 void LoadConfig(string path)
 {
     if (!FileExist(path))
     {
-        // WARNING — recoverable, we'll use defaults
-        ErrorEx("Config not found at " + path + ", using defaults", ErrorExSeverity.WARNING);
+        // WARNING — восстановимо, используем значения по умолчанию
+        ErrorEx("Конфигурация не найдена по пути " + path + ", используются значения по умолчанию", ErrorExSeverity.WARNING);
         UseDefaultConfig();
         return;
     }
@@ -261,14 +250,14 @@ void LoadConfig(string path)
 
     if (cfg.Version < EXPECTED_VERSION)
     {
-        // INFO — not a problem, just noteworthy
-        ErrorEx("Config version " + cfg.Version.ToString() + " is older than expected", ErrorExSeverity.INFO);
+        // INFO — не проблема, просто заслуживает внимания
+        ErrorEx("Версия конфигурации " + cfg.Version.ToString() + " старше ожидаемой", ErrorExSeverity.INFO);
     }
 
     if (!cfg.Validate())
     {
-        // ERROR — bad data that will cause problems
-        ErrorEx("Config validation failed for " + path);
+        // ERROR — некорректные данные, которые вызовут проблемы
+        ErrorEx("Валидация конфигурации не пройдена для " + path);
         UseDefaultConfig();
         return;
     }
@@ -277,22 +266,21 @@ void LoadConfig(string path)
 
 ---
 
-## DumpStackString — трассировки стека
+## DumpStackString — трассировка стека
 
-
-`DumpStackString` captures the current call stack as a string. This is crucial for diagnosing where an unexpected state occurred:
+`DumpStackString` захватывает текущий стек вызовов в виде строки. Это критически важно для диагностики того, где произошло неожиданное состояние:
 
 ```c
 void OnUnexpectedState(string context)
 {
     string stack = DumpStackString();
-    Print("[ERROR] Unexpected state in " + context);
-    Print("[ERROR] Stack trace:");
+    Print("[ERROR] Неожиданное состояние в " + context);
+    Print("[ERROR] Трассировка стека:");
     Print(stack);
 }
 ```
 
-Use it in guard clauses to trace the caller:
+Используйте в защитных проверках для отслеживания вызывающего кода:
 
 ```c
 void CriticalFunction(PlayerBase player)
@@ -300,7 +288,7 @@ void CriticalFunction(PlayerBase player)
     if (!player)
     {
         string stack = DumpStackString();
-        ErrorEx("CriticalFunction called with null player! Stack: " + stack);
+        ErrorEx("CriticalFunction вызвана с null-игроком! Стек: " + stack);
         return;
     }
 
@@ -310,13 +298,11 @@ void CriticalFunction(PlayerBase player)
 
 ---
 
-## Отладочный вывод
-
+## Отладочная печать
 
 ### Базовый Print
 
-
-`Print()` writes to the script log file. It accepts any type:
+`Print()` записывает в лог-файл скриптов. Принимает любой тип:
 
 ```c
 Print("Hello World");                    // string
@@ -324,8 +310,8 @@ Print(42);                               // int
 Print(3.14);                             // float
 Print(player.GetPosition());             // vector
 
-// Formatted print
-Print(string.Format("Player %1 at position %2 with %3 HP",
+// Форматированная печать
+Print(string.Format("Игрок %1 на позиции %2 с %3 HP",
     player.GetIdentity().GetName(),
     player.GetPosition().ToString(),
     player.GetHealth("", "Health").ToString()
@@ -334,31 +320,30 @@ Print(string.Format("Player %1 at position %2 with %3 HP",
 
 ### Условная отладка с #ifdef
 
-
-Wrap debug prints in preprocessor guards so they compile out of release builds:
+Оберните отладочную печать в директивы препроцессора, чтобы она исключалась из релизных сборок:
 
 ```c
 void ProcessAI(DayZInfected zombie)
 {
     #ifdef DIAG_DEVELOPER
-        Print(string.Format("[AI DEBUG] Processing %1 at %2",
+        Print(string.Format("[AI DEBUG] Обработка %1 на %2",
             zombie.GetType(),
             zombie.GetPosition().ToString()
         ));
     #endif
 
-    // Actual logic...
+    // Основная логика...
 }
 ```
 
-For mod-specific debug flags, define your own symbol:
+Для собственных отладочных флагов мода определите свой символ:
 
 ```c
-// In your config.cpp:
+// В вашем config.cpp:
 // defines[] = { "MYMOD_DEBUG" };
 
 #ifdef MYMOD_DEBUG
-    Print("[MyMod] Debug: item spawned at " + pos.ToString());
+    Print("[MyMod] Debug: предмет создан на " + pos.ToString());
 #endif
 ```
 
@@ -366,11 +351,9 @@ For mod-specific debug flags, define your own symbol:
 
 ## Паттерны структурированного логирования
 
+### Простой паттерн с префиксом
 
-### Паттерн простого префикса
-
-
-The simplest approach — prepend a tag to every Print call:
+Простейший подход — добавлять тег к каждому вызову Print:
 
 ```c
 class MissionManager
@@ -379,7 +362,7 @@ class MissionManager
 
     void Start()
     {
-        Print(LOG_TAG + "Mission system starting");
+        Print(LOG_TAG + "Система миссий запускается");
     }
 
     void OnError(string msg)
@@ -391,8 +374,7 @@ class MissionManager
 
 ### Класс логгера с уровнями
 
-
-A reusable logger with severity levels:
+Переиспользуемый логгер с уровнями серьёзности:
 
 ```c
 class ModLogger
@@ -429,19 +411,18 @@ class ModLogger
     }
 }
 
-// Usage:
+// Использование:
 ref ModLogger g_MissionLog = new ModLogger("Missions");
-g_MissionLog.Info("System started");
-g_MissionLog.Error("Failed to load mission data");
+g_MissionLog.Info("Система запущена");
+g_MissionLog.Error("Не удалось загрузить данные миссии");
 ```
 
-### Стиль MyLog (продакшен-паттерн)
+### Продакшн-паттерн логгера
 
-
-For production mods, a static logging class with file output, daily rotation, and multiple output targets:
+Для продакшн-модов — статический класс логирования с выводом в файл, ежедневной ротацией и множественными целями вывода:
 
 ```c
-// Enum for log levels
+// Перечисление для уровней лога
 enum MyLogLevel
 {
     TRACE   = 0,
@@ -457,7 +438,7 @@ class MyLog
     private static MyLogLevel s_FileMinLevel = MyLogLevel.DEBUG;
     private static MyLogLevel s_ConsoleMinLevel = MyLogLevel.INFO;
 
-    // Usage: MyLog.Info("ModuleName", "Something happened");
+    // Использование: MyLog.Info("ModuleName", "Что-то произошло");
     static void Info(string source, string message)
     {
         Log(MyLogLevel.INFO, source, message);
@@ -482,7 +463,7 @@ class MyLog
         string line = string.Format("[MyMod] [%1] [%2] %3", levelName, source, message);
         Print(line);
 
-        // Also write to file if level meets file threshold
+        // Также записываем в файл, если уровень соответствует файловому порогу
         if (level >= s_FileMinLevel)
         {
             WriteToFile(line);
@@ -491,65 +472,63 @@ class MyLog
 
     private static void WriteToFile(string line)
     {
-        // File I/O implementation...
+        // Реализация файлового ввода-вывода...
     }
 }
 ```
 
-Usage across multiple modules:
+Использование в нескольких модулях:
 
 ```c
-MyLog.Info("MissionServer", "MyFramework initialized (server)");
-MyLog.Warning("ServerWebhooksRPC", "Unauthorized request from: " + sender.GetName());
-MyLog.Error("ConfigManager", "Failed to load config: " + path);
+MyLog.Info("MissionServer", "MyMod Core инициализирован (сервер)");
+MyLog.Warning("ServerWebhooksRPC", "Неавторизованный запрос от: " + sender.GetName());
+MyLog.Error("ConfigManager", "Не удалось загрузить конфигурацию: " + path);
 ```
 
 ---
 
-## Примеры из практики
+## Реальные примеры
 
-
-### Безопасная функция с множеством проверок
-
+### Безопасная функция с множественными проверками
 
 ```c
 void HealPlayer(PlayerBase player, float amount, string healerName)
 {
-    // Guard: null player
+    // Проверка: null-игрок
     if (!player)
     {
-        MyLog.Error("HealSystem", "HealPlayer called with null player");
+        MyLog.Error("HealSystem", "HealPlayer вызван с null-игроком");
         return;
     }
 
-    // Guard: player alive
+    // Проверка: игрок жив
     if (!player.IsAlive())
     {
-        MyLog.Warning("HealSystem", "Cannot heal dead player: " + player.GetIdentity().GetName());
+        MyLog.Warning("HealSystem", "Нельзя вылечить мёртвого игрока: " + player.GetIdentity().GetName());
         return;
     }
 
-    // Guard: valid amount
+    // Проверка: корректная величина
     if (amount <= 0)
     {
-        MyLog.Warning("HealSystem", "Invalid heal amount: " + amount.ToString());
+        MyLog.Warning("HealSystem", "Некорректная величина лечения: " + amount.ToString());
         return;
     }
 
-    // Guard: not already at full health
+    // Проверка: здоровье ещё не полное
     float currentHP = player.GetHealth("", "Health");
     float maxHP = player.GetMaxHealth("", "Health");
     if (currentHP >= maxHP)
     {
-        MyLog.Info("HealSystem", player.GetIdentity().GetName() + " already at full health");
+        MyLog.Info("HealSystem", player.GetIdentity().GetName() + " уже на полном здоровье");
         return;
     }
 
-    // All guards passed — perform the heal
+    // Все проверки пройдены — выполняем лечение
     float newHP = Math.Min(currentHP + amount, maxHP);
     player.SetHealth("", "Health", newHP);
 
-    MyLog.Info("HealSystem", string.Format("%1 healed %2 for %3 HP (%4 -> %5)",
+    MyLog.Info("HealSystem", string.Format("%1 вылечил %2 на %3 HP (%4 -> %5)",
         healerName,
         player.GetIdentity().GetName(),
         amount.ToString(),
@@ -561,7 +540,6 @@ void HealPlayer(PlayerBase player, float amount, string healerName)
 
 ### Безопасная загрузка конфигурации
 
-
 ```c
 class MyConfig
 {
@@ -572,36 +550,36 @@ class MyConfig
 
 static MyConfig LoadConfigSafe(string path)
 {
-    // Guard: file exists
+    // Проверка: файл существует
     if (!FileExist(path))
     {
-        Print("[Config] File not found: " + path + " — creating defaults");
+        Print("[Config] Файл не найден: " + path + " — создаём значения по умолчанию");
         MyConfig defaults = new MyConfig();
         JsonFileLoader<MyConfig>.JsonSaveFile(path, defaults);
         return defaults;
     }
 
-    // Attempt load (no try/catch, so we validate after)
+    // Попытка загрузки (нет try/catch, поэтому проверяем после)
     MyConfig cfg = new MyConfig();
     JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);
 
-    // Guard: loaded object is valid
+    // Проверка: загруженный объект корректен
     if (!cfg)
     {
-        Print("[Config] ERROR: Failed to parse " + path + " — using defaults");
+        Print("[Config] ERROR: Не удалось распарсить " + path + " — используются значения по умолчанию");
         return new MyConfig();
     }
 
-    // Guard: validate values
+    // Проверка: валидация значений
     if (cfg.MaxPlayers < 1 || cfg.MaxPlayers > 128)
     {
-        Print("[Config] WARN: MaxPlayers out of range (" + cfg.MaxPlayers.ToString() + "), clamping");
+        Print("[Config] WARN: MaxPlayers вне диапазона (" + cfg.MaxPlayers.ToString() + "), ограничиваем");
         cfg.MaxPlayers = Math.Clamp(cfg.MaxPlayers, 1, 128);
     }
 
     if (cfg.SpawnRadius < 0)
     {
-        Print("[Config] WARN: SpawnRadius negative, using default");
+        Print("[Config] WARN: SpawnRadius отрицательный, используем значение по умолчанию");
         cfg.SpawnRadius = 100.0;
     }
 
@@ -611,137 +589,166 @@ static MyConfig LoadConfigSafe(string path)
 
 ### Безопасный обработчик RPC
 
-
 ```c
 void RPC_SpawnItem(CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target)
 {
-    // Guard: server only
+    // Проверка: только сервер
     if (type != CallType.Server)
         return;
 
-    // Guard: valid sender
+    // Проверка: корректный отправитель
     if (!sender)
     {
-        Print("[RPC] SpawnItem: null sender identity");
+        Print("[RPC] SpawnItem: null-идентификатор отправителя");
         return;
     }
 
-    // Guard: read params
+    // Проверка: чтение параметров
     Param2<string, vector> data;
     if (!ctx.Read(data))
     {
-        Print("[RPC] SpawnItem: failed to read params from " + sender.GetName());
+        Print("[RPC] SpawnItem: не удалось прочитать параметры от " + sender.GetName());
         return;
     }
 
     string className = data.param1;
     vector position = data.param2;
 
-    // Guard: valid class name
+    // Проверка: корректное имя класса
     if (className == "")
     {
-        Print("[RPC] SpawnItem: empty className from " + sender.GetName());
+        Print("[RPC] SpawnItem: пустой className от " + sender.GetName());
         return;
     }
 
-    // Guard: permission check
+    // Проверка: проверка прав доступа
     if (!HasPermission(sender.GetPlainId(), "SpawnItem"))
     {
-        Print("[RPC] SpawnItem: unauthorized by " + sender.GetName());
+        Print("[RPC] SpawnItem: отказано в доступе для " + sender.GetName());
         return;
     }
 
-    // All guards passed — execute
+    // Все проверки пройдены — выполняем
     Object obj = GetGame().CreateObjectEx(className, position, ECE_PLACE_ON_SURFACE);
     if (!obj)
     {
-        Print("[RPC] SpawnItem: CreateObjectEx returned null for " + className);
+        Print("[RPC] SpawnItem: CreateObjectEx вернул null для " + className);
         return;
     }
 
-    Print("[RPC] SpawnItem: " + sender.GetName() + " spawned " + className);
+    Print("[RPC] SpawnItem: " + sender.GetName() + " создал " + className);
 }
 ```
 
 ### Безопасная операция с инвентарём
 
-
 ```c
 bool TransferItem(PlayerBase fromPlayer, PlayerBase toPlayer, EntityAI item)
 {
-    // Guard: all references valid
+    // Проверка: все ссылки валидны
     if (!fromPlayer || !toPlayer || !item)
     {
-        Print("[Inventory] TransferItem: null reference");
+        Print("[Inventory] TransferItem: null-ссылка");
         return false;
     }
 
-    // Guard: both players alive
+    // Проверка: оба игрока живы
     if (!fromPlayer.IsAlive() || !toPlayer.IsAlive())
     {
-        Print("[Inventory] TransferItem: one or both players are dead");
+        Print("[Inventory] TransferItem: один или оба игрока мертвы");
         return false;
     }
 
-    // Guard: source actually has the item
+    // Проверка: у источника действительно есть предмет
     EntityAI checkItem = fromPlayer.GetInventory().FindAttachment(
         fromPlayer.GetInventory().FindUserReservedLocationIndex(item)
     );
 
-    // Guard: target has space
+    // Проверка: у получателя есть место
     InventoryLocation il = new InventoryLocation();
     if (!toPlayer.GetInventory().FindFreeLocationFor(item, FindInventoryLocationType.ANY, il))
     {
-        Print("[Inventory] TransferItem: no free space in target inventory");
+        Print("[Inventory] TransferItem: нет свободного места в инвентаре получателя");
         return false;
     }
 
-    // Execute transfer
+    // Выполняем передачу
     return toPlayer.GetInventory().TakeEntityToInventory(InventoryMode.SERVER, FindInventoryLocationType.ANY, item);
 }
 ```
 
 ---
 
-## Итоги по защитным паттернам
+## Сводка оборонительных паттернов
 
-
-| Pattern | Purpose | Example |
+| Паттерн | Назначение | Пример |
 |---------|---------|---------|
-| Guard clause | Early return on invalid input | `if (!player) return;` |
-| Null check | Prevent null dereference | `if (obj) obj.DoThing();` |
-| Cast + check | Safe downcast | `if (Class.CastTo(p, obj))` |
-| Validate after load | Check data after JSON load | `if (cfg.Value < 0) cfg.Value = default;` |
-| Validate before use | Range/bounds check | `if (arr.IsValidIndex(i))` |
-| Log on failure | Trace where things went wrong | `Print("[Tag] Error: " + context);` |
-| ErrorEx for engine | Write to .RPT file | `ErrorEx("msg", ErrorExSeverity.WARNING);` |
-| DumpStackString | Capture call stack | `Print(DumpStackString());` |
+| Защитная проверка | Ранний возврат при некорректном вводе | `if (!player) return;` |
+| Проверка на null | Предотвращение разыменования null | `if (obj) obj.DoThing();` |
+| Приведение + проверка | Безопасное приведение типа | `if (Class.CastTo(p, obj))` |
+| Валидация после загрузки | Проверка данных после загрузки JSON | `if (cfg.Value < 0) cfg.Value = default;` |
+| Валидация перед использованием | Проверка диапазона/границ | `if (arr.IsValidIndex(i))` |
+| Логирование при отказе | Отслеживание, где что-то пошло не так | `Print("[Tag] Error: " + context);` |
+| ErrorEx для движка | Запись в файл .RPT | `ErrorEx("msg", ErrorExSeverity.WARNING);` |
+| DumpStackString | Захват стека вызовов | `Print(DumpStackString());` |
 
 ---
 
-## Распространённые ошибки
+## Лучшие практики
 
+- Используйте плоские защитные проверки (`if (!x) return;`) в начале каждой функции вместо глубоко вложенных блоков `if` — это сохраняет код читаемым, а «счастливый путь» — без вложенности.
+- Всегда логируйте сообщение внутри защитных проверок — тихий `return` делает отказы невидимыми и крайне сложными для отладки.
+- Используйте `ErrorEx` с соответствующими уровнями серьёзности (`INFO`, `WARNING`, `ERROR`) для сообщений, которые должны появиться в логах `.RPT`; используйте `Print` для вывода в лог скриптов.
+- Оборачивайте тяжёлое отладочное логирование в `#ifdef DIAG_DEVELOPER` или собственный define, чтобы оно исключалось из релизных сборок и не снижало производительность.
+- Валидируйте данные конфигурации после загрузки через `JsonFileLoader` — он возвращает `void` и тихо оставляет значения по умолчанию при ошибке парсинга.
 
-### 1. Assuming a function ran successfully
+---
+
+## Замечено в реальных модах
+
+> Паттерны подтверждены изучением исходного кода профессиональных модов DayZ.
+
+| Паттерн | Мод | Подробности |
+|---------|-----|--------|
+| Стек защитных проверок с лог-сообщениями | COT / VPP | Каждый обработчик RPC проверяет отправителя, параметры, права доступа и логирует каждый отказ |
+| Статический класс логгера с фильтрацией уровней | Expansion / Dabs | Единый класс `Log` направляет `Info`/`Warning`/`Error` в консоль, файл и опционально Discord |
+| `DumpStackString()` в критических проверках | COT Admin | Захватывает стек вызовов при неожиданном null для отслеживания, какой вызывающий код передал некорректные данные |
+| `#ifdef DIAG_DEVELOPER` вокруг отладочной печати | Ванильный DayZ / Expansion | Вся покадровая отладочная печать обёрнута, чтобы никогда не выполняться в релизных сборках |
+
+---
+
+## Теория vs практика
+
+| Концепция | Теория | Реальность |
+|---------|--------|---------|
+| `try`/`catch` | Стандарт в большинстве языков | Не существует в Enforce Script — каждая точка отказа должна быть защищена вручную |
+| `JsonFileLoader.JsonLoadFile` | Ожидается возврат успеха/неудачи | Возвращает `void`; при некорректном JSON объект сохраняет значения по умолчанию без ошибки |
+| `ErrorEx` | Звучит как выброс ошибки | Только записывает в лог `.RPT` — выполнение продолжается нормально |
+
+---
+
+## Частые ошибки
+
+### 1. Предположение, что функция выполнилась успешно
 
 ```c
-// WRONG — JsonLoadFile returns void, not a success indicator
+// НЕПРАВИЛЬНО — JsonLoadFile возвращает void, а не индикатор успеха
 MyConfig cfg = new MyConfig();
 JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);
-// If the file has bad JSON, cfg still has default values — no error
+// Если в файле некорректный JSON, cfg всё ещё хранит значения по умолчанию — без ошибки
 
-// CORRECT — validate after loading
+// ПРАВИЛЬНО — валидация после загрузки
 JsonFileLoader<MyConfig>.JsonLoadFile(path, cfg);
 if (cfg.SomeCriticalField == 0)
 {
-    Print("[Config] Warning: SomeCriticalField is zero — was the file loaded correctly?");
+    Print("[Config] Предупреждение: SomeCriticalField равно нулю — файл загружен правильно?");
 }
 ```
 
-### 2. Deeply nested null checks instead of guards
+### 2. Глубоко вложенные проверки на null вместо защитных проверок
 
 ```c
-// WRONG — pyramid of doom
+// НЕПРАВИЛЬНО — пирамида судьбы
 void Process(PlayerBase player)
 {
     if (player)
@@ -750,47 +757,47 @@ void Process(PlayerBase player)
         {
             if (player.IsAlive())
             {
-                // Finally do something
+                // Наконец делаем что-то
             }
         }
     }
 }
 
-// CORRECT — flat guard clauses
+// ПРАВИЛЬНО — плоские защитные проверки
 void Process(PlayerBase player)
 {
     if (!player) return;
     if (!player.GetIdentity()) return;
     if (!player.IsAlive()) return;
 
-    // Do something
+    // Делаем что-то
 }
 ```
 
-### 3. Forgetting to log in guard clauses
+### 3. Забыли логирование в защитных проверках
 
 ```c
-// WRONG — silent failure, impossible to debug
+// НЕПРАВИЛЬНО — тихий отказ, невозможно отладить
 if (!player) return;
 
-// CORRECT — leaves a trail
+// ПРАВИЛЬНО — оставляем след
 if (!player)
 {
-    Print("[MyMod] Process: null player");
+    Print("[MyMod] Process: null-игрок");
     return;
 }
 ```
 
-### 4. Using Print in hot paths
+### 4. Использование Print в горячих путях
 
 ```c
-// WRONG — Print every frame kills performance
+// НЕПРАВИЛЬНО — Print каждый кадр убивает производительность
 override void OnUpdate(float timeslice)
 {
-    Print("Updating...");  // Called every frame!
+    Print("Updating...");  // Вызывается каждый кадр!
 }
 
-// CORRECT — use debug guards or rate-limit
+// ПРАВИЛЬНО — используйте отладочные проверки или ограничение частоты
 override void OnUpdate(float timeslice)
 {
     #ifdef DIAG_DEVELOPER
@@ -808,25 +815,23 @@ override void OnUpdate(float timeslice)
 
 ## Итоги
 
-
-| Tool | Purpose | Syntax |
+| Инструмент | Назначение | Синтаксис |
 |------|---------|--------|
-| Guard clause | Early return on failure | `if (!x) return;` |
-| Null check | Prevent crash | `if (obj) obj.Method();` |
-| ErrorEx | Write to .RPT log | `ErrorEx("msg", ErrorExSeverity.WARNING);` |
-| DumpStackString | Get call stack | `string s = DumpStackString();` |
-| Print | Write to script log | `Print("message");` |
-| string.Format | Formatted logging | `string.Format("P %1 at %2", a, b)` |
-| #ifdef guard | Compile-time debug switch | `#ifdef DIAG_DEVELOPER` |
-| notnull | Compiler null check | `void Fn(notnull Class obj)` |
+| Защитная проверка | Ранний возврат при отказе | `if (!x) return;` |
+| Проверка на null | Предотвращение краша | `if (obj) obj.Method();` |
+| ErrorEx | Запись в лог .RPT | `ErrorEx("msg", ErrorExSeverity.WARNING);` |
+| DumpStackString | Получение стека вызовов | `string s = DumpStackString();` |
+| Print | Запись в лог скриптов | `Print("message");` |
+| string.Format | Форматированное логирование | `string.Format("P %1 at %2", a, b)` |
+| Директива #ifdef | Переключатель отладки на этапе компиляции | `#ifdef DIAG_DEVELOPER` |
+| notnull | Компиляторная проверка на null | `void Fn(notnull Class obj)` |
 
-**The golden rule:** In Enforce Script, assume everything can be null and every operation can fail. Check first, act second, log always.
+**Золотое правило:** В Enforce Script считайте, что всё может быть null и любая операция может завершиться неудачей. Сначала проверяйте, потом действуйте, всегда логируйте.
 
 ---
 
 ## Навигация
 
-
-| Предыдущая | Вверх | Следующая |
+| Назад | Наверх | Далее |
 |----------|----|------|
-| [1.10 Enums & Preprocessor](10-enums-preprocessor.md) | [Part 1: Enforce Script](../README.md) | [1.12 What Does NOT Exist](12-gotchas.md) |
+| [1.10 Перечисления и препроцессор](10-enums-preprocessor.md) | [Часть 1: Enforce Script](../README.md) | [1.12 Чего НЕ существует](12-gotchas.md) |
