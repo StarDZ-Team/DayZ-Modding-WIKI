@@ -1,33 +1,37 @@
-# Chapter 5.3: Credits.json
+# 5.3. fejezet: Credits.json
 
-[Home](../../README.md) | [<< Previous: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Next: ImageSet Format >>](04-imagesets.md)
-
----
-
-## Tartalomjegyzek
-
-- [Overview](#overview)
-- [File Location](#file-location)
-- [JSON Structure](#json-structure)
-- [How DayZ Displays Credits](#how-dayz-displays-credits)
-- [Using Localized Section Names](#using-localized-section-names)
-- [Templates](#templates)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+[Főoldal](../../README.md) | [<< Előző: inputs.xml](02-inputs-xml.md) | **Credits.json** | [Következő: ImageSet formátum >>](04-imagesets.md)
 
 ---
 
-## Attekintes
-
-When a player selects your mod in the DayZ launcher or in-game mod menu, the engine looks for a `Credits.json` file inside your mod's PBO. If found, the credits are displayed in a scrolling view organized into departments and sections --- similar to movie credits.
-
-The file is optional. If absent, no credits section appears for your mod. But including one is good practice: it acknowledges your team's work and gives your mod a professional appearance.
+> **Összefoglalás:** A `Credits.json` fájl határozza meg azokat a stáblistát, amelyet a DayZ megjelenít a modod számára a játék mod menüjében. Felsorolja a csapattagokat, közreműködőket és köszönetnyilvánításokat részlegek és szekciók szerint rendezve. Bár tisztán dekoratív, ez a szabványos módja annak, hogy elismerd a fejlesztőcsapatod munkáját.
 
 ---
 
-## File Location
+## Tartalomjegyzék
 
-Place `Credits.json` inside a `Data` subfolder of your Scripts directory, or directly in the Scripts root:
+- [Áttekintés](#overview)
+- [Fájl helye](#file-location)
+- [JSON struktúra](#json-structure)
+- [Hogyan jeleníti meg a DayZ a stáblistát](#how-dayz-displays-credits)
+- [Lokalizált szekciók használata](#using-localized-section-names)
+- [Sablonok](#templates)
+- [Valós példák](#real-examples)
+- [Gyakori hibák](#common-mistakes)
+
+---
+
+## Áttekintés
+
+Amikor egy játékos kiválasztja a mododat a DayZ launcherben vagy a játékon belüli mod menüben, a motor egy `Credits.json` fájlt keres a mod PBO-jában. Ha megtalálja, a stáblista egy görgethető nézetben jelenik meg, részlegekre és szekciókra bontva --- hasonlóan a filmek stáblistájához.
+
+A fájl opcionális. Ha hiányzik, nem jelenik meg stáblista szekció a mododhoz. De beletenni jó gyakorlat: elismeri a csapatod munkáját és professzionális megjelenést kölcsönöz a mododnak.
+
+---
+
+## Fájl helye
+
+Helyezd a `Credits.json` fájlt a Scripts könyvtárad `Data` almappájába, vagy közvetlenül a Scripts gyökerébe:
 
 ```
 @MyMod/
@@ -35,17 +39,17 @@ Place `Credits.json` inside a `Data` subfolder of your Scripts directory, or dir
     MyMod_Scripts.pbo
       Scripts/
         Data/
-          Credits.json       <-- Common location (COT, Expansion, DayZ Editor)
-        Credits.json         <-- Also valid (DabsFramework, Colorful-UI)
+          Credits.json       <-- Gyakori hely (COT, Expansion, DayZ Editor)
+        Credits.json         <-- Szintén érvényes (DabsFramework, Colorful-UI)
 ```
 
-Both locations work. The engine scans the PBO contents for a file named `Credits.json` (case-sensitive on some platforms).
+Mindkét hely működik. A motor átvizsgálja a PBO tartalmát egy `Credits.json` nevű fájl után (egyes platformokon kis-nagybetű érzékeny).
 
 ---
 
-## JSON Structure
+## JSON struktúra
 
-The file uses a straightforward JSON structure with three levels of hierarchy:
+A fájl egyszerű JSON struktúrát használ három szintű hierarchiával:
 
 ```json
 {
@@ -64,54 +68,54 @@ The file uses a straightforward JSON structure with three levels of hierarchy:
 }
 ```
 
-### Top-Level Fields
+### Felső szintű mezők
 
-| Field | Tipus | Kotelezo | Leiras |
+| Mező | Típus | Kötelező | Leírás |
 |-------|------|----------|-------------|
-| `Header` | string | No | Main title displayed at the top of the credits. If omitted, no header is shown. |
-| `Departments` | array | Yes | Array of department objects |
+| `Header` | string | Nem | A stáblista tetején megjelenő fő cím. Ha nincs megadva, nem jelenik meg fejléc. |
+| `Departments` | array | Igen | Részleg objektumok tömbje |
 
-### Department Object
+### Részleg objektum
 
-| Field | Tipus | Kotelezo | Leiras |
+| Mező | Típus | Kötelező | Leírás |
 |-------|------|----------|-------------|
-| `DepartmentName` | string | Yes | Section header text. Can be empty `""` for visual grouping without a header. |
-| `Sections` | array | Yes | Array of section objects within this department |
+| `DepartmentName` | string | Igen | Szekció fejléc szöveg. Lehet üres `""` vizuális csoportosításhoz fejléc nélkül. |
+| `Sections` | array | Igen | A részlegen belüli szekció objektumok tömbje |
 
-### Section Object
+### Szekció objektum
 
-Two variants exist in the wild for listing names. The engine supports both.
+Két változat létezik a nevek felsorolására. A motor mindkettőt támogatja.
 
-**Variant 1: `Names` array** (used by MyFramework)
+**1. változat: `Names` tömb** (MyFramework használja)
 
-| Field | Tipus | Kotelezo | Leiras |
+| Mező | Típus | Kötelező | Leírás |
 |-------|------|----------|-------------|
-| `SectionName` | string | Yes | Sub-header within the department |
-| `Names` | array of strings | Yes | List of contributor names |
+| `SectionName` | string | Igen | Al-fejléc a részlegen belül |
+| `Names` | string tömb | Igen | Közreműködők neveinek listája |
 
-**Variant 2: `SectionLines` array** (used by COT, Expansion, DabsFramework)
+**2. változat: `SectionLines` tömb** (COT, Expansion, DabsFramework használja)
 
-| Field | Tipus | Kotelezo | Leiras |
+| Mező | Típus | Kötelező | Leírás |
 |-------|------|----------|-------------|
-| `SectionName` | string | Yes | Sub-header within the department |
-| `SectionLines` | array of strings | Yes | List of contributor names or text lines |
+| `SectionName` | string | Igen | Al-fejléc a részlegen belül |
+| `SectionLines` | string tömb | Igen | Közreműködők nevei vagy szöveges sorok listája |
 
-Both `Names` and `SectionLines` serve the same purpose. Use whichever you prefer --- the engine renders them identically.
+Mind a `Names`, mind a `SectionLines` ugyanazt a célt szolgálja. Használd azt, amelyiket preferálod --- a motor azonosan jeleníti meg őket.
 
 ---
 
-## How DayZ Displays Credits
+## Hogyan jeleníti meg a DayZ a stáblistát
 
-The credits display follows this visual hierarchy:
+A stáblista megjelenítése ezt a vizuális hierarchiát követi:
 
 ```
 ╔══════════════════════════════════╗
-║         MY MOD NAME              ║  <-- Header (large, centered)
+║         MY MOD NAME              ║  <-- Header (nagy, középre igazított)
 ║                                  ║
-║     DEPARTMENT NAME              ║  <-- DepartmentName (medium, centered)
+║     DEPARTMENT NAME              ║  <-- DepartmentName (közepes, középre igazított)
 ║                                  ║
-║     Section Name                 ║  <-- SectionName (small, centered)
-║     Person 1                     ║  <-- Names/SectionLines (list)
+║     Section Name                 ║  <-- SectionName (kicsi, középre igazított)
+║     Person 1                     ║  <-- Names/SectionLines (lista)
 ║     Person 2                     ║
 ║     Person 3                     ║
 ║                                  ║
@@ -124,14 +128,14 @@ The credits display follows this visual hierarchy:
 ╚══════════════════════════════════╝
 ```
 
-- The `Header` appears once at the top
-- Each `DepartmentName` acts as a major section divider
-- Each `SectionName` acts as a sub-heading
-- Names scroll vertically in the credits view
+- A `Header` egyszer jelenik meg a tetején
+- Minden `DepartmentName` fő szekcióelválasztóként működik
+- Minden `SectionName` al-címsorként működik
+- A nevek függőlegesen görgethetők a stáblista nézetben
 
-### Empty Strings for Spacing
+### Üres sztringek térközként
 
-Expansion uses empty `DepartmentName` and `SectionName` strings, plus whitespace-only entries in `SectionLines`, to create visual spacing:
+Az Expansion üres `DepartmentName` és `SectionName` sztringeket, valamint csak szóközökből álló bejegyzéseket használ a `SectionLines`-ban vizuális térköz létrehozásához:
 
 ```json
 {
@@ -143,13 +147,13 @@ Expansion uses empty `DepartmentName` and `SectionName` strings, plus whitespace
 }
 ```
 
-This is a common trick for controlling visual layout in the credits scroll.
+Ez egy gyakori trükk a vizuális elrendezés szabályozására a stáblista görgetésben.
 
 ---
 
-## Using Localized Section Names
+## Lokalizált szekciók használata
 
-Section names can reference stringtable keys using the `#` prefix, just like UI text:
+A szekció nevek hivatkozhatnak stringtable kulcsokra a `#` előtaggal, ugyanúgy mint az UI szövegek:
 
 ```json
 {
@@ -158,9 +162,9 @@ Section names can reference stringtable keys using the `#` prefix, just like UI 
 }
 ```
 
-When the engine renders this, it resolves `#STR_EXPANSION_CREDITS_SCRIPTERS` to the localized text matching the player's language. This is useful if your mod supports multiple languages and you want the credits section headers to be translated.
+Amikor a motor megjeleníti ezt, a `#STR_EXPANSION_CREDITS_SCRIPTERS` kulcsot a játékos nyelvének megfelelő lokalizált szövegre oldja fel. Ez hasznos, ha a modod több nyelvet támogat és szeretnéd, hogy a stáblista szekció fejlécek is le legyenek fordítva.
 
-Department names can also use stringtable references:
+A részleg nevek szintén használhatnak stringtable hivatkozásokat:
 
 ```json
 {
@@ -173,7 +177,7 @@ Department names can also use stringtable references:
 
 ## Sablonok
 
-### Solo Developer
+### Egyedüli fejlesztő
 
 ```json
 {
@@ -192,7 +196,7 @@ Department names can also use stringtable references:
 }
 ```
 
-### Small Team
+### Kis csapat
 
 ```json
 {
@@ -223,7 +227,7 @@ Department names can also use stringtable references:
 }
 ```
 
-### Full Professional Structure
+### Teljes professzionális struktúra
 
 ```json
 {
@@ -285,11 +289,11 @@ Department names can also use stringtable references:
 
 ---
 
-## Valos peldak
+## Valós példák
 
 ### MyFramework
 
-A minimal but complete credits file using the `Names` variant:
+Minimális de teljes stáblista fájl a `Names` változattal:
 
 ```json
 {
@@ -310,7 +314,7 @@ A minimal but complete credits file using the `Names` variant:
 
 ### Community Online Tools (COT)
 
-Uses the `SectionLines` variant with multiple sections and acknowledgments:
+A `SectionLines` változatot használja több szekcióval és köszönetnyilvánításokkal:
 
 ```json
 {
@@ -351,7 +355,7 @@ Uses the `SectionLines` variant with multiple sections and acknowledgments:
 }
 ```
 
-Notable: COT omits the `Header` field entirely. The mod name comes from other metadata (config.cpp `CfgMods`).
+Megjegyzés: a COT teljesen kihagyja a `Header` mezőt. A mod neve más metaadatokból származik (config.cpp `CfgMods`).
 
 ### DabsFramework
 
@@ -386,32 +390,32 @@ Notable: COT omits the `Header` field entirely. The mod name comes from other me
 
 ### DayZ Expansion
 
-Expansion demonstrates the most sophisticated use of Credits.json, including:
-- Localized section names via stringtable references (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
-- Legal notices as a separate department
-- Empty department and section names for visual spacing
-- A supporters list with dozens of names
+Az Expansion mutatja be a Credits.json legkifinomultabb használatát, beleértve:
+- Lokalizált szekció neveket stringtable hivatkozásokkal (`#STR_EXPANSION_CREDITS_SCRIPTERS`)
+- Jogi nyilatkozatokat külön részlegként
+- Üres részleg és szekció neveket vizuális térközként
+- Támogatók listáját tucatnyi névvel
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-### Invalid JSON Syntax
+### Érvénytelen JSON szintaxis
 
-The most common issue. JSON is strict about:
-- **Trailing commas**: `["a", "b",]` is invalid JSON (the trailing comma after `"b"`)
-- **Single quotes**: Use `"double quotes"`, not `'single quotes'`
-- **Unquoted keys**: `DepartmentName` must be `"DepartmentName"`
+A leggyakoribb probléma. A JSON szigorú a következőkkel kapcsolatban:
+- **Záró vesszők**: a `["a", "b",]` érvénytelen JSON (a záró vessző a `"b"` után)
+- **Szimpla idézőjelek**: Használj `"dupla idézőjeleket"`, ne `'szimpla idézőjeleket'`
+- **Idézőjel nélküli kulcsok**: a `DepartmentName` formátumnak `"DepartmentName"` kell lennie
 
-Use a JSON validator before shipping.
+Használj JSON validátort a kiadás előtt.
 
-### Wrong File Name
+### Hibás fájlnév
 
-The file must be named exactly `Credits.json` (capital C). On case-sensitive file systems, `credits.json` or `CREDITS.JSON` will not be found.
+A fájl nevének pontosan `Credits.json`-nak kell lennie (nagy C-vel). Kis-nagybetű érzékeny fájlrendszereken a `credits.json` vagy `CREDITS.JSON` nem lesz megtalálva.
 
-### Mixing Names and SectionLines
+### Names és SectionLines keverése
 
-Within a single section, use one or the other:
+Egy szekción belül használj egyet vagy másikat:
 
 ```json
 {
@@ -421,8 +425,8 @@ Within a single section, use one or the other:
 }
 ```
 
-This is ambiguous. Pick one format and use it consistently throughout the file.
+Ez kétértelmű. Válassz egy formátumot és használd következetesen az egész fájlban.
 
-### Encoding Issues
+### Kódolási problémák
 
-Save the file as UTF-8. Non-ASCII characters (accented names, CJK characters) require UTF-8 encoding to display correctly in-game.
+Mentsd a fájlt UTF-8 kódolással. A nem-ASCII karakterek (ékezetes nevek, CJK karakterek) UTF-8 kódolást igényelnek a helyes játékon belüli megjelenítéshez.

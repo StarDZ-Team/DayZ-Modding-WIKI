@@ -214,4 +214,26 @@ Sempre use métodos nomeados para poder desinscrever depois.
 
 ---
 
+## Compatibilidade & Impacto
+
+- **Multi-Mod:** Múltiplos mods podem se inscrever nos mesmos tópicos do EventBus sem conflito. Cada inscrito é chamado independentemente. Porém, se um inscrito lança um erro irrecuperável (ex.: referência null), inscritos subsequentes naquele invoker podem não executar.
+- **Ordem de Carregamento:** Ordem de inscrição é igual à ordem de chamada no `Invoke()`. Mods que carregam antes registram primeiro e recebem eventos primeiro. Não dependa desta ordem --- se a ordem de execução importa, use chamadas diretas ao invés.
+- **Listen Server:** Em listen servers, eventos disparados do código server-side são visíveis para inscritos client-side se compartilham o mesmo `ScriptInvoker` estático. Use campos separados do EventBus para eventos server-only e client-only, ou proteja handlers com `GetGame().IsServer()` / `GetGame().IsClient()`.
+- **Performance:** `ScriptInvoker.Invoke()` itera todos os inscritos linearmente. Com 5--15 inscritos por evento, isso é desprezível. Evite inscrever por entidade (100+ entidades cada uma se inscrevendo no mesmo evento) --- use um padrão de manager ao invés.
+- **Migração:** `ScriptInvoker` é uma API vanilla estável improvável de mudar entre versões do DayZ. Wrappers customizados de EventBus são seu próprio código e migram com seu mod.
+
+---
+
+## Erros Comuns
+
+| Erro | Impacto | Correção |
+|------|---------|----------|
+| Inscrever com `Insert()` mas nunca chamar `Remove()` | Vazamento de memória: o invoker mantém referência ao objeto morto; no `Invoke()`, chama em memória liberada (crash) ou no-ops com iteração desperdiçada | Pareie cada `Insert()` com um `Remove()` em `OnMissionFinish` ou no destrutor |
+| Chamar `Remove()` em um invoker null do EventBus durante shutdown | `MyEventBus.Cleanup()` pode já ter anulado o invoker; chamar `.Remove()` em null crasha | Sempre verifique null no invoker antes de `Remove()`: `if (MyEventBus.OnPlayerConnected) MyEventBus.OnPlayerConnected.Remove(handler);` |
+| `Insert()` duplo do mesmo handler | Handler é chamado duas vezes por `Invoke()`; um `Remove()` só remove uma entrada, deixando uma inscrição obsoleta | Verifique antes de inserir, ou garanta que `Insert()` é chamado apenas uma vez (ex.: em `OnInit` com uma flag de guarda) |
+| Usar funções anônimas/lambda como handlers | Não podem ser removidas porque não há referência para passar ao `Remove()` | Sempre use métodos nomeados como handlers de eventos |
+| Disparar eventos com assinaturas de argumento incompatíveis | Inscritos recebem dados lixo ou crasham em runtime; sem verificação em tempo de compilação | Documente a assinatura esperada acima de toda declaração de `ScriptInvoker` e faça match exatamente em todos os handlers |
+
+---
+
 [<< Anterior: Sistemas de Permissão](05-permissions.md) | [Início](../../README.md) | [Próximo: Otimização de Performance >>](07-performance.md)

@@ -356,4 +356,36 @@ Antes de publicar código sensível a performance, verifique:
 
 ---
 
+## Compatibilidade & Impacto
+
+- **Multi-Mod:** Custos de performance são cumulativos. O `OnUpdate` de cada mod roda todo frame. Cinco mods cada um levando 2ms significa 10ms por frame só de scripts. Coordene com outros autores de mods para escalonar timers e evitar scans duplicados do mundo.
+- **Ordem de Carregamento:** Ordem de carregamento não afeta performance diretamente. Porém, se múltiplos mods fazem `modded class` na mesma entidade (ex.: `CarScript.EEInit`), cada override adiciona ao custo da cadeia de chamadas. Mantenha overrides modded mínimos.
+- **Listen Server:** Listen servers rodam scripts de cliente e servidor no mesmo processo. Widget pooling, atualizações de UI e custos de renderização se acumulam com ticks server-side. Budgets de performance são mais apertados em listen servers que em servidores dedicados.
+- **Performance:** O budget de frame do servidor DayZ a 60 FPS é ~16ms. A 20 FPS (comum em servidores carregados), é ~50ms. Um único mod deve mirar em ficar abaixo de 2ms por frame. Faça profiling com `GetGame().GetTickTime()` para verificar.
+- **Migração:** Padrões de performance são agnósticos de engine e sobrevivem a atualizações de versão do DayZ. Custos de APIs específicas (ex.: `GetObjectsAtPosition3D`) podem mudar entre versões da engine, então refaça profiling após atualizações maiores do DayZ.
+
+---
+
+## Erros Comuns
+
+| Erro | Impacto | Correção |
+|------|---------|----------|
+| Otimização prematura (micro-otimizar código que roda uma vez no startup) | Tempo de desenvolvimento desperdiçado; sem melhoria mensurável; código mais difícil de ler | Faça profiling primeiro. Só otimize código que roda por frame ou processa grandes coleções. Custo de startup é pago uma vez. |
+| Usar `GetObjectsAtPosition3D` com raio do mapa inteiro em `OnUpdate` | Travamento de 50--200ms por chamada, escaneando todo objeto físico no mapa; FPS do servidor cai para dígitos únicos | Use um registro baseado em registro (registre em `EEInit`, desregistre em `EEDelete`). Nunca faça scan do mundo por frame. |
+| Reconstruir árvores de widget de UI em toda mudança de dados | Picos de frame pela criação/destruição de widgets; travamento visível para o jogador | Use widget pooling: esconda/mostre widgets existentes ao invés de destruir e recriar |
+| Ordenar arrays grandes todo frame | O(n log n) por frame para dados que raramente mudam; desperdício desnecessário de CPU | Ordene uma vez quando dados mudam (flag dirty), cache o resultado ordenado, reordene apenas na mutação |
+| Rodar I/O de arquivo caro (JsonSaveFile) todo tick de `OnUpdate` | Escritas em disco bloqueiam a thread principal; 5--20ms por save dependendo do tamanho do arquivo | Use timers de auto-save (300s padrão) com flag dirty. Só escreva quando dados realmente mudaram. |
+
+---
+
+## Teoria vs Prática
+
+| Livro-Texto Diz | Realidade do DayZ |
+|-----------------|-------------------|
+| Use processamento async para operações caras | Enforce Script é single-threaded sem primitivas async; distribua trabalho entre frames usando processamento baseado em índice ao invés |
+| Pooling de objetos é otimização prematura | Criação de widgets é genuinamente cara no Enfusion; pooling é prática padrão em todo mod principal (COT, VPP, Expansion) |
+| Faça profiling antes de otimizar | Correto, mas alguns padrões (scans do mundo, alocação de string por frame, reconstruções por tecla) são *sempre* errados no DayZ. Evite-os desde o início. |
+
+---
+
 [<< Anterior: Arquitetura Orientada a Eventos](06-events.md) | [Início](../../README.md)

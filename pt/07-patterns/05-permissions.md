@@ -201,7 +201,39 @@ Concede todas as permissões que começam com `"MyMod.Admin."`. Permite conceder
 7. **Suporte wildcards de prefixo.** Donos de servidor devem poder conceder `"YourMod.Admin.*"` ao invés de listar cada permissão admin individualmente.
 8. **Mantenha o arquivo de permissões editável por humanos.** Donos de servidor vão editá-lo à mão.
 9. **Implemente migração desde o primeiro dia.** Quando seu formato de permissão mudar (e vai), migração automática previne tickets de suporte.
-10. **Sincronize permissões para o cliente no connect.** O cliente precisa saber suas próprias permissões para fins de UI.
+10. **Sincronize permissões para o cliente no connect.** O cliente precisa saber suas próprias permissões para fins de UI (mostrar/esconder botões admin). Envie um resumo no connect; não envie o arquivo completo de permissões do servidor.
+
+---
+
+## Compatibilidade & Impacto
+
+- **Multi-Mod:** Cada mod pode definir seu próprio namespace de permissão (`"ModA.Admin.Kick"`, `"ModB.Build.Spawn"`). O wildcard `"*"` concede superadmin em *todos* os mods que compartilham o mesmo armazém de permissões. Se mods usam arquivos de permissão independentes, `"*"` só se aplica dentro do escopo daquele mod.
+- **Ordem de Carregamento:** Arquivos de permissão são carregados uma vez durante o startup do servidor. Sem problemas de ordem cross-mod desde que cada mod leia seu próprio arquivo. Se um framework compartilhado (CF/COT) gerencia permissões, todos os mods usando esse framework compartilham a mesma árvore de permissões.
+- **Listen Server:** Verificações de permissão devem sempre rodar server-side. Em listen servers, código client-side pode chamar `HasPermission()` para gating de UI (mostrar/esconder botões admin), mas a verificação server-side é a autoritativa.
+- **Performance:** Verificações de permissão são um scan linear de array de strings por jogador. Com contagens típicas de admin (1--20 admins, 5--30 permissões cada), isso é desprezível. Para conjuntos de permissão extremamente grandes, considere um `set<string>` ao invés de um array para lookups O(1).
+- **Migração:** Adicionar novas strings de permissão não é destrutivo --- admins existentes simplesmente não têm a nova permissão até ser concedida. Renomear permissões quebra concessões existentes silenciosamente. Use versionamento de config para auto-migrar strings de permissão renomeadas.
+
+---
+
+## Erros Comuns
+
+| Erro | Impacto | Correção |
+|------|---------|----------|
+| Confiar em dados de permissão enviados pelo cliente | Clientes exploitados enviam "Eu sou admin" e o servidor acredita; comprometimento total do servidor | Nunca leia permissões de um payload RPC; sempre consulte `sender.GetPlainId()` no armazém de permissões server-side |
+| Negação padrão ausente | Uma verificação de permissão ausente concede acesso a todos; escalação acidental de privilégio | Todo handler RPC para ação privilegiada deve verificar `HasPermission()` e retornar cedo em caso de falha |
+| Typo em string de permissão falha silenciosamente | `"MyMod.Amin.Kick"` (typo) nunca faz match --- admin não consegue kickar, nenhum erro é logado | Defina strings de permissão como variáveis `static const`; referencie a constante, nunca um string literal cru |
+| Enviar arquivo completo de permissões para o cliente | Expõe todos os Steam64 IDs de admin e seus conjuntos de permissão para qualquer cliente conectado | Envie apenas a lista de permissões do próprio jogador requisitante, nunca o arquivo completo do servidor |
+| Sem suporte a wildcard em HasPermission | Donos de servidor devem listar cada permissão individualmente por admin; tedioso e propenso a erros | Implemente wildcards de prefixo (`"MyMod.Admin.*"`) e wildcard total (`"*"`) desde o primeiro dia |
+
+---
+
+## Teoria vs Prática
+
+| Livro-Texto Diz | Realidade do DayZ |
+|-----------------|-------------------|
+| Use RBAC (controle de acesso baseado em funções) com herança de grupos | Apenas CF/COT suporta permissões de três estados; a maioria dos mods usa concessões flat por jogador por simplicidade |
+| Permissões devem ser armazenadas em um banco de dados | Sem acesso a banco de dados; arquivos JSON em `$profile:` são a única opção |
+| Use tokens criptográficos para autorização | Sem bibliotecas criptográficas no Enforce Script; confiança é baseada em `PlayerIdentity.GetPlainId()` (Steam64 ID) verificado pela engine |
 
 ---
 

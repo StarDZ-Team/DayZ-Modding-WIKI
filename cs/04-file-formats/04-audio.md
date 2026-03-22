@@ -1,4 +1,4 @@
-# Chapter 4.4: Audio (.ogg, .wss)
+# Kapitola 4.4: Zvuk (.ogg, .wss)
 
 [Domů](../../README.md) | [<< Předchozí: Materiály](03-materials.md) | **Zvuk** | [Další: DayZ Tools Workflow >>](05-dayz-tools.md)
 
@@ -6,120 +6,120 @@
 
 ## Úvod
 
-Sound design is one of the většina immersive aspects of DayZ modding. From the crack of a rifle to the ambient wind in a forest, audio brings the herní svět to life. DayZ uses **OGG Vorbis** as its primary audio format and configures sound playback through a layered system of **CfgSoundShaders** and **CfgSoundSets** defined in `config.cpp`. Understanding this pipeline -- from raw audio file to spatialized ve hře sound -- is essential for jakýkoli mod that introduces vlastní weapons, vehicles, ambient effects, or UI feedback.
+Zvukový design je jedním z nejimerzivnějších aspektů moddingu DayZ. Od prasknutí pušky po okolní vítr v lese, zvuk oživuje herní svět. DayZ používá **OGG Vorbis** jako svůj primární zvukový formát a konfiguruje přehrávání zvuku prostřednictvím vrstveného systému **CfgSoundShaders** a **CfgSoundSets** definovaných v `config.cpp`. Pochopení tohoto pipeline -- od surového zvukového souboru po prostorový zvuk ve hře -- je nezbytné pro jakýkoli mod, který zavádí vlastní zbraně, vozidla, okolní efekty nebo zpětnou vazbu UI.
 
-This chapter covers audio formats, the config-driven sound system, 3D positional audio, volume and distance attenuation, looping, and the complete workflow for adding vlastní sounds to a DayZ mod.
+Tato kapitola pokrývá zvukové formáty, konfigurací řízený zvukový systém, 3D polohový zvuk, útlum hlasitosti a vzdálenosti, smyčkování a kompletní pracovní postup pro přidání vlastních zvuků do DayZ modu.
 
 ---
 
 ## Obsah
 
-- [Audio Formats](#audio-formats)
-- [CfgSoundShaders and CfgSoundSets](#cfgsoundshaders-and-cfgsoundsets)
-- [Sound Categories](#sound-categories)
-- [3D Positional Audio](#3d-positional-audio)
-- [Volume and Distance Attenuation](#volume-and-distance-attenuation)
-- [Looping Sounds](#looping-sounds)
-- [Adding Custom Sounds to a Mod](#adding-vlastní-sounds-to-a-mod)
-- [Audio Production Tools](#audio-production-tools)
-- [Běžné Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+- [Zvukové formáty](#zvukové-formáty)
+- [CfgSoundShaders a CfgSoundSets](#cfgsoundshaders-a-cfgsoundsets)
+- [Kategorie zvuků](#kategorie-zvuků)
+- [3D polohový zvuk](#3d-polohový-zvuk)
+- [Hlasitost a útlum vzdáleností](#hlasitost-a-útlum-vzdáleností)
+- [Smyčkové zvuky](#smyčkové-zvuky)
+- [Přidání vlastních zvuků do modu](#přidání-vlastních-zvuků-do-modu)
+- [Nástroje pro produkci zvuku](#nástroje-pro-produkci-zvuku)
+- [Časté chyby](#časté-chyby)
+- [Osvědčené postupy](#osvědčené-postupy)
 
 ---
 
-## Audio Formats
+## Zvukové formáty
 
-### OGG Vorbis (Primary Format)
+### OGG Vorbis (primární formát)
 
-**OGG Vorbis** is DayZ's primary audio format. All vlastní sounds should be exported as `.ogg` files.
+**OGG Vorbis** je primární zvukový formát DayZ. Všechny vlastní zvuky by měly být exportovány jako soubory `.ogg`.
 
-| Property | Value |
+| Vlastnost | Hodnota |
 |----------|-------|
-| **Extension** | `.ogg` |
-| **Codec** | Vorbis (lossy compression) |
-| **Sample rates** | 44100 Hz (standard), 22050 Hz (acceptable for ambient) |
-| **Bit depth** | Managed by encoder (quality setting) |
-| **Channels** | Mono (for 3D sounds) or Stereo (for music/UI) |
-| **Quality range** | -1 to 10 (5-7 doporučený for game audio) |
+| **Přípona** | `.ogg` |
+| **Kodek** | Vorbis (ztrátová komprese) |
+| **Vzorkovací frekvence** | 44100 Hz (standard), 22050 Hz (přijatelné pro okolní zvuky) |
+| **Bitová hloubka** | Řízeno enkodérem (nastavení kvality) |
+| **Kanály** | Mono (pro 3D zvuky) nebo Stereo (pro hudbu/UI) |
+| **Rozsah kvality** | -1 až 10 (5-7 doporučeno pro herní zvuk) |
 
-### Key Rules for OGG in DayZ
+### Klíčová pravidla pro OGG v DayZ
 
-- **3D positional sounds MUST be mono.** Pokud provide a stereo file for a 3D sound, engine may not spatialize it správně or may ignore one channel.
-- **UI and music sounds can be stereo.** Non-positional sounds (menus, HUD feedback, background music) work správně in stereo.
-- **Sample rate should be 44100 Hz** for většina sounds. Lower rates (22050 Hz) lze použít for distant ambient sounds to save space.
+- **3D polohové zvuky MUSÍ být mono.** Pokud poskytnete stereo soubor pro 3D zvuk, engine ho nemusí správně prostorově umístit nebo může ignorovat jeden kanál.
+- **UI a hudební zvuky mohou být stereo.** Nepolohové zvuky (menu, zpětná vazba HUD, hudba na pozadí) fungují správně ve stereu.
+- **Vzorkovací frekvence by měla být 44100 Hz** pro většinu zvuků. Nižší frekvence (22050 Hz) lze použít pro vzdálené okolní zvuky k úspoře místa.
 
-### WSS (Legacy Format)
+### WSS (starší formát)
 
-**WSS** is a legacy sound format from older Bohemia titles (Arma series). DayZ can stále load WSS files, but nový mods should use OGG exclusively.
+**WSS** je starší zvukový formát ze starších titulů Bohemie (série Arma). DayZ stále může načítat soubory WSS, ale nové mody by měly používat výhradně OGG.
 
-| Property | Value |
+| Vlastnost | Hodnota |
 |----------|-------|
-| **Extension** | `.wss` |
-| **Status** | Legacy, not doporučený for nový mods |
-| **Conversion** | WSS files can be converted to OGG with Audacity or similar přílišls |
+| **Přípona** | `.wss` |
+| **Stav** | Starší, nedoporučuje se pro nové mody |
+| **Konverze** | Soubory WSS lze převést na OGG pomocí Audacity nebo podobných nástrojů |
 
-You will encounter WSS files when examining vanilla DayZ data or porting content from older Bohemia games.
+Se soubory WSS se setkáte při zkoumání vanilla dat DayZ nebo při portování obsahu ze starších her Bohemie.
 
 ---
 
-## CfgSoundShaders and CfgSoundSets
+## CfgSoundShaders a CfgSoundSets
 
-DayZ's audio system uses a two-layer configuration approach defined in `config.cpp`. A **SoundShader** defines what audio file to play and how, while a **SoundSet** defines where and how the sound is heard in the world.
+Zvukový systém DayZ používá dvouvrstvý konfigurační přístup definovaný v `config.cpp`. **SoundShader** definuje, jaký zvukový soubor přehrát a jak, zatímco **SoundSet** definuje, kde a jak je zvuk slyšet ve světě.
 
-### The Relationship
+### Vztah
 
 ```
 config.cpp
   |
-  |--> CfgSoundShaders     (WHAT to play: file, volume, frequency)
+  |--> CfgSoundShaders     (CO přehrát: soubor, hlasitost, frekvence)
   |      |
-  |      |--> MyShader      references --> sound\my_sound.ogg
+  |      |--> MyShader      odkazuje na --> sound\my_sound.ogg
   |
-  |--> CfgSoundSets         (HOW to play: 3D position, distance, spatial)
+  |--> CfgSoundSets         (JAK přehrát: 3D pozice, vzdálenost, prostorový)
          |
-         |--> MySoundSet    references --> MyShader
+         |--> MySoundSet    odkazuje na --> MyShader
 ```
 
-Game code and jiný configs reference **SoundSets**, nikdy SoundShaders přímo. SoundSets are the public interface; SoundShaders are the implementation detail.
+Herní kód a další konfigurace odkazují na **SoundSety**, nikdy přímo na SoundShadery. SoundSety jsou veřejné rozhraní; SoundShadery jsou implementační detail.
 
 ### CfgSoundShaders
 
-A SoundShader defines the raw audio content and basic playback parameters:
+SoundShader definuje surový zvukový obsah a základní parametry přehrávání:
 
 ```cpp
 class CfgSoundShaders
 {
     class MyMod_GunShot_SoundShader
     {
-        // Array of audio files -- engine picks one randomly
+        // Pole zvukových souborů -- engine náhodně vybírá jeden
         samples[] =
         {
-            {"MyMod\sound\gunshot_01", 1},    // {path (no extension), probability weight}
+            {"MyMod\sound\gunshot_01", 1},    // {cesta (bez přípony), váha pravděpodobnosti}
             {"MyMod\sound\gunshot_02", 1},
             {"MyMod\sound\gunshot_03", 1}
         };
-        volume = 1.0;                          // Base volume (0.0 - 1.0)
-        range = 300;                           // Maximum audible distance (meters)
-        rangeCurve[] = {{0, 1.0}, {300, 0.0}}; // Volume falloff curve
+        volume = 1.0;                          // Základní hlasitost (0.0 - 1.0)
+        range = 300;                           // Maximální slyšitelná vzdálenost (metry)
+        rangeCurve[] = {{0, 1.0}, {300, 0.0}}; // Křivka útlumu hlasitosti
     };
 };
 ```
 
-#### SoundShader Properties
+#### Vlastnosti SoundShaderu
 
-| Property | Type | Description |
+| Vlastnost | Typ | Popis |
 |----------|------|-------------|
-| `samples[]` | array | List of `{path, weight}` pairs. Path excludes soubor extension. |
-| `volume` | float | Base volume multiplier (0.0 to 1.0). |
-| `range` | float | Maximum audible distance in meters. |
-| `rangeCurve[]` | array | Array of `{distance, volume}` points defining attenuation over distance. |
-| `frequency` | float | Playback speed multiplier. 1.0 = normal, 0.5 = half speed (lower pitch), 2.0 = double speed (higher pitch). |
+| `samples[]` | pole | Seznam párů `{cesta, váha}`. Cesta vynechává příponu souboru. |
+| `volume` | float | Základní násobič hlasitosti (0.0 až 1.0). |
+| `range` | float | Maximální slyšitelná vzdálenost v metrech. |
+| `rangeCurve[]` | pole | Pole bodů `{vzdálenost, hlasitost}` definujících útlum přes vzdálenost. |
+| `frequency` | float | Násobič rychlosti přehrávání. 1.0 = normální, 0.5 = poloviční rychlost (nižší tón), 2.0 = dvojnásobná rychlost (vyšší tón). |
 
-> **Important:** The `samples[]` path does NOT include soubor extension. Engine appends `.ogg` (or `.wss`) automatickýally based on what it finds on disk.
+> **Důležité:** Cesta v `samples[]` NEOBSAHUJE příponu souboru. Engine připojí `.ogg` (nebo `.wss`) automaticky na základě toho, co najde na disku.
 
 ### CfgSoundSets
 
-A SoundNastavte wraps one or more SoundShaders and defines the spatial and behavioral properties:
+SoundSet obaluje jeden nebo více SoundShaderů a definuje prostorové a behaviorální vlastnosti:
 
 ```cpp
 class CfgSoundSets
@@ -127,108 +127,52 @@ class CfgSoundSets
     class MyMod_GunShot_SoundSet
     {
         soundShaders[] = {"MyMod_GunShot_SoundShader"};
-        volumeFactor = 1.0;          // Volume scaling (applied on top of shader volume)
-        frequencyFactor = 1.0;       // Frequency scaling
-        volumeCurve = "InverseSquare"; // Predefined attenuation curve name
-        spatial = 1;                  // 1 = 3D positional, 0 = 2D (HUD/menu)
-        doppler = 0;                  // 1 = enable Doppler effect
-        loop = 0;                     // 1 = loop continuously
+        volumeFactor = 1.0;          // Škálování hlasitosti (aplikováno nad hlasitost shaderu)
+        frequencyFactor = 1.0;       // Škálování frekvence
+        volumeCurve = "InverseSquare"; // Název předdefinované křivky útlumu
+        spatial = 1;                  // 1 = 3D polohový, 0 = 2D (HUD/menu)
+        doppler = 0;                  // 1 = povolit Dopplerův efekt
+        loop = 0;                     // 1 = nepřetržitá smyčka
     };
 };
 ```
 
-#### SoundNastavte Properties
+#### Vlastnosti SoundSetu
 
-| Property | Type | Description |
+| Vlastnost | Typ | Popis |
 |----------|------|-------------|
-| `soundShaders[]` | array | List of SoundShader class names to combine. |
-| `volumeFactor` | float | Additional volume multiplier applied on top of shader volume. |
-| `frequencyFactor` | float | Additional frequency/pitch multiplier. |
-| `frequencyRandomizer` | float | Random pitch variation (0.0 = none, 0.1 = +/- 10%). |
-| `volumeCurve` | string | Named attenuation curve: `"InverseSquare"`, `"Linear"`, `"Logarithmic"`. |
-| `spatial` | int | `1` for 3D positional audio, `0` for 2D (UI, music). |
-| `doppler` | int | `1` to enable Doppler pitch shift for moving sources. |
-| `loop` | int | `1` for continuous looping, `0` for one-shot. |
-| `distanceFilter` | int | `1` to apply low-pass filter at distance (muffled far-away sounds). |
-| `occlusionFactor` | float | How much walls/terrain muffle the sound (0.0 to 1.0). |
-| `obstructionFactor` | float | How much obstacles mezi source and listener affect the sound. |
+| `soundShaders[]` | pole | Seznam názvů tříd SoundShaderů ke kombinaci. |
+| `volumeFactor` | float | Další násobič hlasitosti aplikovaný nad hlasitost shaderu. |
+| `frequencyFactor` | float | Další násobič frekvence/tónu. |
+| `frequencyRandomizer` | float | Náhodná variace tónu (0.0 = žádná, 0.1 = +/- 10%). |
+| `volumeCurve` | string | Pojmenovaná křivka útlumu: `"InverseSquare"`, `"Linear"`, `"Logarithmic"`. |
+| `spatial` | int | `1` pro 3D polohový zvuk, `0` pro 2D (UI, hudba). |
+| `doppler` | int | `1` pro povolení Dopplerova posunu tónu pro pohybující se zdroje. |
+| `loop` | int | `1` pro nepřetržitou smyčku, `0` pro jednorázové přehrání. |
+| `distanceFilter` | int | `1` pro aplikaci dolní propusti na dálku (ztlumené vzdálené zvuky). |
+| `occlusionFactor` | float | Jak moc zdi/terén tlumí zvuk (0.0 až 1.0). |
+| `obstructionFactor` | float | Jak moc překážky mezi zdrojem a posluchačem ovlivňují zvuk. |
 
 ---
 
-## Sound Categories
+## Kategorie zvuků
 
-DayZ organizes sounds into categories that affect how they interact with the game's audio mixing system.
+### Zvuky zbraní
 
-### Weapon Sounds
-
-Weapon sounds are the většina complex audio in DayZ, typicky involving více SoundSets for odlišný aspects of a jeden gunshot:
+Zvuky zbraní jsou nejsložitější zvuk v DayZ, typicky zahrnující více SoundSetů pro různé aspekty jednoho výstřelu:
 
 ```
-Shot fired
-  |--> Close shot SoundSet       (the "bang" heard nearby)
-  |--> Distance shot SoundSet    (the rumble/echo heard far away)
-  |--> Tail SoundSet             (reverb/echo that follows)
-  |--> Supersonic crack SoundSet (bullet passing overhead)
-  |--> Mechanical SoundSet       (bolt cycling, magazine insertion)
+Výstřel
+  |--> SoundSet blízkého výstřelu    (rána slyšená nablízku)
+  |--> SoundSet vzdáleného výstřelu  (dunění/ozvěna slyšená daleko)
+  |--> SoundSet dozvuku              (reverb/ozvěna, která následuje)
+  |--> SoundSet nadzvukového prasknutí (kulka prolétající nad hlavou)
+  |--> SoundSet mechaniky            (cyklování závěru, vkládání zásobníku)
 ```
 
-Example weapon sound config:
+### Okolní zvuky
 
-```cpp
-class CfgSoundShaders
-{
-    class MyMod_Rifle_Shot_SoundShader
-    {
-        samples[] =
-        {
-            {"MyMod\sound\weapons\rifle_shot_01", 1},
-            {"MyMod\sound\weapons\rifle_shot_02", 1},
-            {"MyMod\sound\weapons\rifle_shot_03", 1}
-        };
-        volume = 1.0;
-        range = 200;
-        rangeCurve[] = {{0, 1.0}, {50, 0.8}, {100, 0.4}, {200, 0.0}};
-    };
-
-    class MyMod_Rifle_Tail_SoundShader
-    {
-        samples[] =
-        {
-            {"MyMod\sound\weapons\rifle_tail_01", 1},
-            {"MyMod\sound\weapons\rifle_tail_02", 1}
-        };
-        volume = 0.8;
-        range = 800;
-        rangeCurve[] = {{0, 0.6}, {200, 0.4}, {500, 0.2}, {800, 0.0}};
-    };
-};
-
-class CfgSoundSets
-{
-    class MyMod_Rifle_Shot_SoundSet
-    {
-        soundShaders[] = {"MyMod_Rifle_Shot_SoundShader"};
-        volumeFactor = 1.0;
-        spatial = 1;
-        doppler = 0;
-        loop = 0;
-    };
-
-    class MyMod_Rifle_Tail_SoundSet
-    {
-        soundShaders[] = {"MyMod_Rifle_Tail_SoundShader"};
-        volumeFactor = 1.0;
-        spatial = 1;
-        doppler = 0;
-        loop = 0;
-        distanceFilter = 1;
-    };
-};
-```
-
-### Ambient Sounds
-
-Environmental audio for atmosphere:
+Zvuky prostředí pro atmosféru:
 
 ```cpp
 class MyMod_Wind_SoundShader
@@ -242,87 +186,55 @@ class MyMod_Wind_SoundSet
 {
     soundShaders[] = {"MyMod_Wind_SoundShader"};
     volumeFactor = 0.6;
-    spatial = 0;           // Non-positional (ambient surround)
-    loop = 1;              // Continuous loop
+    spatial = 0;           // Nepolohový (okolní surround)
+    loop = 1;              // Nepřetržitá smyčka
 };
 ```
 
-### UI Sounds
+### UI zvuky
 
-Interface feedback sounds (button clicks, notifications):
+Zvuky zpětné vazby rozhraní (kliknutí tlačítek, notifikace):
 
 ```cpp
 class MyMod_ButtonClick_SoundShader
 {
     samples[] = {{"MyMod\sound\ui\click_01", 1}};
     volume = 0.7;
-    range = 0;             // No spatial range needed
+    range = 0;             // Nepotřebuje prostorový dosah
 };
 
 class MyMod_ButtonClick_SoundSet
 {
     soundShaders[] = {"MyMod_ButtonClick_SoundShader"};
     volumeFactor = 0.8;
-    spatial = 0;           // 2D -- plays in the listener's head
+    spatial = 0;           // 2D -- přehrává se v hlavě posluchače
     loop = 0;
 };
 ```
 
-### Vehicle Sounds
-
-Vehicles use complex sound configurations with více components:
-
-- **Engine idle** -- looping, pitch varies with RPM
-- **Engine acceleration** -- looping, volume and pitch scale with throttle
-- **Tire noise** -- looping, volume scales with speed
-- **Horn** -- triggered, looping while held
-- **Crash** -- one-shot on collision
-
-### Character Sounds
-
-Player-related sounds include:
-
-- **Footsteps** -- varies by surface material (concrete, grass, wood, metal)
-- **Breathing** -- stamina-dependent
-- **Voice** -- emotes and commands
-- **Inventory** -- item manipulation sounds
-
 ---
 
-## 3D Positional Audio
+## 3D polohový zvuk
 
-DayZ uses 3D spatial audio to position sounds in the herní svět. Když gun fires 200 meters to your left, you hear it from your left speaker/headphone with appropriate volume reduction.
+DayZ používá 3D prostorový zvuk k umisťování zvuků v herním světě. Když zbraň vystřelí 200 metrů nalevo od vás, slyšíte ji z levého reproduktoru/sluchátka s odpovídajícím snížením hlasitosti.
 
-### Requirements for 3D Audio
+### Požadavky pro 3D zvuk
 
-1. **Audio file must be mono.** Stereo files will not spatialize správně.
-2. **SoundNastavte `spatial` musí být `1`.** This enables the 3D positioning system.
-3. **Sound source must have a world position.** Engine needs coordinates to calculate direction and distance.
+1. **Zvukový soubor musí být mono.** Stereo soubory se nebudou správně prostorově umisťovat.
+2. **`spatial` SoundSetu musí být `1`.** To povolí systém 3D polohování.
+3. **Zdroj zvuku musí mít pozici ve světě.** Engine potřebuje souřadnice pro výpočet směru a vzdálenosti.
 
-### How the Engine Spatializes Sound
-
-```
-Sound Source (world position)
-  |
-  |--> Calculate distance to listener
-  |--> Calculate direction relative to listener facing
-  |--> Apply distance attenuation (rangeCurve)
-  |--> Apply occlusion (walls, terrain)
-  |--> Apply Doppler effect (if enabled and source is moving)
-  |--> Output to correct speaker channels
-```
-
-### Triggering 3D Sounds from Script
+### Spouštění 3D zvuků ze skriptu
 
 ```c
-// Play a positional sound at a world location
+// Přehrání polohového zvuku na pozici ve světě
 void PlaySoundAtPosition(vector position)
 {
     EffectSound sound;
     SEffectManager.PlaySound("MyMod_Rifle_Shot_SoundSet", position);
 }
 
-// Play a sound attached to an object (moves with it)
+// Přehrání zvuku připojeného k objektu (pohybuje se s ním)
 void PlaySoundOnObject(Object obj)
 {
     EffectSound sound;
@@ -332,76 +244,56 @@ void PlaySoundOnObject(Object obj)
 
 ---
 
-## Volume and Distance Attenuation
+## Hlasitost a útlum vzdáleností
 
-### Range Curve
+### Křivka dosahu
 
-The `rangeCurve[]` in a SoundShader defines how volume decreases with distance. It is pole of `{distance, volume}` pairs:
+`rangeCurve[]` v SoundShaderu definuje, jak se hlasitost snižuje se vzdáleností. Je to pole párů `{vzdálenost, hlasitost}`:
 
 ```cpp
 rangeCurve[] =
 {
-    {0, 1.0},       // At 0m: full volume
-    {50, 0.7},      // At 50m: 70% volume
-    {150, 0.3},     // At 150m: 30% volume
-    {300, 0.0}      // At 300m: silent
+    {0, 1.0},       // Na 0m: plná hlasitost
+    {50, 0.7},      // Na 50m: 70% hlasitosti
+    {150, 0.3},     // Na 150m: 30% hlasitosti
+    {300, 0.0}      // Na 300m: ticho
 };
 ```
 
-Engine interpolates linearly mezi defined points. You can create jakýkoli falloff curve by adding more control points.
+Engine interpoluje lineárně mezi definovanými body. Jakoukoliv křivku útlumu můžete vytvořit přidáním více kontrolních bodů.
 
-### Predefined Volume Curves
+### Předdefinované křivky hlasitosti
 
-SoundSets can reference named curves via the `volumeCurve` property:
+SoundSety mohou odkazovat na pojmenované křivky přes vlastnost `volumeCurve`:
 
-| Curve Name | Behavior |
+| Název křivky | Chování |
 |------------|----------|
-| `"InverseSquare"` | Realistic falloff (volume = 1/distance^2). Natural-sounding. |
-| `"Linear"` | Even falloff from max to zero over the range. |
-| `"Logarithmic"` | Loud up close, drops quickly at medium distance, then tapers slowly. |
-
-### Practical Attenuation Examples
-
-**Gunshot (loud, carries far):**
-```cpp
-range = 800;
-rangeCurve[] = {{0, 1.0}, {100, 0.6}, {300, 0.3}, {600, 0.1}, {800, 0.0}};
-```
-
-**Footstep (quiet, close range):**
-```cpp
-range = 30;
-rangeCurve[] = {{0, 1.0}, {10, 0.5}, {20, 0.15}, {30, 0.0}};
-```
-
-**Vehicle engine (medium range, sustained):**
-```cpp
-range = 200;
-rangeCurve[] = {{0, 1.0}, {50, 0.7}, {100, 0.4}, {200, 0.0}};
-```
+| `"InverseSquare"` | Realistický útlum (hlasitost = 1/vzdálenost^2). Přirozeně znějící. |
+| `"Linear"` | Rovnoměrný útlum od maxima k nule přes dosah. |
+| `"Logarithmic"` | Hlasité zblízka, rychle klesá na střední vzdálenosti, pak se pomalu stlumí. |
 
 ---
 
-## Looping Sounds
+## Smyčkové zvuky
 
-Looping sounds repeat continuously until explicitly stopped. They are used for engines, ambient atmosphere, alarms, and jakýkoli sustained audio.
+Smyčkové zvuky se nepřetržitě opakují, dokud nejsou explicitně zastaveny. Používají se pro motory, okolní atmosféru, alarmy a jakýkoli trvalý zvuk.
 
-### Configuring a Looping Sound
+### Konfigurace smyčkového zvuku
 
-In the SoundSet:
+V SoundSetu:
 ```cpp
 class MyMod_Alarm_SoundSet
 {
     soundShaders[] = {"MyMod_Alarm_SoundShader"};
     spatial = 1;
-    loop = 1;              // Enable looping
+    loop = 1;              // Povolení smyčky
 };
 ```
 
-### Looping from Script
+### Smyčkování ze skriptu
 
 ```c
-// Start a looping sound
+// Spuštění smyčkového zvuku
 EffectSound m_AlarmSound;
 
 void StartAlarm(vector position)
@@ -412,7 +304,7 @@ void StartAlarm(vector position)
     }
 }
 
-// Stop the looping sound
+// Zastavení smyčkového zvuku
 void StopAlarm()
 {
     if (m_AlarmSound)
@@ -423,29 +315,29 @@ void StopAlarm()
 }
 ```
 
-### Audio File Preparation for Loops
+### Příprava zvukového souboru pro smyčky
 
-For seamless looping, the audio file itself must loop cleanly:
+Pro bezešvé smyčkování musí samotný zvukový soubor čistě smyčkovat:
 
-1. **Zero-crossing at start and end.** The waveform should cross zero amplitude at oba endpoints to avoid a click/pop at the loop point.
-2. **Matched start and end.** The end of soubor should blend seamlessly into the beginning.
-3. **No fade in/out.** Fades would be audible on každý loop iteration.
-4. **Testujte the loop in Audacity.** Vyberte the celý clip, enable loop playback, and listen for clicks or discontinuities.
+1. **Průchod nulou na začátku a konci.** Průběh vlny by měl projít nulovou amplitudou na obou koncových bodech, aby se zabránilo kliknutí/prasknutí v bodě smyčky.
+2. **Shodný začátek a konec.** Konec souboru by měl bezešvě navazovat na začátek.
+3. **Žádný fade in/out.** Fade by byl slyšitelný při každé iteraci smyčky.
+4. **Testujte smyčku v Audacity.** Vyberte celý klip, povolte přehrávání smyčky a poslouchejte, zda neslyšíte kliknutí nebo diskontinuity.
 
 ---
 
-## Adding Custom Sounds to a Mod
+## Přidání vlastních zvuků do modu
 
-### Complete Workflow
+### Kompletní pracovní postup
 
-**Step 1: Prepare audio files**
-- Record or source your audio.
-- Edit in Audacity (or your preferred audio editor).
-- For 3D sounds: convert to mono.
-- Export as OGG Vorbis (quality 5-7).
-- Name files descriptively: `rifle_shot_01.ogg`, `rifle_shot_02.ogg`.
+**Krok 1: Připravte zvukové soubory**
+- Nahrajte nebo získejte svůj zvuk.
+- Upravte v Audacity (nebo vašem preferovaném zvukovém editoru).
+- Pro 3D zvuky: převeďte na mono.
+- Exportujte jako OGG Vorbis (kvalita 5-7).
+- Pojmenujte soubory popisně: `rifle_shot_01.ogg`, `rifle_shot_02.ogg`.
 
-**Step 2: Organize in mod directory**
+**Krok 2: Organizujte v adresáři modu**
 
 ```
 MyMod/
@@ -464,7 +356,7 @@ MyMod/
   config.cpp
 ```
 
-**Step 3: Define SoundShaders in config.cpp**
+**Krok 3: Definujte SoundShadery v config.cpp**
 
 ```cpp
 class CfgPatches
@@ -508,16 +400,16 @@ class CfgSoundSets
 };
 ```
 
-**Step 4: Reference from weapon/item config**
+**Krok 4: Odkaz z konfigurace zbraně/předmětu**
 
-For weapons, the SoundNastavte is referenced in the weapon's config class:
+Pro zbraně je SoundSet odkazován ve třídě konfigurace zbraně:
 
 ```cpp
 class CfgWeapons
 {
     class MyMod_Rifle: Rifle_Base
     {
-        // ... other config ...
+        // ... ostatní konfigurace ...
 
         class Sounds
         {
@@ -530,44 +422,44 @@ class CfgWeapons
 };
 ```
 
-**Step 5: Sestavte and test**
-- Pack the PBO (use `-packonly` since OGG files ne need binarization).
-- Spusťte the game with the mod loaded.
-- Testujte the sound ve hře at různý distances.
+**Krok 5: Sestavte a testujte**
+- Zabalte PBO (použijte `-packonly`, protože soubory OGG nepotřebují binarizaci).
+- Spusťte hru s načteným modem.
+- Testujte zvuk ve hře v různých vzdálenostech.
 
 ---
 
-## Audio Production Tools
+## Nástroje pro produkci zvuku
 
-### Audacity (Free, Otevřete Source)
+### Audacity (zdarma, open source)
 
-Audacity is the doporučený přílišl for DayZ audio production:
+Audacity je doporučený nástroj pro produkci zvuku DayZ:
 
-- **Download:** [audacityteam.org](https://www.audacityteam.org/)
-- **OGG export:** File --> Export --> Export as OGG
-- **Mono conversion:** Tracks --> Mix --> Mix Stereo Down to Mono
-- **Normalization:** Effect --> Normalize (set peak to -1 dB to prevent clipping)
-- **Noise removal:** Effect --> Noise Reduction
-- **Loop testing:** Transport --> Loop Play (Shift+Space)
+- **Stažení:** [audacityteam.org](https://www.audacityteam.org/)
+- **Export OGG:** File --> Export --> Export as OGG
+- **Konverze na mono:** Tracks --> Mix --> Mix Stereo Down to Mono
+- **Normalizace:** Effect --> Normalize (nastavte špičku na -1 dB pro prevenci clippingu)
+- **Odstranění šumu:** Effect --> Noise Reduction
+- **Testování smyčky:** Transport --> Loop Play (Shift+Space)
 
-### OGG Export Settings in Audacity
+### Nastavení exportu OGG v Audacity
 
 1. **File --> Export --> Export as OGG Vorbis**
-2. **Quality:** 5-7 (5 for ambient/UI, 7 for weapon/important sounds)
-3. **Channels:** Mono for 3D sounds, Stereo for UI/music
+2. **Kvalita:** 5-7 (5 pro okolní/UI, 7 pro zbraně/důležité zvuky)
+3. **Kanály:** Mono pro 3D zvuky, Stereo pro UI/hudbu
 
-### Other Useful Tools
+### Další užitečné nástroje
 
-| Tool | Purpose | Cost |
+| Nástroj | Účel | Cena |
 |------|---------|------|
-| **Audacity** | General audio editing, format conversion | Free |
-| **Reaper** | Professional DAW, advanced editing | $60 (personal license) |
-| **FFmpeg** | Command-line batch audio conversion | Free |
-| **Ocenaudio** | Simple editor with v reálném čase preview | Free |
+| **Audacity** | Obecná editace zvuku, konverze formátů | Zdarma |
+| **Reaper** | Profesionální DAW, pokročilá editace | $60 (osobní licence) |
+| **FFmpeg** | Dávková konverze zvuku z příkazového řádku | Zdarma |
+| **Ocenaudio** | Jednoduchý editor s náhledem v reálném čase | Zdarma |
 
-### Batch Conversion with FFmpeg
+### Dávková konverze pomocí FFmpeg
 
-Convert all WAV files in a directory to mono OGG:
+Konverze všech WAV souborů v adresáři na mono OGG:
 
 ```bash
 for file in *.wav; do
@@ -579,41 +471,41 @@ done
 
 ## Časté chyby
 
-### 1. Stereo File for 3D Sound
+### 1. Stereo soubor pro 3D zvuk
 
-**Symptom:** Sound ne spatialize, plays centered or pouze in one ear.
-**Fix:** Convert to mono before exporting. 3D positional sounds require mono audio files.
+**Příznak:** Zvuk se prostorově neumisťuje, přehrává se centrovaně nebo pouze v jednom uchu.
+**Oprava:** Převeďte na mono před exportem. 3D polohové zvuky vyžadují mono zvukové soubory.
 
-### 2. File Extension in samples[] Path
+### 2. Přípona souboru v cestě samples[]
 
-**Symptom:** Sound ne play, no error in log (engine tiše fails to find soubor).
-**Fix:** Odstraňte the `.ogg` extension from cesta in `samples[]`. Engine adds it automatickýally.
+**Příznak:** Zvuk se nepřehrává, žádná chyba v logu (engine tiše nenajde soubor).
+**Oprava:** Odstraňte příponu `.ogg` z cesty v `samples[]`. Engine ji přidává automaticky.
 
 ```cpp
-// WRONG
+// ŠPATNĚ
 samples[] = {{"MyMod\sound\gunshot_01.ogg", 1}};
 
-// CORRECT
+// SPRÁVNĚ
 samples[] = {{"MyMod\sound\gunshot_01", 1}};
 ```
 
-### 3. Missing CfgPatches povinnýAddons
+### 3. Chybějící CfgPatches requiredAddons
 
-**Symptom:** SoundShaders or SoundSets not recognized, sounds ne play.
-**Fix:** Přidejte `"DZ_Sounds_Effects"` to your CfgPatches `povinnýAddons[]` to ensure the base sound system loads before your definitions.
+**Příznak:** SoundShadery nebo SoundSety nejsou rozpoznány, zvuky se nepřehrávají.
+**Oprava:** Přidejte `"DZ_Sounds_Effects"` do `requiredAddons[]` vašeho CfgPatches, abyste zajistili, že se základní zvukový systém načte před vašimi definicemi.
 
-### 4. Range Too Short
+### 4. Příliš krátký dosah
 
-**Symptom:** Sound cuts off abruptly at a short distance, feels unnatural.
-**Fix:** Nastavte `range` to a realistic value. Gunshots should carry 300-800m, footsteps 20-40m, voices 50-100m.
+**Příznak:** Zvuk se ostře ořízne na krátkou vzdálenost, působí nepřirozeně.
+**Oprava:** Nastavte `range` na realistickou hodnotu. Výstřely by měly nést 300-800m, kroky 20-40m, hlasy 50-100m.
 
-### 5. No Random Variation
+### 5. Žádná náhodná variace
 
-**Symptom:** Sound feels repetitive and artificial after hearing it více times.
-**Fix:** Provide více samples in the SoundShader and add `frequencyRandomizer` to the SoundNastavte for pitch variation.
+**Příznak:** Zvuk po opakovaném poslechu působí repetitivně a uměle.
+**Oprava:** Poskytněte více vzorků v SoundShaderu a přidejte `frequencyRandomizer` do SoundSetu pro variaci tónu.
 
 ```cpp
-// Multiple samples for variety
+// Více vzorků pro rozmanitost
 samples[] =
 {
     {"MyMod\sound\step_01", 1},
@@ -622,34 +514,34 @@ samples[] =
     {"MyMod\sound\step_04", 1}
 };
 
-// Plus pitch randomization in the SoundSet
-frequencyRandomizer = 0.05;    // +/- 5% pitch variation
+// Plus randomizace tónu v SoundSetu
+frequencyRandomizer = 0.05;    // +/- 5% variace tónu
 ```
 
-### 6. Clipping / Distortion
+### 6. Clipping / zkreslení
 
-**Symptom:** Sound crackles or distorts, especially at close range.
-**Fix:** Normalize your audio to -1 dB or -3 dB peak in Audacity before exporting. Nikdy set `volume` or `volumeFactor` výše 1.0 unless the source audio is velmi quiet.
+**Příznak:** Zvuk praská nebo se zkresluje, zejména zblízka.
+**Oprava:** Normalizujte svůj zvuk na -1 dB nebo -3 dB špičku v Audacity před exportem. Nikdy nenastavujte `volume` nebo `volumeFactor` nad 1.0, pokud zdrojový zvuk není velmi tichý.
 
 ---
 
 ## Osvědčené postupy
 
-1. **Vždy export 3D sounds as mono OGG.** Toto je jeden většina důležitý rule. Stereo files will not spatialize.
+1. **Vždy exportujte 3D zvuky jako mono OGG.** Toto je nejdůležitější pravidlo. Stereo soubory se nebudou prostorově umisťovat.
 
-2. **Provide 3-5 sample variants** for frequently heard sounds (gunshots, footsteps, impacts). Random selection prevents the "machine gun effect" of identical repeated audio.
+2. **Poskytněte 3-5 variant vzorků** pro často slyšené zvuky (výstřely, kroky, nárazy). Náhodný výběr předchází "efektu kulometu" identického opakovaného zvuku.
 
-3. **Use `frequencyRandomizer`** mezi 0.03 and 0.08 for natural pitch variation. Even subtle variation significantly improves perceived audio quality.
+3. **Používejte `frequencyRandomizer`** mezi 0.03 a 0.08 pro přirozenou variaci tónu. I jemná variace výrazně zlepšuje vnímanou kvalitu zvuku.
 
-4. **Nastavte realistic range values.** Study vanilla DayZ sounds for reference. A rifle shot at 600-800m range, a suppressed shot at 150-200m, footsteps at 20-40m.
+4. **Nastavte realistické hodnoty dosahu.** Studujte vanilla zvuky DayZ pro referenci. Výstřel pušky 600-800m dosahu, tlumený výstřel 150-200m, kroky 20-40m.
 
-5. **Layer your sounds.** Complex audio dokoncets (gunshots) should use více SoundSets: close shot + distant rumble + tail/echo. This creates depth that a jeden sound file cannot achieve.
+5. **Vrstvěte své zvuky.** Složité zvukové události (výstřely) by měly používat více SoundSetů: blízký výstřel + vzdálené dunění + dozvuk/ozvěna. To vytváří hloubku, které jeden zvukový soubor nemůže dosáhnout.
 
-6. **Testujte at více distances.** Walk away from the sound source ve hře and verify the attenuation curve feels natural. Adjust `rangeCurve[]` control points iteratively.
+6. **Testujte ve více vzdálenostech.** Odejděte od zdroje zvuku ve hře a ověřte, že křivka útlumu působí přirozeně. Iterativně upravujte kontrolní body `rangeCurve[]`.
 
-7. **Organize your sound directory.** Use subdirectories by category (`weapons/`, `ambient/`, `ui/`, `vehicles/`). A flat directory with 200 OGG files is unmanageable.
+7. **Organizujte svůj zvukový adresář.** Používejte podadresáře podle kategorie (`weapons/`, `ambient/`, `ui/`, `vehicles/`). Plochý adresář s 200 OGG soubory je nezvládnutelný.
 
-8. **Udržujte velikost souborus reasonable.** Game audio ne need studio quality. OGG quality 5-7 is sufficient. Most individual sound files should be under 500 KB.
+8. **Udržujte velikosti souborů rozumné.** Herní zvuk nepotřebuje studiovou kvalitu. OGG kvalita 5-7 je dostatečná. Většina jednotlivých zvukových souborů by měla být pod 500 KB.
 
 ---
 
@@ -657,23 +549,23 @@ frequencyRandomizer = 0.05;    // +/- 5% pitch variation
 
 | Vzor | Mod | Detail |
 |---------|-----|--------|
-| Custom notification sounds via SoundSets | Expansion (Notification module) | Defines více `CfgSoundSets` for odlišný notification types (success, warning, error) with `spatial = 0` |
-| UI click sounds with cached playback | VPP Admin Tools | Uses `SEffectManager.PlaySoundCachedParams()` for button clicks to avoid re-parsing config každý time |
-| Multi-layer weapon audio (shot + tail + crack) | Community weapon packs (RFCP, MuchStuffPack) | Each weapon defines 3-5 oddělený SoundSets per fire dokoncet for close shot, distant rumble, supersonic crack |
-| `frequencyRandomizer` for footstep variation | Vanilla DayZ | Uses 0.05-0.08 pitch randomization on footstep SoundSets to prevent robotic repetition |
+| Vlastní zvuky notifikací přes SoundSety | Expansion (modul notifikací) | Definuje více `CfgSoundSets` pro různé typy notifikací (úspěch, varování, chyba) s `spatial = 0` |
+| UI zvuky kliknutí s kešovaným přehráváním | VPP Admin Tools | Používá `SEffectManager.PlaySoundCachedParams()` pro kliknutí tlačítek, aby se předešlo opakovanému parsování konfigurace |
+| Vícevrstevný zvuk zbraní (výstřel + dozvuk + prasknutí) | Komunitní balíčky zbraní (RFCP, MuchStuffPack) | Každá zbraň definuje 3-5 oddělených SoundSetů na událost výstřelu pro blízký výstřel, vzdálené dunění, nadzvukové prasknutí |
+| `frequencyRandomizer` pro variaci kroků | Vanilla DayZ | Používá randomizaci tónu 0.05-0.08 na SoundSetech kroků pro prevenci robotického opakování |
 
 ---
 
 ## Kompatibilita a dopad
 
-- **Více modů:** SoundShader and SoundNastavte class names are globální. Two mods defining the stejný class name will conflict (last loaded wins). Vždy prefix names with your mod identifier (e.g., `MyMod_Shot_SoundShader`).
-- **Výkon:** OGG files are decompressed za běhu. Mods with hundreds of unique audio files increase memory usage. Udržujte individual files under 500 KB and reuse samples across variants.
-- **Verze:** DayZ's audio system (CfgSoundShaders/CfgSoundSets) has been stable since 1.0. The `sound3DProcessingType` and `volumeCurve` named presets were added in later updates but are backward-compatible.
+- **Více modů:** Názvy tříd SoundShader a SoundSet jsou globální. Dva mody definující stejný název třídy budou v konfliktu (poslední načtený vyhraje). Vždy přidávejte prefix názvů identifikátorem vašeho modu (např. `MyMod_Shot_SoundShader`).
+- **Výkon:** Soubory OGG se dekomprimují za běhu. Mody se stovkami unikátních zvukových souborů zvyšují využití paměti. Udržujte jednotlivé soubory pod 500 KB a znovupoužívejte vzorky napříč variantami.
+- **Verze:** Zvukový systém DayZ (CfgSoundShaders/CfgSoundSets) je stabilní od verze 1.0. Přednastavení `sound3DProcessingType` a `volumeCurve` byly přidány v pozdějších aktualizacích, ale jsou zpětně kompatibilní.
 
 ---
 
 ## Navigace
 
-| Previous | Up | Next |
+| Předchozí | Nahoru | Další |
 |----------|----|------|
-| [4.3 Materials](03-materials.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.5 DayZ Tools Workflow](05-dayz-tools.md) |
+| [4.3 Materiály](03-materials.md) | [Část 4: Formáty souborů a DayZ Tools](01-textures.md) | [4.5 DayZ Tools Workflow](05-dayz-tools.md) |

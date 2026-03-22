@@ -1,216 +1,216 @@
-# Chapter 4.5: DayZ Tools Workflow
+# 第 4.5 章：DayZ Tools 工作流程
 
-[Home](../../README.md) | [<< Previous: Audio](04-audio.md) | **DayZ Tools** | [Next: PBO Packing >>](06-pbo-packing.md)
+[首页](../../README.md) | [<< 上一章：音频](04-audio.md) | **DayZ Tools** | [下一章：PBO 打包 >>](06-pbo-packing.md)
 
 ---
 
 ## 简介
 
-DayZ Tools is a free suite of development applications distributed through Steam, provided by Bohemia Interactive for modders. It contains everything needed to create, convert, and package game assets: a 3D model editor, texture viewer, terrain editor, script debugger, and the binarization pipeline that transforms human-readable source files into optimized game-ready formats. No DayZ mod can be built without at least some interaction with these tools.
+DayZ Tools 是一套通过 Steam 分发的免费开发应用程序套件，由 Bohemia Interactive 为模组制作者提供。它包含创建、转换和打包游戏资产所需的一切：3D 模型编辑器、纹理查看器、地形编辑器、脚本调试器，以及将人类可读的源文件转换为优化的游戏就绪格式的二进制化管线。没有 DayZ 模组可以在不与这些工具进行至少一些交互的情况下构建。
 
-This chapter provides an overview of each tool in the suite, explains the P: drive (workdrive) system that underpins the entire workflow, covers file patching for rapid development iteration, and walks through the complete asset pipeline from source files to playable mod.
+本章提供套件中每个工具的概述，解释支撑整个工作流程的 P: 驱动器（workdrive）系统，涵盖用于快速开发迭代的文件补丁，并详细介绍从源文件到可玩模组的完整资产管线。
 
 ---
 
 ## 目录
 
-- [DayZ Tools Suite Overview](#dayz-tools-suite-overview)
-- [Installation and Setup](#installation-and-setup)
-- [P: Drive (Workdrive)](#p-drive-workdrive)
+- [DayZ Tools 套件概述](#dayz-tools-suite-overview)
+- [安装和设置](#installation-and-setup)
+- [P: 驱动器 (Workdrive)](#p-drive-workdrive)
 - [Object Builder](#object-builder)
 - [TexView2](#texview2)
 - [Terrain Builder](#terrain-builder)
 - [Binarize](#binarize)
 - [AddonBuilder](#addonbuilder)
 - [Workbench](#workbench)
-- [File Patching Mode](#file-patching-mode)
-- [Complete Workflow: Source to Game](#complete-workflow-source-to-game)
-- [Common Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+- [文件补丁模式](#file-patching-mode)
+- [完整工作流程：从源文件到游戏](#complete-workflow-source-to-game)
+- [常见错误](#common-mistakes)
+- [最佳实践](#best-practices)
 
 ---
 
-## DayZ Tools Suite Overview
+## DayZ Tools 套件概述
 
-DayZ Tools is available as a free download on Steam under the **Tools** category. It installs a collection of applications, each serving a specific role in the modding pipeline.
+DayZ Tools 可在 Steam 的 **Tools** 分类下免费下载。它安装了一系列应用程序，每个程序在模组管线中扮演特定角色。
 
-| Tool | Purpose | Primary Users |
+| 工具 | 用途 | 主要用户 |
 |------|---------|---------------|
-| **Object Builder** | 3D model creation and editing (.p3d) | 3D artists, modelers |
-| **TexView2** | Texture viewing and conversion (.paa, .tga, .png) | Texture artists, all modders |
-| **Terrain Builder** | Terrain/map creation and editing | Map makers |
-| **Binarize** | Source-to-game format conversion | Build pipeline (usually automated) |
-| **AddonBuilder** | PBO packing with optional binarization | All modders |
-| **Workbench** | Script debugging, testing, profiling | Scripters |
-| **DayZ Tools Launcher** | Central hub for launching tools and configuring P: drive | All modders |
+| **Object Builder** | 3D 模型创建和编辑 (.p3d) | 3D 美术师，建模师 |
+| **TexView2** | 纹理查看和转换 (.paa, .tga, .png) | 纹理美术师，所有模组制作者 |
+| **Terrain Builder** | 地形/地图创建和编辑 | 地图制作者 |
+| **Binarize** | 源文件到游戏格式的转换 | 构建管线（通常自动化） |
+| **AddonBuilder** | PBO 打包，可选二进制化 | 所有模组制作者 |
+| **Workbench** | 脚本调试、测试、性能分析 | 脚本编写者 |
+| **DayZ Tools Launcher** | 启动工具和配置 P: 驱动器的中央枢纽 | 所有模组制作者 |
 
-### Where They Live on Disk
+### 它们在磁盘上的位置
 
-After Steam installation, the tools are typically located at:
+Steam 安装后，工具通常位于：
 
 ```
 C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools\
   Bin\
     AddonBuilder\
-      AddonBuilder.exe          <-- PBO packer
+      AddonBuilder.exe          <-- PBO 打包器
     Binarize\
-      Binarize.exe              <-- Asset converter
+      Binarize.exe              <-- 资产转换器
     TexView2\
-      TexView2.exe              <-- Texture tool
+      TexView2.exe              <-- 纹理工具
     ObjectBuilder\
-      ObjectBuilder.exe         <-- 3D model editor
+      ObjectBuilder.exe         <-- 3D 模型编辑器
     Workbench\
-      workbenchApp.exe          <-- Script debugger
+      workbenchApp.exe          <-- 脚本调试器
   TerrainBuilder\
-    TerrainBuilder.exe          <-- Terrain editor
+    TerrainBuilder.exe          <-- 地形编辑器
 ```
 
 ---
 
-## Installation and Setup
+## 安装和设置
 
-### Step 1: Install DayZ Tools from Steam
+### 第 1 步：从 Steam 安装 DayZ Tools
 
-1. Open Steam Library.
-2. Enable **Tools** filter in the dropdown.
-3. Search for "DayZ Tools".
-4. Install (free, approximately 2 GB).
+1. 打开 Steam 库。
+2. 在下拉菜单中启用 **Tools** 过滤器。
+3. 搜索 "DayZ Tools"。
+4. 安装（免费，大约 2 GB）。
 
-### Step 2: Launch DayZ Tools
+### 第 2 步：启动 DayZ Tools
 
-1. Launch "DayZ Tools" from Steam.
-2. The DayZ Tools Launcher opens -- a central hub application.
-3. From here you can launch any individual tool and configure settings.
+1. 从 Steam 启动 "DayZ Tools"。
+2. DayZ Tools Launcher 打开——一个中央枢纽应用程序。
+3. 从这里你可以启动任何单独的工具并配置设置。
 
-### Step 3: Configure P: Drive
+### 第 3 步：配置 P: 驱动器
 
-The launcher provides a button to create and mount the P: drive (workdrive). This is the virtual drive that all DayZ tools use as their root path.
+启动器提供一个按钮来创建和挂载 P: 驱动器（workdrive）。这是所有 DayZ 工具用作根路径的虚拟驱动器。
 
-1. Click **Setup Workdrive** (or the P: drive configuration button).
-2. The tool creates a subst-mapped P: drive pointing to a directory on your real disk.
-3. Extract or symlink vanilla DayZ data to P: so the tools can reference game assets.
+1. 点击 **Setup Workdrive**（或 P: 驱动器配置按钮）。
+2. 工具创建一个 subst 映射的 P: 驱动器，指向你真实磁盘上的目录。
+3. 将原版 DayZ 数据提取或符号链接到 P:，以便工具可以引用游戏资产。
 
 ---
 
-## P: Drive (Workdrive)
+## P: 驱动器 (Workdrive)
 
-The **P: drive** is a Windows virtual drive (created via `subst` or junction) that serves as the unified root path for all DayZ modding. Every path in P3D models, RVMAT materials, config.cpp references, and build scripts is relative to P:.
+**P: 驱动器** 是一个 Windows 虚拟驱动器（通过 `subst` 或 junction 创建），作为所有 DayZ 模组制作的统一根路径。P3D 模型、RVMAT 材质、config.cpp 引用和构建脚本中的每个路径都相对于 P:。
 
-### Why P: Drive Exists
+### 为什么存在 P: 驱动器
 
-DayZ's asset pipeline was designed around a fixed root path. When a material references `MyMod\data\texture_co.paa`, the engine looks for `P:\MyMod\data\texture_co.paa`. This convention ensures:
+DayZ 的资产管线围绕固定根路径设计。当材质引用 `MyMod\data\texture_co.paa` 时，引擎查找 `P:\MyMod\data\texture_co.paa`。此约定确保：
 
-- All tools agree on where files are.
-- Paths in packed PBOs match paths during development.
-- Multiple mods can coexist under one root.
+- 所有工具对文件位置达成一致。
+- 打包 PBO 中的路径与开发期间的路径匹配。
+- 多个模组可以在一个根目录下共存。
 
-### Structure
+### 结构
 
 ```
 P:\
-  DZ\                          <-- Vanilla DayZ extracted data
+  DZ\                          <-- 原版 DayZ 提取的数据
     characters\
     weapons\
     data\
     ...
-  DayZ Tools\                  <-- Tools installation (or symlink)
-  MyMod\                       <-- Your mod source
+  DayZ Tools\                  <-- 工具安装（或符号链接）
+  MyMod\                       <-- 你的模组源文件
     config.cpp
     Scripts\
     data\
-  AnotherMod\                  <-- Another mod's source
+  AnotherMod\                  <-- 另一个模组的源文件
     ...
 ```
 
 ### SetupWorkdrive.bat
 
-Many mod projects include a `SetupWorkdrive.bat` script that automates P: drive creation and junction setup. A typical script:
+许多模组项目包含一个 `SetupWorkdrive.bat` 脚本来自动化 P: 驱动器创建和 junction 设置。一个典型的脚本：
 
 ```batch
 @echo off
-REM Create P: drive pointing to the workspace
+REM 创建指向工作空间的 P: 驱动器
 subst P: "D:\DayZModding"
 
-REM Create junctions for vanilla game data
+REM 为原版游戏数据创建 junction
 mklink /J "P:\DZ" "C:\Program Files (x86)\Steam\steamapps\common\DayZ\dta"
 
-REM Create junction for tools
+REM 为工具创建 junction
 mklink /J "P:\DayZ Tools" "C:\Program Files (x86)\Steam\steamapps\common\DayZ Tools"
 
-echo Workdrive P: configured.
+echo Workdrive P: 已配置。
 pause
 ```
 
-> **Tip:** The workdrive must be mounted before launching any DayZ tool. If Object Builder or Binarize cannot find files, the first thing to check is whether P: is mounted.
+> **提示：** 在启动任何 DayZ 工具之前必须挂载 workdrive。如果 Object Builder 或 Binarize 找不到文件，首先检查 P: 是否已挂载。
 
 ---
 
 ## Object Builder
 
-Object Builder is the 3D model editor for P3D files. It is covered in detail in [Chapter 4.2: 3D Models](02-models.md). Here is a summary of its role in the toolchain.
+Object Builder 是用于 P3D 文件的 3D 模型编辑器。在[第 4.2 章：3D 模型](02-models.md)中有详细介绍。以下是其在工具链中角色的总结。
 
-### Key Capabilities
+### 主要功能
 
-- Create and edit P3D model files.
-- Define LODs (Level of Detail) for visual, collision, and shadow meshes.
-- Assign materials (RVMAT) and textures (PAA) to model faces.
-- Create named selections for animations and texture swaps.
-- Place memory points and proxy objects.
-- Import geometry from FBX, OBJ, and 3DS formats.
-- Validate models for engine compatibility.
+- 创建和编辑 P3D 模型文件。
+- 定义 LOD（细节级别）用于视觉、碰撞和阴影网格。
+- 将材质（RVMAT）和纹理（PAA）分配给模型面。
+- 创建用于动画和纹理交换的命名选择。
+- 放置记忆点和代理对象。
+- 从 FBX、OBJ 和 3DS 格式导入几何体。
+- 验证模型的引擎兼容性。
 
-### Launching
+### 启动
 
 ```
 DayZ Tools Launcher --> Object Builder
 ```
 
-Or directly: `P:\DayZ Tools\Bin\ObjectBuilder\ObjectBuilder.exe`
+或直接：`P:\DayZ Tools\Bin\ObjectBuilder\ObjectBuilder.exe`
 
-### Integration with Other Tools
+### 与其他工具的集成
 
-- **References TexView2** for texture previews (double-click a texture in face properties).
-- **Outputs P3D files** consumed by Binarize and AddonBuilder.
-- **Reads P3D files** from vanilla data on P: drive for reference.
+- **引用 TexView2** 进行纹理预览（在面属性中双击纹理）。
+- **输出 P3D 文件** 供 Binarize 和 AddonBuilder 使用。
+- **读取 P3D 文件** 从 P: 驱动器上的原版数据作为参考。
 
 ---
 
 ## TexView2
 
-TexView2 is the texture viewing and conversion utility. It handles all texture format conversions needed for DayZ modding.
+TexView2 是纹理查看和转换工具。它处理 DayZ 模组制作所需的所有纹理格式转换。
 
-### Key Capabilities
+### 主要功能
 
-- Open and preview PAA, TGA, PNG, EDDS, and DDS files.
-- Convert between formats (TGA/PNG to PAA, PAA to TGA, etc.).
-- View individual channels (R, G, B, A) separately.
-- Display mipmap levels.
-- Show texture dimensions and compression type.
-- Batch conversion via command line.
+- 打开和预览 PAA、TGA、PNG、EDDS 和 DDS 文件。
+- 在格式之间转换（TGA/PNG 到 PAA，PAA 到 TGA 等）。
+- 单独查看各个通道（R、G、B、A）。
+- 显示 Mipmap 级别。
+- 显示纹理尺寸和压缩类型。
+- 通过命令行批量转换。
 
-### Launching
+### 启动
 
 ```
 DayZ Tools Launcher --> TexView2
 ```
 
-Or directly: `P:\DayZ Tools\Bin\TexView2\TexView2.exe`
+或直接：`P:\DayZ Tools\Bin\TexView2\TexView2.exe`
 
-### Common Operations
+### 常用操作
 
-**Convert TGA to PAA:**
-1. File --> Open --> select your TGA file.
-2. Verify the image looks correct.
-3. File --> Save As --> choose PAA format.
-4. Select compression (DXT1 for opaque, DXT5 for alpha).
-5. Save.
+**将 TGA 转换为 PAA：**
+1. File --> Open --> 选择你的 TGA 文件。
+2. 验证图像是否正确。
+3. File --> Save As --> 选择 PAA 格式。
+4. 选择压缩（不透明用 DXT1，Alpha 用 DXT5）。
+5. 保存。
 
-**Inspect a vanilla PAA texture:**
-1. File --> Open --> browse to `P:\DZ\...` and select a PAA file.
-2. View the image. Click channel buttons (R, G, B, A) to inspect individual channels.
-3. Note the dimensions and compression type shown in the status bar.
+**检查原版 PAA 纹理：**
+1. File --> Open --> 浏览到 `P:\DZ\...` 并选择一个 PAA 文件。
+2. 查看图像。点击通道按钮（R、G、B、A）检查各个通道。
+3. 注意状态栏中显示的尺寸和压缩类型。
 
-**Command-line conversion:**
+**命令行转换：**
 ```bash
 TexView2.exe -i "P:\MyMod\data\texture_co.tga" -o "P:\MyMod\data\texture_co.paa"
 ```
@@ -219,317 +219,317 @@ TexView2.exe -i "P:\MyMod\data\texture_co.tga" -o "P:\MyMod\data\texture_co.paa"
 
 ## Terrain Builder
 
-Terrain Builder is a specialized tool for creating custom maps (terrains). Map making is one of the most complex modding tasks in DayZ, involving satellite imagery, height maps, surface masks, and object placement.
+Terrain Builder 是一个用于创建自定义地图（地形）的专用工具。地图制作是 DayZ 中最复杂的模组制作任务之一，涉及卫星图像、高度图、表面遮罩和物体放置。
 
-### Key Capabilities
+### 主要功能
 
-- Import satellite imagery and height maps.
-- Define terrain layers (grass, dirt, rock, sand, etc.).
-- Place objects (buildings, trees, rocks) on the map.
-- Configure surface textures and materials.
-- Export terrain data for Binarize.
+- 导入卫星图像和高度图。
+- 定义地形层（草地、泥土、岩石、沙子等）。
+- 在地图上放置物体（建筑、树木、岩石）。
+- 配置表面纹理和材质。
+- 导出地形数据供 Binarize 使用。
 
-### When You Need Terrain Builder
+### 何时需要 Terrain Builder
 
-- Creating a new map from scratch.
-- Modifying an existing terrain (adding/removing objects, changing terrain shape).
-- Terrain Builder is NOT needed for item mods, weapon mods, UI mods, or script-only mods.
+- 从头创建新地图。
+- 修改现有地形（添加/移除物体，改变地形形状）。
+- Terrain Builder 对于物品模组、武器模组、UI 模组或纯脚本模组 **不** 需要。
 
-### Launching
+### 启动
 
 ```
 DayZ Tools Launcher --> Terrain Builder
 ```
 
-> **注意：** Terrain creation is an advanced topic that warrants its own dedicated guide. This chapter covers Terrain Builder only as part of the tools overview.
+> **注意：** 地形创建是一个高级话题，值得单独的专用指南。本章仅在工具概述中介绍 Terrain Builder。
 
 ---
 
 ## Binarize
 
-Binarize is the core conversion engine that transforms human-readable source files into optimized, game-ready binary formats. It runs behind the scenes during PBO packing (via AddonBuilder) but can also be invoked directly.
+Binarize 是核心转换引擎，将人类可读的源文件转换为优化的、游戏就绪的二进制格式。它在 PBO 打包期间（通过 AddonBuilder）在后台运行，但也可以直接调用。
 
-### What Binarize Converts
+### Binarize 转换什么
 
-| Source Format | Output Format | Description |
+| 源格式 | 输出格式 | 说明 |
 |---------------|---------------|-------------|
-| MLOD `.p3d` | ODOL `.p3d` | Optimized 3D model |
-| `.tga` / `.png` / `.edds` | `.paa` | Compressed texture |
-| `.cpp` (config) | `.bin` | Binarized config (faster parsing) |
-| `.rvmat` | `.rvmat` (processed) | Material with resolved paths |
-| `.wrp` | `.wrp` (optimized) | Terrain world |
+| MLOD `.p3d` | ODOL `.p3d` | 优化的 3D 模型 |
+| `.tga` / `.png` / `.edds` | `.paa` | 压缩纹理 |
+| `.cpp`（配置） | `.bin` | 二进制化配置（更快的解析） |
+| `.rvmat` | `.rvmat`（已处理） | 路径已解析的材质 |
+| `.wrp` | `.wrp`（已优化） | 地形世界 |
 
-### When Binarization is Needed
+### 何时需要二进制化
 
-| Content Type | Binarize? | Reason |
+| 内容类型 | 二进制化？ | 原因 |
 |-------------|-----------|--------|
-| Config.cpp with CfgVehicles | **Yes** | Engine requires binarized configs for item definitions |
-| Config.cpp (scripts only) | Optional | Script-only configs work unbinarized |
-| P3D models | **Yes** | ODOL is faster to load, smaller, engine-optimized |
-| Textures (TGA/PNG) | **Yes** | PAA is required at runtime |
-| Scripts (.c files) | **No** | Scripts are loaded as-is (text) |
-| Audio (.ogg) | **No** | OGG is already game-ready |
-| Layouts (.layout) | **No** | Loaded as-is |
+| 包含 CfgVehicles 的 Config.cpp | **是** | 引擎要求物品定义使用二进制化配置 |
+| 纯脚本的 Config.cpp | 可选 | 纯脚本配置可以不二进制化工作 |
+| P3D 模型 | **是** | ODOL 加载更快、更小、引擎优化 |
+| 纹理 (TGA/PNG) | **是** | 运行时需要 PAA |
+| 脚本 (.c 文件) | **否** | 脚本以文本形式加载 |
+| 音频 (.ogg) | **否** | OGG 已经是游戏就绪格式 |
+| 布局 (.layout) | **否** | 按原样加载 |
 
-### Direct Invocation
+### 直接调用
 
 ```bash
 Binarize.exe -targetPath="P:\build\MyMod" -sourcePath="P:\MyMod" -noLogs
 ```
 
-In practice, you rarely call Binarize directly -- AddonBuilder wraps it as part of the PBO packing process.
+在实践中，你很少直接调用 Binarize——AddonBuilder 将其作为 PBO 打包过程的一部分进行封装。
 
 ---
 
 ## AddonBuilder
 
-AddonBuilder is the PBO packing tool. It takes a source directory and creates a `.pbo` archive, optionally running Binarize on the content first. This is covered in detail in [Chapter 4.6: PBO Packing](06-pbo-packing.md).
+AddonBuilder 是 PBO 打包工具。它接收源目录并创建 `.pbo` 存档，可选地先对内容运行 Binarize。在[第 4.6 章：PBO 打包](06-pbo-packing.md)中有详细介绍。
 
 ### 快速参考
 
 ```bash
-# Pack with binarization (for item/weapon mods with configs, models, textures)
+# 带二进制化打包（用于包含配置、模型、纹理的物品/武器模组）
 AddonBuilder.exe "P:\MyMod" "P:\output" -prefix="MyMod" -sign="MyKey"
 
-# Pack without binarization (for script-only mods)
+# 不带二进制化打包（用于纯脚本模组）
 AddonBuilder.exe "P:\MyMod" "P:\output" -prefix="MyMod" -packonly
 ```
 
-### Launching
+### 启动
 
-From the DayZ Tools Launcher, or directly:
+从 DayZ Tools Launcher，或直接：
 ```
 P:\DayZ Tools\Bin\AddonBuilder\AddonBuilder.exe
 ```
 
-AddonBuilder has both a GUI mode and a command-line mode. The GUI provides a visual file browser and option checkboxes. The command-line mode is used by automated build scripts.
+AddonBuilder 有 GUI 模式和命令行模式。GUI 提供可视化文件浏览器和选项复选框。命令行模式由自动化构建脚本使用。
 
 ---
 
 ## Workbench
 
-Workbench is a script development environment included with DayZ Tools. It provides script editing, debugging, and profiling capabilities.
+Workbench 是 DayZ Tools 中包含的脚本开发环境。它提供脚本编辑、调试和性能分析功能。
 
-### Key Capabilities
+### 主要功能
 
-- **Script editing** with syntax highlighting for Enforce Script.
-- **Debugging** with breakpoints, step execution, and variable inspection.
-- **Profiling** to identify performance bottlenecks in scripts.
-- **Console** for evaluating expressions and testing snippets.
-- **Resource browser** for inspecting game data.
+- **脚本编辑**，为 Enforce Script 提供语法高亮。
+- **调试**，具有断点、逐步执行和变量检查功能。
+- **性能分析**，用于识别脚本中的性能瓶颈。
+- **控制台**，用于评估表达式和测试代码片段。
+- **资源浏览器**，用于检查游戏数据。
 
-### Launching
+### 启动
 
 ```
 DayZ Tools Launcher --> Workbench
 ```
 
-Or directly: `P:\DayZ Tools\Bin\Workbench\workbenchApp.exe`
+或直接：`P:\DayZ Tools\Bin\Workbench\workbenchApp.exe`
 
-### 调试 Workflow
+### 调试工作流程
 
-1. Open Workbench.
-2. Configure the project to point at your mod's scripts.
-3. Set breakpoints in your `.c` files.
-4. Launch the game through Workbench (it starts DayZ in debug mode).
-5. When execution hits a breakpoint, Workbench pauses the game and shows the call stack, local variables, and allows step-through.
+1. 打开 Workbench。
+2. 将项目配置为指向你的模组脚本。
+3. 在 `.c` 文件中设置断点。
+4. 通过 Workbench 启动游戏（它以调试模式启动 DayZ）。
+5. 当执行到达断点时，Workbench 暂停游戏并显示调用堆栈、局部变量，并允许逐步执行。
 
-### Limitations
+### 限制
 
-- Workbench's Enforce Script support has some gaps -- not all engine APIs are fully documented in its autocomplete.
-- Some modders prefer external editors (VS Code with community Enforce Script extensions) for writing code and use Workbench only for debugging.
-- Workbench can be unstable with large mods or complex breakpoint configurations.
+- Workbench 的 Enforce Script 支持有一些缺陷——不是所有引擎 API 都在其自动完成中有完整文档。
+- 一些模组制作者偏好使用外部编辑器（带有社区 Enforce Script 扩展的 VS Code）编写代码，仅在调试时使用 Workbench。
+- 对于大型模组或复杂的断点配置，Workbench 可能不稳定。
 
 ---
 
-## File Patching Mode
+## 文件补丁模式
 
-**File patching** is a development shortcut that allows the game to load loose files from disk instead of requiring them to be packed into PBOs. This dramatically speeds up iteration during development.
+**文件补丁** 是一种开发快捷方式，允许游戏从磁盘加载松散文件，而不需要将它们打包到 PBO 中。这在开发过程中大大加速了迭代。
 
-### How File Patching Works
+### 文件补丁的工作原理
 
-When DayZ is launched with the `-filePatching` parameter, the engine checks the P: drive for files before looking in PBOs. If a file exists on P:, the loose version is loaded instead of the PBO version.
+当 DayZ 使用 `-filePatching` 参数启动时，引擎在查看 PBO 之前先检查 P: 驱动器上的文件。如果文件存在于 P: 上，则加载松散版本而不是 PBO 版本。
 
 ```
-Normal mode:   Game loads --> PBO --> files
-File patching: Game loads --> P: drive (if file exists) --> PBO (fallback)
+正常模式：   游戏加载 --> PBO --> 文件
+文件补丁：   游戏加载 --> P: 驱动器（如果文件存在） --> PBO（回退）
 ```
 
-### Enabling File Patching
+### 启用文件补丁
 
-Add the `-filePatching` launch parameter to DayZ:
+将 `-filePatching` 启动参数添加到 DayZ：
 
 ```bash
-# Client
+# 客户端
 DayZDiag_x64.exe -filePatching -mod="MyMod" -connect=127.0.0.1
 
-# Server
+# 服务器
 DayZDiag_x64.exe -filePatching -server -mod="MyMod" -config=serverDZ.cfg
 ```
 
-> **重要：** File patching requires the **Diag** (diagnostic) executable (`DayZDiag_x64.exe`), not the retail executable. The retail build ignores `-filePatching` for security.
+> **重要：** 文件补丁需要 **Diag**（诊断）可执行文件（`DayZDiag_x64.exe`），而不是零售版可执行文件。零售版出于安全原因忽略 `-filePatching`。
 
-### What File Patching Can Do
+### 文件补丁能做什么
 
-| Asset Type | File Patching Works? | Notes |
+| 资产类型 | 文件补丁可用？ | 备注 |
 |------------|---------------------|-------|
-| Scripts (.c) | **Yes** | Fastest iteration -- edit, restart, test |
-| Layouts (.layout) | **Yes** | UI changes without rebuild |
-| Textures (.paa) | **Yes** | Swap textures without rebuild |
-| Config.cpp | **Partial** | Unbinarized configs only |
-| Models (.p3d) | **Yes** | Unbinarized MLOD P3D only |
-| Audio (.ogg) | **Yes** | Swap sounds without rebuild |
+| 脚本 (.c) | **是** | 最快的迭代——编辑、重启、测试 |
+| 布局 (.layout) | **是** | 无需重建即可更改 UI |
+| 纹理 (.paa) | **是** | 无需重建即可替换纹理 |
+| Config.cpp | **部分** | 仅限未二进制化的配置 |
+| 模型 (.p3d) | **是** | 仅限未二进制化的 MLOD P3D |
+| 音频 (.ogg) | **是** | 无需重建即可替换声音 |
 
-### Workflow with File Patching
+### 使用文件补丁的工作流程
 
-1. Set up P: drive with your mod's source files.
-2. Launch server and client with `-filePatching`.
-3. Edit a script file in your editor.
-4. Restart the game (or reconnect) to pick up the changes.
-5. No PBO rebuild needed.
+1. 在 P: 驱动器上设置你的模组源文件。
+2. 使用 `-filePatching` 启动服务器和客户端。
+3. 在编辑器中编辑脚本文件。
+4. 重启游戏（或重新连接）以获取更改。
+5. 无需 PBO 重建。
 
-> **Tip:** For script-only changes, file patching eliminates the build step entirely. You edit `.c` files, restart, and test. This is the fastest development loop available.
+> **提示：** 对于纯脚本更改，文件补丁完全消除了构建步骤。你编辑 `.c` 文件、重启并测试。这是可用的最快开发循环。
 
-### Limitations
+### 限制
 
-- **No binarized content.** Config.cpp with `CfgVehicles` entries may not work correctly without binarization. Script-only configs work fine.
-- **No key signing.** File-patched content is not signed, so it only works in development (not on public servers).
-- **Diag build only.** The retail executable ignores file patching.
-- **P: drive must be mounted.** If the workdrive is not mounted, file patching has nothing to read from.
+- **无二进制化内容。** 包含 `CfgVehicles` 条目的 Config.cpp 可能在没有二进制化的情况下无法正常工作。纯脚本配置可以正常工作。
+- **无密钥签名。** 文件补丁的内容未签名，因此只在开发中有效（不能用于公共服务器）。
+- **仅限 Diag 版本。** 零售版可执行文件忽略文件补丁。
+- **P: 驱动器必须挂载。** 如果 workdrive 未挂载，文件补丁没有可读取的内容。
 
 ---
 
-## Complete Workflow: Source to Game
+## 完整工作流程：从源文件到游戏
 
-Here is the end-to-end pipeline for turning source assets into a playable mod:
+以下是将源资产转变为可玩模组的端到端管线：
 
-### Phase 1: Create Source Assets
-
-```
-3D Software (Blender/3dsMax)  -->  FBX export
-Image Editor (Photoshop/GIMP) -->  TGA/PNG export
-Audio Editor (Audacity)       -->  OGG export
-Text Editor (VS Code)         -->  .c scripts, config.cpp, .layout files
-```
-
-### Phase 2: Import and Convert
+### 第 1 阶段：创建源资产
 
 ```
-FBX  -->  Object Builder  -->  P3D (with LODs, selections, materials)
-TGA  -->  TexView2         -->  PAA (compressed texture)
-PNG  -->  TexView2         -->  PAA (compressed texture)
-OGG  -->  (no conversion needed, game-ready)
+3D 软件 (Blender/3dsMax)    -->  FBX 导出
+图像编辑器 (Photoshop/GIMP) -->  TGA/PNG 导出
+音频编辑器 (Audacity)       -->  OGG 导出
+文本编辑器 (VS Code)        -->  .c 脚本, config.cpp, .layout 文件
 ```
 
-### Phase 3: Organize on P: Drive
+### 第 2 阶段：导入和转换
+
+```
+FBX  -->  Object Builder  -->  P3D（带 LOD、选择、材质）
+TGA  -->  TexView2         -->  PAA（压缩纹理）
+PNG  -->  TexView2         -->  PAA（压缩纹理）
+OGG  -->  （无需转换，游戏就绪）
+```
+
+### 第 3 阶段：在 P: 驱动器上组织
 
 ```
 P:\MyMod\
-  config.cpp                    <-- Mod configuration
+  config.cpp                    <-- 模组配置
   Scripts\
-    3_Game\                     <-- Early-load scripts
-    4_World\                    <-- Entity/manager scripts
-    5_Mission\                  <-- UI/mission scripts
+    3_Game\                     <-- 早期加载脚本
+    4_World\                    <-- 实体/管理器脚本
+    5_Mission\                  <-- UI/任务脚本
   data\
     models\
-      my_item.p3d               <-- 3D model
+      my_item.p3d               <-- 3D 模型
     textures\
-      my_item_co.paa            <-- Diffuse texture
-      my_item_nohq.paa          <-- Normal map
-      my_item_smdi.paa          <-- Specular map
+      my_item_co.paa            <-- 漫反射纹理
+      my_item_nohq.paa          <-- 法线贴图
+      my_item_smdi.paa          <-- 高光贴图
     materials\
-      my_item.rvmat             <-- Material definition
+      my_item.rvmat             <-- 材质定义
   sound\
-    my_sound.ogg                <-- Audio file
+    my_sound.ogg                <-- 音频文件
   GUI\
     layouts\
-      my_panel.layout           <-- UI layout
+      my_panel.layout           <-- UI 布局
 ```
 
-### Phase 4: Test with File Patching (Development)
+### 第 4 阶段：使用文件补丁测试（开发）
 
 ```
-Launch DayZDiag with -filePatching
+使用 -filePatching 启动 DayZDiag
   |
-  |--> Engine reads loose files from P:\MyMod\
-  |--> Test in-game
-  |--> Edit files directly on P:
-  |--> Restart to pick up changes
-  |--> Iterate rapidly
+  |--> 引擎从 P:\MyMod\ 读取松散文件
+  |--> 在游戏中测试
+  |--> 直接在 P: 上编辑文件
+  |--> 重启以获取更改
+  |--> 快速迭代
 ```
 
-### Phase 5: Pack PBO (Release)
+### 第 5 阶段：打包 PBO（发布）
 
 ```
-AddonBuilder / build script
+AddonBuilder / 构建脚本
   |
-  |--> Reads source from P:\MyMod\
-  |--> Binarize converts: P3D-->ODOL, TGA-->PAA, config.cpp-->.bin
-  |--> Packs everything into MyMod.pbo
-  |--> Signs with key: MyMod.pbo.MyKey.bisign
-  |--> Output: @MyMod\addons\MyMod.pbo
+  |--> 从 P:\MyMod\ 读取源文件
+  |--> Binarize 转换：P3D-->ODOL, TGA-->PAA, config.cpp-->.bin
+  |--> 将所有内容打包到 MyMod.pbo
+  |--> 使用密钥签名：MyMod.pbo.MyKey.bisign
+  |--> 输出：@MyMod\addons\MyMod.pbo
 ```
 
-### Phase 6: Distribute
+### 第 6 阶段：分发
 
 ```
 @MyMod\
   addons\
-    MyMod.pbo                   <-- The packed mod
-    MyMod.pbo.MyKey.bisign      <-- Signature for server verification
+    MyMod.pbo                   <-- 打包的模组
+    MyMod.pbo.MyKey.bisign      <-- 服务器验证的签名
   keys\
-    MyKey.bikey                 <-- Public key for server admins
-  mod.cpp                       <-- Mod metadata (name, author, etc.)
+    MyKey.bikey                 <-- 供服务器管理员使用的公钥
+  mod.cpp                       <-- 模组元数据（名称、作者等）
 ```
 
-Players subscribe to the mod on Steam Workshop, or server admins install it manually.
+玩家在 Steam 创意工坊订阅模组，或服务器管理员手动安装。
 
 ---
 
 ## 常见错误
 
-### 1. P: Drive Not Mounted
+### 1. P: 驱动器未挂载
 
-**症状：** All tools report "file not found" errors. Object Builder shows blank textures.
-**修复：** Run your `SetupWorkdrive.bat` or mount P: via DayZ Tools Launcher before launching any tool.
+**症状：** 所有工具报告"文件未找到"错误。Object Builder 显示空白纹理。
+**修复：** 在启动任何工具之前运行你的 `SetupWorkdrive.bat` 或通过 DayZ Tools Launcher 挂载 P:。
 
-### 2. Wrong Tool for the Job
+### 2. 使用了错误的工具
 
-**症状：** Trying to edit a PAA file in a text editor, or opening a P3D in Notepad.
-**修复：** PAA is binary -- use TexView2. P3D is binary -- use Object Builder. Config.cpp is text -- use any text editor.
+**症状：** 尝试在文本编辑器中编辑 PAA 文件，或在 Notepad 中打开 P3D。
+**修复：** PAA 是二进制格式——使用 TexView2。P3D 是二进制格式——使用 Object Builder。Config.cpp 是文本——使用任何文本编辑器。
 
-### 3. Forgetting to Extract Vanilla Data
+### 3. 忘记提取原版数据
 
-**症状：** Object Builder cannot display vanilla textures on referenced models. Materials show pink/magenta.
-**修复：** Extract vanilla DayZ data to `P:\DZ\` so tools can resolve cross-references to game content.
+**症状：** Object Builder 无法在引用的模型上显示原版纹理。材质显示粉色/品红色。
+**修复：** 将原版 DayZ 数据提取到 `P:\DZ\`，以便工具可以解析对游戏内容的交叉引用。
 
-### 4. File Patching with Retail Executable
+### 4. 使用零售版可执行文件进行文件补丁
 
-**症状：** Changes to files on P: drive are not reflected in-game.
-**修复：** Use `DayZDiag_x64.exe`, not `DayZ_x64.exe`. Only the Diag build supports `-filePatching`.
+**症状：** 对 P: 驱动器上文件的更改未在游戏中反映。
+**修复：** 使用 `DayZDiag_x64.exe`，而不是 `DayZ_x64.exe`。只有 Diag 版本支持 `-filePatching`。
 
-### 5. Building Without P: Drive
+### 5. 没有 P: 驱动器就构建
 
-**症状：** AddonBuilder or Binarize fails with path resolution errors.
-**修复：** Mount P: drive before running any build tool. All paths in models and materials are P:-relative.
+**症状：** AddonBuilder 或 Binarize 因路径解析错误而失败。
+**修复：** 在运行任何构建工具之前挂载 P: 驱动器。模型和材质中的所有路径都是相对于 P: 的。
 
 ---
 
-## Best Practices
+## 最佳实践
 
-1. **Always use the P: drive.** Resist the temptation to use absolute paths. P: is the standard and all tools expect it.
+1. **始终使用 P: 驱动器。** 抵制使用绝对路径的诱惑。P: 是标准，所有工具都期望它。
 
-2. **Use file patching during development.** It cuts iteration time from minutes (PBO rebuild) to seconds (game restart). Only build PBOs for release testing and distribution.
+2. **在开发期间使用文件补丁。** 它将迭代时间从几分钟（PBO 重建）缩短到几秒钟（游戏重启）。只在发布测试和分发时才构建 PBO。
 
-3. **Automate your build pipeline.** Use scripts (`build_pbos.bat`, `dev.py`) to automate the AddonBuilder invocation. Manual GUI packing is error-prone and slow for multi-PBO mods.
+3. **自动化你的构建管线。** 使用脚本（`build_pbos.bat`、`dev.py`）来自动化 AddonBuilder 调用。手动 GUI 打包对于多 PBO 模组容易出错且缓慢。
 
-4. **Keep source and output separate.** Source files live on P:. Built PBOs go to a separate output directory. Never mix them.
+4. **保持源文件和输出分离。** 源文件在 P: 上。构建的 PBO 放在单独的输出目录。永远不要混合它们。
 
-5. **Learn keyboard shortcuts.** Object Builder and TexView2 have extensive keyboard shortcuts that dramatically speed up work. Invest time learning them.
+5. **学习键盘快捷键。** Object Builder 和 TexView2 有大量键盘快捷键，可以显著加速工作。投入时间学习它们。
 
-6. **Extract and study vanilla data.** The best way to learn how DayZ assets are structured is to examine existing ones. Extract vanilla PBOs and open models, materials, and textures in the appropriate tools.
+6. **提取并研究原版数据。** 学习 DayZ 资产结构的最佳方式是检查现有的。提取原版 PBO 并在适当的工具中打开模型、材质和纹理。
 
-7. **Use Workbench for debugging, external editors for writing.** VS Code with Enforce Script extensions provides better editing. Workbench provides better debugging. Use both.
+7. **使用 Workbench 调试，使用外部编辑器编写。** 带有 Enforce Script 扩展的 VS Code 提供更好的编辑体验。Workbench 提供更好的调试体验。两者结合使用。
 
 ---
 
@@ -537,4 +537,4 @@ Players subscribe to the mod on Steam Workshop, or server admins install it manu
 
 | 上一章 | 上级 | 下一章 |
 |----------|----|------|
-| [4.4 Audio](04-audio.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.6 PBO Packing](06-pbo-packing.md) |
+| [4.4 音频](04-audio.md) | [第 4 部分：文件格式与 DayZ Tools](01-textures.md) | [4.6 PBO 打包](06-pbo-packing.md) |
