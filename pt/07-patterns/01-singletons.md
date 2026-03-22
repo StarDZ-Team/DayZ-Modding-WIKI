@@ -455,4 +455,36 @@ Antes de publicar um singleton, verifique:
 
 ---
 
+## Compatibilidade & Impacto
+
+- **Multi-Mod:** Múltiplos mods cada um definindo seus próprios singletons coexistem com segurança --- cada um tem seu próprio `s_Instance`. Conflitos só surgem se dois mods definem o mesmo nome de classe, o que o Enforce Script vai indicar como erro de redefinição no carregamento.
+- **Ordem de Carregamento:** Singletons lazy não são afetados pela ordem de carregamento de mods. Singletons eager criados em `OnInit()` dependem da ordem da cadeia `modded class`, que segue `requiredAddons` do `config.cpp`.
+- **Listen Server:** Campos estáticos são compartilhados entre contextos cliente e servidor no mesmo processo. Um singleton que deveria existir apenas no server-side deve proteger a construção com `GetGame().IsServer()`, ou será acessível (e potencialmente inicializado) pelo código do cliente também.
+- **Performance:** Acesso ao singleton é uma verificação estática de null + chamada de método --- overhead desprezível. O custo está no que o singleton *faz*, não em acessá-lo.
+- **Migração:** Singletons sobrevivem a atualizações de versão do DayZ desde que as APIs que chamam (ex.: `GetGame()`, `JsonFileLoader`) permaneçam estáveis. Nenhuma migração especial é necessária para o padrão em si.
+
+---
+
+## Erros Comuns
+
+| Erro | Impacto | Correção |
+|------|---------|----------|
+| Falta de chamada `DestroyInstance()` em `OnMissionFinish` | Dados obsoletos e referências mortas de entidades persistem entre reinícios de missão, causando crashes ou estado fantasma | Sempre chame `DestroyInstance()` de `OnMissionFinish` ou de um `ShutdownAll()` centralizado |
+| Chamar `GetInstance()` dentro do construtor de outro singleton | Dispara construção re-entrante; `s_Instance` ainda é null, então uma segunda instância é criada | Adie acesso cross-singleton para um método `Initialize()` chamado após a construção |
+| Usar `public static ref` ao invés de `private static ref` | Qualquer código pode definir `s_Instance = null` ou substituí-lo, quebrando a garantia de instância única | Sempre declare `s_Instance` como `private static ref` |
+| Não proteger init eager em listen servers | Singleton é construído duas vezes (uma do caminho server, uma do caminho client) se `Create()` não tem verificação de null | Sempre verifique `if (!s_Instance)` dentro de `Create()` |
+| Acumular estado sem limites (caches ilimitados) | Memória cresce indefinidamente em servidores de longa duração; eventual OOM ou lag severo | Limite coleções com tamanho máximo ou evicção periódica em `OnUpdate` |
+
+---
+
+## Teoria vs Prática
+
+| Livro-Texto Diz | Realidade do DayZ |
+|-----------------|-------------------|
+| Singletons são um anti-padrão; use injeção de dependência | Enforce Script não tem container de DI. Singletons são a abordagem padrão para managers globais em todos os mods principais. |
+| Inicialização lazy é sempre suficiente | Handlers de RPC devem ser registrados antes de qualquer cliente conectar, então init eager em `OnInit()` é frequentemente necessário. |
+| Singletons nunca devem ser destruídos | Missões DayZ reiniciam sem reiniciar o processo do servidor; singletons *devem* ser destruídos e recriados em cada ciclo de missão. |
+
+---
+
 [Início](../../README.md) | **Padrão Singleton** | [Próximo: Sistemas de Módulos >>](02-module-systems.md)

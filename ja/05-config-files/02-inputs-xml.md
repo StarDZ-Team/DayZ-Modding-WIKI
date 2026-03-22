@@ -1,40 +1,44 @@
-# Chapter 5.2: inputs.xml --- Custom Keybindings
+# Chapter 5.2: inputs.xml --- カスタムキーバインド
 
-[Home](../../README.md) | [<< Previous: stringtable.csv](01-stringtable.md) | **inputs.xml** | [Next: Credits.json >>](03-credits-json.md)
+[ホーム](../../README.md) | [<< 前: stringtable.csv](01-stringtable.md) | **inputs.xml** | [次: Credits.json >>](03-credits-json.md)
+
+---
+
+> **概要：** `inputs.xml`ファイルを使用すると、Modはプレイヤーの設定 > コントロールメニューに表示されるカスタムキーバインドを登録できます。プレイヤーは、バニラアクションと同様にこれらの入力を表示、再バインド、切り替えできます。これはDayZ Modにホットキーを追加する標準的な仕組みです。
 
 ---
 
 ## 目次
 
-- [Overview](#overview)
-- [File Location](#file-location)
-- [Complete XML Structure](#complete-xml-structure)
-- [Actions Block](#actions-block)
-- [Sorting Block](#sorting-block)
-- [Preset Block (Default Keybindings)](#preset-block-default-keybindings)
-- [Modifier Combos](#modifier-combos)
-- [Hidden Inputs](#hidden-inputs)
-- [Multiple Default Keys](#multiple-default-keys)
-- [Accessing Inputs in Script](#accessing-inputs-in-script)
-- [Input Methods Reference](#input-methods-reference)
-- [Suppressing and Disabling Inputs](#suppressing-and-disabling-inputs)
-- [Key Names Reference](#key-names-reference)
-- [Real Examples](#real-examples)
-- [Common Mistakes](#common-mistakes)
+- [概要](#overview)
+- [ファイルの場所](#file-location)
+- [完全なXML構造](#complete-xml-structure)
+- [Actionsブロック](#actions-block)
+- [Sortingブロック](#sorting-block)
+- [Presetブロック（デフォルトキーバインド）](#preset-block-default-keybindings)
+- [修飾キーコンボ](#modifier-combos)
+- [非表示入力](#hidden-inputs)
+- [複数のデフォルトキー](#multiple-default-keys)
+- [スクリプトでの入力アクセス](#accessing-inputs-in-script)
+- [入力メソッドリファレンス](#input-methods-reference)
+- [入力の抑制と無効化](#suppressing-and-disabling-inputs)
+- [キー名リファレンス](#key-names-reference)
+- [実際の例](#real-examples)
+- [よくある間違い](#common-mistakes)
 
 ---
 
 ## 概要
 
-When your mod needs the player to press a key --- opening a menu, toggling a feature, commanding an AI unit --- you register a custom input action in `inputs.xml`. The engine reads this file at startup and integrates your actions into the universal input system. Players see your keybindings in the game's Settings > Controls menu, grouped under a heading you define.
+Modでプレイヤーにキーを押す必要がある場合 --- メニューを開く、機能を切り替える、AIユニットに指示を出す --- `inputs.xml`にカスタム入力アクションを登録します。エンジンは起動時にこのファイルを読み込み、あなたのアクションをユニバーサル入力システムに統合します。プレイヤーは、あなたが定義した見出しの下にグループ化されたキーバインドを、ゲームの設定 > コントロールメニューで確認できます。
 
-Custom inputs are identified by a unique action name (conventionally prefixed with `UA` for "User Action") and can have default keybindings that players can rebind at will.
+カスタム入力は一意のアクション名（慣例として「User Action」の`UA`をプレフィックスとして付ける）で識別され、プレイヤーが自由に再バインドできるデフォルトキーバインドを持つことができます。
 
 ---
 
-## File Location
+## ファイルの場所
 
-Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
+`inputs.xml`はScriptsディレクトリの`data`サブフォルダ内に配置します：
 
 ```
 @MyMod/
@@ -42,45 +46,45 @@ Place `inputs.xml` inside a `data` subfolder of your Scripts directory:
     MyMod_Scripts.pbo
       Scripts/
         data/
-          inputs.xml        <-- Here
+          inputs.xml        <-- ここ
         3_Game/
         4_World/
         5_Mission/
 ```
 
-Some mods place it directly in the `Scripts/` folder. Both locations work. The engine discovers the file automatically --- no config.cpp registration is needed.
+一部のModでは`Scripts/`フォルダに直接配置しています。どちらの場所でも動作します。エンジンがファイルを自動的に検出するため、config.cppでの登録は不要です。
 
 ---
 
-## Complete XML Structure
+## 完全なXML構造
 
-An `inputs.xml` file has three sections, all wrapped in a `<modded_inputs>` root element:
+`inputs.xml`ファイルには3つのセクションがあり、すべて`<modded_inputs>`ルート要素でラップされています：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <modded_inputs>
     <inputs>
         <actions>
-            <!-- Action definitions go here -->
+            <!-- アクション定義をここに記述 -->
         </actions>
 
         <sorting name="mymod" loc="STR_MYMOD_INPUT_GROUP">
-            <!-- Sort order for the settings menu -->
+            <!-- 設定メニューのソート順 -->
         </sorting>
     </inputs>
     <preset>
-        <!-- Default keybinding assignments go here -->
+        <!-- デフォルトキーバインドの割り当てをここに記述 -->
     </preset>
 </modded_inputs>
 ```
 
-All three sections --- `<actions>`, `<sorting>`, and `<preset>` --- work together but serve different purposes.
+3つのセクション --- `<actions>`、`<sorting>`、`<preset>` --- は連携して動作しますが、それぞれ異なる目的を持っています。
 
 ---
 
-## Actions Block
+## Actionsブロック
 
-The `<actions>` block declares every input action your mod provides. Each action is a single `<input>` element.
+`<actions>`ブロックは、Modが提供するすべての入力アクションを宣言します。各アクションは単一の`<input>`要素です。
 
 ### 構文
 
@@ -91,17 +95,17 @@ The `<actions>` block declares every input action your mod provides. Each action
 </actions>
 ```
 
-### Attributes
+### 属性
 
-| Attribute | Required | Description |
+| 属性 | 必須 | 説明 |
 |-----------|----------|-------------|
-| `name` | Yes | Unique action identifier. Convention: prefix with `UA` (User Action). Used in scripts to poll this input. |
-| `loc` | No | Stringtable key for the display name in the Controls menu. **No `#` prefix** --- the system adds it. |
-| `visible` | No | Set to `"false"` to hide from the Controls menu. Defaults to `true`. |
+| `name` | はい | 一意のアクション識別子。慣例：`UA`（User Action）をプレフィックスとして付けます。スクリプトでこの入力をポーリングするために使用されます。 |
+| `loc` | いいえ | コントロールメニューの表示名のstringtableキー。**`#`プレフィックスなし** --- システムが内部で追加します。 |
+| `visible` | いいえ | コントロールメニューから非表示にするには`"false"`に設定します。デフォルトは`true`です。 |
 
-### Naming Convention
+### 命名規則
 
-Action names must be globally unique across all loaded mods. Use your mod prefix:
+アクション名は、読み込まれたすべてのMod間でグローバルに一意である必要があります。Modプレフィックスを使用してください：
 
 ```xml
 <input name="UAMyModAdminPanel" loc="STR_MYMOD_INPUT_ADMIN_PANEL" />
@@ -109,13 +113,13 @@ Action names must be globally unique across all loaded mods. Use your mod prefix
 <input name="eAICommandMenu" loc="STR_EXPANSION_AI_COMMAND_MENU" />
 ```
 
-The `UA` prefix is conventional but not enforced. Expansion AI uses `eAI` as its prefix, which also works.
+`UA`プレフィックスは慣例であり強制ではありません。Expansion AIは`eAI`をプレフィックスとして使用しており、同様に動作します。
 
 ---
 
-## Sorting Block
+## Sortingブロック
 
-The `<sorting>` block controls how your inputs appear in the player's Controls settings. It defines a named group (which becomes a section header) and lists the inputs in display order.
+`<sorting>`ブロックは、プレイヤーのコントロール設定で入力がどのように表示されるかを制御します。名前付きグループ（セクションヘッダーとなる）を定義し、入力を表示順にリストします。
 
 ### 構文
 
@@ -127,32 +131,32 @@ The `<sorting>` block controls how your inputs appear in the player's Controls s
 </sorting>
 ```
 
-### Attributes
+### 属性
 
-| Attribute | Required | Description |
+| 属性 | 必須 | 説明 |
 |-----------|----------|-------------|
-| `name` | Yes | Internal identifier for this sorting group |
-| `loc` | Yes | Stringtable key for the group header displayed in Settings > Controls |
+| `name` | はい | このソートグループの内部識別子 |
+| `loc` | はい | 設定 > コントロールに表示されるグループヘッダーのstringtableキー |
 
-### How It Appears
+### 表示のされ方
 
-In the Controls settings, the player sees:
+コントロール設定で、プレイヤーには以下のように表示されます：
 
 ```
-[MyMod]                          <-- from the sorting loc
-  Open Menu .............. [Y]   <-- from the input loc + preset
-  Toggle HUD ............. [H]   <-- from the input loc + preset
+[MyMod]                          <-- sortingのlocから
+  Open Menu .............. [Y]   <-- inputのloc + presetから
+  Toggle HUD ............. [H]   <-- inputのloc + presetから
 ```
 
-Only inputs listed in the `<sorting>` block appear in the settings menu. Inputs defined in `<actions>` but not listed in `<sorting>` are silently registered but invisible to the player (even if `visible` is not explicitly set to `false`).
+`<sorting>`ブロックにリストされた入力のみが設定メニューに表示されます。`<actions>`で定義されていても`<sorting>`にリストされていない入力は、サイレントに登録されますがプレイヤーには非表示になります（`visible`が明示的に`false`に設定されていなくても）。
 
 ---
 
-## Preset Block (Default Keybindings)
+## Presetブロック（デフォルトキーバインド）
 
-The `<preset>` block assigns default keys to your actions. These are the keys the player starts with before any customization.
+`<preset>`ブロックは、アクションにデフォルトキーを割り当てます。これらはカスタマイズ前にプレイヤーが最初に持つキーです。
 
-### Simple Key Binding
+### シンプルなキーバインド
 
 ```xml
 <preset>
@@ -162,19 +166,19 @@ The `<preset>` block assigns default keys to your actions. These are the keys th
 </preset>
 ```
 
-This binds the `Y` key as the default for `UAMyModOpenMenu`.
+これにより`Y`キーが`UAMyModOpenMenu`のデフォルトとしてバインドされます。
 
-### No Default Key
+### デフォルトキーなし
 
-If you omit an action from the `<preset>` block, it has no default binding. The player must manually assign a key in Settings > Controls. This is appropriate for optional or advanced bindings.
+`<preset>`ブロックからアクションを省略すると、デフォルトバインドがありません。プレイヤーは設定 > コントロールで手動でキーを割り当てる必要があります。これはオプションまたは上級バインドに適切です。
 
 ---
 
-## Modifier Combos
+## 修飾キーコンボ
 
-To require a modifier key (Ctrl, Shift, Alt), nest `<btn>` elements:
+修飾キー（Ctrl、Shift、Alt）を要求するには、`<btn>`要素をネストします：
 
-### Ctrl + Left Mouse Button
+### Ctrl + 左マウスボタン
 
 ```xml
 <input name="eAISetWaypoint">
@@ -184,9 +188,9 @@ To require a modifier key (Ctrl, Shift, Alt), nest `<btn>` elements:
 </input>
 ```
 
-The outer `<btn>` is the modifier; the inner `<btn>` is the primary key. The player must hold the modifier and then press the primary key.
+外側の`<btn>`が修飾キーで、内側の`<btn>`が主キーです。プレイヤーは修飾キーを押したまま主キーを押す必要があります。
 
-### Shift + Key
+### Shift + キー
 
 ```xml
 <input name="UAMyModQuickAction">
@@ -198,15 +202,15 @@ The outer `<btn>` is the modifier; the inner `<btn>` is the primary key. The pla
 
 ### ネストのルール
 
-- The **outer** `<btn>` is always the modifier (held down)
-- The **inner** `<btn>` is the trigger (pressed while modifier is held)
-- Only one level of nesting is typical; deeper nesting is untested and not recommended
+- **外側**の`<btn>`は常に修飾キー（押し続ける）です
+- **内側**の`<btn>`はトリガー（修飾キーを押している間に押す）です
+- 1段階のネストが一般的です。より深いネストはテストされておらず、推奨されません
 
 ---
 
-## Hidden Inputs
+## 非表示入力
 
-Use `visible="false"` to register an input that the player cannot see or rebind in the Controls menu. This is useful for internal inputs used by your mod's code that should not be player-configurable.
+プレイヤーがコントロールメニューで確認したり再バインドしたりできない入力を登録するには、`visible="false"`を使用します。これは、Modのコードで使用される内部入力で、プレイヤーが設定変更すべきでない場合に便利です。
 
 ```xml
 <actions>
@@ -215,7 +219,7 @@ Use `visible="false"` to register an input that the player cannot see or rebind 
 </actions>
 ```
 
-Hidden inputs can still have default key assignments in the `<preset>` block:
+非表示入力でも`<preset>`ブロックでデフォルトキー割り当てを持つことができます：
 
 ```xml
 <preset>
@@ -227,9 +231,9 @@ Hidden inputs can still have default key assignments in the `<preset>` block:
 
 ---
 
-## Multiple Default Keys
+## 複数のデフォルトキー
 
-An action can have multiple default keys. List multiple `<btn>` elements as siblings:
+1つのアクションに複数のデフォルトキーを持たせることができます。複数の`<btn>`要素を兄弟としてリストします：
 
 ```xml
 <input name="UAExpansionConfirm">
@@ -238,23 +242,23 @@ An action can have multiple default keys. List multiple `<btn>` elements as sibl
 </input>
 ```
 
-Both `Enter` and `Numpad Enter` will trigger `UAExpansionConfirm`. This is useful for actions where multiple physical keys should map to the same logical action.
+`Enter`と`Numpad Enter`の両方が`UAExpansionConfirm`をトリガーします。これは、複数の物理キーが同じ論理アクションにマップされるべき場合に便利です。
 
 ---
 
-## Accessing Inputs in Script
+## スクリプトでの入力アクセス
 
-### Getting the Input API
+### 入力APIの取得
 
-All input access goes through `GetUApi()`, which returns the global User Action API:
+すべての入力アクセスは、グローバルUser Action APIを返す`GetUApi()`を通じて行います：
 
 ```c
 UAInput input = GetUApi().GetInputByName("UAMyModOpenMenu");
 ```
 
-### Polling in OnUpdate
+### OnUpdateでのポーリング
 
-Custom inputs are typically polled in `MissionGameplay.OnUpdate()` or similar per-frame callbacks:
+カスタム入力は通常、`MissionGameplay.OnUpdate()`またはそれに類似するフレームごとのコールバックでポーリングされます：
 
 ```c
 modded class MissionGameplay
@@ -267,16 +271,16 @@ modded class MissionGameplay
 
         if (input.LocalPress())
         {
-            // Key was just pressed this frame
+            // このフレームでキーが押された
             OpenMyModMenu();
         }
     }
 }
 ```
 
-### Alternative: Using the Input Name Directly
+### 代替方法：入力名を直接使用する
 
-Many mods check inputs inline using the `UAInputAPI` methods with string names:
+多くのModでは、`UAInputAPI`メソッドを文字列名で使用してインラインで入力をチェックします：
 
 ```c
 override void OnUpdate(float timeslice)
@@ -292,26 +296,26 @@ override void OnUpdate(float timeslice)
 }
 ```
 
-The `false` parameter in `LocalPress("name", false)` indicates that the check should not consume the input event.
+`LocalPress("name", false)`の`false`パラメータは、チェックが入力イベントを消費すべきでないことを示します。
 
 ---
 
-## Input Methods Reference
+## 入力メソッドリファレンス
 
-Once you have a `UAInput` reference (from `GetUApi().GetInputByName()`), or are using the `Input` class directly, these methods detect different input states:
+`UAInput`リファレンス（`GetUApi().GetInputByName()`から取得）を持っている場合、または`Input`クラスを直接使用している場合、以下のメソッドで異なる入力状態を検出できます：
 
-| メソッド | 戻り値 | When True |
+| メソッド | 戻り値 | Trueになる条件 |
 |--------|---------|-----------|
-| `LocalPress()` | `bool` | The key was pressed **this frame** (single trigger on key-down) |
-| `LocalRelease()` | `bool` | The key was released **this frame** (single trigger on key-up) |
-| `LocalClick()` | `bool` | The key was pressed and released quickly (tap) |
-| `LocalHold()` | `bool` | The key has been held down for a threshold duration |
-| `LocalDoubleClick()` | `bool` | The key was tapped twice quickly |
-| `LocalValue()` | `float` | Current analog value (0.0 or 1.0 for digital keys; variable for analog axes) |
+| `LocalPress()` | `bool` | キーが**このフレーム**で押された（キーダウン時の単一トリガー） |
+| `LocalRelease()` | `bool` | キーが**このフレーム**で離された（キーアップ時の単一トリガー） |
+| `LocalClick()` | `bool` | キーが素早く押して離された（タップ） |
+| `LocalHold()` | `bool` | キーが閾値時間以上押し続けられた |
+| `LocalDoubleClick()` | `bool` | キーが素早く2回タップされた |
+| `LocalValue()` | `float` | 現在のアナログ値（デジタルキーは0.0または1.0、アナログ軸は可変） |
 
-### Usage Patterns
+### 使用パターン
 
-**Toggle on press:**
+**押下でトグル：**
 ```c
 if (input.LocalPress("UAMyModToggle", false))
 {
@@ -319,7 +323,7 @@ if (input.LocalPress("UAMyModToggle", false))
 }
 ```
 
-**Hold to activate, release to deactivate:**
+**押して有効化、離して無効化：**
 ```c
 if (input.LocalPress("eAICommandMenu", false))
 {
@@ -332,7 +336,7 @@ if (input.LocalRelease("eAICommandMenu", false) || input.LocalValue("eAICommandM
 }
 ```
 
-**Double-tap action:**
+**ダブルタップアクション：**
 ```c
 if (input.LocalDoubleClick("UAMyModSpecial", false))
 {
@@ -340,7 +344,7 @@ if (input.LocalDoubleClick("UAMyModSpecial", false))
 }
 ```
 
-**Hold for extended action:**
+**長押しアクション：**
 ```c
 if (input.LocalHold("UAExpansionGPSToggle"))
 {
@@ -350,23 +354,23 @@ if (input.LocalHold("UAExpansionGPSToggle"))
 
 ---
 
-## Suppressing and Disabling Inputs
+## 入力の抑制と無効化
 
 ### ForceDisable
 
-Temporarily disables a specific input. Commonly used when opening menus to prevent game actions from firing while a UI is active:
+特定の入力を一時的に無効にします。メニューを開いたときに、UIがアクティブな間にゲームアクションが発動するのを防ぐために一般的に使用されます：
 
 ```c
-// Disable the input while menu is open
+// メニューが開いている間、入力を無効にする
 GetUApi().GetInputByName("UAMyModToggle").ForceDisable(true);
 
-// Re-enable when menu closes
+// メニューが閉じたときに再有効化する
 GetUApi().GetInputByName("UAMyModToggle").ForceDisable(false);
 ```
 
 ### SupressNextFrame
 
-Suppresses all input processing for the next frame. Used during input context transitions (e.g., closing menus) to prevent one-frame input bleed:
+次のフレームのすべての入力処理を抑制します。入力コンテキストの遷移時（メニューを閉じるなど）に、1フレームの入力リークを防ぐために使用されます：
 
 ```c
 GetUApi().SupressNextFrame(true);
@@ -374,7 +378,7 @@ GetUApi().SupressNextFrame(true);
 
 ### UpdateControls
 
-After modifying input states, call `UpdateControls()` to apply changes immediately:
+入力状態を変更した後、変更を即座に適用するために`UpdateControls()`を呼び出します：
 
 ```c
 GetUApi().GetInputByName("UAExpansionBookToggle").ForceDisable(false);
@@ -383,60 +387,60 @@ GetUApi().UpdateControls();
 
 ### Input Excludes
 
-The vanilla mission system provides exclude groups. When a menu is active, you can exclude categories of inputs:
+バニラのミッションシステムは除外グループを提供しています。メニューがアクティブなとき、入力のカテゴリを除外できます：
 
 ```c
-// Suppress gameplay inputs while inventory is open
+// インベントリが開いている間、ゲームプレイ入力を抑制する
 AddActiveInputExcludes({"inventory"});
 
-// Restore when closing
+// 閉じたときに復元する
 RemoveActiveInputExcludes({"inventory"});
 ```
 
 ---
 
-## Key Names Reference
+## キー名リファレンス
 
-Key names used in the `<btn name="">` attribute follow a specific naming convention. Here is the complete reference.
+`<btn name="">`属性で使用されるキー名は特定の命名規則に従います。以下は完全なリファレンスです。
 
-### Keyboard Keys
+### キーボードキー
 
-| Category | Key Names |
+| カテゴリ | キー名 |
 |----------|-----------|
-| Letters | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
-| Numbers (top row) | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
-| Function keys | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
-| Modifiers | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
-| Navigation | `kUp`, `kDown`, `kLeft`, `kRight`, `kホーム`, `kEnd`, `kPageUp`, `kPageDown` |
-| Editing | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
-| Numpad | `kNumpad0` ... `kNumpad9`, `kNumpadEnter`, `kNumpadPlus`, `kNumpadMinus`, `kNumpadMultiply`, `kNumpadDivide`, `kNumpadDecimal` |
-| Punctuation | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
-| Locks | `kCapsLock`, `kNumLock`, `kScrollLock` |
+| 文字 | `kA`, `kB`, `kC`, `kD`, `kE`, `kF`, `kG`, `kH`, `kI`, `kJ`, `kK`, `kL`, `kM`, `kN`, `kO`, `kP`, `kQ`, `kR`, `kS`, `kT`, `kU`, `kV`, `kW`, `kX`, `kY`, `kZ` |
+| 数字（上段） | `k0`, `k1`, `k2`, `k3`, `k4`, `k5`, `k6`, `k7`, `k8`, `k9` |
+| ファンクションキー | `kF1`, `kF2`, `kF3`, `kF4`, `kF5`, `kF6`, `kF7`, `kF8`, `kF9`, `kF10`, `kF11`, `kF12` |
+| 修飾キー | `kLControl`, `kRControl`, `kLShift`, `kRShift`, `kLAlt`, `kRAlt` |
+| ナビゲーション | `kUp`, `kDown`, `kLeft`, `kRight`, `kHome`, `kEnd`, `kPageUp`, `kPageDown` |
+| 編集 | `kReturn`, `kBackspace`, `kDelete`, `kInsert`, `kSpace`, `kTab`, `kEscape` |
+| テンキー | `kNumpad0` ... `kNumpad9`, `kNumpadEnter`, `kNumpadPlus`, `kNumpadMinus`, `kNumpadMultiply`, `kNumpadDivide`, `kNumpadDecimal` |
+| 記号 | `kMinus`, `kEquals`, `kLBracket`, `kRBracket`, `kBackslash`, `kSemicolon`, `kApostrophe`, `kComma`, `kPeriod`, `kSlash`, `kGrave` |
+| ロック | `kCapsLock`, `kNumLock`, `kScrollLock` |
 
-### Mouse Buttons
+### マウスボタン
 
-| Name | Button |
+| 名前 | ボタン |
 |------|--------|
-| `mBLeft` | Left mouse button |
-| `mBRight` | Right mouse button |
-| `mBMiddle` | Middle mouse button (scroll wheel click) |
-| `mBExtra1` | Mouse button 4 (side button back) |
-| `mBExtra2` | Mouse button 5 (side button forward) |
+| `mBLeft` | 左マウスボタン |
+| `mBRight` | 右マウスボタン |
+| `mBMiddle` | 中マウスボタン（スクロールホイールクリック） |
+| `mBExtra1` | マウスボタン4（サイドボタン戻る） |
+| `mBExtra2` | マウスボタン5（サイドボタン進む） |
 
-### Mouse Axes
+### マウス軸
 
-| Name | Axis |
+| 名前 | 軸 |
 |------|------|
-| `mAxisX` | Mouse horizontal movement |
-| `mAxisY` | Mouse vertical movement |
-| `mWheelUp` | Scroll wheel up |
-| `mWheelDown` | Scroll wheel down |
+| `mAxisX` | マウス水平移動 |
+| `mAxisY` | マウス垂直移動 |
+| `mWheelUp` | スクロールホイール上 |
+| `mWheelDown` | スクロールホイール下 |
 
-### Naming Pattern
+### 命名パターン
 
-- **Keyboard**: `k` prefix + key name (e.g., `kT`, `kF5`, `kLControl`)
-- **Mouse buttons**: `mB` prefix + button name (e.g., `mBLeft`, `mBRight`)
-- **Mouse axes**: `m` prefix + axis name (e.g., `mAxisX`, `mWheelUp`)
+- **キーボード**：`k`プレフィックス + キー名（例：`kT`、`kF5`、`kLControl`）
+- **マウスボタン**：`mB`プレフィックス + ボタン名（例：`mBLeft`、`mBRight`）
+- **マウス軸**：`m`プレフィックス + 軸名（例：`mAxisX`、`mWheelUp`）
 
 ---
 
@@ -444,7 +448,7 @@ Key names used in the `<btn name="">` attribute follow a specific naming convent
 
 ### DayZ Expansion AI
 
-A well-structured inputs.xml with visible keybindings, hidden debug inputs, and modifier combos:
+表示可能なキーバインド、非表示のデバッグ入力、修飾キーコンボを備えた、よく構成されたinputs.xmlです：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -498,14 +502,14 @@ A well-structured inputs.xml with visible keybindings, hidden debug inputs, and 
 </modded_inputs>
 ```
 
-Key observations:
-- `eAICommandMenu` bound to `T` --- visible in settings, player can rebind
-- `eAISetWaypoint` uses a **Ctrl + Left Click** modifier combo
-- Test inputs are `visible="false"` --- hidden from players but accessible in code
+主なポイント：
+- `eAICommandMenu`は`T`にバインド --- 設定に表示され、プレイヤーが再バインド可能
+- `eAISetWaypoint`は**Ctrl + 左クリック**の修飾キーコンボを使用
+- テスト入力は`visible="false"` --- プレイヤーからは非表示だがコードからはアクセス可能
 
 ### DayZ Expansion Market
 
-A minimal inputs.xml for a hidden utility input with multiple default keys:
+複数のデフォルトキーを持つ非表示ユーティリティ入力の最小限のinputs.xmlです：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -524,14 +528,14 @@ A minimal inputs.xml for a hidden utility input with multiple default keys:
 </modded_inputs>
 ```
 
-Key observations:
-- Hidden input (`visible="false"`) with empty `loc` --- never shown in settings
-- Two default keys: both Enter and Numpad Enter trigger the same action
-- No `<sorting>` block --- not needed since the input is hidden
+主なポイント：
+- 空の`loc`を持つ非表示入力（`visible="false"`） --- 設定には表示されません
+- 2つのデフォルトキー：EnterとNumpad Enterの両方が同じアクションをトリガーします
+- `<sorting>`ブロックなし --- 入力が非表示のため不要です
 
-### Complete Starter Template
+### 完全なスターターテンプレート
 
-A minimal but complete template for a new mod:
+新しいMod用の最小限だが完全なテンプレートです：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
@@ -551,12 +555,12 @@ A minimal but complete template for a new mod:
         <input name="UAMyModOpenMenu">
             <btn name="kF6"/>
         </input>
-        <!-- UAMyModQuickAction has no default key; player must bind it -->
+        <!-- UAMyModQuickActionにはデフォルトキーなし。プレイヤーがバインドする必要あり -->
     </preset>
 </modded_inputs>
 ```
 
-With a corresponding stringtable.csv:
+対応するstringtable.csv：
 
 ```csv
 "Language","original","english"
@@ -569,35 +573,35 @@ With a corresponding stringtable.csv:
 
 ## よくある間違い
 
-### Using `#` in the loc Attribute
+### loc属性での`#`の使用
 
 ```xml
-<!-- WRONG -->
+<!-- 間違い -->
 <input name="UAMyAction" loc="#STR_MYMOD_ACTION" />
 
-<!-- CORRECT -->
+<!-- 正しい -->
 <input name="UAMyAction" loc="STR_MYMOD_ACTION" />
 ```
 
-The input system prepends `#` internally. Adding it yourself causes a double-prefix and the lookup fails.
+入力システムは内部で`#`を前置します。自分で追加するとダブルプレフィックスになり、ルックアップが失敗します。
 
-### Action Name Collisions
+### アクション名の衝突
 
-If two mods define `UAOpenMenu`, only one will work. Always use your mod prefix:
+2つのModが`UAOpenMenu`を定義した場合、1つしか動作しません。常にModプレフィックスを使用してください：
 
 ```xml
-<input name="UAMyModOpenMenu" />     <!-- Good -->
-<input name="UAOpenMenu" />          <!-- Risky -->
+<input name="UAMyModOpenMenu" />     <!-- 良い -->
+<input name="UAOpenMenu" />          <!-- リスクあり -->
 ```
 
-### Missing Sorting Entry
+### Sortingエントリの欠落
 
-If you define an action in `<actions>` but forget to list it in `<sorting>`, the action works in code but is invisible in the Controls menu. The player has no way to rebind it.
+`<actions>`でアクションを定義しても`<sorting>`にリストし忘れると、アクションはコードでは動作しますがコントロールメニューには表示されません。プレイヤーは再バインドする方法がありません。
 
-### Forgetting to Define in Actions
+### Actionsでの定義忘れ
 
-If you list an input in `<sorting>` or `<preset>` but never define it in `<actions>`, the engine silently ignores it.
+`<sorting>`や`<preset>`に入力をリストしても`<actions>`で定義しなかった場合、エンジンはそれを黙って無視します。
 
-### Binding Conflicting Keys
+### 競合するキーのバインド
 
-Choosing keys that conflict with vanilla bindings (like `W`, `A`, `S`, `D`, `Tab`, `I`) causes both your action and the vanilla action to fire simultaneously. Use less common keys (F5-F12, numpad keys) or modifier combos for safety.
+バニラバインドと競合するキー（`W`、`A`、`S`、`D`、`Tab`、`I`など）を選択すると、あなたのアクションとバニラアクションが同時に発動します。安全のため、一般的でないキー（F5-F12、テンキー）または修飾キーコンボを使用してください。

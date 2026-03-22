@@ -353,4 +353,37 @@ Escolha a abordagem que corresponde ao perfil de dependências do seu mod. Se vo
 
 ---
 
+## Compatibilidade & Impacto
+
+- **Multi-Mod:** Múltiplos mods podem registrar seus próprios módulos com o mesmo manager (CF, VPP ou customizado). Colisões de nome só acontecem se dois mods registram o mesmo tipo de classe --- use nomes de classe únicos prefixados com a tag do seu mod.
+- **Ordem de Carregamento:** CF auto-descobre módulos do `config.cpp`, então a ordem de carregamento segue `requiredAddons`. Managers customizados registram módulos em `OnInit()`, onde a cadeia `modded class` determina a ordem. Módulos não devem depender da ordem de registro --- use padrões de acesso lazy.
+- **Listen Server:** Em listen servers, tanto `MissionServer` quanto `MissionGameplay` rodam no mesmo processo. Se seu module manager despacha `OnUpdate` de ambos, módulos recebem ticks duplos. Use subclasses tipadas (`ServerModule` / `ClientModule`) que retornam `IsServer()` ou `IsClient()` para prevenir isso.
+- **Performance:** Despacho de módulos adiciona uma iteração de loop por módulo registrado por chamada de ciclo de vida. Com 10--20 módulos isso é desprezível. Garanta que métodos `OnUpdate` individuais dos módulos sejam baratos (veja Capítulo 7.7).
+- **Migração:** Ao atualizar versões do DayZ, sistemas de módulos são estáveis desde que a API da classe base (`CF_ModuleWorld`, `PluginBase`, etc.) não mude. Fixe a versão de dependência do CF para evitar quebras.
+
+---
+
+## Erros Comuns
+
+| Erro | Impacto | Correção |
+|------|---------|----------|
+| Falta de limpeza `OnMissionFinish` em um módulo | Coleções, timers e inscrições de eventos sobrevivem entre reinícios de missão, causando dados obsoletos ou crashes | Sobrescreva `OnMissionFinish`, limpe todas as coleções `ref`, desinscreva todos os eventos |
+| Despachar eventos de ciclo de vida duas vezes em listen servers | Módulos server rodam lógica client e vice-versa; spawns duplicados, envios duplos de RPC | Use guards `IsServer()` / `IsClient()` ou subclasses tipadas de módulo que aplicam a separação |
+| Registrar RPCs em `OnMissionStart` ao invés de `OnInit` | Clientes que conectam durante o setup da missão podem enviar RPCs antes dos handlers estarem prontos --- mensagens são silenciosamente descartadas | Sempre registre handlers de RPC em `OnInit()`, que roda durante o registro do módulo antes de qualquer cliente conectar |
+| Um "God module" tratando tudo | Impossível de debugar, testar ou estender; conflitos de merge quando múltiplos desenvolvedores trabalham nele | Divida em módulos focados com uma única responsabilidade cada |
+| Manter `ref` direta para outra instância de módulo | Cria acoplamento forte e potenciais vazamentos de memória por ciclo de ref | Use o lookup do module manager (`GetModule()`, `CF_Modules<T>.Get()`) para acesso cross-módulo |
+
+---
+
+## Teoria vs Prática
+
+| Livro-Texto Diz | Realidade do DayZ |
+|-----------------|-------------------|
+| Descoberta de módulos deve ser automática via reflexão | Reflexão do Enforce Script é limitada; descoberta baseada em `config.cpp` (CF) ou chamadas explícitas de `Register()` são as únicas abordagens confiáveis |
+| Módulos devem ser substituíveis a quente em runtime | DayZ não suporta hot-reload de scripts; módulos vivem por todo o ciclo de vida da missão |
+| Use interfaces para contratos de módulo | Enforce Script não tem palavra-chave `interface`; use métodos virtuais de classe base (`override`) ao invés |
+| Injeção de dependência desacopla módulos | Nenhum framework de DI existe; use lookups do manager e guards `#ifdef` para dependências cross-mod opcionais |
+
+---
+
 [<< Anterior: Padrão Singleton](01-singletons.md) | [Início](../../README.md) | [Próximo: Padrões RPC >>](03-rpc-patterns.md)

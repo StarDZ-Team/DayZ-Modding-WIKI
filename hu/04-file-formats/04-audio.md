@@ -1,125 +1,116 @@
-# Chapter 4.4: Audio (.ogg, .wss)
+# 4.4. fejezet: Hang (.ogg, .wss)
 
-[Home](../../README.md) | [<< Previous: Materials](03-materials.md) | **Audio** | [Next: DayZ Tools Workflow >>](05-dayz-tools.md)
-
----
-
-## Bevezetes
-
-Sound design is one of the most immersive aspects of DayZ modding. From the crack of a rifle to the ambient wind in a forest, audio brings the game world to life. DayZ uses **OGG Vorbis** as its primary audio format and configures sound playback through a layered system of **CfgSoundShaders** and **CfgSoundSets** defined in `config.cpp`. Understanding this pipeline -- from raw audio file to spatialized in-game sound -- is essential for any mod that introduces custom weapons, vehicles, ambient effects, or UI feedback.
-
-This chapter covers audio formats, the config-driven sound system, 3D positional audio, volume and distance attenuation, looping, and the complete workflow for adding custom sounds to a DayZ mod.
+[Kezdőlap](../../README.md) | [<< Előző: Anyagok](03-materials.md) | **Hang** | [Következő: DayZ Tools munkafolyamat >>](05-dayz-tools.md)
 
 ---
 
-## Tartalomjegyzek
+## Bevezetés
 
-- [Hang Formats](#audio-formats)
-- [CfgSoundShaders and CfgSoundSets](#cfgsoundshaders-and-cfgsoundsets)
-- [Sound Categories](#sound-categories)
-- [3D Positional Hang](#3d-positional-audio)
-- [Volume and Distance Attenuation](#volume-and-distance-attenuation)
-- [Looping Sounds](#looping-sounds)
-- [Adding Custom Sounds to a Mod](#adding-custom-sounds-to-a-mod)
-- [Hang Production Tools](#audio-production-tools)
-- [Common Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+A hangdizájn a DayZ modolás egyik leginkább belemerülős aspektusa. Egy puska dörrenésétől az erdei szélzúgásig a hang kelti életre a játékvilágot. A DayZ az **OGG Vorbis** formátumot használja elsődleges hangformátumként, és a hanglejátszást a `config.cpp`-ben definiált **CfgSoundShaders** és **CfgSoundSets** réteges rendszerén keresztül konfigurálja. Ennek a csővezetéknek a megértése -- a nyers hangfájltól a térbe helyezett játékbeli hangig -- elengedhetetlen bármilyen modhoz, amely egyéni fegyvereket, járműveket, környezeti effekteket vagy UI visszajelzéseket vezet be.
+
+Ez a fejezet a hangformátumokat, a konfigurációvezérelt hangrendszert, a 3D térbeli hangot, a hangerő és távolság csillapítást, a ciklikus lejátszást és az egyéni hangok DayZ modhoz adásának teljes munkafolyamatát tárgyalja.
 
 ---
 
-## Hang Formats
+## Tartalomjegyzék
 
-### OGG Vorbis (Primary Format)
+- [Hangformátumok](#audio-formats)
+- [CfgSoundShaders és CfgSoundSets](#cfgsoundshaders-and-cfgsoundsets)
+- [Hang kategóriák](#sound-categories)
+- [3D térbeli hang](#3d-positional-audio)
+- [Hangerő és távolság csillapítás](#volume-and-distance-attenuation)
+- [Ciklikus hangok](#looping-sounds)
+- [Egyéni hangok hozzáadása modhoz](#adding-custom-sounds-to-a-mod)
+- [Hanggyártó eszközök](#audio-production-tools)
+- [Gyakori hibák](#common-mistakes)
+- [Bevált gyakorlatok](#best-practices)
 
-**OGG Vorbis** is DayZ's primary audio format. All custom sounds should be exported as `.ogg` files.
+---
 
-| Tulajdonsag | Ertek |
+## Hangformátumok
+
+### OGG Vorbis (elsődleges formátum)
+
+Az **OGG Vorbis** a DayZ elsődleges hangformátuma. Minden egyéni hangot `.ogg` fájlként kell exportálni.
+
+| Tulajdonság | Érték |
 |----------|-------|
-| **Extension** | `.ogg` |
-| **Codec** | Vorbis (lossy compression) |
-| **Sample rates** | 44100 Hz (standard), 22050 Hz (acceptable for ambient) |
-| **Bit depth** | Managed by encoder (quality setting) |
-| **Channels** | Mono (for 3D sounds) or Stereo (for music/UI) |
-| **Quality range** | -1 to 10 (5-7 recommended for game audio) |
+| **Kiterjesztés** | `.ogg` |
+| **Kodek** | Vorbis (veszteséges tömörítés) |
+| **Mintavételi frekvenciák** | 44100 Hz (szabványos), 22050 Hz (elfogadható környezeti hangokhoz) |
+| **Csatornák** | Monó (3D hangokhoz) vagy Sztereó (zenéhez/UI-hoz) |
+| **Minőségi tartomány** | -1 és 10 között (5-7 ajánlott játékhangokhoz) |
 
-### Key Rules for OGG in DayZ
+### Fő szabályok az OGG-hoz a DayZ-ben
 
-- **3D positional sounds MUST be mono.** If you provide a stereo file for a 3D sound, the engine may not spatialize it correctly or may ignore one channel.
-- **UI and music sounds can be stereo.** Non-positional sounds (menus, HUD feedback, background music) work correctly in stereo.
-- **Sample rate should be 44100 Hz** for most sounds. Lower rates (22050 Hz) can be used for distant ambient sounds to save space.
+- **A 3D térbeli hangoknak MONO-nak KELL lenniük.** Ha sztereó fájlt adsz meg 3D hangnak, a motor nem biztos, hogy megfelelően térbeli hangot csinál belőle, vagy figyelmen kívül hagyhat egy csatornát.
+- **Az UI és zenei hangok lehetnek sztereók.** Nem térbeli hangok (menük, HUD visszajelzés, háttérzene) helyesen működnek sztereóban.
+- **A mintavételi frekvencia legyen 44100 Hz** a legtöbb hanghoz.
 
-### WSS (Legacy Format)
+### WSS (régi formátum)
 
-**WSS** is a legacy sound format from older Bohemia titles (Arma series). DayZ can still load WSS files, but new mods should use OGG exclusively.
-
-| Tulajdonsag | Ertek |
-|----------|-------|
-| **Extension** | `.wss` |
-| **Status** | Legacy, not recommended for new mods |
-| **Conversion** | WSS files can be converted to OGG with Audacity or similar tools |
-
-You will encounter WSS files when examining vanilla DayZ data or porting content from older Bohemia games.
+A **WSS** régi hangformátum a korábbi Bohemia címekből (Arma sorozat). A DayZ még betöltheti a WSS fájlokat, de az új modoknak kizárólag OGG-t kell használniuk.
 
 ---
 
-## CfgSoundShaders and CfgSoundSets
+## CfgSoundShaders és CfgSoundSets
 
-DayZ's audio system uses a two-layer configuration approach defined in `config.cpp`. A **SoundShader** defines what audio file to play and how, while a **SoundSet** defines where and how the sound is heard in the world.
+A DayZ hangrendszere kétrétegű konfigurációs megközelítést használ, amelyet a `config.cpp`-ben definiálunk. Egy **SoundShader** definiálja, milyen hangfájlt játsszon le és hogyan, míg egy **SoundSet** definiálja, hol és hogyan hallható a hang a világban.
 
-### The Relationship
+### A kapcsolat
 
 ```
 config.cpp
   |
-  |--> CfgSoundShaders     (WHAT to play: file, volume, frequency)
+  |--> CfgSoundShaders     (MIT játsszon: fájl, hangerő, frekvencia)
   |      |
-  |      |--> MyShader      references --> sound\my_sound.ogg
+  |      |--> MyShader      hivatkozik --> sound\my_sound.ogg
   |
-  |--> CfgSoundSets         (HOW to play: 3D position, distance, spatial)
+  |--> CfgSoundSets         (HOGYAN játsszon: 3D pozíció, távolság, térbeli)
          |
-         |--> MySoundSet    references --> MyShader
+         |--> MySoundSet    hivatkozik --> MyShader
 ```
 
-Game code and other configs reference **SoundSets**, never SoundShaders directly. SoundSets are the public interface; SoundShaders are the implementation detail.
+A játékkód és más konfigurációk **SoundSet-ekre** hivatkoznak, soha nem közvetlenül SoundShaderekre.
 
 ### CfgSoundShaders
 
-A SoundShader defines the raw audio content and basic playback parameters:
+A SoundShader a nyers hangos tartalmat és alapvető lejátszási paramétereket definiálja:
 
 ```cpp
 class CfgSoundShaders
 {
     class MyMod_GunShot_SoundShader
     {
-        // Array of audio files -- engine picks one randomly
+        // Hangfájlok tömbje -- a motor véletlenszerűen választ egyet
         samples[] =
         {
-            {"MyMod\sound\gunshot_01", 1},    // {path (no extension), probability weight}
+            {"MyMod\sound\gunshot_01", 1},    // {útvonal (kiterjesztés nélkül), valószínűségi súly}
             {"MyMod\sound\gunshot_02", 1},
             {"MyMod\sound\gunshot_03", 1}
         };
-        volume = 1.0;                          // Base volume (0.0 - 1.0)
-        range = 300;                           // Maximum audible distance (meters)
-        rangeCurve[] = {{0, 1.0}, {300, 0.0}}; // Volume falloff curve
+        volume = 1.0;                          // Alap hangerő (0.0 - 1.0)
+        range = 300;                           // Maximális hallható távolság (méterben)
+        rangeCurve[] = {{0, 1.0}, {300, 0.0}}; // Hangerő csökkenési görbe
     };
 };
 ```
 
-#### SoundShader Properties
+#### SoundShader tulajdonságok
 
-| Tulajdonsag | Tipus | Leiras |
+| Tulajdonság | Típus | Leírás |
 |----------|------|-------------|
-| `samples[]` | array | List of `{path, weight}` pairs. Path excludes the file extension. |
-| `volume` | float | Base volume multiplier (0.0 to 1.0). |
-| `range` | float | Maximum audible distance in meters. |
-| `rangeCurve[]` | array | Array of `{distance, volume}` points defining attenuation over distance. |
-| `frequency` | float | Playback speed multiplier. 1.0 = normal, 0.5 = half speed (lower pitch), 2.0 = double speed (higher pitch). |
+| `samples[]` | tömb | `{útvonal, súly}` párok listája. Az útvonal nem tartalmazza a fájl kiterjesztését. |
+| `volume` | float | Alap hangerő szorzó (0.0-tól 1.0-ig). |
+| `range` | float | Maximális hallható távolság méterben. |
+| `rangeCurve[]` | tömb | `{távolság, hangerő}` pontok tömbje, amely a csillapítást definiálja a távolság függvényében. |
+| `frequency` | float | Lejátszási sebesség szorzó. 1.0 = normál, 0.5 = fél sebesség (alacsonyabb hangmagasság), 2.0 = dupla sebesség (magasabb hangmagasság). |
 
-> **Fontos:** The `samples[]` path does NOT include the file extension. The engine appends `.ogg` (or `.wss`) automatically based on what it finds on disk.
+> **Fontos:** A `samples[]` útvonal NEM tartalmazza a fájl kiterjesztését. A motor automatikusan hozzáfűzi az `.ogg` (vagy `.wss`) kiterjesztést a lemezen található fájl alapján.
 
 ### CfgSoundSets
 
-A SoundSet wraps one or more SoundShaders and defines the spatial and behavioral properties:
+A SoundSet egy vagy több SoundShadert csomagol be és definiálja a térbeli és viselkedési tulajdonságokat:
 
 ```cpp
 class CfgSoundSets
@@ -127,202 +118,106 @@ class CfgSoundSets
     class MyMod_GunShot_SoundSet
     {
         soundShaders[] = {"MyMod_GunShot_SoundShader"};
-        volumeFactor = 1.0;          // Volume scaling (applied on top of shader volume)
-        frequencyFactor = 1.0;       // Frequency scaling
-        volumeCurve = "InverseSquare"; // Predefined attenuation curve name
-        spatial = 1;                  // 1 = 3D positional, 0 = 2D (HUD/menu)
-        doppler = 0;                  // 1 = enable Doppler effect
-        loop = 0;                     // 1 = loop continuously
+        volumeFactor = 1.0;          // Hangerő skálázás (a shader hangerő felett alkalmazva)
+        frequencyFactor = 1.0;       // Frekvencia skálázás
+        spatial = 1;                  // 1 = 3D térbeli, 0 = 2D (HUD/menü)
+        doppler = 0;                  // 1 = Doppler effekt engedélyezése
+        loop = 0;                     // 1 = folyamatos ismétlés
     };
 };
 ```
 
-#### SoundSet Properties
+#### SoundSet tulajdonságok
 
-| Tulajdonsag | Tipus | Leiras |
+| Tulajdonság | Típus | Leírás |
 |----------|------|-------------|
-| `soundShaders[]` | array | List of SoundShader class names to combine. |
-| `volumeFactor` | float | Additional volume multiplier applied on top of shader volume. |
-| `frequencyFactor` | float | Additional frequency/pitch multiplier. |
-| `frequencyRandomizer` | float | Random pitch variation (0.0 = none, 0.1 = +/- 10%). |
-| `volumeCurve` | string | Named attenuation curve: `"InverseSquare"`, `"Linear"`, `"Logarithmic"`. |
-| `spatial` | int | `1` for 3D positional audio, `0` for 2D (UI, music). |
-| `doppler` | int | `1` to enable Doppler pitch shift for moving sources. |
-| `loop` | int | `1` for continuous looping, `0` for one-shot. |
-| `distanceFilter` | int | `1` to apply low-pass filter at distance (muffled far-away sounds). |
-| `occlusionFactor` | float | How much walls/terrain muffle the sound (0.0 to 1.0). |
-| `obstructionFactor` | float | How much obstacles between source and listener affect the sound. |
+| `soundShaders[]` | tömb | SoundShader osztálynevek listája a kombináláshoz. |
+| `volumeFactor` | float | További hangerő szorzó a shader hangerő felett alkalmazva. |
+| `frequencyRandomizer` | float | Véletlenszerű hangmagasság variáció (0.0 = nincs, 0.1 = +/- 10%). |
+| `spatial` | int | `1` 3D térbeli hanghoz, `0` 2D-hez (UI, zene). |
+| `doppler` | int | `1` a Doppler hangmagasság eltolás engedélyezéséhez mozgó forrásoknál. |
+| `loop` | int | `1` folyamatos ismétléshez, `0` egyszeri lejátszáshoz. |
+| `distanceFilter` | int | `1` az aluláteresztő szűrő alkalmazásához távolságnál (tompított távoli hangok). |
+| `occlusionFactor` | float | Mennyire tompítják a falak/terep a hangot (0.0-tól 1.0-ig). |
 
 ---
 
-## Sound Categories
+## Hang kategóriák
 
-DayZ organizes sounds into categories that affect how they interact with the game's audio mixing system.
+### Fegyverhangok
 
-### Weapon Sounds
-
-Weapon sounds are the most complex audio in DayZ, typically involving multiple SoundSets for different aspects of a single gunshot:
+A fegyverhangok a DayZ legösszetettebb hangjai, jellemzően több SoundSet-et tartalmaznak egyetlen lövés különböző aspektusaihoz:
 
 ```
-Shot fired
-  |--> Close shot SoundSet       (the "bang" heard nearby)
-  |--> Distance shot SoundSet    (the rumble/echo heard far away)
-  |--> Tail SoundSet             (reverb/echo that follows)
-  |--> Supersonic crack SoundSet (bullet passing overhead)
-  |--> Mechanical SoundSet       (bolt cycling, magazine insertion)
+Lövés leadva
+  |--> Közeli lövés SoundSet     (a "bumm" közelebbről hallva)
+  |--> Távoli lövés SoundSet     (a morajlás/visszhang távolról hallva)
+  |--> Utózörej SoundSet         (a rákövetkező visszhang)
+  |--> Szuperszonikus csattanás SoundSet (golyó átrepül a fej felett)
+  |--> Mechanikus SoundSet       (zárciklus, tár behelyezés)
 ```
 
-Example weapon sound config:
+### Környezeti hangok
+
+Környezeti hangok az atmoszférához:
 
 ```cpp
-class CfgSoundShaders
-{
-    class MyMod_Rifle_Shot_SoundShader
-    {
-        samples[] =
-        {
-            {"MyMod\sound\weapons\rifle_shot_01", 1},
-            {"MyMod\sound\weapons\rifle_shot_02", 1},
-            {"MyMod\sound\weapons\rifle_shot_03", 1}
-        };
-        volume = 1.0;
-        range = 200;
-        rangeCurve[] = {{0, 1.0}, {50, 0.8}, {100, 0.4}, {200, 0.0}};
-    };
-
-    class MyMod_Rifle_Tail_SoundShader
-    {
-        samples[] =
-        {
-            {"MyMod\sound\weapons\rifle_tail_01", 1},
-            {"MyMod\sound\weapons\rifle_tail_02", 1}
-        };
-        volume = 0.8;
-        range = 800;
-        rangeCurve[] = {{0, 0.6}, {200, 0.4}, {500, 0.2}, {800, 0.0}};
-    };
-};
-
-class CfgSoundSets
-{
-    class MyMod_Rifle_Shot_SoundSet
-    {
-        soundShaders[] = {"MyMod_Rifle_Shot_SoundShader"};
-        volumeFactor = 1.0;
-        spatial = 1;
-        doppler = 0;
-        loop = 0;
-    };
-
-    class MyMod_Rifle_Tail_SoundSet
-    {
-        soundShaders[] = {"MyMod_Rifle_Tail_SoundShader"};
-        volumeFactor = 1.0;
-        spatial = 1;
-        doppler = 0;
-        loop = 0;
-        distanceFilter = 1;
-    };
-};
-```
-
-### Ambient Sounds
-
-Environmental audio for atmosphere:
-
-```cpp
-class MyMod_Wind_SoundShader
-{
-    samples[] = {{"MyMod\sound\ambient\wind_loop", 1}};
-    volume = 0.5;
-    range = 50;
-};
-
 class MyMod_Wind_SoundSet
 {
     soundShaders[] = {"MyMod_Wind_SoundShader"};
     volumeFactor = 0.6;
-    spatial = 0;           // Non-positional (ambient surround)
-    loop = 1;              // Continuous loop
+    spatial = 0;           // Nem térbeli (környezeti surround)
+    loop = 1;              // Folyamatos ismétlés
 };
 ```
 
-### UI Sounds
+### UI hangok
 
-Interface feedback sounds (button clicks, notifications):
+Felületi visszajelzési hangok (gomb kattintások, értesítések):
 
 ```cpp
-class MyMod_ButtonClick_SoundShader
-{
-    samples[] = {{"MyMod\sound\ui\click_01", 1}};
-    volume = 0.7;
-    range = 0;             // No spatial range needed
-};
-
 class MyMod_ButtonClick_SoundSet
 {
     soundShaders[] = {"MyMod_ButtonClick_SoundShader"};
     volumeFactor = 0.8;
-    spatial = 0;           // 2D -- plays in the listener's head
+    spatial = 0;           // 2D -- a hallgató fejében szól
     loop = 0;
 };
 ```
 
-### Vehicle Sounds
+### Járműhangok
 
-Jarmuvek use complex sound configurations with multiple components:
+A járművek összetett hangkonfigurációkat használnak több komponenssel:
 
-- **Engine idle** -- looping, pitch varies with RPM
-- **Engine acceleration** -- looping, volume and pitch scale with throttle
-- **Tire noise** -- looping, volume scales with speed
-- **Horn** -- triggered, looping while held
-- **Crash** -- one-shot on collision
-
-### Character Sounds
-
-Player-related sounds include:
-
-- **Footsteps** -- varies by surface material (concrete, grass, wood, metal)
-- **Breathing** -- stamina-dependent
-- **Voice** -- emotes and commands
-- **Inventory** -- item manipulation sounds
+- **Motor alapjárat** -- ciklikus, hangmagasság változik a fordulatszámmal
+- **Motor gyorsulás** -- ciklikus, hangerő és hangmagasság a gázadással skálázódik
+- **Gumiabroncs zaj** -- ciklikus, hangerő a sebességgel skálázódik
+- **Dudálás** -- kiváltott, ciklikus amíg tartják
+- **Ütközés** -- egyszeri az ütközéskor
 
 ---
 
-## 3D Positional Hang
+## 3D térbeli hang
 
-DayZ uses 3D spatial audio to position sounds in the game world. When a gun fires 200 meters to your left, you hear it from your left speaker/headphone with appropriate volume reduction.
+A DayZ 3D térbeli hangot használ a hangok játékvilágban való pozícionálásához. Amikor egy fegyver 200 méterre tőled balra dörren, a bal oldali hangszóródból/fülhallgatódból hallod megfelelő hangerő csökkentéssel.
 
-### Requirements for 3D Hang
+### A 3D hang követelményei
 
-1. **Hang file must be mono.** Stereo files will not spatialize correctly.
-2. **SoundSet `spatial` must be `1`.** This enables the 3D positioning system.
-3. **Sound source must have a world position.** The engine needs coordinates to calculate direction and distance.
+1. **A hangfájlnak monónak kell lennie.** Sztereó fájlok nem térbeli hangként jelennek meg helyesen.
+2. **A SoundSet `spatial` értékének `1`-nek kell lennie.** Ez engedélyezi a 3D pozícionáló rendszert.
+3. **A hangforrásnak világ pozícióval kell rendelkeznie.** A motornak szüksége van koordinátákra az irány és távolság kiszámításához.
 
-### How the Engine Spatializes Sound
-
-```
-Sound Source (world position)
-  |
-  |--> Calculate distance to listener
-  |--> Calculate direction relative to listener facing
-  |--> Apply distance attenuation (rangeCurve)
-  |--> Apply occlusion (walls, terrain)
-  |--> Apply Doppler effect (if enabled and source is moving)
-  |--> Output to correct speaker channels
-```
-
-### Triggering 3D Sounds from Script
+### 3D hangok kiváltása szkriptből
 
 ```c
-// Play a positional sound at a world location
+// Térbeli hang lejátszása világ pozícióban
 void PlaySoundAtPosition(vector position)
 {
     EffectSound sound;
     SEffectManager.PlaySound("MyMod_Rifle_Shot_SoundSet", position);
 }
 
-// Play a sound attached to an object (moves with it)
+// Hang lejátszása objektumhoz csatolva (együtt mozog vele)
 void PlaySoundOnObject(Object obj)
 {
     EffectSound sound;
@@ -332,76 +227,40 @@ void PlaySoundOnObject(Object obj)
 
 ---
 
-## Volume and Distance Attenuation
+## Hangerő és távolság csillapítás
 
-### Range Curve
+### Tartomány görbe
 
-The `rangeCurve[]` in a SoundShader defines how volume decreases with distance. It is an array of `{distance, volume}` pairs:
+A SoundShader-ben lévő `rangeCurve[]` definiálja, hogyan csökken a hangerő a távolsággal. `{távolság, hangerő}` párok tömbje:
 
 ```cpp
 rangeCurve[] =
 {
-    {0, 1.0},       // At 0m: full volume
-    {50, 0.7},      // At 50m: 70% volume
-    {150, 0.3},     // At 150m: 30% volume
-    {300, 0.0}      // At 300m: silent
+    {0, 1.0},       // 0m-nél: teljes hangerő
+    {50, 0.7},      // 50m-nél: 70% hangerő
+    {150, 0.3},     // 150m-nél: 30% hangerő
+    {300, 0.0}      // 300m-nél: néma
 };
 ```
 
-The engine interpolates linearly between defined points. You can create any falloff curve by adding more control points.
+### Előre definiált hangerő görbék
 
-### Predefined Volume Curves
-
-SoundSets can reference named curves via the `volumeCurve` property:
-
-| Curve Name | Behavior |
+| Görbe neve | Viselkedés |
 |------------|----------|
-| `"InverseSquare"` | Realistic falloff (volume = 1/distance^2). Natural-sounding. |
-| `"Linear"` | Even falloff from max to zero over the range. |
-| `"Logarithmic"` | Loud up close, drops quickly at medium distance, then tapers slowly. |
-
-### Practical Attenuation Examples
-
-**Gunshot (loud, carries far):**
-```cpp
-range = 800;
-rangeCurve[] = {{0, 1.0}, {100, 0.6}, {300, 0.3}, {600, 0.1}, {800, 0.0}};
-```
-
-**Footstep (quiet, close range):**
-```cpp
-range = 30;
-rangeCurve[] = {{0, 1.0}, {10, 0.5}, {20, 0.15}, {30, 0.0}};
-```
-
-**Vehicle engine (medium range, sustained):**
-```cpp
-range = 200;
-rangeCurve[] = {{0, 1.0}, {50, 0.7}, {100, 0.4}, {200, 0.0}};
-```
+| `"InverseSquare"` | Valósághű csökkenés (hangerő = 1/távolság^2). Természetes hangzás. |
+| `"Linear"` | Egyenletes csökkenés maximumtól nulláig a tartományon. |
+| `"Logarithmic"` | Hangos közelről, gyorsan csökken közepes távolságnál, majd lassan halkulik. |
 
 ---
 
-## Looping Sounds
+## Ciklikus hangok
 
-Looping sounds repeat continuously until explicitly stopped. They are used for engines, ambient atmosphere, alarms, and any sustained audio.
+A ciklikus hangok folyamatosan ismétlődnek, amíg kifejezetten le nem állítják őket. Motorokhoz, környezeti atmoszférához, riasztásokhoz és bármilyen fenntartott hanghoz használatosak.
 
-### Configuring a Looping Sound
-
-In the SoundSet:
-```cpp
-class MyMod_Alarm_SoundSet
-{
-    soundShaders[] = {"MyMod_Alarm_SoundShader"};
-    spatial = 1;
-    loop = 1;              // Enable looping
-};
-```
-
-### Looping from Script
+### Ciklikus lejátszás szkriptből
 
 ```c
-// Start a looping sound
+// Ciklikus hang indítása
 EffectSound m_AlarmSound;
 
 void StartAlarm(vector position)
@@ -412,7 +271,7 @@ void StartAlarm(vector position)
     }
 }
 
-// Stop the looping sound
+// Ciklikus hang leállítása
 void StopAlarm()
 {
     if (m_AlarmSound)
@@ -423,29 +282,28 @@ void StopAlarm()
 }
 ```
 
-### Hang File Preparation for Loops
+### Hangfájl előkészítése ciklusokhoz
 
-For seamless looping, the audio file itself must loop cleanly:
+A zökkenőmentes ciklizáláshoz magának a hangfájlnak is tisztán kell ismétlődnie:
 
-1. **Zero-crossing at start and end.** The waveform should cross zero amplitude at both endpoints to avoid a click/pop at the loop point.
-2. **Matched start and end.** The end of the file should blend seamlessly into the beginning.
-3. **No fade in/out.** Fades would be audible on each loop iteration.
-4. **Test the loop in Audacity.** Select the entire clip, enable loop playback, and listen for clicks or discontinuities.
+1. **Nulla-átmenet az elején és a végén.** A hullámformának mindkét végponton nulla amplitúdónál kell átmennie, hogy elkerülje a kattanást/pattanást az ismétlési pontnál.
+2. **Egyező eleje és vége.** A fájl végének zökkenőmentesen kell keverednie az elejével.
+3. **Nincs halkulás be/ki.** A halkulások hallhatók lennének minden ismétlésnél.
+4. **Teszteld a ciklust Audacity-ben.** Válaszd ki a teljes klipet, engedélyezd a ciklikus lejátszást, és figyelj kattanásokra vagy megszakításokra.
 
 ---
 
-## Adding Custom Sounds to a Mod
+## Egyéni hangok hozzáadása modhoz
 
-### Complete Workflow
+### Teljes munkafolyamat
 
-**Step 1: Prepare audio files**
-- Record or source your audio.
-- Edit in Audacity (or your preferred audio editor).
-- For 3D sounds: convert to mono.
-- Export as OGG Vorbis (quality 5-7).
-- Name files descriptively: `rifle_shot_01.ogg`, `rifle_shot_02.ogg`.
+**1. lépés: Hangfájlok előkészítése**
+- Rögzítsd vagy szerezd be a hangodat.
+- Szerkeszd Audacity-ben (vagy az általad preferált hangszerkesztőben).
+- 3D hangokhoz: konvertáld monóvá.
+- Exportáld OGG Vorbis formátumban (minőség 5-7).
 
-**Step 2: Organize in mod directory**
+**2. lépés: Rendezés a mod könyvtárban**
 
 ```
 MyMod/
@@ -453,208 +311,112 @@ MyMod/
     weapons/
       rifle_shot_01.ogg
       rifle_shot_02.ogg
-      rifle_shot_03.ogg
-      rifle_tail_01.ogg
-      rifle_tail_02.ogg
     ambient/
       wind_loop.ogg
     ui/
       click_01.ogg
-      notification_01.ogg
   config.cpp
 ```
 
-**Step 3: Define SoundShaders in config.cpp**
+**3. lépés: SoundShaderek definiálása a config.cpp-ben**
 
-```cpp
-class CfgPatches
-{
-    class MyMod_Sounds
-    {
-        units[] = {};
-        weapons[] = {};
-        requiredVersion = 0.1;
-        requiredAddons[] = {"DZ_Sounds_Effects"};
-    };
-};
+**4. lépés: Hivatkozás a fegyver/tárgy konfigurációból**
 
-class CfgSoundShaders
-{
-    class MyMod_RifleShot_SoundShader
-    {
-        samples[] =
-        {
-            {"MyMod\sound\weapons\rifle_shot_01", 1},
-            {"MyMod\sound\weapons\rifle_shot_02", 1},
-            {"MyMod\sound\weapons\rifle_shot_03", 1}
-        };
-        volume = 1.0;
-        range = 300;
-        rangeCurve[] = {{0, 1.0}, {100, 0.6}, {200, 0.2}, {300, 0.0}};
-    };
-};
-
-class CfgSoundSets
-{
-    class MyMod_RifleShot_SoundSet
-    {
-        soundShaders[] = {"MyMod_RifleShot_SoundShader"};
-        volumeFactor = 1.0;
-        spatial = 1;
-        doppler = 0;
-        loop = 0;
-        distanceFilter = 1;
-    };
-};
-```
-
-**Step 4: Reference from weapon/item config**
-
-For weapons, the SoundSet is referenced in the weapon's config class:
-
-```cpp
-class CfgWeapons
-{
-    class MyMod_Rifle: Rifle_Base
-    {
-        // ... other config ...
-
-        class Sounds
-        {
-            class Fire
-            {
-                soundSet = "MyMod_RifleShot_SoundSet";
-            };
-        };
-    };
-};
-```
-
-**Step 5: Build and test**
-- Pack the PBO (use `-packonly` since OGG files do not need binarization).
-- Launch the game with the mod loaded.
-- Test the sound in-game at various distances.
+**5. lépés: Építés és tesztelés**
+- Csomagold a PBO-t (használd a `-packonly` opciót, mivel az OGG fájlok nem igényelnek binarizálást).
+- Indítsd el a játékot a betöltött moddal.
+- Teszteld a hangot a játékban különböző távolságoknál.
 
 ---
 
-## Hang Production Tools
+## Hanggyártó eszközök
 
-### Audacity (Free, Open Source)
+### Audacity (ingyenes, nyílt forráskódú)
 
-Audacity is the recommended tool for DayZ audio production:
+Az Audacity az ajánlott eszköz DayZ hanggyártáshoz:
 
-- **Download:** [audacityteam.org](https://www.audacityteam.org/)
+- **Letöltés:** [audacityteam.org](https://www.audacityteam.org/)
 - **OGG export:** File --> Export --> Export as OGG
-- **Mono conversion:** Tracks --> Mix --> Mix Stereo Down to Mono
-- **Normalization:** Effect --> Normalize (set peak to -1 dB to prevent clipping)
-- **Noise removal:** Effect --> Noise Reduction
-- **Loop testing:** Transport --> Loop Play (Shift+Space)
+- **Monó konverzió:** Tracks --> Mix --> Mix Stereo Down to Mono
+- **Normalizálás:** Effect --> Normalize (csúcs beállítása -1 dB-re a vágás megelőzéséhez)
+- **Zajeltávolítás:** Effect --> Noise Reduction
+- **Ciklus tesztelés:** Transport --> Loop Play (Shift+Space)
 
-### OGG Export Settings in Audacity
+### Egyéb hasznos eszközök
 
-1. **File --> Export --> Export as OGG Vorbis**
-2. **Quality:** 5-7 (5 for ambient/UI, 7 for weapon/important sounds)
-3. **Channels:** Mono for 3D sounds, Stereo for UI/music
-
-### Other Useful Tools
-
-| Eszkoz | Cel | Ar |
+| Eszköz | Cél | Ár |
 |------|---------|------|
-| **Audacity** | General audio editing, format conversion | Free |
-| **Reaper** | Professional DAW, advanced editing | $60 (personal license) |
-| **FFmpeg** | Command-line batch audio conversion | Free |
-| **Ocenaudio** | Simple editor with real-time preview | Free |
-
-### Batch Conversion with FFmpeg
-
-Convert all WAV files in a directory to mono OGG:
-
-```bash
-for file in *.wav; do
-    ffmpeg -i "$file" -ac 1 -codec:a libvorbis -qscale:a 6 "${file%.wav}.ogg"
-done
-```
+| **Audacity** | Általános hangszerkesztés, formátum konverzió | Ingyenes |
+| **Reaper** | Professzionális DAW, haladó szerkesztés | $60 (személyes licenc) |
+| **FFmpeg** | Parancssor alapú kötegelt hangkonverzió | Ingyenes |
+| **Ocenaudio** | Egyszerű szerkesztő valós idejű előnézettel | Ingyenes |
 
 ---
 
-## Gyakori hibak
+## Gyakori hibák
 
-### 1. Stereo File for 3D Sound
+### 1. Sztereó fájl 3D hanghoz
 
-**Tunet:** Sound does not spatialize, plays centered or only in one ear.
-**Javitas:** Convert to mono before exporting. 3D positional sounds require mono audio files.
+**Tünet:** A hang nem térbeli, középen szól vagy csak az egyik fülben.
+**Javítás:** Konvertáld monóvá exportálás előtt. A 3D térbeli hangokhoz monó hangfájlok szükségesek.
 
-### 2. File Extension in samples[] Path
+### 2. Fájl kiterjesztés a samples[] útvonalban
 
-**Tunet:** Sound does not play, no error in log (engine silently fails to find the file).
-**Javitas:** Remove the `.ogg` extension from the path in `samples[]`. The engine adds it automatically.
+**Tünet:** A hang nem szól, nincs hiba a naplóban (a motor csendben nem találja a fájlt).
+**Javítás:** Távolítsd el az `.ogg` kiterjesztést a `samples[]`-ban lévő útvonalból. A motor automatikusan hozzáadja.
 
 ```cpp
-// WRONG
+// HELYTELEN
 samples[] = {{"MyMod\sound\gunshot_01.ogg", 1}};
 
-// CORRECT
+// HELYES
 samples[] = {{"MyMod\sound\gunshot_01", 1}};
 ```
 
-### 3. Missing CfgPatches requiredAddons
+### 3. Hiányzó CfgPatches requiredAddons
 
-**Tunet:** SoundShaders or SoundSets not recognized, sounds do not play.
-**Javitas:** Add `"DZ_Sounds_Effects"` to your CfgPatches `requiredAddons[]` to ensure the base sound system loads before your definitions.
+**Tünet:** A SoundShaderek vagy SoundSetek nem ismertek fel, a hangok nem szólnak.
+**Javítás:** Add hozzá a `"DZ_Sounds_Effects"` elemet a CfgPatches `requiredAddons[]` tömbhöz.
 
-### 4. Range Too Short
+### 4. Túl rövid hatótávolság
 
-**Tunet:** Sound cuts off abruptly at a short distance, feels unnatural.
-**Javitas:** Set `range` to a realistic value. Gunshots should carry 300-800m, footsteps 20-40m, voices 50-100m.
+**Tünet:** A hang hirtelen elnémul rövid távolságnál, természetellenesen hat.
+**Javítás:** Állítsd a `range` értéket valósághű értékre. A lövések 300-800m-re hallatszanak, a léptek 20-40m-re, a hangok 50-100m-re.
 
-### 5. No Random Variation
+### 5. Nincs véletlenszerű variáció
 
-**Tunet:** Sound feels repetitive and artificial after hearing it multiple times.
-**Javitas:** Provide multiple samples in the SoundShader and add `frequencyRandomizer` to the SoundSet for pitch variation.
+**Tünet:** A hang ismétlődőnek és mesterségesnek tűnik többszöri hallgatás után.
+**Javítás:** Adj meg több mintát a SoundShader-ben és adj `frequencyRandomizer`-t a SoundSet-hez hangmagasság variációhoz.
 
-```cpp
-// Multiple samples for variety
-samples[] =
-{
-    {"MyMod\sound\step_01", 1},
-    {"MyMod\sound\step_02", 1},
-    {"MyMod\sound\step_03", 1},
-    {"MyMod\sound\step_04", 1}
-};
+### 6. Vágás / torzítás
 
-// Plus pitch randomization in the SoundSet
-frequencyRandomizer = 0.05;    // +/- 5% pitch variation
-```
-
-### 6. Clipping / Distortion
-
-**Tunet:** Sound crackles or distorts, especially at close range.
-**Javitas:** Normalize your audio to -1 dB or -3 dB peak in Audacity before exporting. Never set `volume` or `volumeFactor` above 1.0 unless the source audio is very quiet.
+**Tünet:** A hang recseg vagy torzít, különösen közelről.
+**Javítás:** Normalizáld a hanganyagodat -1 dB vagy -3 dB csúcsra az Audacity-ben exportálás előtt.
 
 ---
 
-## Bevalt gyakorlatok
+## Bevált gyakorlatok
 
-1. **Always export 3D sounds as mono OGG.** This is the single most important rule. Stereo files will not spatialize.
+1. **Mindig exportáld a 3D hangokat monó OGG-ként.** Ez az egyetlen legfontosabb szabály. A sztereó fájlok nem lesznek térbeliek.
 
-2. **Provide 3-5 sample variants** for frequently heard sounds (gunshots, footsteps, impacts). Random selection prevents the "machine gun effect" of identical repeated audio.
+2. **Adj meg 3-5 minta változatot** a gyakran hallott hangokhoz (lövések, léptek, becsapódások). A véletlenszerű kiválasztás megelőzi az azonos ismétlődő hangok "géppuska effektusát".
 
-3. **Use `frequencyRandomizer`** between 0.03 and 0.08 for natural pitch variation. Even subtle variation significantly improves perceived audio quality.
+3. **Használj `frequencyRandomizer`-t** 0.03 és 0.08 között természetes hangmagasság variációhoz. Még az enyhe variáció is jelentősen javítja az észlelt hangminőséget.
 
-4. **Set realistic range values.** Study vanilla DayZ sounds for reference. A rifle shot at 600-800m range, a suppressed shot at 150-200m, footsteps at 20-40m.
+4. **Állíts be valósághű hatótávolság értékeket.** Tanulmányozd a vanilla DayZ hangokat referenciaként. Puska lövés 600-800m tartomány, hangtompított lövés 150-200m, léptek 20-40m.
 
-5. **Layer your sounds.** Complex audio events (gunshots) should use multiple SoundSets: close shot + distant rumble + tail/echo. This creates depth that a single sound file cannot achieve.
+5. **Rétegezd a hangjaidat.** Az összetett hangos események (lövések) több SoundSet-et kell használjanak: közeli lövés + távoli morajlás + utózörej/visszhang.
 
-6. **Test at multiple distances.** Walk away from the sound source in-game and verify the attenuation curve feels natural. Adjust `rangeCurve[]` control points iteratively.
+6. **Tesztelj több távolságnál.** Sétálj el a hangforrástól a játékban és ellenőrizd, hogy a csillapítási görbe természetesnek tűnik-e.
 
-7. **Organize your sound directory.** Use subdirectories by category (`weapons/`, `ambient/`, `ui/`, `vehicles/`). A flat directory with 200 OGG files is unmanageable.
+7. **Rendezd a hang könyvtáradat.** Használj alkönyvtárakat kategóriánként (`weapons/`, `ambient/`, `ui/`, `vehicles/`). Egy lapos könyvtár 200 OGG fájllal kezelhetetlen.
 
-8. **Keep file sizes reasonable.** Game audio does not need studio quality. OGG quality 5-7 is sufficient. Most individual sound files should be under 500 KB.
+8. **Tartsd ésszerűen a fájlméreteket.** A játék hang nem igényel stúdió minőséget. Az OGG minőség 5-7 elegendő. A legtöbb egyedi hangfájl 500 KB alatt legyen.
 
 ---
 
-## Navigacio
+## Navigáció
 
-| Elozo | Fel | Kovetkezo |
+| Előző | Fel | Következő |
 |----------|----|------|
-| [4.3 Anyagok](03-materials.md) | [Part 4: File Formats & DayZ eszkozok](01-textures.md) | [4.5 DayZ eszkozok munkamenet](05-dayz-tools.md) |
+| [4.3 Anyagok](03-materials.md) | [4. rész: Fájlformátumok és DayZ Tools](01-textures.md) | [4.5 DayZ Tools munkafolyamat](05-dayz-tools.md) |

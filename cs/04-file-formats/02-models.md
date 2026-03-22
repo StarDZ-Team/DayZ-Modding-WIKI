@@ -1,4 +1,4 @@
-# Chapter 4.2: 3D Models (.p3d)
+# Kapitola 4.2: 3D modely (.p3d)
 
 [Domů](../../README.md) | [<< Předchozí: Textury](01-textures.md) | **3D modely** | [Další: Materiály >>](03-materials.md)
 
@@ -6,86 +6,86 @@
 
 ## Úvod
 
-Every physical object in DayZ -- weapons, clothing, buildings, vehicles, trees, rocks -- is a 3D model stored in Bohemia's proprietary **P3D** format. The P3D format is far more than a mesh container: it encodes více levels of detail, collision geometry, animation selections, memory points for attachments and effects, and proxy positions for mountable items. Understanding how P3D files work and how to create them with **Object Builder** is essential for jakýkoli mod that adds physical items to the herní svět.
+Každý fyzický objekt v DayZ -- zbraně, oblečení, budovy, vozidla, stromy, kameny -- je 3D model uložený v proprietárním formátu **P3D** společnosti Bohemia. Formát P3D je daleko více než jen kontejner meshe: kóduje více úrovní detailu, kolizní geometrii, animační selekce, paměťové body pro příslušenství a efekty a proxy pozice pro připojitelné předměty. Pochopení fungování souborů P3D a jak je vytvářet pomocí **Object Builderu** je nezbytné pro jakýkoli mod, který přidává fyzické předměty do herního světa.
 
-This chapter covers the P3D format structure, the LOD system, named selections, memory points, the proxy system, animation configuration via `model.cfg`, and the import workflow from standard 3D formats.
+Tato kapitola pokrývá strukturu formátu P3D, systém LOD, pojmenované selekce, paměťové body, systém proxy, konfiguraci animací přes `model.cfg` a pracovní postup importu ze standardních 3D formátů.
 
 ---
 
 ## Obsah
 
-- [P3D Format Overview](#p3d-format-overview)
+- [Přehled formátu P3D](#přehled-formátu-p3d)
 - [Object Builder](#object-builder)
-- [The LOD System](#the-lod-system)
-- [Named Selections](#named-selections)
-- [Memory Points](#memory-points)
-- [The Proxy System](#the-proxy-system)
-- [Model.cfg for Animations](#modelcfg-for-animations)
-- [Importing from FBX/OBJ](#importing-from-fbxobj)
-- [Běžné Model Types](#common-model-types)
-- [Běžné Mistakes](#common-mistakes)
-- [Best Practices](#best-practices)
+- [Systém LOD](#systém-lod)
+- [Pojmenované selekce](#pojmenované-selekce)
+- [Paměťové body](#paměťové-body)
+- [Systém proxy](#systém-proxy)
+- [Model.cfg pro animace](#modelcfg-pro-animace)
+- [Import z FBX/OBJ](#import-z-fbxobj)
+- [Běžné typy modelů](#běžné-typy-modelů)
+- [Časté chyby](#časté-chyby)
+- [Osvědčené postupy](#osvědčené-postupy)
 
 ---
 
-## P3D Format Overview
+## Přehled formátu P3D
 
-**P3D** (Point 3D) is Bohemia Interactive's binary 3D model format, inherited from the Real Virtuality engine and carried forward into Enfusion. It is a compiled, engine-ready format -- you ne write P3D files by hand.
+**P3D** (Point 3D) je binární formát 3D modelů společnosti Bohemia Interactive, zděděný z enginu Real Virtuality a přenesený do Enfusion. Je to kompilovaný, pro engine připravený formát -- soubory P3D nepíšete ručně.
 
-### Key Characteristics
+### Klíčové vlastnosti
 
-- **Binary format:** Not human-readable. Created and edited exclusively with Object Builder.
-- **Multi-LOD container:** A jeden P3D file contains více LOD (Level of Detail) meshes, každý with a odlišný purpose.
-- **Engine-native:** The DayZ engine loads P3D přímo. No runtime conversion occurs.
-- **Binarized vs. unbinarized:** Source P3D files from Object Builder are "MLOD" (editable). Binarize converts them to "ODOL" (optimized, read-only). The game can load oba, but ODOL loads faster and is smaller.
+- **Binární formát:** Není čitelný člověkem. Vytvářen a upravován výhradně pomocí Object Builderu.
+- **Multi-LOD kontejner:** Jeden soubor P3D obsahuje více LOD (úrovní detailu) meshí, každý s jiným účelem.
+- **Nativní pro engine:** DayZ engine načítá P3D přímo. Nedochází k žádné runtime konverzi.
+- **Binarizovaný vs. nebinarizovaný:** Zdrojové soubory P3D z Object Builderu jsou "MLOD" (editovatelné). Binarize je převádí na "ODOL" (optimalizované, pouze pro čtení). Hra může načíst obojí, ale ODOL se načítá rychleji a je menší.
 
-### File Types You Will Encounter
+### Typy souborů, se kterými se setkáte
 
-| Extension | Description |
+| Přípona | Popis |
 |-----------|-------------|
-| `.p3d` | 3D model (both MLOD source and ODOL binarized) |
-| `.rtm` | Runtime Motion -- animation keyframe data |
-| `.bisurf` | Surface properties file (used alongside P3D) |
+| `.p3d` | 3D model (jak MLOD zdrojový, tak ODOL binarizovaný) |
+| `.rtm` | Runtime Motion -- data keyframů animací |
+| `.bisurf` | Soubor vlastností povrchu (používaný společně s P3D) |
 
 ### MLOD vs. ODOL
 
-| Property | MLOD (Source) | ODOL (Binarized) |
+| Vlastnost | MLOD (zdrojový) | ODOL (binarizovaný) |
 |----------|---------------|-------------------|
-| Created by | Object Builder | Binarize |
-| Editable | Yes | No |
-| File size | Larger | Smaller |
-| Načtěte speed | Slower | Faster |
-| Used during | Development | Release |
-| Contains | Full edit data, named selections | Optimized mesh data |
+| Vytvořen | Object Builder | Binarize |
+| Editovatelný | Ano | Ne |
+| Velikost souboru | Větší | Menší |
+| Rychlost načítání | Pomalejší | Rychlejší |
+| Používán během | Vývoje | Vydání |
+| Obsahuje | Plná editační data, pojmenované selekce | Optimalizovaná data meshe |
 
-> **Important:** Když pack a PBO with binarization enabled, your MLOD P3D files are automatickýally converted to ODOL. Pokud pack with `-packonly`, the MLOD files are included as-is. Oba work ve hře, but ODOL is preferred for release builds.
+> **Důležité:** Když balíte PBO s povolenou binarizací, vaše MLOD P3D soubory jsou automaticky převedeny na ODOL. Pokud balíte s `-packonly`, MLOD soubory jsou zahrnuty tak, jak jsou. Obojí funguje ve hře, ale pro produkční sestavení je preferován ODOL.
 
 ---
 
 ## Object Builder
 
-**Object Builder** is the Bohemia-provided přílišl for creating and editing P3D models. It is included in the DayZ Tools suite on Steam.
+**Object Builder** je nástroj poskytovaný Bohemií pro vytváření a úpravu modelů P3D. Je součástí sady DayZ Tools na Steamu.
 
-### Core Capabilities
+### Základní schopnosti
 
-- Vytvořte and edit 3D meshes with vertices, edges, and faces.
-- Define více LODs within a jeden P3D file.
-- Assign **named selections** (groups of vertices/faces) for animation and texture control.
-- Place **memory points** for attachment positions, particle origins, and sound sources.
-- Přidejte **proxy objects** for attachable items (magazines, optics, etc.).
-- Assign materials (`.rvmat`) and textures (`.paa`) to faces.
-- Import meshes from FBX, OBJ, and 3DS formats.
-- Export platnýated P3D files for Binarize.
+- Vytváření a úprava 3D meshí s vrcholy, hranami a plochami.
+- Definování více LOD v rámci jednoho souboru P3D.
+- Přiřazování **pojmenovaných selekcí** (skupin vrcholů/ploch) pro animace a řízení textur.
+- Umisťování **paměťových bodů** pro pozice příslušenství, počátky částic a zdroje zvuku.
+- Přidávání **proxy objektů** pro připojitelné předměty (zásobníky, optiku atd.).
+- Přiřazování materiálů (`.rvmat`) a textur (`.paa`) plochám.
+- Import meshí z formátů FBX, OBJ a 3DS.
+- Export validovaných souborů P3D pro Binarize.
 
-### Workspace Setup
+### Nastavení pracovního prostoru
 
-Object Builder requires the **P: drive** (workdrive) to be set up. This virtual drive provides a unified path prefix that engine uses to locate assets.
+Object Builder vyžaduje nastavení **disku P:** (workdrive). Tento virtuální disk poskytuje sjednocený prefix cest, který engine používá k lokalizaci assets.
 
 ```
 P:\
-  DZ\                        <-- Vanilla DayZ data (extracted)
-  DayZ Tools\                <-- Tools installation
-  MyMod\                     <-- Your mod's source directory
+  DZ\                        <-- Vanilla data DayZ (extrahovaná)
+  DayZ Tools\                <-- Instalace nástrojů
+  MyMod\                     <-- Zdrojový adresář vašeho modu
     data\
       models\
         my_item.p3d
@@ -93,122 +93,103 @@ P:\
         my_item_co.paa
 ```
 
-All paths in P3D files and materials are relative to the P: drive root. Například a material reference inside the model would be `MyMod\data\textures\my_item_co.paa`.
+Všechny cesty v souborech P3D a materiálech jsou relativní ke kořeni disku P:. Například odkaz na materiál uvnitř modelu by byl `MyMod\data\textures\my_item_co.paa`.
 
-### Basic Workflow in Object Builder
+### Základní pracovní postup v Object Builderu
 
-1. **Vytvořte or import** your mesh geometry.
-2. **Define LODs** -- minimálně, create Resolution, Geometry, and Fire Geometry LODs.
-3. **Assign materials** to faces in the Resolution LOD.
-4. **Name selections** for jakýkoli parts that animate, swap textures, or need code interaction.
-5. **Place memory points** for attachments, muzzle flash positions, ejection ports, etc.
-6. **Přidejte proxies** for items that can be attached (optics, magazines, suppressors).
-7. **Validate** using Object Builder's vestavěný platnýation (Structure --> Validate).
-8. **Save** as P3D.
-9. **Build** via Binarize or AddonBuilder.
+1. **Vytvořte nebo importujte** vaši geometrii meshe.
+2. **Definujte LOD** -- minimálně vytvořte LOD Resolution, Geometry a Fire Geometry.
+3. **Přiřaďte materiály** plochám v Resolution LOD.
+4. **Pojmenujte selekce** pro jakékoli části, které se animují, mění textury nebo potřebují interakci z kódu.
+5. **Umístěte paměťové body** pro příslušenství, pozice záblesku ústí, vyhazovací otvory atd.
+6. **Přidejte proxy** pro předměty, které lze připojit (optika, zásobníky, tlumiče).
+7. **Validujte** pomocí vestavěné validace Object Builderu (Structure --> Validate).
+8. **Uložte** jako P3D.
+9. **Sestavte** přes Binarize nebo AddonBuilder.
 
 ---
 
-## The LOD System
+## Systém LOD
 
-A P3D file contains více **LODs** (Levels of Detail), každý serving a specifický purpose. Engine selects which LOD to use based on the situation -- distance from camera, physics calculations, shadow rendering, etc.
+Soubor P3D obsahuje více **LOD** (úrovní detailu), každý sloužící specifickému účelu. Engine vybírá, který LOD použít, na základě situace -- vzdálenost od kamery, fyzikální výpočty, vykreslování stínů atd.
 
-### LOD Types
+### Typy LOD
 
-| LOD | Resolution Value | Purpose |
+| LOD | Hodnota rozlišení | Účel |
 |-----|-----------------|---------|
-| **Resolution 0** | 1.000 | Highest detail visual mesh. Rendered when the object is close to the camera. |
-| **Resolution 1** | 1.100 | Medium detail. Rendered at moderate distance. |
-| **Resolution 2** | 1.200 | Low detail. Rendered at far distance. |
-| **Resolution 3+** | 1.300+ | Additional distance LODs. |
-| **View Geometry** | Special | Determines what blocks hráč's view (first person). Simplified mesh. |
-| **Fire Geometry** | Special | Collision for bullets and projectiles. Must be convex or composed of convex parts. |
-| **Geometry** | Special | Physics collision. Used for movement collision, gravity, placement. Must be convex or composed of convex decomposition. |
-| **Shadow 0** | Special | Shadow casting mesh (close range). |
-| **Shadow 1000** | Special | Shadow casting mesh (far range). Simpler than Shadow 0. |
-| **Memory** | Special | Contains pouze named points (no visible geometry). Used for attachment positions, sound origins, etc. |
-| **Roadway** | Special | Defines walkable surfaces on objects (vehicles, buildings with enterable interiors). |
-| **Paths** | Special | AI pathfinding hints for buildings. |
+| **Resolution 0** | 1.000 | Vizuální mesh s nejvyšším detailem. Vykresluje se, když je objekt blízko kamery. |
+| **Resolution 1** | 1.100 | Střední detail. Vykresluje se ve střední vzdálenosti. |
+| **Resolution 2** | 1.200 | Nízký detail. Vykresluje se ve velké vzdálenosti. |
+| **Resolution 3+** | 1.300+ | Další LOD pro vzdálenost. |
+| **View Geometry** | Speciální | Určuje, co blokuje pohled hráče (první osoba). Zjednodušený mesh. |
+| **Fire Geometry** | Speciální | Kolize pro kulky a projektily. Musí být konvexní nebo složená z konvexních částí. |
+| **Geometry** | Speciální | Fyzikální kolize. Používá se pro kolize pohybu, gravitaci, umístění. Musí být konvexní nebo složená z konvexní dekompozice. |
+| **Shadow 0** | Speciální | Mesh pro vrhání stínů (blízký dosah). |
+| **Shadow 1000** | Speciální | Mesh pro vrhání stínů (velký dosah). Jednodušší než Shadow 0. |
+| **Memory** | Speciální | Obsahuje pouze pojmenované body (žádná viditelná geometrie). Používá se pro pozice příslušenství, počátky zvuku atd. |
+| **Roadway** | Speciální | Definuje pochozí povrchy na objektech (vozidla, budovy s přístupnými interiéry). |
+| **Paths** | Speciální | Nápovědy pro pathfinding AI pro budovy. |
 
-### LOD Hierarchy
+### Hodnoty rozlišení LOD (vizuální LOD)
 
-```mermaid
-graph TB
-    P3D["weapon.p3d"]
-
-    P3D --> RES["Resolution LODs<br/>1.0, 2.0, 4.0, 8.0, 16.0<br/>Visible 3D meshes"]
-    P3D --> GEO["Geometry LOD<br/>Collision detection<br/>Convex hull"]
-    P3D --> FIRE["Fire Geometry LOD<br/>Bullet collision<br/>Simplified shape"]
-    P3D --> VIEW["View Geometry LOD<br/>Camera collision"]
-    P3D --> SHADOW["Shadow LODs<br/>0.0, 10.0, 1000.0<br/>Shadow casting"]
-    P3D --> MEM["Memory LOD<br/>Named points<br/>Attachment positions"]
-
-    style RES fill:#4A90D9,color:#fff
-    style GEO fill:#D94A4A,color:#fff
-    style FIRE fill:#D97A4A,color:#fff
-    style MEM fill:#2D8A4E,color:#fff
-```
-
-### LOD Resolution Values (Visual LODs)
-
-Engine uses a formula based on distance and object size to determine which visual LOD to render:
+Engine používá vzorec založený na vzdálenosti a velikosti objektu k určení, který vizuální LOD vykreslovat:
 
 ```
-LOD selected = (distance_to_object * LOD_factor) / object_bounding_sphere_radius
+Vybraný LOD = (vzdálenost_k_objektu * LOD_faktor) / poloměr_ohraničující_koule_objektu
 ```
 
-Lower values = closer camera. Engine finds the LOD whose resolution value is the closest match to the calculated value.
+Nižší hodnoty = bližší kamera. Engine najde LOD, jehož hodnota rozlišení je nejbližší shodou s vypočtenou hodnotou.
 
-### Creating LODs in Object Builder
+### Vytváření LOD v Object Builderu
 
-1. **File --> New LOD** or right-click the LOD list.
-2. Vyberte the LOD type from the dropdown.
-3. For visual LODs (Resolution), enter the resolution value.
-4. Model the geometry for that LOD.
+1. **File --> New LOD** nebo klikněte pravým na seznam LOD.
+2. Vyberte typ LOD z rozbalovacího seznamu.
+3. Pro vizuální LOD (Resolution) zadejte hodnotu rozlišení.
+4. Modelujte geometrii pro daný LOD.
 
-### LOD Requirements by Item Type
+### Požadavky LOD podle typu předmětu
 
-| Item Type | Required LODs | Recommended Additional LODs |
+| Typ předmětu | Povinné LOD | Doporučené další LOD |
 |-----------|---------------|----------------------------|
-| **Handheld item** | Resolution 0, Geometry, Fire Geometry, Memory | Shadow 0, Resolution 1 |
-| **Clothing** | Resolution 0, Geometry, Fire Geometry, Memory | Shadow 0, Resolution 1, Resolution 2 |
-| **Weapon** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Resolution 1, Resolution 2 |
-| **Building** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Shadow 1000, Roadway, Paths |
-| **Vehicle** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Roadway, Resolution 1+ |
+| **Ruční předmět** | Resolution 0, Geometry, Fire Geometry, Memory | Shadow 0, Resolution 1 |
+| **Oblečení** | Resolution 0, Geometry, Fire Geometry, Memory | Shadow 0, Resolution 1, Resolution 2 |
+| **Zbraň** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Resolution 1, Resolution 2 |
+| **Budova** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Shadow 1000, Roadway, Paths |
+| **Vozidlo** | Resolution 0, Geometry, Fire Geometry, View Geometry, Memory | Shadow 0, Roadway, Resolution 1+ |
 
-### Geometry LOD Rules
+### Pravidla Geometry LOD
 
-The Geometry and Fire Geometry LODs have strict requirements:
+Geometry a Fire Geometry LOD mají přísné požadavky:
 
-- **Must be convex** or composed of více convex components. Engine's physics system requires convex collision shapes.
-- **Named selections must match** those in the Resolution LOD (for animated parts).
-- **Mass musí být defined.** Vyberte all vertices in the Geometry LOD and assign mass via **Structure --> Mass**. This determines the object's physical weight.
-- **Udržujte it simple.** Fewer triangles = better physics performance. A weapon's geometry LOD might have 20-50 triangles vs. thousands in the visual LOD.
+- **Musí být konvexní** nebo složené z více konvexních komponent. Fyzikální systém enginu vyžaduje konvexní kolizní tvary.
+- **Pojmenované selekce musí odpovídat** těm v Resolution LOD (pro animované části).
+- **Hmotnost musí být definována.** Vyberte všechny vrcholy v Geometry LOD a přiřaďte hmotnost přes **Structure --> Mass**. To určuje fyzickou váhu objektu.
+- **Udržujte to jednoduché.** Méně trojúhelníků = lepší fyzikální výkon. Geometry LOD zbraně může mít 20-50 trojúhelníků oproti tisícům ve vizuálním LOD.
 
 ---
 
-## Named Selections
+## Pojmenované selekce
 
-Named selections are groups of vertices, edges, or faces within a LOD that are tagged with a name. They serve as handles that engine and scripts use to manipulate parts of a model.
+Pojmenované selekce jsou skupiny vrcholů, hran nebo ploch v rámci LOD, které jsou označeny názvem. Slouží jako rukojetě, které engine a skripty používají k manipulaci s částmi modelu.
 
-### What Named Selections Do
+### Co pojmenované selekce dělají
 
-| Purpose | Example Selection Name | Used By |
+| Účel | Příklad názvu selekce | Používáno |
 |---------|----------------------|---------|
-| **Animation** | `bolt`, `trigger`, `magazine` | `model.cfg` animation sources |
-| **Texture swaps** | `camo`, `camo1`, `body` | `hiddenSelections[]` in config.cpp |
-| **Damage textures** | `zbytek` | Engine damage system, material swaps |
-| **Attachment points** | `magazine`, `optics`, `suppressor` | Proxy and attachment system |
+| **Animace** | `bolt`, `trigger`, `magazine` | Zdroje animací `model.cfg` |
+| **Výměna textur** | `camo`, `camo1`, `body` | `hiddenSelections[]` v config.cpp |
+| **Textury poškození** | `zbytek` | Systém poškození enginu, výměny materiálů |
+| **Body příslušenství** | `magazine`, `optics`, `suppressor` | Systém proxy a příslušenství |
 
-### hiddenSelections (Texture Swaps)
+### hiddenSelections (výměna textur)
 
-The většina common use of named selections for modders is **hiddenSelections** -- the ability to swap textures za běhu via config.cpp.
+Nejběžnější použití pojmenovaných selekcí pro moddery je **hiddenSelections** -- schopnost zaměňovat textury za běhu přes config.cpp.
 
-**In the P3D model (Resolution LOD):**
-1. Vyberte the faces that should be retexturable.
-2. Name the selection (e.g., `camo`).
+**V P3D modelu (Resolution LOD):**
+1. Vyberte plochy, které by měly být retexturovatelné.
+2. Pojmenujte selekci (např. `camo`).
 
-**In config.cpp:**
+**V config.cpp:**
 ```cpp
 class MyRifle: Rifle_Base
 {
@@ -218,129 +199,110 @@ class MyRifle: Rifle_Base
 };
 ```
 
-This allows odlišný variants of the stejný model with odlišný textures without duplicating the P3D file.
+To umožňuje různé varianty stejného modelu s různými texturami bez duplikace souboru P3D.
 
-### Creating Named Selections
+### Vytváření pojmenovaných selekcí
 
-In Object Builder:
+V Object Builderu:
 
-1. Vyberte the vertices or faces chcete to group.
-2. Go to **Structure --> Named Selections** (or press Ctrl+N).
-3. Klikněte **New**, enter the selection name.
-4. Klikněte **Assign** to tag the selected geometry with that name.
+1. Vyberte vrcholy nebo plochy, které chcete seskupit.
+2. Přejděte na **Structure --> Named Selections** (nebo stiskněte Ctrl+N).
+3. Klikněte na **New**, zadejte název selekce.
+4. Klikněte na **Assign** pro označení vybrané geometrie tímto názvem.
 
-> **Tip:** Selection names are case-sensitive. `Camo` and `camo` are odlišný selections. Convention is lowercase.
+> **Tip:** Názvy selekcí rozlišují velká a malá písmena. `Camo` a `camo` jsou různé selekce. Konvence je používat malá písmena.
 
-### Selections Across LODs
+### Selekce napříč LOD
 
-Named selections musí být consistent across LODs for animations to work:
+Pojmenované selekce musí být konzistentní napříč LOD, aby animace fungovaly:
 
-- Pokud `bolt` selection exists in Resolution 0, it must také exist in Geometry and Fire Geometry LODs (covering the corresponding collision geometry).
-- Shadow LODs should také have the selection if the animated part should cast correct shadows.
+- Pokud selekce `bolt` existuje v Resolution 0, musí také existovat v LOD Geometry a Fire Geometry (pokrývající odpovídající kolizní geometrii).
+- Shadow LOD by měly také mít selekci, pokud má animovaná část vrhat správné stíny.
 
 ---
 
-## Memory Points
+## Paměťové body
 
-Memory points are named positions defined in the **Memory LOD**. They have no visual representation ve hře -- they define spatial coordinates that engine and scripts reference for positioning effects, attachments, sounds, and more.
+Paměťové body jsou pojmenované pozice definované v **Memory LOD**. Ve hře nemají vizuální reprezentaci -- definují prostorové souřadnice, které engine a skripty odkazují pro pozicování efektů, příslušenství, zvuků a dalšího.
 
-### Běžné Memory Points
+### Běžné paměťové body
 
-| Point Name | Purpose |
+| Název bodu | Účel |
 |------------|---------|
-| `usti hlavne` | Muzzle position (where bullets originate, muzzle flash appears) |
-| `konec hlavne` | End of barrel (used with `usti hlavne` to define barrel direction) |
-| `nabojnicestart` | Ejection port start (where shell casings emerge) |
-| `nabojniceend` | Ejection port end (direction of ejection) |
-| `handguard` | Handguard attachment point |
-| `magazine` | Magazine well position |
-| `optics` | Optic rail position |
-| `suppressor` | Suppressor mount position |
-| `trigger` | Trigger position (for hand IK) |
-| `pistolgrip` | Pistol grip position (for hand IK) |
-| `lefthand` | Left hand grip position |
-| `righthand` | Right hand grip position |
-| `eye` | Eye position (for first-person view alignment) |
-| `pilot` | Driver/pilot seat position (vehicles) |
-| `light_l` / `light_r` | Left/right headlight positions (vehicles) |
+| `usti hlavne` | Pozice ústí (kde vznikají kulky, objevuje se záblesk ústí) |
+| `konec hlavne` | Konec hlavně (použitý s `usti hlavne` pro definici směru hlavně) |
+| `nabojnicestart` | Začátek vyhazovacího otvoru (kde vylétávají nábojnice) |
+| `nabojniceend` | Konec vyhazovacího otvoru (směr vyhazování) |
+| `handguard` | Bod příslušenství předpažbí |
+| `magazine` | Pozice zásobníkové šachty |
+| `optics` | Pozice lišty optiky |
+| `suppressor` | Pozice montáže tlumiče |
+| `trigger` | Pozice spouště (pro IK ruky) |
+| `pistolgrip` | Pozice pistolové rukojeti (pro IK ruky) |
+| `lefthand` | Pozice úchopu levou rukou |
+| `righthand` | Pozice úchopu pravou rukou |
+| `eye` | Pozice oka (pro zarovnání pohledu první osoby) |
+| `pilot` | Pozice sedadla řidiče/pilota (vozidla) |
+| `light_l` / `light_r` | Pozice levého/pravého světlometu (vozidla) |
 
-### Directional Memory Points
+### Směrové paměťové body
 
-Many effects need oba a position and a direction. This is achieved with paired memory points:
+Mnoho efektů potřebuje jak pozici, tak směr. To je dosaženo párovými paměťovými body:
 
 ```
 usti hlavne  ------>  konec hlavne
-(muzzle start)        (muzzle end)
+(začátek ústí)        (konec ústí)
 
-The direction vector is: konec hlavne - usti hlavne
+Směrový vektor je: konec hlavne - usti hlavne
 ```
 
-### Creating Memory Points in Object Builder
+### Vytváření paměťových bodů v Object Builderu
 
-1. Switch to the **Memory LOD** in the LOD list.
-2. Vytvořte a vertex at the desired position.
-3. Name it via **Structure --> Named Selections**: create a selection with the point name and assign the jeden vertex to it.
+1. Přepněte na **Memory LOD** v seznamu LOD.
+2. Vytvořte vrchol na požadované pozici.
+3. Pojmenujte ho přes **Structure --> Named Selections**: vytvořte selekci s názvem bodu a přiřaďte k ní jeden vrchol.
 
-> **Poznámka:** The Memory LOD should contain ONLY named points (individual vertices). Do not create faces or edges in the Memory LOD.
+> **Poznámka:** Memory LOD by měl obsahovat POUZE pojmenované body (jednotlivé vrcholy). Nevytvářejte plochy ani hrany v Memory LOD.
 
 ---
 
-## The Proxy System
+## Systém proxy
 
-Proxies define positions where jiný P3D models can be attached. Když viz a magazine inserted in a weapon, an optic mounted on a rail, or a suppressor screwed onto a barrel -- those are proxy-attached models.
+Proxy definují pozice, kde mohou být připojeny jiné modely P3D. Když vidíte zásobník vložený ve zbrani, optiku namontovanou na liště nebo tlumič přišroubovaný na hlavni -- to jsou proxy-připojené modely.
 
-### How Proxies Work
+### Jak proxy fungují
 
-A proxy is a special reference placed in the Resolution LOD that points to další P3D file. Engine renders the proxy's referenced model at the proxy's position and orientation.
+Proxy je speciální odkaz umístěný v Resolution LOD, který ukazuje na jiný soubor P3D. Engine vykresluje model odkazovaný proxy na pozici a orientaci proxy.
 
-### Proxy Naming Convention
+### Konvence pojmenování proxy
 
-Proxy names follow the pattern: `proxy:\path\to\model.p3d`
+Názvy proxy sledují vzor: `proxy:\cesta\k\modelu.p3d`
 
-For attachment proxies on weapons, the standard names are:
+Pro proxy příslušenství na zbraních jsou standardní názvy:
 
-| Proxy Path | Attachment Type |
+| Cesta proxy | Typ příslušenství |
 |------------|----------------|
-| `proxy:\dz\weapons\attachments\magazine\mag_placeholder.p3d` | Magazine slot |
-| `proxy:\dz\weapons\attachments\optics\optic_placeholder.p3d` | Optics rail |
-| `proxy:\dz\weapons\attachments\suppressor\sup_placeholder.p3d` | Suppressor mount |
-| `proxy:\dz\weapons\attachments\handguard\handguard_placeholder.p3d` | Handguard slot |
-| `proxy:\dz\weapons\attachments\stock\stock_placeholder.p3d` | Stock/buttstock slot |
+| `proxy:\dz\weapons\attachments\magazine\mag_placeholder.p3d` | Slot zásobníku |
+| `proxy:\dz\weapons\attachments\optics\optic_placeholder.p3d` | Lišta optiky |
+| `proxy:\dz\weapons\attachments\suppressor\sup_placeholder.p3d` | Montáž tlumiče |
+| `proxy:\dz\weapons\attachments\handguard\handguard_placeholder.p3d` | Slot předpažbí |
+| `proxy:\dz\weapons\attachments\stock\stock_placeholder.p3d` | Slot pažby |
 
-### Adding Proxies in Object Builder
+### Přidávání proxy v Object Builderu
 
-1. In the Resolution LOD, position the 3D cursor where the attachment should appear.
-2. Go to **Structure --> Proxy --> Create**.
-3. Enter the proxy path (e.g., `dz\weapons\attachments\magazine\mag_placeholder.p3d`).
-4. The proxy appears as a small arrow indicating position and orientation.
-5. Rotate and position the proxy to align správně with the attachment geometry.
-
-### Proxy Index
-
-Each proxy has an index number (starting from 1). Když model has více proxies of the stejný type, index odlišnýiates them. The index is referenced in config.cpp:
-
-```cpp
-class MyWeapon: Rifle_Base
-{
-    class Attachments
-    {
-        class magazine
-        {
-            type = "magazine";
-            proxy = "proxy:\dz\weapons\attachments\magazine\mag_placeholder.p3d";
-            proxyIndex = 1;
-        };
-    };
-};
-```
+1. V Resolution LOD umístěte 3D kurzor tam, kde se má příslušenství objevit.
+2. Přejděte na **Structure --> Proxy --> Create**.
+3. Zadejte cestu proxy (např. `dz\weapons\attachments\magazine\mag_placeholder.p3d`).
+4. Proxy se objeví jako malá šipka indikující pozici a orientaci.
+5. Otočte a umístěte proxy tak, aby správně odpovídala geometrii příslušenství.
 
 ---
 
-## Model.cfg for Animations
+## Model.cfg pro animace
 
-The `model.cfg` file defines animations for P3D models. It maps animation sources (driven by herní logika) to transformations on named selections.
+Soubor `model.cfg` definuje animace pro modely P3D. Mapuje zdroje animací (řízené herní logikou) na transformace pojmenovaných selekcí.
 
-### Basic Structure
+### Základní struktura
 
 ```cpp
 class CfgModels
@@ -362,14 +324,14 @@ class CfgModels
             class bolt_move
             {
                 type = "translation";
-                source = "reload";        // Engine animation source
-                selection = "bolt";       // Named selection in P3D
-                axis = "bolt_axis";       // Axis memory point pair
-                memory = 1;               // Axis defined in Memory LOD
+                source = "reload";        // Zdroj animace enginu
+                selection = "bolt";       // Pojmenovaná selekce v P3D
+                axis = "bolt_axis";       // Pár paměťových bodů osy
+                memory = 1;               // Osa definovaná v Memory LOD
                 minValue = 0;
                 maxValue = 1;
                 offset0 = 0;
-                offset1 = 0.05;           // 5cm translation
+                offset1 = 0.05;           // Translace 5cm
             };
 
             class trigger_move
@@ -382,7 +344,7 @@ class CfgModels
                 minValue = 0;
                 maxValue = 1;
                 angle0 = 0;
-                angle1 = -0.4;            // Radians
+                angle1 = -0.4;            // Radiány
             };
         };
     };
@@ -401,7 +363,7 @@ class CfgSkeletons
     {
         skeletonBones[] =
         {
-            "bolt", "",          // "bone_name", "parent_bone" ("" = root)
+            "bolt", "",          // "název_kosti", "rodičovská_kost" ("" = kořen)
             "trigger", "",
             "magazine", ""
         };
@@ -409,170 +371,170 @@ class CfgSkeletons
 };
 ```
 
-### Animation Types
+### Typy animací
 
-| Type | Keyword | Movement | Controlled By |
+| Typ | Klíčové slovo | Pohyb | Řízeno |
 |------|---------|----------|---------------|
-| **Translation** | `translation` | Linear movement along an axis | `offset0` / `offset1` (meters) |
-| **Rotation** | `rotation` | Rotation around an axis | `angle0` / `angle1` (radians) |
-| **RotationX/Y/Z** | `rotationX` | Rotation around a fixed world axis | `angle0` / `angle1` |
-| **Hide** | `hide` | Show/hide a selection | `hideValue` threshold |
+| **Translace** | `translation` | Lineární pohyb podél osy | `offset0` / `offset1` (metry) |
+| **Rotace** | `rotation` | Rotace kolem osy | `angle0` / `angle1` (radiány) |
+| **RotaceX/Y/Z** | `rotationX` | Rotace kolem pevné světové osy | `angle0` / `angle1` |
+| **Skrytí** | `hide` | Zobrazení/skrytí selekce | Práh `hideValue` |
 
-### Animation Sources
+### Zdroje animací
 
-Animation sources are engine-provided values that drive animations:
+Zdroje animací jsou hodnoty poskytované enginem, které řídí animace:
 
-| Source | Range | Description |
+| Zdroj | Rozsah | Popis |
 |--------|-------|-------------|
-| `reload` | 0-1 | Weapon reload phase |
-| `trigger` | 0-1 | Trigger pull |
-| `zeroing` | 0-N | Weapon zeroing setting |
-| `isFlipped` | 0-1 | Iron sight flip state |
-| `door` | 0-1 | Door open/close |
-| `rpm` | 0-N | Vehicle engine RPM |
-| `speed` | 0-N | Vehicle speed |
-| `fuel` | 0-1 | Vehicle fuel level |
-| `damper` | 0-1 | Vehicle suspension |
+| `reload` | 0-1 | Fáze přebíjení zbraně |
+| `trigger` | 0-1 | Stisk spouště |
+| `zeroing` | 0-N | Nastavení nástřelu zbraně |
+| `isFlipped` | 0-1 | Stav překlápění mířidla |
+| `door` | 0-1 | Otevření/zavření dveří |
+| `rpm` | 0-N | Otáčky motoru vozidla |
+| `speed` | 0-N | Rychlost vozidla |
+| `fuel` | 0-1 | Úroveň paliva vozidla |
+| `damper` | 0-1 | Odpružení vozidla |
 
 ---
 
-## Importing from FBX/OBJ
+## Import z FBX/OBJ
 
-Most modders create 3D models in externí přílišls (Blender, 3ds Max, Maya) and import them into Object Builder.
+Většina modderů vytváří 3D modely v externích nástrojích (Blender, 3ds Max, Maya) a importuje je do Object Builderu.
 
-### Supported Import Formats
+### Podporované importní formáty
 
-| Format | Extension | Notes |
+| Formát | Přípona | Poznámky |
 |--------|-----------|-------|
-| **FBX** | `.fbx` | Best compatibility. Export as FBX 2013 or later (binary). |
-| **OBJ** | `.obj` | Wavefront OBJ. Simple mesh data pouze (no animations). |
-| **3DS** | `.3ds` | Legacy 3ds Max format. Limited to 65K vertices per mesh. |
+| **FBX** | `.fbx` | Nejlepší kompatibilita. Exportujte jako FBX 2013 nebo novější (binární). |
+| **OBJ** | `.obj` | Wavefront OBJ. Pouze jednoduchá data meshe (žádné animace). |
+| **3DS** | `.3ds` | Starší formát 3ds Max. Omezen na 65K vrcholů na mesh. |
 
-### Import Workflow
+### Pracovní postup importu
 
-**Step 1: Prepare in your 3D software**
-- Model should be centered at origin.
-- Apply all transforms (location, rotation, scale).
-- Scale: 1 unit = 1 meter. DayZ uses meters.
-- Triangulate the mesh (Object Builder works with triangles).
-- UV unwrap the model.
-- Export as FBX (binary, no animation, Y-up or Z-up -- Object Builder handles oba).
+**Krok 1: Příprava ve vašem 3D softwaru**
+- Model by měl být vycentrován v počátku.
+- Aplikujte všechny transformace (poloha, rotace, měřítko).
+- Měřítko: 1 jednotka = 1 metr. DayZ používá metry.
+- Triangulujte mesh (Object Builder pracuje s trojúhelníky).
+- UV rozbalte model.
+- Exportujte jako FBX (binární, bez animace, Y-up nebo Z-up -- Object Builder zvládne obojí).
 
-**Step 2: Import into Object Builder**
+**Krok 2: Import do Object Builderu**
 1. Otevřete Object Builder.
-2. **File --> Import --> FBX** (or OBJ/3DS).
-3. Review the import settings:
-   - Scale factor (should be 1.0 if your source is in meters).
-   - Axis conversion (Z-up to Y-up if needed).
-4. The mesh appears in a nový Resolution LOD.
+2. **File --> Import --> FBX** (nebo OBJ/3DS).
+3. Zkontrolujte nastavení importu:
+   - Faktor měřítka (měl by být 1.0, pokud je váš zdroj v metrech).
+   - Konverze os (Z-up na Y-up pokud je potřeba).
+4. Mesh se objeví v novém Resolution LOD.
 
-**Step 3: Post-import setup**
-1. Assign materials to faces (select faces, right-click --> **Face Properties**).
-2. Vytvořte additional LODs (Geometry, Fire Geometry, Memory, Shadow).
-3. Simplify geometry for collision LODs (remove small details, ensure convexity).
-4. Přidejte named selections, memory points, and proxies.
-5. Validate and save.
+**Krok 3: Nastavení po importu**
+1. Přiřaďte materiály plochám (vyberte plochy, klikněte pravým --> **Face Properties**).
+2. Vytvořte další LOD (Geometry, Fire Geometry, Memory, Shadow).
+3. Zjednodušte geometrii pro kolizní LOD (odstraňte malé detaily, zajistěte konvexnost).
+4. Přidejte pojmenované selekce, paměťové body a proxy.
+5. Validujte a uložte.
 
-### Blender-Specific Tips
+### Tipy specifické pro Blender
 
-- Use the **Blender DayZ Toolbox** community addon if dostupný -- it streamlines export settings.
-- Export with: **Apply Modifiers**, **Triangulate Faces**, **Apply Scale**.
-- Nastavte **Forward: -Z Forward**, **Up: Y Up** in the FBX export dialog.
-- Name mesh objects in Blender to match intended named selections -- některé importers preserve object names.
+- Použijte komunitní addon **Blender DayZ Toolbox**, pokud je dostupný -- zjednodušuje nastavení exportu.
+- Exportujte s: **Apply Modifiers**, **Triangulate Faces**, **Apply Scale**.
+- Nastavte **Forward: -Z Forward**, **Up: Y Up** v dialogu exportu FBX.
+- Pojmenujte mesh objekty v Blenderu tak, aby odpovídaly zamýšleným pojmenovaným selekcím -- některé importéry zachovávají názvy objektů.
 
 ---
 
-## Běžné Model Types
+## Běžné typy modelů
 
-### Weapons
+### Zbraně
 
-Weapons are the většina complex P3D models, requiring:
-- High-poly Resolution LOD (5,000-20,000 triangles)
-- Multiple named selections (bolt, trigger, magazine, camo, etc.)
-- Full memory point set (muzzle, ejection, grip positions)
-- Multiple proxies (magazine, optics, suppressor, handguard, stock)
-- Skeleton and animations in model.cfg
-- View Geometry for first-person obstruction
+Zbraně jsou nejsložitější modely P3D, vyžadující:
+- Resolution LOD s vysokým počtem polygonů (5 000-20 000 trojúhelníků)
+- Více pojmenovaných selekcí (bolt, trigger, magazine, camo atd.)
+- Kompletní sadu paměťových bodů (ústí, vyhazování, pozice úchopu)
+- Více proxy (zásobník, optika, tlumič, předpažbí, pažba)
+- Skeleton a animace v model.cfg
+- View Geometry pro zablokování pohledu v první osobě
 
-### Clothing
+### Oblečení
 
-Clothing models are rigged to the character skeleton:
-- Resolution LOD follows the character's bone structure
-- Named selections for texture variants (`camo`, `camo1`)
-- Simpler collision geometry
-- No proxies (usually)
-- hiddenSelections for color/camo variants
+Modely oblečení jsou rigovány na skeleton postavy:
+- Resolution LOD sleduje strukturu kostí postavy
+- Pojmenované selekce pro varianty textur (`camo`, `camo1`)
+- Jednodušší kolizní geometrie
+- Bez proxy (obvykle)
+- hiddenSelections pro barevné/kamuflážní varianty
 
-### Buildings
+### Budovy
 
-Buildings have unique requirements:
-- Large, detailed Resolution LODs
-- Roadway LOD for walkable surfaces (floors, stairs)
-- Paths LOD for AI navigation
-- View Geometry to prevent seeing through walls
-- Multiple Shadow LODs for performance at odlišný distances
-- Named selections for doors and windows that open
+Budovy mají unikátní požadavky:
+- Velké, detailní Resolution LOD
+- Roadway LOD pro pochozí povrchy (podlahy, schodiště)
+- Paths LOD pro navigaci AI
+- View Geometry pro zabránění průhledu zdmi
+- Více Shadow LOD pro výkon na různých vzdálenostech
+- Pojmenované selekce pro dveře a okna, která se otevírají
 
-### Vehicles
+### Vozidla
 
-Vehicles combine mnoho systems:
-- Detailed Resolution LOD with animated parts (wheels, doors, hood)
-- Complex skeleton with mnoho bones
-- Roadway LOD for passengers standing in truck beds
-- Memory points for lights, exhaust, driver position, passenger seats
-- Multiple proxies for attachments (wheels, doors)
+Vozidla kombinují mnoho systémů:
+- Detailní Resolution LOD s animovanými částmi (kola, dveře, kapota)
+- Složitý skeleton s mnoha kostmi
+- Roadway LOD pro pasažéry stojící v korbách nákladních aut
+- Paměťové body pro světla, výfuk, pozici řidiče, sedadla spolujezdců
+- Více proxy pro příslušenství (kola, dveře)
 
 ---
 
 ## Časté chyby
 
-### 1. Missing Geometry LOD
+### 1. Chybějící Geometry LOD
 
-**Symptom:** Object has no collision. Players and bullets pass through it.
-**Fix:** Vytvořte a Geometry LOD with a simplified convex mesh. Assign mass to vertices.
+**Příznak:** Objekt nemá kolizi. Hráči a kulky jím procházejí.
+**Oprava:** Vytvořte Geometry LOD se zjednodušeným konvexním meshem. Přiřaďte hmotnost vrcholům.
 
-### 2. Non-Convex Collision Shapes
+### 2. Nekonvexní kolizní tvary
 
-**Symptom:** Physics glitches, objects bouncing erratically, items falling through surfaces.
-**Fix:** Break complex shapes into více convex components in the Geometry LOD. Each component must be a closed convex solid.
+**Příznak:** Fyzikální závady, objekty se nepředvídatelně odrážejí, předměty propadávají povrchy.
+**Oprava:** Rozdělte složité tvary na více konvexních komponent v Geometry LOD. Každá komponenta musí být uzavřený konvexní solid.
 
-### 3. Inconsistent Named Selections
+### 3. Nekonzistentní pojmenované selekce
 
-**Symptom:** Animations pouze work visually but not for collision, or shadow ne animate.
-**Fix:** Zajistěte každý named selection that exists in the Resolution LOD také exists in Geometry, Fire Geometry, and Shadow LODs.
+**Příznak:** Animace fungují pouze vizuálně, ale ne pro kolizi, nebo stín se neanimuje.
+**Oprava:** Zajistěte, aby každá pojmenovaná selekce, která existuje v Resolution LOD, existovala také v LOD Geometry, Fire Geometry a Shadow.
 
-### 4. Wrong Scale
+### 4. Špatné měřítko
 
-**Symptom:** Object is gigantic or microscopic ve hře.
-**Fix:** Ověřte your 3D software uses meters as the unit. A DayZ character is approximately 1.8 meters tall.
+**Příznak:** Objekt je ve hře obrovský nebo mikroskopický.
+**Oprava:** Ověřte, že váš 3D software používá metry jako jednotku. Postava DayZ je přibližně 1,8 metru vysoká.
 
-### 5. Missing Memory Points
+### 5. Chybějící paměťové body
 
-**Symptom:** Muzzle flash appears at the wrong position, attachments float in space.
-**Fix:** Vytvořte the Memory LOD and add all povinný named points at correct positions.
+**Příznak:** Záblesk ústí se objevuje na špatné pozici, příslušenství se vznáší v prostoru.
+**Oprava:** Vytvořte Memory LOD a přidejte všechny povinné pojmenované body na správné pozice.
 
-### 6. No Mass Defined
+### 6. Nedefinovaná hmotnost
 
-**Symptom:** Object nemůže být picked up, or physics interactions behave strangely.
-**Fix:** Vyberte all vertices in the Geometry LOD and assign mass via **Structure --> Mass**.
+**Příznak:** Objekt nelze zvednout nebo se fyzikální interakce chová podivně.
+**Oprava:** Vyberte všechny vrcholy v Geometry LOD a přiřaďte hmotnost přes **Structure --> Mass**.
 
 ---
 
 ## Osvědčené postupy
 
-1. **Spusťte with the Geometry LOD.** Block out your collision shape first, then build the visual detail on top. This prevents the common mistake of creating a beautiful model that cannot collide properly.
+1. **Začněte s Geometry LOD.** Nejdříve vytvořte blokový kolizní tvar, pak na něm budujte vizuální detail. To předchází běžné chybě vytvoření krásného modelu, který nemůže správně kolidovat.
 
-2. **Use reference models.** Extract vanilla P3D files from the game data and study them in Object Builder. They show exactly what engine expects for každý item type.
+2. **Používejte referenční modely.** Extrahujte vanilla soubory P3D z herních dat a studujte je v Object Builderu. Ukazují přesně, co engine očekává pro každý typ předmětu.
 
-3. **Validate frequently.** Use Object Builder's **Structure --> Validate** after každý significant change. Fix warnings before they become mysterious ve hře bugs.
+3. **Validujte často.** Používejte **Structure --> Validate** Object Builderu po každé významné změně. Opravte varování dříve, než se stanou záhadnými chybami ve hře.
 
-4. **Udržujte LOD triangle counts proportional.** Resolution 0 might have 10,000 triangles; Resolution 1 should have ~5,000; Geometry should have ~100-500. Dramatic reduction at každý level.
+4. **Udržujte počty trojúhelníků LOD proporcionální.** Resolution 0 může mít 10 000 trojúhelníků; Resolution 1 by měl mít ~5 000; Geometry by měla mít ~100-500. Dramatické snížení na každé úrovni.
 
-5. **Name selections descriptively.** Use `bolt_carrier` místo `sel01`. Your future self (and jiný modders) will thank you.
+5. **Pojmenovávejte selekce popisně.** Používejte `bolt_carrier` místo `sel01`. Vaše budoucí já (a ostatní moddeři) vám poděkují.
 
-6. **Testujte with file patching first.** Načtěte your unbinarized P3D via file patching mode before committing to a plný PBO build. This catches většina issues faster.
+6. **Testujte nejdříve s file patchingem.** Načtěte svůj nebinarizovaný P3D přes režim file patching před zaváděním do plného PBO sestavení. To zachytí většinu problémů rychleji.
 
-7. **Document memory points.** Udržujte a reference image or text file listing all memory points and their intended positions. Complex weapons can have 20+ points.
+7. **Dokumentujte paměťové body.** Udržujte referenční obrázek nebo textový soubor se seznamem všech paměťových bodů a jejich zamýšlených pozic. Složité zbraně mohou mít 20+ bodů.
 
 ---
 
@@ -580,22 +542,22 @@ Vehicles combine mnoho systems:
 
 | Vzor | Mod | Detail |
 |---------|-----|--------|
-| Full LOD chain with 5+ resolution levels | DayZ-Samples (Test_Weapon) | Shows complete LOD hierarchy: Resolution 1.0 through 16.0, plus Geometry, Fire Geometry, Memory, Shadow |
-| Complex skeletons with 20+ bones | Expansion Vehicles | Helicopter and boat models use extensive bone hierarchies for doors, rotors, rudders, and turrets |
-| Proxy stacking for modular weapons | Dabs Framework (RFCP weapons) | Weapons use více proxy slots for rail attachments, allowing optic + laser + grip combos |
+| Kompletní řetězec LOD s 5+ úrovněmi rozlišení | DayZ-Samples (Test_Weapon) | Ukazuje kompletní hierarchii LOD: Resolution 1.0 až 16.0, plus Geometry, Fire Geometry, Memory, Shadow |
+| Složité skeletony s 20+ kostmi | Expansion Vehicles | Modely helikoptér a lodí používají rozsáhlé hierarchie kostí pro dveře, rotory, kormidla a střelecké věžičky |
+| Vrstvení proxy pro modulární zbraně | Dabs Framework (zbraně RFCP) | Zbraně používají více proxy slotů pro příslušenství na lištu, umožňující kombinace optika + laser + rukojeť |
 
 ---
 
 ## Kompatibilita a dopad
 
-- **Více modů:** Two mods může bezpečně reference odlišný P3D models without conflict. Conflicts arise pouze when oba mods try to `modded class` the stejný entity and change its `model` path in config.cpp.
-- **Výkon:** Each visible P3D adds draw calls proportional to its material count. Models with 10+ materials per LOD can be expensive in scenes with mnoho instances. Udržujte material count under 4 per visual LOD when možný.
-- **Verze:** The P3D format (MLOD/ODOL) has remained stable across DayZ updates. Object Builder occasionally receives minor updates via DayZ Tools, but the format itself has not changed since DayZ 1.0.
+- **Více modů:** Dva mody mohou bezpečně odkazovat na různé modely P3D bez konfliktu. Konflikty vznikají pouze tehdy, když se oba mody pokusí o `modded class` stejné entity a změní její cestu `model` v config.cpp.
+- **Výkon:** Každý viditelný P3D přidává draw calls úměrné počtu jeho materiálů. Modely s 10+ materiály na LOD mohou být nákladné ve scénách s mnoha instancemi. Udržujte počet materiálů pod 4 na vizuální LOD, kdy je to možné.
+- **Verze:** Formát P3D (MLOD/ODOL) zůstal stabilní napříč aktualizacemi DayZ. Object Builder příležitostně dostává drobné aktualizace přes DayZ Tools, ale samotný formát se nezměnil od DayZ 1.0.
 
 ---
 
 ## Navigace
 
-| Previous | Up | Next |
+| Předchozí | Nahoru | Další |
 |----------|----|------|
-| [4.1 Textures](01-textures.md) | [Part 4: File Formats & DayZ Tools](01-textures.md) | [4.3 Materials](03-materials.md) |
+| [4.1 Textury](01-textures.md) | [Část 4: Formáty souborů a DayZ Tools](01-textures.md) | [4.3 Materiály](03-materials.md) |
