@@ -84,6 +84,25 @@ Generator vytvari mrizku kandidatnich pozic kolem kazde bubliny:
 
 Kazda bublina dostane mrizku 200x200 m s bodem kazdych 4 m (~2 500 kandidatu). Engine filtruje podle sklonu a vzdalenosti od statickych objektu, pote aplikuje `spawn_params` pri spawnu.
 
+#### Parametr `allow_in_water` (1.28+)
+
+Od DayZ 1.28 byl do `generator_params` přidán nový booleovský parametr `allow_in_water` (výchozí: `false`). Když je nastaven na `true`, generátor spawnových bodů bude považovat pozice ve vodě za platné spawnové body:
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+Ve výchozím nastavení engine odmítne jakoukoli kandidátní pozici, která spadá do vody (rybníky, řeky, oceán). Nastavení `allow_in_water` na `true` tento filtr odstraní. Toto je primárně užitečné pro vlastní mapy se spawny na ostrovech nebo scénáře, kde jsou spawny v pobřežní vodě záměrné. Pro většinu serverů ponechte hodnotu na `false`, abyste zabránili spawnování hráčů v jezerech nebo oceánu.
+
 ---
 
 ## Parametry skupin

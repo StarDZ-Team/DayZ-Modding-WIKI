@@ -17,9 +17,9 @@
   8. [Sin Escape de String para Backslash/Comilla](#8-sin-escape-de-string-para-backslashcomilla)
   9. [Sin Redeclaracion de Variables en Bloques else-if](#9-sin-redeclaracion-de-variables-en-bloques-else-if)
   10. [Sin Ternario en Declaracion de Variable](#10-sin-ternario-en-declaracion-de-variable)
-  11. [Object.IsAlive() NO Existe en Object Base](#11-objectisalive-no-existe-en-object-base)
+  11. [Sin Llamadas a Funcion Multilinea](#11-sin-llamadas-a-funcion-multilinea)
   12. [Sin nullptr --- Usa NULL o null](#12-sin-nullptr--usa-null-o-null)
-  13. [switch/case NO Tiene Fall-Through](#13-switchcase-no-tiene-fall-through)
+  13. [switch/case SI Tiene Fall-Through](#13-switchcase-si-tiene-fall-through)
   14. [Sin Expresiones en Parametros Predeterminados](#14-sin-expresiones-en-parametros-predeterminados)
   15. [JsonFileLoader.JsonLoadFile Retorna void](#15-jsonfileloaderjsonloadfile-retorna-void)
   16. [Sin Sustitucion de Valores con #define](#16-sin-sustitucion-de-valores-con-define)
@@ -37,6 +37,18 @@
   28. [Sin Garantia de Destructor en Apagado del Servidor](#28-sin-garantia-de-destructor-en-apagado-del-servidor)
   29. [Sin Gestion de Recursos Basada en Ambito (RAII)](#29-sin-gestion-de-recursos-basada-en-ambito-raii)
   30. [GetGame().GetPlayer() Retorna null en el Servidor](#30-getgamegetplayer-retorna-null-en-el-servidor)
+  31. [Las Clases `sealed` No Pueden Extenderse (1.28+)](#31-las-clases-sealed-no-pueden-extenderse-128)
+  32. [Limite de Parametros de Metodo: 16 Maximo (1.28+)](#32-limite-de-parametros-de-metodo-16-maximo-128)
+  33. [Advertencias del Atributo `Obsolete` (1.28+)](#33-advertencias-del-atributo-obsolete-128)
+  34. [Bug de Comparacion con `int.MIN`](#34-bug-de-comparacion-con-intmin)
+  35. [La Negacion Booleana de Elementos de Array Falla](#35-la-negacion-booleana-de-elementos-de-array-falla)
+  36. [Expresion Compleja en Asignacion de Array Crashea](#36-expresion-compleja-en-asignacion-de-array-crashea)
+  37. [`foreach` sobre Valor de Retorno de Metodo Crashea](#37-foreach-sobre-valor-de-retorno-de-metodo-crashea)
+  38. [Precedencia de Operador Bitwise vs Comparacion](#38-precedencia-de-operador-bitwise-vs-comparacion)
+  39. [Bloques `#ifdef` / `#ifndef` Vacios Crashean](#39-bloques-ifdef--ifndef-vacios-crashean)
+  40. [`GetGame().IsClient()` Retorna False Durante la Carga](#40-getgameisclient-retorna-false-durante-la-carga)
+  41. [Mensajes de Error de Compilacion Reportan Archivo Incorrecto](#41-mensajes-de-error-de-compilacion-reportan-archivo-incorrecto)
+  42. [Los Archivos `crash_*.log` No Son Crashes](#42-los-archivos-crashlog-no-son-crashes)
 - [Viniendo de C++](#viniendo-de-c)
 - [Viniendo de C#](#viniendo-de-c-1)
 - [Viniendo de Java](#viniendo-de-java)
@@ -348,25 +360,25 @@ else
 
 ---
 
-### 11. Object.IsAlive() NO Existe en Object Base
+### 11. Sin Llamadas a Funcion Multilinea
 
 **Lo que escribirias:**
 ```c
-Object obj = GetSomething();
-if (obj.IsAlive())  // Verificar si esta vivo
+string msg = string.Format(
+    "Player %1 at %2",
+    name,
+    pos
+);
 ```
 
-**Lo que ocurre:** Error de compilacion o crash en tiempo de ejecucion. `IsAlive()` esta definido en `EntityAI`, no en `Object`.
+**Lo que ocurre:** Error de compilacion. El parser de Enforce Script no maneja de forma confiable las llamadas a funcion divididas en multiples lineas.
 
 **Solucion correcta:**
 ```c
-Object obj = GetSomething();
-EntityAI eai;
-if (Class.CastTo(eai, obj) && eai.IsAlive())
-{
-    // Confirmado vivo de forma segura
-}
+string msg = string.Format("Player %1 at %2", name, pos);
 ```
+
+Manten las llamadas a funcion en una sola linea. Si la linea es muy larga, divide el trabajo en variables intermedias.
 
 ---
 
@@ -388,45 +400,39 @@ if (!obj)           // verificacion de null idiomatica (preferida)
 
 ---
 
-### 13. switch/case NO Tiene Fall-Through
+### 13. switch/case SI Tiene Fall-Through
 
-**Lo que escribirias (esperando fall-through de C/C++):**
+El switch/case de Enforce Script **SI** tiene fall-through cuando se omite `break`, igual que C/C++. El codigo vanilla usa fall-through intencionalmente (biossessionservice.c:182 tiene el comentario "Intentionally no break, fall through to connecting").
+
+**Lo que escribirias:**
 ```c
 switch (value)
 {
     case 1:
     case 2:
     case 3:
-        Print("1, 2, or 3");  // En C++, los casos 1 y 2 caen hasta aqui
+        Print("1, 2, or 3");  // Los tres casos llegan aqui --- el fall-through funciona
         break;
 }
 ```
 
-**Lo que ocurre:** Solo el caso 3 ejecuta el Print. Los casos 1 y 2 estan vacios --- no hacen nada y NO caen al siguiente.
+**Esto funciona como se espera.** Los casos 1 y 2 caen al handler del caso 3.
 
-**Solucion correcta:**
+**La gotcha:** Olvidar `break` cuando NO quieres fall-through:
 ```c
-if (value >= 1 && value <= 3)
+switch (state)
 {
-    Print("1, 2, or 3");
-}
-
-// O manejar cada caso explicitamente:
-switch (value)
-{
+    case 0:
+        Print("Zero");
+        // Falta break! Cae al caso 1
     case 1:
-        Print("1, 2, or 3");
-        break;
-    case 2:
-        Print("1, 2, or 3");
-        break;
-    case 3:
-        Print("1, 2, or 3");
+        Print("One");
         break;
 }
+// Si state == 0, imprime AMBOS "Zero" y "One"
 ```
 
-> **Nota:** `break` es tecnicamente opcional en Enforce Script ya que no hay fall-through, pero es convencional incluirlo.
+**Regla:** Siempre usa `break` al final de cada case a menos que intencionalmente quieras fall-through. Cuando si quieras fall-through, agrega un comentario para dejarlo claro.
 
 ---
 
@@ -924,6 +930,167 @@ player.DoSomething();  // CRASH en el servidor!
 
 ---
 
+### 31. Las Clases `sealed` No Pueden Extenderse (1.28+)
+
+A partir de DayZ 1.28, el compilador de Enforce Script aplica la palabra clave `sealed`. Una clase o metodo marcado como `sealed` no puede heredarse ni sobreescribirse. Si intentas extender una clase sealed:
+
+```c
+// Si BI marca SomeVanillaClass como sealed:
+class MyClass : SomeVanillaClass  // ERROR DE COMPILACION en 1.28+
+{
+}
+```
+
+Verifica el dump de scripts vanilla para ver si alguna clase esta marcada como `sealed` antes de intentar heredar de ella. Si necesitas modificar el comportamiento de una clase sealed, usa composicion (envuelvela) en lugar de herencia.
+
+---
+
+### 32. Limite de Parametros de Metodo: 16 Maximo (1.28+)
+
+Enforce Script siempre ha tenido un limite de 16 parametros en metodos, pero antes de 1.28 era un buffer overflow silencioso que causaba crashes aleatorios. A partir de 1.28, el compilador produce un **error duro**:
+
+```c
+// ERROR DE COMPILACION en 1.28+ --- excede 16 parametros
+void MyMethod(int a, int b, int c, int d, int e, int f, int g, int h,
+              int i, int j, int k, int l, int m, int n, int o, int p,
+              int q)  // 17mo parametro = error
+{
+}
+```
+
+**Solucion:** Refactoriza para pasar una clase o array en lugar de parametros individuales.
+
+---
+
+### 33. Advertencias del Atributo `Obsolete` (1.28+)
+
+DayZ 1.28 introdujo el atributo `Obsolete`. Las funciones y clases marcadas con `[Obsolete]` generan advertencias del compilador. Estas APIs todavia funcionan pero estan programadas para eliminarse en una actualizacion futura. Revisa la salida de tu build para advertencias de obsolescencia y migra al reemplazo recomendado.
+
+---
+
+### 34. Bug de Comparacion con `int.MIN`
+
+Las comparaciones que involucran `int.MIN` (-2147483648) producen resultados incorrectos:
+
+```c
+int val = 1;
+if (val < int.MIN)  // Se evalua como TRUE --- deberia ser false
+{
+    // Este bloque se ejecuta incorrectamente
+}
+```
+
+Evita comparaciones directas con `int.MIN`. Usa una constante almacenada en su lugar o compara contra un valor negativo especifico.
+
+---
+
+### 35. La Negacion Booleana de Elementos de Array Falla
+
+La negacion booleana directa de elementos de array no compila:
+
+```c
+array<int> list = {0, 1, 2};
+if (!list[1])          // NO COMPILA
+if (list[1] == 0)      // Funciona --- usa comparacion explicita
+```
+
+Siempre usa verificaciones de igualdad explicitas al probar la veracidad de elementos de array.
+
+---
+
+### 36. Expresion Compleja en Asignacion de Array Crashea
+
+Asignar una expresion compleja directamente a un elemento de array puede causar un segmentation fault:
+
+```c
+// CRASHEA en tiempo de ejecucion
+m_Values[index] = vector.DistanceSq(posA, posB) <= distSq;
+
+// SEGURO --- usa variable intermedia
+bool result = vector.DistanceSq(posA, posB) <= distSq;
+m_Values[index] = result;
+```
+
+Siempre almacena los resultados de expresiones complejas en una variable local antes de asignarlos a un array.
+
+---
+
+### 37. `foreach` sobre Valor de Retorno de Metodo Crashea
+
+Usar `foreach` directamente sobre el valor de retorno de un metodo causa una excepcion de puntero nulo en la segunda iteracion:
+
+```c
+// CRASHEA en el 2do item
+foreach (string item : GetMyArray())
+{
+}
+
+// SEGURO --- almacena en variable local primero
+array<string> items = GetMyArray();
+foreach (string item : items)
+{
+}
+```
+
+---
+
+### 38. Precedencia de Operador Bitwise vs Comparacion
+
+Los operadores bitwise tienen **menor** precedencia que los operadores de comparacion, siguiendo las reglas de C/C++:
+
+```c
+int flags = 5;
+int mask = 4;
+if (flags & mask == mask)      // INCORRECTO: se evalua como flags & (mask == mask)
+if ((flags & mask) == mask)    // CORRECTO: siempre usa parentesis
+```
+
+---
+
+### 39. Bloques `#ifdef` / `#ifndef` Vacios Crashean
+
+Los bloques condicionales del preprocesador vacios --- incluso aquellos que contienen solo comentarios --- causan segmentation faults:
+
+```c
+#ifdef SOME_DEFINE
+    // Este bloque de solo comentarios causa un SEGFAULT
+#endif
+```
+
+Siempre incluye al menos una sentencia ejecutable o elimina el bloque por completo.
+
+---
+
+### 40. `GetGame().IsClient()` Retorna False Durante la Carga
+
+Durante la fase de carga del cliente, `GetGame().IsClient()` retorna **false** y `GetGame().IsServer()` retorna **true** --- incluso en clientes. Usa `IsDedicatedServer()` en su lugar:
+
+```c
+// NO CONFIABLE durante la fase de carga
+if (GetGame().IsClient()) { }   // false durante la carga!
+if (GetGame().IsServer()) { }   // true durante la carga, incluso en el cliente!
+
+// CONFIABLE
+if (!GetGame().IsDedicatedServer()) { /* codigo de cliente */ }
+if (GetGame().IsDedicatedServer())  { /* codigo de servidor */ }
+```
+
+**Excepcion:** Si necesitas soportar modo offline/singleplayer, `IsDedicatedServer()` retorna false para listen servers tambien.
+
+---
+
+### 41. Mensajes de Error de Compilacion Reportan Archivo Incorrecto
+
+Cuando el compilador encuentra una clase indefinida o un conflicto de nombres de variables, reporta el error en el **EOF del ultimo archivo parseado exitosamente** --- no en la ubicacion real del error. Si ves un error apuntando a un archivo que no has modificado, el error real esta en un archivo que estaba siendo parseado justo despues de ese.
+
+---
+
+### 42. Los Archivos `crash_*.log` No Son Crashes
+
+Los archivos de log llamados `crash_<fecha>_<hora>.log` contienen **excepciones de runtime**, no segmentation faults reales. El nombre es enganoso --- son errores de script, no crashes del motor.
+
+---
+
 ## Viniendo de C++
 
 Si eres desarrollador C++, aqui estan los ajustes mas grandes:
@@ -1015,9 +1182,9 @@ Si eres desarrollador C++, aqui estan los ajustes mas grandes:
 | Delegates | No | `ScriptInvoker` |
 | `\\` / `\"` en strings | Roto | Evitalos |
 | Redeclaracion de variables | Roto en else-if | Nombres unicos o declarar antes del if |
-| `Object.IsAlive()` | No en Object base | Castear a `EntityAI` primero |
+| Llamadas a funcion multilinea | Parseo no confiable | Mantener llamadas en una linea |
 | `nullptr` | No | `null` / `NULL` |
-| Fall-through en switch | No | Cada case es independiente |
+| Fall-through en switch | Si (como C/C++) | Siempre usa `break` a menos que sea intencional |
 | Expresiones en parametros predeterminados | No | Solo literales o NULL |
 | Valores en `#define` | No | `const` |
 | Interfaces | No | Clase base vacia |
@@ -1030,6 +1197,18 @@ Si eres desarrollador C++, aqui estan los ajustes mas grandes:
 | Namespaces | No | Prefijos de nombre |
 | RAII | No | Limpieza manual |
 | `GetGame().GetPlayer()` en servidor | Retorna null | Iterar `GetPlayers()` |
+| Herencia de clase `sealed` (1.28+) | Error de compilacion | Usar composicion en su lugar |
+| 17+ parametros de metodo (1.28+) | Error de compilacion | Pasar una clase o array |
+| APIs `[Obsolete]` (1.28+) | Advertencia del compilador | Migrar a la API de reemplazo |
+| Comparaciones con `int.MIN` | Resultados incorrectos | Usar una constante almacenada |
+| Negacion `!array[i]` | Error de compilacion | Usar `array[i] == 0` |
+| Expresion compleja en asignacion de array | Segfault | Usar variable intermedia |
+| `foreach` sobre retorno de metodo | Crash de puntero nulo | Almacenar en variable local primero |
+| Precedencia bitwise vs comparacion | Evaluacion incorrecta | Siempre usar parentesis |
+| Bloques `#ifdef` vacios | Segfault | Incluir una sentencia o eliminar el bloque |
+| `IsClient()` durante la carga | Retorna false | Usar `IsDedicatedServer()` |
+| Error de compilacion en archivo incorrecto | Ubicacion enganosa | Verificar el archivo parseado despues del reportado |
+| Archivos `crash_*.log` | No son crashes reales | Son excepciones de runtime de script |
 
 ---
 
@@ -1037,4 +1216,4 @@ Si eres desarrollador C++, aqui estan los ajustes mas grandes:
 
 | Anterior | Arriba | Siguiente |
 |----------|----|------|
-| [1.11 Manejo de Errores](11-error-handling.md) | [Parte 1: Enforce Script](../README.md) | [Parte 2: Estructura de Mods](../02-mod-structure/01-five-layers.md) |
+| [1.11 Manejo de Errores](11-error-handling.md) | [Parte 1: Enforce Script](../README.md) | [1.13 Funciones y Metodos](13-functions-methods.md) |

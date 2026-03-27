@@ -18,6 +18,7 @@
 - [globals.xml -- 经济参数](#globalsxml----经济参数)
 - [events.xml -- 动态事件](#eventsxml----动态事件)
 - [cfgspawnabletypes.xml -- 配件和货物](#cfgspawnabletypesxml----配件和货物)
+- [cfgspawnabletypes.xml 扩展 (1.28+)](#cfgspawnabletypesxml-扩展-128)
 - [nominal/restock 的关系](#nominalrestock-的关系)
 - [常见经济配置错误](#常见经济配置错误)
 
@@ -528,6 +529,97 @@ AKM 是一把稀有的高阶武器。地图上同时只能存在 3 把（`nomina
 ```
 
 强制绷带始终以完好状态刷新，覆盖 `globals.xml` 中的全局 `LootDamageMin`/`LootDamageMax`。
+
+---
+
+## cfgspawnabletypes.xml 扩展 (1.28+)
+
+DayZ 1.28 显著扩展了 `cfgspawnabletypes.xml` 的功能。你现在可以生成完全装载配件、货物甚至已上膛弹药的武器。
+
+### quantmin / quantmax 用于堆叠数量
+
+控制可堆叠物品的刷新填充程度（0-100%）：
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+嵌套 `<item>` 元素上的 `quantmin` 和 `quantmax` 属性与 `types.xml` 中的工作方式相同——它们设置基于数量的物品（如弹药和液体）的百分比范围。值为 `50` 意味着物品刷新时至少半满。
+
+### 嵌套物品货物和配件
+
+在其他物品内刷新的物品本身也可以拥有配件和货物：
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+这会生成一把安装了 RIS 护木和 M68 瞄准镜的 M4A1，以及货物中一个填充 50-100% 的 STANAG 弹匣。在 1.28 之前，货物物品无法在行内设置自己的数量。
+
+### 嵌套 damage min/max
+
+独立于父物品控制嵌套物品的损坏状态：
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+刺刀的刷新状态在完好到磨损之间，与 AKM 本身的损坏状态无关。这让你可以确保有价值的配件以比武器本身更好的状态刷新。
+
+### 武器带已上膛弹药 (1.28+)
+
+武器现在可以在刷新时带有已上膛的子弹和内部弹匣中的子弹：
+
+```xml
+<type name="Mosin9130">
+    <!-- 武器刷新时内部弹匣中带有子弹 -->
+</type>
+```
+
+这通过 `cfgspawnabletypes.xml` 结合 `randompresets.xml` 进行配置。预设系统处理弹药类型和数量，而可刷新类型条目将武器与预设关联。
+
+### 通过 equip="true" 嵌套预设
+
+使用 `equip` 属性为刷新物品引用预设装备方案：
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+当设置 `equip="true"` 时，预设作为完整的装备方案应用到刷新物品上，而不是从预设池中选择单个随机物品。这对于将完整的武器配置定义为可复用的预设非常有用。
+
+### randompresets.xml 现在可追加
+
+从 1.28 开始，`randompresets.xml` 可以通过 `cfgeconomycore.xml` 追加，让模组可以在不覆盖原版的情况下添加预设：
+
+```xml
+<!-- 在 cfgeconomycore.xml 中 -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+这是模组兼容性的重大改进。之前，任何需要自定义随机预设的模组都必须替换整个 `randompresets.xml` 文件，当加载多个模组时会导致冲突。现在每个模组可以提供自己的预设文件，并通过 `cfgeconomycore.xml` 注册它。
 
 ---
 

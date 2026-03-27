@@ -6,7 +6,7 @@
 
 ## 目录
 
-- [Complete Gotchas Reference](#complete-gotchas-reference)
+- [完整陷阱参考](#完整陷阱参考)
   1. [No Ternary Operator](#1-no-ternary-operator)
   2. [No do...while Loop](#2-no-dowhile-loop)
   3. [No try/catch/throw](#3-no-trycatchthrow)
@@ -17,9 +17,9 @@
   8. [No String Escape for Backslash/Quote](#8-no-string-escape-for-backslashquote)
   9. [No Variable Redeclaration in else-if Blocks](#9-no-variable-redeclaration-in-else-if-blocks)
   10. [No Ternary in Variable Declaration](#10-no-ternary-in-variable-declaration)
-  11. [Object.IsAlive() Does NOT Exist on Base Object](#11-objectisalive-does-not-exist-on-base-object)
+  11. [No Multiline Function Calls](#11-no-multiline-function-calls)
   12. [No nullptr — Use NULL or null](#12-no-nullptr--use-null-or-null)
-  13. [switch/case Does NOT Fall Through](#13-switchcase-does-not-fall-through)
+  13. [switch/case DOES Fall Through](#13-switchcase-does-fall-through)
   14. [No Default Parameter Expressions](#14-no-default-parameter-expressions)
   15. [JsonFileLoader.JsonLoadFile Returns void](#15-jsonfileloaderjsonloadfile-returns-void)
   16. [No #define Value Substitution](#16-no-define-value-substitution)
@@ -37,12 +37,24 @@
   28. [No Destructor Guarantee on Server Shutdown](#28-no-destructor-guarantee-on-server-shutdown)
   29. [No Scope-Based Resource Management (RAII)](#29-no-scope-based-resource-management-raii)
   30. [GetGame().GetPlayer() Returns null on Server](#30-getgamegetplayer-returns-null-on-server)
-- [Coming From C++](#coming-from-c)
-- [Coming From C#](#coming-from-c-1)
-- [Coming From Java](#coming-from-java)
-- [Coming From Python](#coming-from-python)
-- [Quick Reference Table](#quick-reference-table)
-- [Navigation](#navigation)
+  31. [`sealed` Classes Cannot Be Extended (1.28+)](#31-sealed-classes-cannot-be-extended-128)
+  32. [Method Parameter Limit: 16 Maximum (1.28+)](#32-method-parameter-limit-16-maximum-128)
+  33. [`Obsolete` Attribute Warnings (1.28+)](#33-obsolete-attribute-warnings-128)
+  34. [`int.MIN` Comparison Bug](#34-intmin-comparison-bug)
+  35. [Array Element Boolean Negation Fails](#35-array-element-boolean-negation-fails)
+  36. [Complex Expression in Array Assignment Crashes](#36-complex-expression-in-array-assignment-crashes)
+  37. [`foreach` on Method Return Value Crashes](#37-foreach-on-method-return-value-crashes)
+  38. [Bitwise vs Comparison Operator Precedence](#38-bitwise-vs-comparison-operator-precedence)
+  39. [Empty `#ifdef` / `#ifndef` Blocks Crash](#39-empty-ifdef--ifndef-blocks-crash)
+  40. [`GetGame().IsClient()` Returns False During Load](#40-getgameisclient-returns-false-during-load)
+  41. [Compile Error Messages Report Wrong File](#41-compile-error-messages-report-wrong-file)
+  42. [`crash_*.log` Files Are Not Crashes](#42-crashlog-files-are-not-crashes)
+- [从 C++ 转来](#从-c-转来)
+- [从 C# 转来](#从-c-转来-1)
+- [从 Java 转来](#从-java-转来)
+- [从 Python 转来](#从-python-转来)
+- [快速参考表](#快速参考表)
+- [导航](#导航)
 
 ---
 
@@ -348,25 +360,25 @@ else
 
 ---
 
-### 11. Object.IsAlive() Does NOT Exist on Base Object
+### 11. No Multiline Function Calls
 
 **你会写：**
 ```c
-Object obj = GetSomething();
-if (obj.IsAlive())  // Check if alive
+string msg = string.Format(
+    "Player %1 at %2",
+    name,
+    pos
+);
 ```
 
-**实际结果：** Compile error or runtime crash. `IsAlive()` is defined on `EntityAI`, not on `Object`.
+**实际结果：** 编译错误。Enforce Script 的解析器无法可靠地处理跨多行拆分的函数调用。
 
 **正确方案：**
 ```c
-Object obj = GetSomething();
-EntityAI eai;
-if (Class.CastTo(eai, obj) && eai.IsAlive())
-{
-    // Safely alive
-}
+string msg = string.Format("Player %1 at %2", name, pos);
 ```
+
+保持函数调用在单行上。如果行太长，将工作拆分为中间变量。
 
 ---
 
@@ -388,45 +400,39 @@ if (!obj)           // idiomatic null check (preferred)
 
 ---
 
-### 13. switch/case Does NOT Fall Through
+### 13. switch/case 确实会贯穿
 
-**你会写 (expecting C/C++ fall-through):**
+Enforce Script 的 switch/case 在省略 `break` 时**确实会**贯穿（fall through），与 C/C++ 相同。原版代码有意使用贯穿（biossessionservice.c:182 有注释 "Intentionally no break, fall through to connecting"）。
+
+**你会写：**
 ```c
 switch (value)
 {
     case 1:
     case 2:
     case 3:
-        Print("1, 2, or 3");  // In C++, cases 1 and 2 fall through to here
+        Print("1, 2, or 3");  // 所有三个 case 都会到达此处——贯穿有效
         break;
 }
 ```
 
-**实际结果：** Only case 3 executes the Print. Cases 1 and 2 are empty — they do nothing and do NOT fall through.
+**这按预期工作。** case 1 和 2 贯穿到 case 3 的处理程序。
 
-**正确方案：**
+**陷阱：** 在不想贯穿时忘记 `break`：
 ```c
-if (value >= 1 && value <= 3)
+switch (state)
 {
-    Print("1, 2, or 3");
-}
-
-// Or handle each case explicitly:
-switch (value)
-{
+    case 0:
+        Print("Zero");
+        // 缺少 break！贯穿到 case 1
     case 1:
-        Print("1, 2, or 3");
-        break;
-    case 2:
-        Print("1, 2, or 3");
-        break;
-    case 3:
-        Print("1, 2, or 3");
+        Print("One");
         break;
 }
+// 如果 state == 0，会同时打印 "Zero" 和 "One"
 ```
 
-> **注意：** `break` is technically optional in Enforce Script since there is no fall-through, but it is conventional to include it.
+**规则：** 始终在每个 case 末尾使用 `break`，除非你有意需要贯穿。当你确实需要贯穿时，添加注释以明确说明。
 
 ---
 
@@ -924,9 +930,170 @@ player.DoSomething();  // CRASH on server!
 
 ---
 
+### 31. `sealed` 类不能被继承 (1.28+)
+
+从 DayZ 1.28 开始，Enforce Script 编译器强制执行 `sealed` 关键字。标记为 `sealed` 的类或方法不能被继承或覆盖。如果你尝试继承一个密封类：
+
+```c
+// 如果 BI 将 SomeVanillaClass 标记为 sealed：
+class MyClass : SomeVanillaClass  // 1.28+ 编译错误
+{
+}
+```
+
+在尝试继承之前，检查原版脚本转储中是否有标记为 `sealed` 的类。如果需要修改密封类的行为，使用组合（包装它）而不是继承。
+
+---
+
+### 32. 方法参数限制：最多 16 个 (1.28+)
+
+Enforce Script 一直有 16 个参数的方法限制，但在 1.28 之前这是一个静默的缓冲区溢出，会导致随机崩溃。从 1.28 开始，编译器产生**硬错误**：
+
+```c
+// 1.28+ 编译错误——超过 16 个参数
+void MyMethod(int a, int b, int c, int d, int e, int f, int g, int h,
+              int i, int j, int k, int l, int m, int n, int o, int p,
+              int q)  // 第 17 个参数 = 错误
+{
+}
+```
+
+**修复：** 重构为传递一个类或数组，而不是单个参数。
+
+---
+
+### 33. `Obsolete` 属性警告 (1.28+)
+
+DayZ 1.28 引入了 `Obsolete` 属性。标记为 `[Obsolete]` 的函数和类会生成编译器警告。这些 API 仍然有效，但计划在未来的更新中移除。检查你的构建输出中的弃用警告，并迁移到推荐的替代方案。
+
+---
+
+### 34. `int.MIN` 比较 Bug
+
+涉及 `int.MIN`（-2147483648）的比较会产生不正确的结果：
+
+```c
+int val = 1;
+if (val < int.MIN)  // 求值为 TRUE——应该是 false
+{
+    // 此代码块错误地执行
+}
+```
+
+避免直接与 `int.MIN` 进行比较。使用存储的常量代替，或与特定的负值进行比较。
+
+---
+
+### 35. 数组元素布尔取反失败
+
+对数组元素的直接布尔取反无法编译：
+
+```c
+array<int> list = {0, 1, 2};
+if (!list[1])          // 无法编译
+if (list[1] == 0)      // 有效——使用显式比较
+```
+
+测试数组元素的真假值时，始终使用显式相等检查。
+
+---
+
+### 36. 数组赋值中的复杂表达式导致崩溃
+
+将复杂表达式直接赋值给数组元素可能导致段错误：
+
+```c
+// 运行时崩溃
+m_Values[index] = vector.DistanceSq(posA, posB) <= distSq;
+
+// 安全——使用中间变量
+bool result = vector.DistanceSq(posA, posB) <= distSq;
+m_Values[index] = result;
+```
+
+始终将复杂表达式的结果存储在局部变量中，然后再赋值给数组。
+
+---
+
+### 37. `foreach` 对方法返回值崩溃
+
+直接对方法的返回值使用 `foreach` 会在第二次迭代时导致空指针异常：
+
+```c
+// 在第 2 个元素时崩溃
+foreach (string item : GetMyArray())
+{
+}
+
+// 安全——先存储到局部变量
+array<string> items = GetMyArray();
+foreach (string item : items)
+{
+}
+```
+
+---
+
+### 38. 位运算与比较运算符优先级
+
+位运算符的优先级**低于**比较运算符，遵循 C/C++ 规则：
+
+```c
+int flags = 5;
+int mask = 4;
+if (flags & mask == mask)      // 错误：被求值为 flags & (mask == mask)
+if ((flags & mask) == mask)    // 正确：始终使用括号
+```
+
+---
+
+### 39. 空的 `#ifdef` / `#ifndef` 块导致崩溃
+
+空的预处理器条件块——即使只包含注释——也会导致段错误：
+
+```c
+#ifdef SOME_DEFINE
+    // 这个仅含注释的块导致段错误
+#endif
+```
+
+始终包含至少一条可执行语句，或完全删除该块。
+
+---
+
+### 40. `GetGame().IsClient()` 在加载期间返回 False
+
+在客户端加载阶段，`GetGame().IsClient()` 返回 **false**，而 `GetGame().IsServer()` 返回 **true**——即使在客户端上也是如此。请改用 `IsDedicatedServer()`：
+
+```c
+// 加载阶段不可靠
+if (GetGame().IsClient()) { }   // 加载期间为 false！
+if (GetGame().IsServer()) { }   // 加载期间为 true，即使在客户端上！
+
+// 可靠的方法
+if (!GetGame().IsDedicatedServer()) { /* 客户端代码 */ }
+if (GetGame().IsDedicatedServer())  { /* 服务端代码 */ }
+```
+
+**例外：** 如果需要支持离线/单人模式，`IsDedicatedServer()` 对本地服务器也返回 false。
+
+---
+
+### 41. 编译错误消息报告错误的文件
+
+当编译器遇到未定义的类或变量命名冲突时，它会在**最后成功解析的文件的 EOF** 处报告错误——而不是实际的错误位置。如果你看到指向未修改文件的错误，真正的错误在紧随其后被解析的文件中。
+
+---
+
+### 42. `crash_*.log` 文件不是崩溃
+
+名为 `crash_<date>_<time>.log` 的日志文件包含**运行时异常**，而不是实际的段错误。命名具有误导性——这些是脚本错误，不是引擎崩溃。
+
+---
+
 ## 从 C++ 转来
 
-If you are a C++ developer, here are the biggest adjustments:
+如果你是 C++ 开发者，以下是最大的调整：
 
 | C++ Feature | Enforce Script Equivalent |
 |-------------|--------------------------|
@@ -1002,34 +1169,46 @@ If you are a C++ developer, here are the biggest adjustments:
 
 ---
 
-## 快速参考 Table
+## 快速参考表
 
 | 特性 | 是否存在？ | 解决方法 |
 |---------|---------|------------|
-| Ternary `? :` | No | if/else |
-| `do...while` | No | while + break |
-| `try/catch` | No | Guard clauses |
-| Multiple inheritance | No | Composition |
-| Operator overloading | Index only | Named methods |
-| Lambdas | No | Named methods |
-| Delegates | No | `ScriptInvoker` |
-| `\\` / `\"` in strings | Broken | Avoid them |
-| Variable redeclaration | Broken in else-if | Unique names or declare before if |
-| `Object.IsAlive()` | Not on base Object | Cast to `EntityAI` first |
-| `nullptr` | No | `null` / `NULL` |
-| switch fall-through | No | Each case is independent |
-| Default param expressions | No | Literals or NULL only |
-| `#define` values | No | `const` |
-| Interfaces | No | Empty base class |
-| Generic constraints | No | Runtime type checks |
-| Enum validation | No | Manual range check |
-| Variadic params | No | `string.Format` or arrays |
-| Nested classes | No | Top-level with prefixed names |
-| Variable-size static arrays | No | `array<T>` |
-| `#include` | No | config.cpp `files[]` |
-| Namespaces | No | Name prefixes |
-| RAII | No | Manual cleanup |
-| `GetGame().GetPlayer()` server | Returns null | Iterate `GetPlayers()` |
+| Ternary `? :` | 不存在 | if/else |
+| `do...while` | 不存在 | while + break |
+| `try/catch` | 不存在 | 守卫子句 |
+| Multiple inheritance | 不存在 | 组合 |
+| Operator overloading | 仅索引 | 命名方法 |
+| Lambdas | 不存在 | 命名方法 |
+| Delegates | 不存在 | `ScriptInvoker` |
+| `\\` / `\"` in strings | 损坏 | 避免使用 |
+| Variable redeclaration | else-if 中损坏 | 唯一名称或在 if 前声明 |
+| 多行函数调用 | 解析不可靠 | 保持调用在一行 |
+| `nullptr` | 不存在 | `null` / `NULL` |
+| switch fall-through | 存在（与 C/C++ 相同） | 始终使用 `break`，除非有意贯穿 |
+| Default param expressions | 不存在 | 仅字面量或 NULL |
+| `#define` values | 不存在 | `const` |
+| Interfaces | 不存在 | 空基类 |
+| Generic constraints | 不存在 | 运行时类型检查 |
+| Enum validation | 不存在 | 手动范围检查 |
+| Variadic params | 不存在 | `string.Format` 或数组 |
+| Nested classes | 不存在 | 带前缀名称的顶层类 |
+| Variable-size static arrays | 不存在 | `array<T>` |
+| `#include` | 不存在 | config.cpp `files[]` |
+| Namespaces | 不存在 | 名称前缀 |
+| RAII | 不存在 | 手动清理 |
+| `GetGame().GetPlayer()` server | 返回 null | 遍历 `GetPlayers()` |
+| `sealed` 类继承 (1.28+) | 编译错误 | 使用组合代替 |
+| 17+ 方法参数 (1.28+) | 编译错误 | 传递类或数组 |
+| `[Obsolete]` API (1.28+) | 编译器警告 | 迁移到替代 API |
+| `int.MIN` 比较 | 结果不正确 | 使用存储的常量 |
+| `!array[i]` 取反 | 编译错误 | 使用 `array[i] == 0` |
+| 数组赋值中的复杂表达式 | 段错误 | 使用中间变量 |
+| `foreach` 对方法返回值 | 空指针崩溃 | 先存储到局部变量 |
+| 位运算与比较优先级 | 错误求值 | 始终使用括号 |
+| 空的 `#ifdef` 块 | 段错误 | 包含语句或删除块 |
+| `IsClient()` 加载期间 | 返回 false | 使用 `IsDedicatedServer()` |
+| 编译错误定位错误文件 | 误导性位置 | 检查报告文件之后被解析的文件 |
+| `crash_*.log` 文件 | 不是实际崩溃 | 它们是运行时脚本异常 |
 
 ---
 

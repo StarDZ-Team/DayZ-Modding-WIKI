@@ -84,6 +84,25 @@ Der Generator erstellt ein Raster von Kandidatenpositionen um jede Blase:
 
 Jede Blase erhaelt ein 200x200m-Raster mit einem Punkt alle 4m (~2.500 Kandidaten). Die Engine filtert nach Neigung und statischem Abstand und wendet dann `spawn_params` zur Spawnzeit an.
 
+#### `allow_in_water`-Parameter (1.28+)
+
+Ab DayZ 1.28 wurde ein neuer boolescher `allow_in_water`-Parameter zu `generator_params` hinzugefuegt (Standard: `false`). Wenn auf `true` gesetzt, betrachtet der Spawnpunkt-Generator Positionen im Wasser als gueltige Spawnpunkte:
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+Standardmaessig lehnt die Engine jede Kandidatenposition ab, die im Wasser liegt (Teiche, Fluesse, Ozean). Das Setzen von `allow_in_water` auf `true` entfernt diesen Filter. Dies ist hauptsaechlich nuetzlich fuer benutzerdefinierte Karten mit Insel-Spawns oder Szenarien, in denen Kuesten-Wasser-Spawns beabsichtigt sind. Fuer die meisten Server lassen Sie dies auf `false`, um zu vermeiden, dass Spieler in Seen oder im Ozean spawnen.
+
 ---
 
 ## Gruppen-Parameter

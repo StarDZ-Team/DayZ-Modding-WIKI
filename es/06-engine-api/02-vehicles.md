@@ -372,6 +372,9 @@ void FindAllVehicles(out array<Transport> vehicles)
 | Crew | `CrewSize()`, `CrewMember(idx)`, `CrewGetOut(idx)` |
 | Parts | Standard damage zones: `"Engine"`, `"FuelTank"`, `"Radiator"`, etc. |
 | Creation | `CreateObjectEx` with `ECE_PLACE_ON_SURFACE \| ECE_INITAI \| ECE_CREATEPHYSICS` |
+| Config 1.28 | `useNewNetworking`, `wheelHubFriction`, valores de torque de freno duplicados |
+| Fisica 1.28 | Bullet Physics actualizado, nuevos campos de la API `Contact`, suspension siempre activa |
+| Experimental 1.29 | Multithreading de fisica, `Transport` sleep, colision dinamica para todo transport |
 
 ---
 
@@ -405,6 +408,109 @@ void FindAllVehicles(out array<Transport> vehicles)
 | `EOnSimulate` accumulator for periodic fuel consumption checks | Vanilla+ vehicle mods | `CarScript` overrides |
 | `CrewGetOut()` loop in admin eject-all command | VPP Admin Tools | Vehicle management module |
 | Custom `OnContact()` override for collision damage tuning | Expansion | `ExpansionCarScript` |
+
+---
+
+## Cambios de Configuracion de Vehiculos (1.28+)
+
+> **Advertencia (1.28):** DayZ 1.28 introdujo cambios significativos en la fisica de vehiculos. Si estas actualizando un mod de vehiculos desde 1.27 o anterior, lee esta seccion cuidadosamente.
+
+### Parametro `useNewNetworking`
+
+DayZ 1.28 agrego el parametro de configuracion `useNewNetworking` para todas las clases `CarScript`. El valor predeterminado es **1** (activado).
+
+```cpp
+class CfgVehicles
+{
+    class CarScript;
+    class MyVehicle : CarScript
+    {
+        // El nuevo networking mejora el rubber-banding con ping alto
+        useNewNetworking = 1;  // predeterminado --- dejalo activado para la mayoria de mods
+
+        // Desactiva SOLO si tu mod modifica la fisica del vehiculo
+        // fuera de la configuracion del SimulationModule:
+        // useNewNetworking = 0;
+    };
+};
+```
+
+**Cuando desactivar:** Si tu mod manipula directamente la fisica del vehiculo a traves de script (sobreescrituras personalizadas de `EOnSimulate`, aplicacion directa de fuerzas, logica de ruedas personalizada) en lugar de hacerlo a traves del `SimulationModule` basado en configuracion, el nuevo sistema de reconciliacion puede luchar contra tus cambios. Pon `useNewNetworking = 0;` en ese caso.
+
+### Parametro `wheelHubFriction` (1.28+)
+
+Nueva variable de configuracion que define la resistencia del eje cuando **no hay ruedas conectadas**:
+
+```cpp
+class SimulationModule
+{
+    class Axles
+    {
+        class Front
+        {
+            wheelHubFriction = 0.5;  // Que tan rapido desacelera el vehiculo con ruedas faltantes
+        };
+    };
+};
+```
+
+### Migracion de Torque de Freno (1.28)
+
+> **Cambio incompatible:** Antes de 1.28, el torque de freno y freno de mano se aplicaba **dos veces** debido a un bug. Esto fue corregido en 1.28. Si estas migrando un mod de vehiculos, **duplica** tus valores de `maxBrakeTorque` y `maxHandbrakeTorque` para mantener la misma sensacion de frenado.
+
+```cpp
+// Pre-1.28 (bug: se aplicaba dos veces, asi que el valor efectivo era 2x)
+maxBrakeTorque = 2000;
+maxHandbrakeTorque = 3000;
+
+// Post-1.28 (correccion: se aplica una vez, asi que duplica para igualar el comportamiento anterior)
+maxBrakeTorque = 4000;
+maxHandbrakeTorque = 6000;
+```
+
+### Suspension Siempre Activa (1.28+)
+
+La suspension del vehiculo ahora esta siempre activa mientras el vehiculo esta despierto. Anteriormente, la suspension podia estar inactiva en ciertos estados. Esto mejora la estabilidad pero puede cambiar la sensacion de la calibracion de suspension personalizada.
+
+### Actualizacion de Bullet Physics (1.28)
+
+La libreria Bullet Physics fue actualizada a la ultima version de Enfusion. Pueden ocurrir diferencias sutiles en respuesta de colision, friccion y restitucion. Prueba todas las configuraciones de vehiculos personalizados exhaustivamente.
+
+### Cambios en la API de Contacto Fisico (1.28)
+
+La clase `Contact` fue modificada:
+
+**Eliminados:**
+- `MaterialIndex1`, `MaterialIndex2`
+- `Index1`, `Index2`
+
+**Agregados:**
+- `ShapeIndex1`, `ShapeIndex2` --- identifican que forma en un cuerpo compuesto fue golpeada
+- `VelocityBefore1`, `VelocityBefore2` --- velocidades pre-colision
+- `VelocityAfter1`, `VelocityAfter2` --- velocidades post-colision
+
+**Cambiados:**
+- `Material1`, `Material2` --- el tipo cambio de `dMaterial` a `SurfaceProperties`
+
+Los mods que leen datos de `Contact` en `EOnContact` deben actualizarse a los nuevos nombres y tipos de variables.
+
+---
+
+## Cambios de Vehiculos en 1.29 (Experimental)
+
+> **Nota:** Estos cambios son de DayZ 1.29 experimental y pueden cambiar antes del lanzamiento estable.
+
+### Multithreading de Bullet Physics (1.29 Experimental)
+
+Se habilito el soporte de multithreading para la libreria Bullet Physics. Las pruebas de estres del servidor mostraron hasta 400% de mejora en FPS (de 9 FPS a 50 FPS). Los mods de vehiculos que dependen de timing especifico de fisica o hacen llamadas de fisica desde callbacks de script deben probarse exhaustivamente.
+
+### Transport Sleep (1.29 Experimental)
+
+Se agregaron funciones de fisica directamente en `Transport` para permitir que los vehiculos entren en **sleep** cuando estan en reposo. Los cuerpos inactivos ya no reciben callbacks de `EOnSimulate` / `EOnPostSimulate`. Si tu mod de vehiculos depende de que estos callbacks se disparen continuamente, prueba en 1.29 experimental.
+
+### Colision Dinamica para Todo Transport (1.29 Experimental)
+
+La clase `Transport` (padre de `CarScript` y `BoatScript`) ahora tiene resolucion de colision dinamica. Anteriormente, solo `CarScript` tenia esto. Los mods de botes se benefician de un manejo de colision adecuado.
 
 ---
 

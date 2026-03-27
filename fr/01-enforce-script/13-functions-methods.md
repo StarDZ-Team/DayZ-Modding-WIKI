@@ -25,6 +25,7 @@ Ce chapitre couvre les mécanismes des fonctions en profondeur : syntaxe de déc
   - [Paramètres notnull](#paramètres-notnull)
 - [Valeurs de retour](#valeurs-de-retour)
 - [Valeurs par défaut des paramètres](#valeurs-par-défaut-des-paramètres)
+- [Limite de paramètres : 16 maximum](#limite-de-paramètres--16-maximum)
 - [Méthodes Proto Native (Liaisons moteur)](#méthodes-proto-native-liaisons-moteur)
 - [Méthodes statiques vs instance](#méthodes-statiques-vs-instance)
 - [Override de méthodes](#override-de-méthodes)
@@ -285,6 +286,37 @@ SpawnItem("AKM", myPos, -1, false);        // doit spécifier quantity pour atte
 1. **Valeurs littérales uniquement** --- vous ne pouvez pas utiliser d'expressions, d'appels de fonction ou d'autres variables comme valeurs par défaut
 2. **Pas de paramètres nommés** --- vous ne pouvez pas sauter un paramètre par nom
 3. **Les valeurs par défaut pour les types classe sont restreintes à `null` ou `NULL`**
+
+---
+
+## Limite de paramètres : 16 maximum
+
+Les méthodes Enforce Script ne peuvent pas avoir plus de 16 paramètres. Depuis DayZ 1.28, dépasser cette limite produit une **erreur de compilation fatale** (auparavant cela causait des débordements de tampon silencieux et des crashs aléatoires) :
+
+```c
+// ERREUR DE COMPILATION en 1.28+ — 17 paramètres dépasse la limite
+void TooManyParams(int a, int b, int c, int d, int e, int f, int g, int h,
+                   int i, int j, int k, int l, int m, int n, int o, int p,
+                   int q)
+{
+}
+```
+
+**Solution :** Passez une classe ou un tableau au lieu de nombreux paramètres individuels :
+
+```c
+class MyParams
+{
+    int a, b, c, d, e;
+    float x, y, z;
+    string name;
+}
+
+void ProcessData(MyParams params)
+{
+    // Accéder à params.a, params.b, etc.
+}
+```
 
 ---
 

@@ -25,6 +25,7 @@ This chapter covers function mechanics in depth: declaration syntax, parameter p
   - [notnull Parametry](#notnull-parameters)
 - [Return Hodnotas](#return-values)
 - [Vychozi Parametr Hodnotas](#default-parameter-values)
+- [Limit parametrů: maximálně 16](#parameter-limit-16-maximum)
 - [Proto Native Metodas (Engine Bindings)](#proto-native-methods-engine-bindings)
 - [Static vs Instance Metodas](#static-vs-instance-methods)
 - [Metoda Overriding](#method-overriding)
@@ -434,6 +435,37 @@ void DoWork(EntityAI target = null, string name = "")
 {
     if (!target) return;
     // ...
+}
+```
+
+---
+
+## Limit parametrů: maximálně 16
+
+Metody v Enforce Scriptu nemohou mít více než 16 parametrů. Od DayZ 1.28 překročení tohoto limitu produkuje **tvrdou chybu kompilace** (předtím to způsobovalo tiché přetečení bufferu a náhodné pády):
+
+```c
+// CHYBA KOMPILACE v 1.28+ — 17 parametrů přesahuje limit
+void TooManyParams(int a, int b, int c, int d, int e, int f, int g, int h,
+                   int i, int j, int k, int l, int m, int n, int o, int p,
+                   int q)
+{
+}
+```
+
+**Řešení:** Místo mnoha jednotlivých parametrů předejte třídu nebo pole:
+
+```c
+class MyParams
+{
+    int a, b, c, d, e;
+    float x, y, z;
+    string name;
+}
+
+void ProcessData(MyParams params)
+{
+    // Přistupujte k params.a, params.b, atd.
 }
 ```
 

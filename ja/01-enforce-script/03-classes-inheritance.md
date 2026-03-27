@@ -369,6 +369,45 @@ class B extends A { }     // OK: single parent
 class D extends B { }     // OK: B extends A, D extends B (inheritance chain)
 ```
 
+### `sealed` キーワード（1.28+）
+
+`sealed` でマークされたクラスは継承できません。`sealed` でマークされたメソッドはオーバーライドできません。DayZ 1.28 ではこれがコンパイル時に強制されます。
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // このクラスは拡張できません
+    }
+}
+
+class MyChild : FinalClass  // コンパイルエラー: sealed クラスからは継承できません
+{
+}
+```
+
+メソッドも個別に sealed にすることができます。
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // 子クラスでオーバーライドできません
+    }
+
+    void OpenMethod()
+    {
+        // 通常通りオーバーライドできます
+    }
+}
+```
+
+> **移行に関する注意：** DayZ 1.28 にアップデートして sealed クラスの継承に関するコンパイルエラーが発生した場合は、リファクタリングが必要です。継承の代わりにコンポジション（クラスをメンバーとしてラップする）を使用してください。
+
+`sealed` は拡張性が主な目的であるため、DayZ Modding ではほとんど使用されません。
+
 ---
 
 ## メソッドの override
@@ -999,6 +1038,12 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 | Static field | `static int s_Count;` | Shared across all instances |
 | Static method | `static void DoThing()` | Called via `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Strong reference (owns the object) |
+| Sealed class | `sealed class Name { }` | 継承できません（1.28+ コンパイルエラー） |
+| Sealed method | `sealed void Method()` | 子クラスでオーバーライドできません |
+| Proto native | `proto native void Func();` | エンジンで実装されたメソッド |
+| `out` param | `void Func(out int val)` | 出力専用パラメータ |
+| `inout` param | `void Func(inout array<int> a)` | 入出力パラメータ |
+| `notnull` param | `void Func(notnull EntityAI e)` | コンパイラが非 null を強制 |
 
 ---
 

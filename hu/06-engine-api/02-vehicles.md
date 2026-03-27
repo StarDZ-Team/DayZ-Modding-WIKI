@@ -372,6 +372,9 @@ void FindAllVehicles(out array<Transport> vehicles)
 | Személyzet | `CrewSize()`, `CrewMember(idx)`, `CrewGetOut(idx)` |
 | Alkatrészek | Standard sérülési zónák: `"Engine"`, `"FuelTank"`, `"Radiator"` stb. |
 | Létrehozás | `CreateObjectEx` a következővel: `ECE_PLACE_ON_SURFACE \| ECE_INITAI \| ECE_CREATEPHYSICS` |
+| 1.28 Config | `useNewNetworking`, `wheelHubFriction`, megduplazott fekeronyomatek ertekek |
+| 1.28 Fizika | Frissitett Bullet Physics, uj `Contact` API mezok, mindig aktiv fuggesztes |
+| 1.29 Kiserleti | Fizikai tobbszalusag, `Transport` alvas, dinamikus utkozes minden jarmunel |
 
 ---
 
@@ -405,6 +408,109 @@ void FindAllVehicles(out array<Transport> vehicles)
 | `EOnSimulate` akkumulátor időszakos üzemanyag-fogyasztás ellenőrzésekhez | Vanilla+ jármű modok | `CarScript` felülírások |
 | `CrewGetOut()` ciklus admin mindent-kiszállít parancsban | VPP Admin Tools | Járműkezelő modul |
 | Egyéni `OnContact()` felülírás ütközési sérülés hangolásához | Expansion | `ExpansionCarScript` |
+
+---
+
+## Jarmu konfiguracios valtozasok (1.28+)
+
+> **Figyelmezetes (1.28):** A DayZ 1.28 jelentos jarmu fizikai valtozasokat hozott. Ha egy jarmu modot frissitesz 1.27-rol vagy korabbirol, olvasd el figyelmesen ezt a szakaszt.
+
+### `useNewNetworking` parameter
+
+A DayZ 1.28 hozzaadta a `useNewNetworking` konfiguracios parametert minden `CarScript` osztalyhoz. Az alapertelmezett ertek **1** (engedelyezve).
+
+```cpp
+class CfgVehicles
+{
+    class CarScript;
+    class MyVehicle : CarScript
+    {
+        // Az uj halozatkezeles javitja a rubber-banding jelenseget magas ping-nel
+        useNewNetworking = 1;  // alapertelmezett — hagyd engedelyezve a legtobb modnal
+
+        // CSAK akkor tiltsd le, ha a mod a jarmu fizikajat modositja
+        // a SimulationModule konfiguracion kivul:
+        // useNewNetworking = 0;
+    };
+};
+```
+
+**Mikor kell letiltani:** Ha a mod kozvetlenul manipuljalja a jarmu fizikajat szkripten keresztul (egyeni `EOnSimulate` felulirasok, kozvetlen ero alkalmazas, egyeni kereklogika) a config-alapu `SimulationModule` helyett, az uj egyeztetesi rendszer utkozhet a valtoztatasaiddal. Ebben az esetben allitsd `useNewNetworking = 0;`-ra.
+
+### `wheelHubFriction` parameter (1.28+)
+
+Uj konfiguracios valtozo, amely meghatározza a tengely ellenallast, amikor **nincsenek kerekek felszerelve**:
+
+```cpp
+class SimulationModule
+{
+    class Axles
+    {
+        class Front
+        {
+            wheelHubFriction = 0.5;  // Milyen gyorsan lassul a jarmu hianyzo kerekekkel
+        };
+    };
+};
+```
+
+### Fekeronyomatek migracio (1.28)
+
+> **Toro valtozas:** 1.28 elott a fek- es kezifek-nyomatek **ketszer** lett alkalmazva egy hiba miatt. Ez 1.28-ban javitva lett. Ha egy jarmu modot migralsz, **duplazd meg** a `maxBrakeTorque` es `maxHandbrakeTorque` ertekeket, hogy megorizd ugyanazt a fekezesi erzetet.
+
+```cpp
+// 1.28 elott (hiba: ketszer alkalmazva, tehat a tenyleges ertek 2x volt)
+maxBrakeTorque = 2000;
+maxHandbrakeTorque = 3000;
+
+// 1.28 utan (javitva: egyszer alkalmazva, tehat duplazd meg a regi viselkedeshez)
+maxBrakeTorque = 4000;
+maxHandbrakeTorque = 6000;
+```
+
+### Fuggesztes mindig aktiv (1.28+)
+
+A jarmu fuggesztes most mindig aktiv, amig a jarmu eben van. Korabban a fuggesztes bizonyos allapotokban inaktiv lehetett. Ez javitja a stabilitast, de megvaltoztathatja az egyeni fuggesztes-hangolas erzetet.
+
+### Bullet Physics frissites (1.28)
+
+A Bullet Physics konyvtar frissitesre kerult a legujabb Enfusion verziora. Finom kulonbsegek lehetnek az utkozesi valaszban, surlodásban es visszapattanasban. Tesztelj minden egyeni jarmu konfigraciot alaposan.
+
+### Fizikai Contact API valtozasok (1.28)
+
+A `Contact` osztaly modositva lett:
+
+**Eltavolitva:**
+- `MaterialIndex1`, `MaterialIndex2`
+- `Index1`, `Index2`
+
+**Hozzaadva:**
+- `ShapeIndex1`, `ShapeIndex2` — azonositja, melyik alakzat lett erintve egy osszetett testben
+- `VelocityBefore1`, `VelocityBefore2` — utkozés elotti sebessegek
+- `VelocityAfter1`, `VelocityAfter2` — utkozes utani sebessegek
+
+**Megvaltoztatva:**
+- `Material1`, `Material2` — a tipus `dMaterial`-rol `SurfaceProperties`-ra valtozott
+
+Azoknak a modoknak, amelyek `Contact` adatokat olvasnak az `EOnContact`-ban, frissiteniuk kell az uj valtozonevekre es tipusokra.
+
+---
+
+## Jarmu valtozasok az 1.29-ben (Kiserleti)
+
+> **Megjegyzes:** Ezek a valtozasok a DayZ 1.29 kiserleti verziobol szarmaznak es megvaltozhatnak a stabil kiadás elott.
+
+### Bullet Physics tobbszalusag (1.29 Kiserleti)
+
+A Bullet Physics konyvtarban engedelyeztek a tobbszalusag tamogatast. Szerver stressztesztek akár 400%-os FPS javulast mutattak (9 FPS-rol 50 FPS-re). Azokat a jarmu modokat, amelyek specifikus fizikai idozitesre tamaszkodnak vagy fizikai hivasokat vegeznek szkript visszahivasokbol, alaposan tesztelni kell.
+
+### Transport alvas (1.29 Kiserleti)
+
+Fizikai funkciok lettek hozzaadva kozvetlenul a `Transport` osztalyhoz, hogy lehetove tegyék a jarmuvek **alvasát** nyugalmi allapotban. Az inaktiv testek tobbe nem kapnak `EOnSimulate` / `EOnPostSimulate` visszahivasokat. Ha a jarmu modod ezekre a folyamatosan lefuto visszahivasokra tamaszkodik, teszteld az 1.29 kiserleti verzion.
+
+### Dinamikus utkozes minden Transport-hoz (1.29 Kiserleti)
+
+A `Transport` osztaly (a `CarScript` es a `BoatScript` szuloje) most dinamikus utkozesfeloldast kapott. Korabban csak a `CarScript` rendelkezett ezzel. A hajo modok profitalnak a megfelelo utkozes-kezelesebol.
 
 ---
 

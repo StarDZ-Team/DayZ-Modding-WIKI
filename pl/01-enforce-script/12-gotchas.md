@@ -37,6 +37,18 @@
   28. [No Destructor Guarantee on Server Shutdown](#28-no-destructor-guarantee-on-server-shutdown)
   29. [No Scope-Based Resource Management (RAII)](#29-no-scope-based-resource-management-raii)
   30. [GetGame().GetPlayer() Returns null on Server](#30-getgamegetplayer-returns-null-on-server)
+  31. [`sealed` Classes Cannot Be Extended (1.28+)](#31-sealed-classes-cannot-be-extended-128)
+  32. [Method Parameter Limit: 16 Maximum (1.28+)](#32-method-parameter-limit-16-maximum-128)
+  33. [`Obsolete` Attribute Warnings (1.28+)](#33-obsolete-attribute-warnings-128)
+  34. [`int.MIN` Comparison Bug](#34-intmin-comparison-bug)
+  35. [Array Element Boolean Negation Fails](#35-array-element-boolean-negation-fails)
+  36. [Complex Expression in Array Assignment Crashes](#36-complex-expression-in-array-assignment-crashes)
+  37. [`foreach` on Method Return Value Crashes](#37-foreach-on-method-return-value-crashes)
+  38. [Bitwise vs Comparison Operator Precedence](#38-bitwise-vs-comparison-operator-precedence)
+  39. [Empty `#ifdef` / `#ifndef` Blocks Crash](#39-empty-ifdef--ifndef-blocks-crash)
+  40. [`GetGame().IsClient()` Returns False During Load](#40-getgameisclient-returns-false-during-load)
+  41. [Compile Error Messages Report Wrong File](#41-compile-error-messages-report-wrong-file)
+  42. [`crash_*.log` Files Are Not Crashes](#42-crashlog-files-are-not-crashes)
 - [Coming From C++](#coming-from-c)
 - [Coming From C#](#coming-from-c-1)
 - [Coming From Java](#coming-from-java)
@@ -921,6 +933,167 @@ player.DoSomething();  // CRASH on server!
     }
 #endif
 ```
+
+---
+
+### 31. Klasy `sealed` nie mogą być rozszerzane (1.28+)
+
+Od DayZ 1.28 kompilator Enforce Script wymusza słowo kluczowe `sealed`. Klasa lub metoda oznaczona `sealed` nie może być dziedziczona ani nadpisywana. Jeśli spróbujesz rozszerzyć zapieczętowaną klasę:
+
+```c
+// Jeśli BI oznaczy SomeVanillaClass jako sealed:
+class MyClass : SomeVanillaClass  // BŁĄD KOMPILACJI w 1.28+
+{
+}
+```
+
+Sprawdź zrzut vanillowych skryptów pod kątem klas oznaczonych `sealed`, zanim spróbujesz po nich dziedziczyć. Jeśli musisz zmodyfikować zachowanie zapieczętowanej klasy, użyj kompozycji (opakuj ją) zamiast dziedziczenia.
+
+---
+
+### 32. Limit parametrów metody: maksymalnie 16 (1.28+)
+
+Enforce Script zawsze miał limit 16 parametrów na metodę, ale przed wersją 1.28 było to ciche przepełnienie bufora powodujące losowe crasha. Od wersji 1.28 kompilator produkuje **twardy błąd**:
+
+```c
+// BŁĄD KOMPILACJI w 1.28+ — przekracza 16 parametrów
+void MyMethod(int a, int b, int c, int d, int e, int f, int g, int h,
+              int i, int j, int k, int l, int m, int n, int o, int p,
+              int q)  // 17. parametr = błąd
+{
+}
+```
+
+**Rozwiązanie:** Zrefaktoruj przekazywanie klasy lub tablicy zamiast poszczególnych parametrów.
+
+---
+
+### 33. Ostrzeżenia atrybutu `Obsolete` (1.28+)
+
+DayZ 1.28 wprowadził atrybut `Obsolete`. Funkcje i klasy oznaczone `[Obsolete]` generują ostrzeżenia kompilatora. Te API nadal działają, ale są zaplanowane do usunięcia w przyszłej aktualizacji. Sprawdź wyjście kompilacji pod kątem ostrzeżeń o przestarzałości i migruj na zalecany zamiennik.
+
+---
+
+### 34. Błąd porównania `int.MIN`
+
+Porównania obejmujące `int.MIN` (-2147483648) dają nieprawidłowe wyniki:
+
+```c
+int val = 1;
+if (val < int.MIN)  // Ewaluuje się jako TRUE — powinno być false
+{
+    // Ten blok wykonuje się nieprawidłowo
+}
+```
+
+Unikaj bezpośrednich porównań z `int.MIN`. Zamiast tego użyj zapisanej stałej lub porównuj z konkretną wartością ujemną.
+
+---
+
+### 35. Negacja boolowska elementu tablicy nie działa
+
+Bezpośrednia negacja boolowska elementów tablicy się nie kompiluje:
+
+```c
+array<int> list = {0, 1, 2};
+if (!list[1])          // NIE KOMPILUJE SIĘ
+if (list[1] == 0)      // Działa — użyj jawnego porównania
+```
+
+Przy testowaniu prawdziwości elementów tablicy zawsze używaj jawnych sprawdzeń równości.
+
+---
+
+### 36. Złożone wyrażenie w przypisaniu do tablicy powoduje crash
+
+Przypisanie złożonego wyrażenia bezpośrednio do elementu tablicy może spowodować segmentation fault:
+
+```c
+// CRASHUJE w runtime
+m_Values[index] = vector.DistanceSq(posA, posB) <= distSq;
+
+// BEZPIECZNE — użyj zmiennej pośredniej
+bool result = vector.DistanceSq(posA, posB) <= distSq;
+m_Values[index] = result;
+```
+
+Wyniki złożonych wyrażeń zawsze zapisuj w zmiennej lokalnej przed przypisaniem do tablicy.
+
+---
+
+### 37. `foreach` na wartości zwracanej z metody powoduje crash
+
+Użycie `foreach` bezpośrednio na wartości zwracanej z metody powoduje wyjątek null pointer przy drugiej iteracji:
+
+```c
+// CRASHUJE na 2. elemencie
+foreach (string item : GetMyArray())
+{
+}
+
+// BEZPIECZNE — najpierw zapisz w zmiennej lokalnej
+array<string> items = GetMyArray();
+foreach (string item : items)
+{
+}
+```
+
+---
+
+### 38. Priorytet operatorów bitowych vs porównania
+
+Operatory bitowe mają **niższy** priorytet niż operatory porównania, zgodnie z regułami C/C++:
+
+```c
+int flags = 5;
+int mask = 4;
+if (flags & mask == mask)      // ŹLE: ewaluowane jako flags & (mask == mask)
+if ((flags & mask) == mask)    // DOBRZE: zawsze używaj nawiasów
+```
+
+---
+
+### 39. Puste bloki `#ifdef` / `#ifndef` powodują crash
+
+Puste bloki preprocesora warunkowego — nawet te zawierające wyłącznie komentarze — powodują segmentation fault:
+
+```c
+#ifdef SOME_DEFINE
+    // Ten blok zawierający tylko komentarz powoduje SEGFAULT
+#endif
+```
+
+Zawsze dołącz co najmniej jedną instrukcję wykonywalną lub całkowicie pomiń blok.
+
+---
+
+### 40. `GetGame().IsClient()` zwraca False podczas ładowania
+
+Podczas fazy ładowania klienta `GetGame().IsClient()` zwraca **false**, a `GetGame().IsServer()` zwraca **true** — nawet na klientach. Zamiast tego użyj `IsDedicatedServer()`:
+
+```c
+// NIEWIARYGODNE podczas fazy ładowania
+if (GetGame().IsClient()) { }   // false podczas ładowania!
+if (GetGame().IsServer()) { }   // true podczas ładowania, nawet na kliencie!
+
+// WIARYGODNE
+if (!GetGame().IsDedicatedServer()) { /* kod klienta */ }
+if (GetGame().IsDedicatedServer())  { /* kod serwera */ }
+```
+
+**Wyjątek:** Jeśli musisz obsługiwać tryb offline/singleplayer, `IsDedicatedServer()` zwraca false również dla listen serverów.
+
+---
+
+### 41. Komunikaty błędów kompilacji wskazują zły plik
+
+Gdy kompilator napotka niezdefiniowaną klasę lub konflikt nazw zmiennych, zgłasza błąd na **końcu ostatniego pomyślnie sparsowanego pliku** — nie w faktycznym miejscu błędu. Jeśli widzisz błąd wskazujący na plik, którego nie modyfikowałeś, prawdziwy błąd jest w pliku parsowanym zaraz po nim.
+
+---
+
+### 42. Pliki `crash_*.log` to nie crashe
+
+Pliki logów o nazwie `crash_<data>_<czas>.log` zawierają **wyjątki runtime**, nie faktyczne segmentation fault. Nazwa jest myląca — to błędy skryptów, nie crashe silnika.
 
 ---
 

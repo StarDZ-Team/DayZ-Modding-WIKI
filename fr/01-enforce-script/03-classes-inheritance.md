@@ -369,6 +369,45 @@ class B extends A { }     // OK: single parent
 class D extends B { }     // OK: B extends A, D extends B (inheritance chain)
 ```
 
+### Le mot-cle `sealed` (1.28+)
+
+Une classe marquee `sealed` ne peut pas etre heritee. Une methode marquee `sealed` ne peut pas etre redefinie. DayZ 1.28 impose cela a la compilation.
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // Cette classe ne peut pas etre etendue
+    }
+}
+
+class MyChild : FinalClass  // ERREUR DE COMPILATION : impossible d'heriter d'une classe sealed
+{
+}
+```
+
+Les methodes peuvent aussi etre sealed individuellement :
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // Ne peut pas etre redefinie dans les classes enfants
+    }
+
+    void OpenMethod()
+    {
+        // Peut etre redefinie normalement
+    }
+}
+```
+
+> **Note de migration :** Si vous mettez a jour vers DayZ 1.28 et obtenez une erreur de compilation concernant l'heritage d'une classe sealed, vous devez refactoriser. Utilisez la composition (encapsulez la classe comme membre) au lieu de l'heritage.
+
+`sealed` est rarement utilise dans le modding DayZ car l'extensibilite est l'objectif principal.
+
 ---
 
 ## Redefinition de methodes
@@ -999,6 +1038,22 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 | Static field | `static int s_Count;` | Shared across all instances |
 | Static method | `static void DoThing()` | Called via `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Strong reference (owns the object) |
+| Sealed class | `sealed class Name { }` | Ne peut pas etre heritee (erreur de compilation 1.28+) |
+| Sealed method | `sealed void Method()` | Ne peut pas etre redefinie dans les classes enfants |
+| Proto native | `proto native void Func();` | Methode implementee par le moteur |
+| `out` param | `void Func(out int val)` | Parametre en sortie uniquement |
+| `inout` param | `void Func(inout array<int> a)` | Parametre en entree + sortie |
+| `notnull` param | `void Func(notnull EntityAI e)` | Non-null impose par le compilateur |
+
+---
+
+## Theorie vs Pratique
+
+| Concept | Theorie | Realite |
+|---------|---------|---------|
+| Omettre le mot-cle `override` | Devrait creer une nouvelle methode | Cree souvent un bug subtil ou la methode parente s'execute au lieu de celle de l'enfant |
+| Constructeurs multiples (surcharge) | Fonctionnalite POO standard | Fonctionne mais rarement utilise dans les mods DayZ -- la plupart des classes utilisent un seul constructeur avec des valeurs par defaut |
+| Classes/methodes `sealed` | Empeche l'heritage ou la redefinition (impose a la compilation depuis 1.28) | Presque jamais utilise dans le modding DayZ car l'extensibilite est l'objectif |
 
 ---
 

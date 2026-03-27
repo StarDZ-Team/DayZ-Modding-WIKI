@@ -41,6 +41,18 @@
   28. [No Destructor Guarantee on Server Shutdown](#28-no-destructor-guarantee-on-server-shutdown)
   29. [No Scope-Based Resource Management (RAII)](#29-no-scope-based-resource-management-raii)
   30. [GetGame().GetPlayer() Returns null on Server](#30-getgamegetplayer-returns-null-on-server)
+  31. [`sealed` Classes Cannot Be Extended (1.28+)](#31-sealed-classes-cannot-be-extended-128)
+  32. [Method Parameter Limit: 16 Maximum (1.28+)](#32-method-parameter-limit-16-maximum-128)
+  33. [`Obsolete` Attribute Warnings (1.28+)](#33-obsolete-attribute-warnings-128)
+  34. [`int.MIN` Comparison Bug](#34-intmin-comparison-bug)
+  35. [Array Element Boolean Negation Fails](#35-array-element-boolean-negation-fails)
+  36. [Complex Expression in Array Assignment Crashes](#36-complex-expression-in-array-assignment-crashes)
+  37. [`foreach` on Method Return Value Crashes](#37-foreach-on-method-return-value-crashes)
+  38. [Bitwise vs Comparison Operator Precedence](#38-bitwise-vs-comparison-operator-precedence)
+  39. [Empty `#ifdef` / `#ifndef` Blocks Crash](#39-empty-ifdef--ifndef-blocks-crash)
+  40. [`GetGame().IsClient()` Returns False During Load](#40-getgameisclient-returns-false-during-load)
+  41. [Compile Error Messages Report Wrong File](#41-compile-error-messages-report-wrong-file)
+  42. [`crash_*.log` Files Are Not Crashes](#42-crashlog-files-are-not-crashes)
 - [Coming From C++](#coming-from-c)
 - [Coming From C#](#coming-from-c-1)
 - [Coming From Java](#coming-from-java)
@@ -922,6 +934,167 @@ player.DoSomething();  // CRASH on server!
 
 ---
 
+### 31. `sealed` Classes Cannot Be Extended (1.28+)
+
+Starting in DayZ 1.28, the Enforce Script compiler enforces the `sealed` keyword. A class or method marked `sealed` cannot be inherited or overridden. If you attempt to extend a sealed class:
+
+```c
+// If BI marks SomeVanillaClass as sealed:
+class MyClass : SomeVanillaClass  // COMPILE ERROR in 1.28+
+{
+}
+```
+
+Check the vanilla script dump for any class marked `sealed` before attempting to inherit from it. If you need to modify sealed class behavior, use composition (wrap it) rather than inheritance.
+
+---
+
+### 32. Method Parameter Limit: 16 Maximum (1.28+)
+
+Enforce Script has always had a 16-parameter limit on methods, but before 1.28 it was a silent buffer overflow that caused random crashes. Starting in 1.28, the compiler produces a **hard error**:
+
+```c
+// COMPILE ERROR in 1.28+ — exceeds 16 parameters
+void MyMethod(int a, int b, int c, int d, int e, int f, int g, int h,
+              int i, int j, int k, int l, int m, int n, int o, int p,
+              int q)  // 17th parameter = error
+{
+}
+```
+
+**Fix:** Refactor to pass a class or array instead of individual parameters.
+
+---
+
+### 33. `Obsolete` Attribute Warnings (1.28+)
+
+DayZ 1.28 introduced the `Obsolete` attribute. Functions and classes marked `[Obsolete]` generate compiler warnings. These APIs still work but are scheduled for removal in a future update. Check your build output for obsolete warnings and migrate to the recommended replacement.
+
+---
+
+### 34. `int.MIN` Comparison Bug
+
+Comparisons involving `int.MIN` (-2147483648) produce incorrect results:
+
+```c
+int val = 1;
+if (val < int.MIN)  // Evaluates to TRUE — should be false
+{
+    // This block executes incorrectly
+}
+```
+
+Avoid direct comparisons with `int.MIN`. Use a stored constant instead or compare against a specific negative value.
+
+---
+
+### 35. Array Element Boolean Negation Fails
+
+Direct boolean negation of array elements does not compile:
+
+```c
+array<int> list = {0, 1, 2};
+if (!list[1])          // DOES NOT COMPILE
+if (list[1] == 0)      // Works — use explicit comparison
+```
+
+Always use explicit equality checks when testing array elements for truthiness.
+
+---
+
+### 36. Complex Expression in Array Assignment Crashes
+
+Assigning a complex expression directly to an array element can cause a segmentation fault:
+
+```c
+// CRASHES at runtime
+m_Values[index] = vector.DistanceSq(posA, posB) <= distSq;
+
+// SAFE — use intermediate variable
+bool result = vector.DistanceSq(posA, posB) <= distSq;
+m_Values[index] = result;
+```
+
+Always store complex expression results in a local variable before assigning to an array.
+
+---
+
+### 37. `foreach` on Method Return Value Crashes
+
+Using `foreach` directly on a method's return value causes a null pointer exception on the second iteration:
+
+```c
+// CRASHES on 2nd item
+foreach (string item : GetMyArray())
+{
+}
+
+// SAFE — store in local variable first
+array<string> items = GetMyArray();
+foreach (string item : items)
+{
+}
+```
+
+---
+
+### 38. Bitwise vs Comparison Operator Precedence
+
+Bitwise operators have **lower** precedence than comparison operators, following C/C++ rules:
+
+```c
+int flags = 5;
+int mask = 4;
+if (flags & mask == mask)      // WRONG: evaluated as flags & (mask == mask)
+if ((flags & mask) == mask)    // CORRECT: always use parentheses
+```
+
+---
+
+### 39. Empty `#ifdef` / `#ifndef` Blocks Crash
+
+Empty preprocessor conditional blocks — even those containing only comments — cause segmentation faults:
+
+```c
+#ifdef SOME_DEFINE
+    // This comment-only block causes a SEGFAULT
+#endif
+```
+
+Always include at least one executable statement or leave the block entirely absent.
+
+---
+
+### 40. `GetGame().IsClient()` Returns False During Load
+
+During the client loading phase, `GetGame().IsClient()` returns **false** and `GetGame().IsServer()` returns **true** — even on clients. Use `IsDedicatedServer()` instead:
+
+```c
+// UNRELIABLE during load phase
+if (GetGame().IsClient()) { }   // false during load!
+if (GetGame().IsServer()) { }   // true during load, even on client!
+
+// RELIABLE
+if (!GetGame().IsDedicatedServer()) { /* client code */ }
+if (GetGame().IsDedicatedServer())  { /* server code */ }
+```
+
+**Exception:** If you need to support offline/singleplayer mode, `IsDedicatedServer()` returns false for listen servers too.
+
+---
+
+### 41. Compile Error Messages Report Wrong File
+
+When the compiler encounters an undefined class or variable naming conflict, it reports the error at the **last successfully parsed file's EOF** — not the actual error location. If you see an error pointing to a file you haven't modified, the real error is in a file that was being parsed just after it.
+
+---
+
+### 42. `crash_*.log` Files Are Not Crashes
+
+Log files named `crash_<date>_<time>.log` contain **runtime exceptions**, not actual segmentation faults. The naming is misleading — these are script errors, not engine crashes.
+
+---
+
 ## Coming From C++
 
 If you are a C++ developer, here are the biggest adjustments:
@@ -1028,6 +1201,18 @@ If you are a C++ developer, here are the biggest adjustments:
 | Namespaces | No | Name prefixes |
 | RAII | No | Manual cleanup |
 | `GetGame().GetPlayer()` server | Returns null | Iterate `GetPlayers()` |
+| `sealed` class inheritance (1.28+) | Compile error | Use composition instead |
+| 17+ method parameters (1.28+) | Compile error | Pass a class or array |
+| `[Obsolete]` APIs (1.28+) | Compiler warning | Migrate to replacement API |
+| `int.MIN` comparisons | Incorrect results | Use a stored constant |
+| `!array[i]` negation | Compile error | Use `array[i] == 0` |
+| Complex expr in array assign | Segfault | Use intermediate variable |
+| `foreach` on method return | Null pointer crash | Store in local variable first |
+| Bitwise vs comparison precedence | Wrong evaluation | Always use parentheses |
+| Empty `#ifdef` blocks | Segfault | Include a statement or remove block |
+| `IsClient()` during load | Returns false | Use `IsDedicatedServer()` |
+| Compile error wrong file | Misleading location | Check file parsed after reported one |
+| `crash_*.log` files | Not actual crashes | They are runtime script exceptions |
 
 ---
 

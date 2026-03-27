@@ -369,6 +369,45 @@ class B extends A { }     // OK: single parent
 class D extends B { }     // OK: B extends A, D extends B (inheritance chain)
 ```
 
+### Słowo kluczowe `sealed` (1.28+)
+
+Klasa oznaczona `sealed` nie może być dziedziczona. Metoda oznaczona `sealed` nie może być nadpisywana. DayZ 1.28 wymusza to w czasie kompilacji.
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // Ta klasa nie może być rozszerzana
+    }
+}
+
+class MyChild : FinalClass  // BŁĄD KOMPILACJI: nie można dziedziczyć z zapieczętowanej klasy
+{
+}
+```
+
+Metody mogą być też pieczętowane pojedynczo:
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // Nie może być nadpisana w klasach potomnych
+    }
+
+    void OpenMethod()
+    {
+        // Może być nadpisana normalnie
+    }
+}
+```
+
+> **Uwaga dotycząca migracji:** Jeśli aktualizujesz do DayZ 1.28 i dostajesz błąd kompilacji o dziedziczeniu zapieczętowanej klasy, musisz zrefaktorować. Użyj kompozycji (opakuj klasę jako pole) zamiast dziedziczenia.
+
+`sealed` jest rzadko używane w moddingu DayZ, ponieważ rozszerzalność jest głównym celem.
+
 ---
 
 ## Nadpisywanie metod
@@ -999,6 +1038,8 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 | Static field | `static int s_Count;` | Shared across all instances |
 | Static method | `static void DoThing()` | Called via `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Strong reference (owns the object) |
+| Sealed class | `sealed class Name { }` | Nie może być dziedziczona (błąd kompilacji 1.28+) |
+| Sealed method | `sealed void Method()` | Nie może być nadpisana w klasach potomnych |
 
 ---
 

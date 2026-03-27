@@ -84,6 +84,25 @@ Generator tworzy siatke pozycji kandydackich wokol kazdego babla:
 
 Kazdy babel otrzymuje siatke 200x200m z punktem co 4m (~2500 kandydatow). Silnik filtruje po nachyleniu i odleglosci od obiektow statycznych, a nastepnie stosuje `spawn_params` w momencie spawnu.
 
+#### Parametr `allow_in_water` (1.28+)
+
+Od DayZ 1.28 do `generator_params` dodano nowy parametr logiczny `allow_in_water` (domyślnie: `false`). Gdy ustawiony na `true`, generator punktów spawnu uznaje pozycje w wodzie za prawidłowe punkty spawnu:
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+Domyślnie silnik odrzuca każdą pozycję kandydacką, która wypada w wodzie (stawy, rzeki, ocean). Ustawienie `allow_in_water` na `true` usuwa ten filtr. Jest to przydatne głównie dla niestandardowych map ze spawnami na wyspach lub scenariuszy, w których spawny w wodzie przybrzeżnej są zamierzone. Dla większości serwerów pozostaw wartość `false`, aby uniknąć spawnowania graczy w jeziorach lub oceanie.
+
 ---
 
 ## Parametry grup

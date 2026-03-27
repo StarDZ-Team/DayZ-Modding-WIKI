@@ -84,6 +84,25 @@ O gerador cria uma grade de posicoes candidatas ao redor de cada bolha:
 
 Cada bolha recebe uma grade de 200x200m com um ponto a cada 4m (~2.500 candidatos). O engine filtra por inclinacao e distancia estatica, depois aplica `spawn_params` no momento do spawn.
 
+#### Parametro `allow_in_water` (1.28+)
+
+A partir do DayZ 1.28, um novo parametro booleano `allow_in_water` foi adicionado ao `generator_params` (padrao: `false`). Quando definido como `true`, o gerador de pontos de spawn considerara posicoes na agua como pontos de spawn validos:
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+Por padrao, o engine rejeita qualquer posicao candidata que caia na agua (lagos, rios, oceano). Definir `allow_in_water` como `true` remove esse filtro. Isso e util principalmente para mapas customizados com spawns em ilhas ou cenarios onde spawns costeiros na agua sao intencionais. Para a maioria dos servidores, deixe como `false` para evitar jogadores spawnando em lagos ou no oceano.
+
 ---
 
 ## Parametros de Grupo

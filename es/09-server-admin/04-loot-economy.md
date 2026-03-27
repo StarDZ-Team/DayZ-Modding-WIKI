@@ -18,6 +18,7 @@
 - [globals.xml -- Parametros de la economia](#globalsxml----parametros-de-la-economia)
 - [events.xml -- Eventos dinamicos](#eventsxml----eventos-dinamicos)
 - [cfgspawnabletypes.xml -- Accesorios y carga](#cfgspawnabletypesxml----accesorios-y-carga)
+- [Expansion de cfgspawnabletypes.xml (1.28+)](#expansion-de-cfgspawnabletypesxml-128)
 - [La relacion nominal/restock](#la-relacion-nominalrestock)
 - [Errores comunes de la economia](#errores-comunes-de-la-economia)
 
@@ -528,6 +529,97 @@ La etiqueta `<hoarder />` marca items como contenedores de hoarder. La CE cuenta
 ```
 
 Fuerza a los vendajes a siempre spawnear en condicion Pristine, sobreescribiendo los `LootDamageMin`/`LootDamageMax` globales de `globals.xml`.
+
+---
+
+## Expansion de cfgspawnabletypes.xml (1.28+)
+
+DayZ 1.28 expandio significativamente lo que `cfgspawnabletypes.xml` puede hacer. Ahora puedes spawnear armas completamente cargadas con accesorios, carga e incluso rondas en recamara.
+
+### quantmin / quantmax para Tamanos de Stack
+
+Controla que tan llenos spawnean los items apilables (0-100%):
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Los atributos `quantmin` y `quantmax` en elementos `<item>` anidados funcionan igual que en `types.xml` --- establecen el rango de porcentaje para items basados en cantidad como municion y liquidos. Un valor de `50` significa que el item spawnea al menos medio lleno.
+
+### Carga y Accesorios Anidados de Items
+
+Los items spawneados dentro de otros items pueden a su vez tener accesorios y carga:
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Esto spawnea un M4A1 con un guardamanos RIS y optica M68 adjuntos, mas un cargador STANAG en su carga que esta 50-100% lleno. Antes de 1.28, los items de carga no podian tener su propia cantidad establecida en linea.
+
+### Dano min/max Anidado
+
+Controla el estado de dano de items anidados independientemente del padre:
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+La bayoneta spawnea entre condicion Pristine y Desgastado, independientemente del estado de dano del propio AKM. Esto te permite asegurar que accesorios valiosos spawneen en mejor condicion que el arma en si.
+
+### Armas con Rondas en Recamara (1.28+)
+
+Las armas ahora pueden spawnear con una bala en recamara y balas en el cargador interno:
+
+```xml
+<type name="Mosin9130">
+    <!-- El arma spawnea con rondas en el cargador interno -->
+</type>
+```
+
+Esto se configura via `cfgspawnabletypes.xml` en combinacion con `randompresets.xml`. El sistema de presets maneja el tipo y cantidad de rondas, mientras que la entrada de tipo spawnable vincula el arma al preset.
+
+### Presets Anidados via equip="true"
+
+Referencia loadouts de presets para items spawneados usando el atributo `equip`:
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+Cuando se establece `equip="true"`, el preset se aplica como un loadout de equipamiento completo sobre el item spawneado en lugar de seleccionar un solo item aleatorio del pool del preset. Esto es util para definir configuraciones de armas completas como presets reutilizables.
+
+### randompresets.xml Ahora Anexable
+
+A partir de 1.28, `randompresets.xml` puede anexarse via `cfgeconomycore.xml`, permitiendo a los mods agregar presets sin sobreescribir los vanilla:
+
+```xml
+<!-- En cfgeconomycore.xml -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+Esta es una mejora significativa para la compatibilidad de mods. Anteriormente, cualquier mod que necesitaba presets aleatorios personalizados tenia que reemplazar todo el archivo `randompresets.xml`, causando conflictos cuando multiples mods estaban cargados. Ahora cada mod puede enviar su propio archivo de presets y registrarlo a traves de `cfgeconomycore.xml`.
 
 ---
 

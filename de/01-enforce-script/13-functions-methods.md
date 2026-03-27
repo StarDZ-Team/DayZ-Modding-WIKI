@@ -25,6 +25,7 @@ Dieses Kapitel behandelt Funktionsmechaniken im Detail: Deklarationssyntax, Para
   - [notnull-Parameter](#notnull-parameter)
 - [Rückgabewerte](#rückgabewerte)
 - [Standard-Parameterwerte](#standard-parameterwerte)
+- [Parameter-Limit: Maximal 16](#parameter-limit-maximal-16)
 - [Proto-Native-Methoden (Engine-Bindungen)](#proto-native-methoden-engine-bindungen)
 - [Statisch vs. Instanz-Methoden](#statisch-vs-instanz-methoden)
 - [Methodenüberschreibung](#methodenüberschreibung)
@@ -434,6 +435,37 @@ void DoWork(EntityAI target = null, string name = "")
 {
     if (!target) return;
     // ...
+}
+```
+
+---
+
+## Parameter-Limit: Maximal 16
+
+Enforce-Script-Methoden können nicht mehr als 16 Parameter haben. Seit DayZ 1.28 erzeugt das Überschreiten dieses Limits einen **harten Kompilierfehler** (zuvor verursachte es stille Pufferüberläufe und zufällige Abstürze):
+
+```c
+// KOMPILIERFEHLER in 1.28+ — 17 Parameter überschreiten das Limit
+void TooManyParams(int a, int b, int c, int d, int e, int f, int g, int h,
+                   int i, int j, int k, int l, int m, int n, int o, int p,
+                   int q)
+{
+}
+```
+
+**Lösung:** Übergeben Sie stattdessen eine Klasse oder ein Array anstelle vieler einzelner Parameter:
+
+```c
+class MyParams
+{
+    int a, b, c, d, e;
+    float x, y, z;
+    string name;
+}
+
+void ProcessData(MyParams params)
+{
+    // Zugriff auf params.a, params.b, usw.
 }
 ```
 

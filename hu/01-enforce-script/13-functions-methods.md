@@ -25,6 +25,7 @@ This chapter covers function mechanics in depth: declaration syntax, parameter p
   - [notnull Parameterek](#notnull-parameters)
 - [Return Erteks](#return-values)
 - [Alapertelmezett Parameter Erteks](#default-parameter-values)
+- [Parameter korlat: maximum 16](#parameter-korlat-maximum-16)
 - [Proto Native Metoduss (Engine Bindings)](#proto-native-methods-engine-bindings)
 - [Static vs Instance Metoduss](#static-vs-instance-methods)
 - [Metodus Overriding](#method-overriding)
@@ -434,6 +435,37 @@ void DoWork(EntityAI target = null, string name = "")
 {
     if (!target) return;
     // ...
+}
+```
+
+---
+
+## Parameter korlat: maximum 16
+
+Az Enforce Script metodusok nem rendelkezhetnek 16-nal tobb parameterrel. A DayZ 1.28 ota ennek tulepese **kemeny forditasi hibat** okoz (korabban nema buffer tulcsordulast es veletlenszeru osszeomlasokat okozott):
+
+```c
+// FORDITASI HIBA 1.28+-ban — 17 parameter meghaladja a limitet
+void TooManyParams(int a, int b, int c, int d, int e, int f, int g, int h,
+                   int i, int j, int k, int l, int m, int n, int o, int p,
+                   int q)
+{
+}
+```
+
+**Megoldas:** Adj at osztalyt vagy tombot sok egyedi parameter helyett:
+
+```c
+class MyParams
+{
+    int a, b, c, d, e;
+    float x, y, z;
+    string name;
+}
+
+void ProcessData(MyParams params)
+{
+    // Hozzaferes params.a, params.b stb. mezokhoz
 }
 ```
 
@@ -1108,6 +1140,7 @@ class MyMission extends MissionServer
 | Kill thread | `KillThread(owner, "FnName")` | Stops a running coroutine |
 | Deferred call | `CallLater(Fn, delay, repeat)` | Preferred over threads |
 | `Ex()` convention | `void FnEx(...)` | Extended version of `Fn` |
+| Parameter korlat | Maximum 16 parameter | Kemeny forditasi hiba 1.28+-ban; hasznalj osztalyt tobbhoz |
 
 ---
 

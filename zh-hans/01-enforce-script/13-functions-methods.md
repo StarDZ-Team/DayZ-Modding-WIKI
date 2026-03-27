@@ -25,6 +25,7 @@
   - [notnull 参数](#notnull-参数)
 - [返回值](#返回值)
 - [默认参数值](#默认参数值)
+- [参数限制：最多 16 个](#参数限制最多-16-个)
 - [Proto Native 方法（引擎绑定）](#proto-native-方法引擎绑定)
 - [静态与实例方法](#静态与实例方法)
 - [方法重写](#方法重写)
@@ -434,6 +435,37 @@ void DoWork(EntityAI target = null, string name = "")
 {
     if (!target) return;
     // ...
+}
+```
+
+---
+
+## 参数限制：最多 16 个
+
+Enforce Script 的方法不能有超过 16 个参数。从 DayZ 1.28 开始，超过此限制会产生**硬编译错误**（之前会导致静默的缓冲区溢出和随机崩溃）：
+
+```c
+// 1.28+ 编译错误——17 个参数超过限制
+void TooManyParams(int a, int b, int c, int d, int e, int f, int g, int h,
+                   int i, int j, int k, int l, int m, int n, int o, int p,
+                   int q)
+{
+}
+```
+
+**解决方案：** 传递类或数组代替多个独立参数：
+
+```c
+class MyParams
+{
+    int a, b, c, d, e;
+    float x, y, z;
+    string name;
+}
+
+void ProcessData(MyParams params)
+{
+    // 访问 params.a、params.b 等
 }
 ```
 

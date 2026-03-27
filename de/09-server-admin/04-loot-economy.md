@@ -18,6 +18,7 @@
 - [globals.xml -- Wirtschaftsparameter](#globalsxml----wirtschaftsparameter)
 - [events.xml -- Dynamische Events](#eventsxml----dynamische-events)
 - [cfgspawnabletypes.xml -- Anbauteile und Ladung](#cfgspawnabletypesxml----anbauteile-und-ladung)
+- [cfgspawnabletypes.xml-Erweiterung (1.28+)](#cfgspawnabletypesxml-erweiterung-128)
 - [Die Nominal-/Restock-Beziehung](#die-nominal-restock-beziehung)
 - [Haeufige Wirtschaftsfehler](#haeufige-wirtschaftsfehler)
 
@@ -528,6 +529,97 @@ Das `<hoarder />`-Tag markiert Items als Hoarder-Container. Die CE zaehlt Items 
 ```
 
 Erzwingt, dass Bandagen immer im neuwertigen Zustand spawnen, und ueberschreibt die globalen `LootDamageMin`/`LootDamageMax` aus `globals.xml`.
+
+---
+
+## cfgspawnabletypes.xml-Erweiterung (1.28+)
+
+DayZ 1.28 erweiterte die Moeglichkeiten von `cfgspawnabletypes.xml` erheblich. Sie koennen jetzt Waffen vollstaendig geladen mit Anbauteilen, Ladung und sogar geladenem Lauf spawnen.
+
+### quantmin / quantmax fuer Stapelgroessen
+
+Steuern Sie, wie voll stapelbare Items spawnen (0-100%):
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Die `quantmin`- und `quantmax`-Attribute auf verschachtelten `<item>`-Elementen funktionieren genauso wie in `types.xml` -- sie legen den Prozentbereich fuer mengenbasierte Items wie Munition und Fluessigkeiten fest. Ein Wert von `50` bedeutet, dass das Item mindestens halbvoll spawnt.
+
+### Verschachtelte Item-Ladung und Anbauteile
+
+Items, die in anderen Items gespawnt werden, koennen selbst Anbauteile und Ladung haben:
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Dies spawnt eine M4A1 mit einem RIS-Handschutz und M68-Optik montiert, plus ein STANAG-Magazin in der Ladung, das zu 50-100% gefuellt ist. Vor 1.28 konnten Ladungs-Items keine eigene Menge inline gesetzt haben.
+
+### Verschachteltes Damage min/max
+
+Steuern Sie den Schadenszustand verschachtelter Items unabhaengig vom Elternelement:
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+Das Bajonett spawnt zwischen neuwertigem und abgenutztem Zustand, unabhaengig vom eigenen Schadenszustand der AKM. So koennen Sie sicherstellen, dass wertvolle Anbauteile in besserem Zustand spawnen als die Waffe selbst.
+
+### Waffen mit geladenem Lauf (1.28+)
+
+Waffen koennen jetzt mit einer Patrone im Lauf und Patronen im internen Magazin spawnen:
+
+```xml
+<type name="Mosin9130">
+    <!-- Waffe spawnt mit Patronen im internen Magazin -->
+</type>
+```
+
+Dies wird ueber `cfgspawnabletypes.xml` in Kombination mit `randompresets.xml` konfiguriert. Das Preset-System verwaltet den Patronentyp und die Anzahl, waehrend der Spawnable-Type-Eintrag die Waffe mit dem Preset verknuepft.
+
+### Verschachtelte Presets via equip="true"
+
+Referenzieren Sie Preset-Ausruestungen fuer gespawnte Items mit dem `equip`-Attribut:
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+Wenn `equip="true"` gesetzt ist, wird das Preset als vollstaendige Ausruestungsvorlage auf das gespawnte Item angewendet, anstatt ein einzelnes zufaelliges Item aus dem Preset-Pool auszuwaehlen. Dies ist nuetzlich, um vollstaendige Waffenkonfigurationen als wiederverwendbare Presets zu definieren.
+
+### randompresets.xml jetzt erweiterbar
+
+Ab 1.28 kann `randompresets.xml` ueber `cfgeconomycore.xml` angehaengt werden, sodass Mods Presets hinzufuegen koennen, ohne Vanilla zu ueberschreiben:
+
+```xml
+<!-- In cfgeconomycore.xml -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+Dies ist eine bedeutende Verbesserung fuer die Mod-Kompatibilitaet. Zuvor musste jeder Mod, der benutzerdefinierte zufaellige Presets benoetigte, die gesamte `randompresets.xml`-Datei ersetzen, was Konflikte verursachte, wenn mehrere Mods geladen waren. Jetzt kann jeder Mod seine eigene Preset-Datei mitbringen und ueber `cfgeconomycore.xml` registrieren.
 
 ---
 

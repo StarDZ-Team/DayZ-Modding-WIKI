@@ -18,6 +18,7 @@
 - [globals.xml -- Parametry ekonomii](#globalsxml----parametry-ekonomii)
 - [events.xml -- Zdarzenia dynamiczne](#eventsxml----zdarzenia-dynamiczne)
 - [cfgspawnabletypes.xml -- Zalaczniki i ladunek](#cfgspawnabletypesxml----zalaczniki-i-ladunek)
+- [Rozszerzenie cfgspawnabletypes.xml (1.28+)](#rozszerzenie-cfgspawnabletypesxml-128)
 - [Relacja nominal/restock](#relacja-nominalrestock)
 - [Typowe bledy ekonomii](#typowe-bledy-ekonomii)
 
@@ -528,6 +529,97 @@ Tag `<hoarder />` oznacza przedmioty jako pojemniki do gromadzenia. CE liczy prz
 ```
 
 Wymusza, aby bandaze zawsze pojawialy sie w stanie Nieskazitelnym, nadpisujac globalne `LootDamageMin`/`LootDamageMax` z `globals.xml`.
+
+---
+
+## Rozszerzenie cfgspawnabletypes.xml (1.28+)
+
+DayZ 1.28 znacząco rozszerzył możliwości `cfgspawnabletypes.xml`. Teraz możesz spawnować broń w pełni załadowaną z załącznikami, ładunkiem, a nawet nabitymi nabojami.
+
+### quantmin / quantmax dla rozmiarów stosów
+
+Kontroluj, jak pełne spawnują się przedmioty stokowalne (0-100%):
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Atrybuty `quantmin` i `quantmax` na zagnieżdżonych elementach `<item>` działają tak samo jak w `types.xml` — ustawiają zakres procentowy dla przedmiotów opartych na ilości, takich jak amunicja i płyny. Wartość `50` oznacza, że przedmiot spawnuje się co najmniej w połowie pełny.
+
+### Zagnieżdżony ładunek i załączniki przedmiotów
+
+Przedmioty spawnowane wewnątrz innych przedmiotów mogą same mieć załączniki i ładunek:
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Spawnuje to M4A1 z zamontowanym przedłożeniem RIS i optyką M68, plus magazynek STANAG w ładunku wypełniony w 50-100%. Przed wersją 1.28 przedmioty w ładunku nie mogły mieć ustawianej własnej ilości inline.
+
+### Zagnieżdżone damage min/max
+
+Kontroluj stan uszkodzenia zagnieżdżonych przedmiotów niezależnie od rodzica:
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+Bagnet spawnuje się między stanami Nieskazitelny i Zużyty, niezależnie od własnego stanu uszkodzenia AKM. Pozwala to zapewnić, że cenne załączniki spawnują się w lepszym stanie niż sama broń.
+
+### Broń z nabitymi nabojami (1.28+)
+
+Broń może teraz spawnować się z nabojem w komorze i nabojami w wewnętrznym magazynku:
+
+```xml
+<type name="Mosin9130">
+    <!-- Broń spawnuje się z nabojami w wewnętrznym magazynku -->
+</type>
+```
+
+Konfiguruje się to przez `cfgspawnabletypes.xml` w połączeniu z `randompresets.xml`. System presetów obsługuje typ i liczbę nabojów, podczas gdy wpis spawnable type łączy broń z presetem.
+
+### Zagnieżdżone presety przez equip="true"
+
+Referencyjne presety loadoutów dla spawnowanych przedmiotów za pomocą atrybutu `equip`:
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+Gdy ustawione jest `equip="true"`, preset jest stosowany jako kompletny loadout wyposażenia na spawnowanym przedmiocie, zamiast wybierania jednego losowego przedmiotu z puli presetu. Jest to przydatne do definiowania kompletnych konfiguracji broni jako presetów wielokrotnego użytku.
+
+### randompresets.xml teraz dodawalne
+
+Od wersji 1.28 `randompresets.xml` można dołączać przez `cfgeconomycore.xml`, pozwalając modom dodawać presety bez nadpisywania vanillowych:
+
+```xml
+<!-- W cfgeconomycore.xml -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+To znacząca poprawa kompatybilności modów. Wcześniej każdy mod potrzebujący niestandardowych losowych presetów musiał zastąpić cały plik `randompresets.xml`, powodując konflikty przy ładowaniu wielu modów. Teraz każdy mod może dostarczać własny plik presetów i rejestrować go przez `cfgeconomycore.xml`.
 
 ---
 

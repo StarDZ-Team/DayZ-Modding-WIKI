@@ -84,6 +84,25 @@ A generátor egy jelölt pozíciók rácsot hoz létre minden buborék körül:
 
 Minden buborék egy 200x200 m-es rácsot kap 4 méterenként egy ponttal (~2500 jelölt). A motor szűr meredekség és statikus távolság alapján, majd spawn időben alkalmazza a `spawn_params` értékeit.
 
+#### `allow_in_water` paraméter (1.28+)
+
+A DayZ 1.28-tól egy új logikai `allow_in_water` paraméter került a `generator_params` blokkba (alapértelmezett: `false`). Ha `true` értékre állítod, a spawn pont generátor a vízben lévő pozíciókat is érvényes spawn pontokként kezeli:
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+Alapértelmezetten a motor elutasít minden olyan jelölt pozíciót, ami vízbe esik (tavak, folyók, óceán). Az `allow_in_water` `true`-ra állítása eltávolítja ezt a szűrőt. Ez elsősorban egyedi térképekhez hasznos sziget spawnokkal, vagy olyan forgatókönyvekhez, ahol a parti vízben való spawnolás szándékos. A legtöbb szerveren hagyd `false` értéken, hogy a játékosok ne spawnoljanak tavakban vagy az óceánban.
+
 ---
 
 ## Csoport paraméterek

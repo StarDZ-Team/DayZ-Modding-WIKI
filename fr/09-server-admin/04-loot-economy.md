@@ -18,6 +18,7 @@
 - [globals.xml -- Paramètres de l'économie](#globalsxml----paramètres-de-léconomie)
 - [events.xml -- Événements dynamiques](#eventsxml----événements-dynamiques)
 - [cfgspawnabletypes.xml -- Attachements et cargaison](#cfgspawnabletypesxml----attachements-et-cargaison)
+- [Extension de cfgspawnabletypes.xml (1.28+)](#extension-de-cfgspawnabletypesxml-128)
 - [La relation Nominal/Restock](#la-relation-nominalrestock)
 - [Erreurs d'économie courantes](#erreurs-déconomie-courantes)
 
@@ -528,6 +529,97 @@ Le tag `<hoarder />` marque les objets comme conteneurs de cache. Le CE compte l
 ```
 
 Force les bandages à toujours apparaître en état Impeccable, remplaçant les valeurs globales `LootDamageMin`/`LootDamageMax` de `globals.xml`.
+
+---
+
+## Extension de cfgspawnabletypes.xml (1.28+)
+
+DayZ 1.28 a considérablement étendu les possibilités de `cfgspawnabletypes.xml`. Vous pouvez désormais faire apparaître des armes entièrement chargées avec attachements, cargaison et même des balles chambrées.
+
+### quantmin / quantmax pour les tailles de pile
+
+Contrôlez le remplissage des objets empilables à l'apparition (0-100%) :
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Les attributs `quantmin` et `quantmax` sur les éléments `<item>` imbriqués fonctionnent comme dans `types.xml` -- ils définissent la plage de pourcentage pour les objets basés sur la quantité comme les munitions et les liquides. Une valeur de `50` signifie que l'objet apparaît au moins à moitié plein.
+
+### Cargaison et attachements d'objets imbriqués
+
+Les objets apparus à l'intérieur d'autres objets peuvent eux-mêmes avoir des attachements et de la cargaison :
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Cela fait apparaître un M4A1 avec un garde-main RIS et une optique M68 attachés, plus un chargeur STANAG dans sa cargaison rempli à 50-100%. Avant la 1.28, les objets de cargaison ne pouvaient pas avoir leur propre quantité définie en ligne.
+
+### Dégâts min/max imbriqués
+
+Contrôlez l'état de dégâts des objets imbriqués indépendamment du parent :
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+La baïonnette apparaît entre l'état Impeccable et Usé, indépendamment de l'état de dégâts de l'AKM lui-même. Cela vous permet de vous assurer que les attachements précieux apparaissent en meilleur état que l'arme elle-même.
+
+### Armes avec balles chambrées (1.28+)
+
+Les armes peuvent désormais apparaître avec une balle chambrée et des balles dans le chargeur interne :
+
+```xml
+<type name="Mosin9130">
+    <!-- L'arme apparaît avec des balles dans le chargeur interne -->
+</type>
+```
+
+Cela se configure via `cfgspawnabletypes.xml` en combinaison avec `randompresets.xml`. Le système de presets gère le type et le nombre de balles, tandis que l'entrée du type spawnable lie l'arme au preset.
+
+### Presets imbriqués via equip="true"
+
+Référencez des loadouts de presets pour les objets apparus en utilisant l'attribut `equip` :
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+Quand `equip="true"` est défini, le preset est appliqué comme un loadout d'équipement complet sur l'objet apparu plutôt que de sélectionner un seul objet aléatoire du pool du preset. C'est utile pour définir des configurations d'armes complètes comme presets réutilisables.
+
+### randompresets.xml désormais appendable
+
+À partir de la 1.28, `randompresets.xml` peut être ajouté via `cfgeconomycore.xml`, permettant aux mods d'ajouter des presets sans écraser le vanilla :
+
+```xml
+<!-- Dans cfgeconomycore.xml -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+C'est une amélioration significative pour la compatibilité des mods. Auparavant, tout mod nécessitant des presets aléatoires personnalisés devait remplacer le fichier entier `randompresets.xml`, causant des conflits quand plusieurs mods étaient chargés. Désormais chaque mod peut livrer son propre fichier de presets et l'enregistrer via `cfgeconomycore.xml`.
 
 ---
 

@@ -18,6 +18,7 @@
 - [globals.xml -- parametry ekonomiky](#globalsxml----parametry-ekonomiky)
 - [events.xml -- dynamicke udalosti](#eventsxml----dynamicke-udalosti)
 - [cfgspawnabletypes.xml -- prislusenstvi a naklad](#cfgspawnabletypesxml----prislusenstvi-a-naklad)
+- [Rozšíření cfgspawnabletypes.xml (1.28+)](#rozsireni-cfgspawnabletypesxml-128)
 - [Vztah nominal/restock](#vztah-nominalrestock)
 - [Caste chyby ekonomiky](#caste-chyby-ekonomiky)
 
@@ -528,6 +529,97 @@ Tag `<hoarder />` oznacuje predmety jako kontejnery pro hoardery. CE pocita pred
 ```
 
 Vynutí, aby se obvazy vzdy spawnily ve stavu Pristine, cimz prepise globalni `LootDamageMin`/`LootDamageMax` z `globals.xml`.
+
+---
+
+## Rozšíření cfgspawnabletypes.xml (1.28+)
+
+DayZ 1.28 výrazně rozšířil možnosti `cfgspawnabletypes.xml`. Nyní můžete spawnovat zbraně plně nabité s příslušenstvím, nákladem a dokonce nabitými náboji.
+
+### quantmin / quantmax pro velikosti stacků
+
+Ovládejte, jak plné se spawnují stohovatelné předměty (0-100 %):
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Atributy `quantmin` a `quantmax` na vnořených elementech `<item>` fungují stejně jako v `types.xml` — nastavují procentuální rozsah pro předměty založené na množství, jako je munice a kapaliny. Hodnota `50` znamená, že se předmět spawnuje alespoň z poloviny plný.
+
+### Vnořený náklad a příslušenství položek
+
+Předměty spawnované uvnitř jiných předmětů mohou samy mít příslušenství a náklad:
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Toto spawnuje M4A1 s připojeným RIS předpažbím a optikou M68, plus zásobník STANAG v nákladu, který je z 50-100 % plný. Před verzí 1.28 nemohly mít předměty v nákladu nastavené vlastní množství inline.
+
+### Vnořené damage min/max
+
+Ovládejte stav poškození vnořených předmětů nezávisle na rodičovském:
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+Bajonet se spawnuje mezi stavy Pristine a Worn, bez ohledu na vlastní stav poškození AKM. To vám umožňuje zajistit, aby se cenné příslušenství spawnilo v lepším stavu než samotná zbraň.
+
+### Zbraně s nabitými náboji (1.28+)
+
+Zbraně se nyní mohou spawnovat s nabitým nábojem a náboji ve vnitřním zásobníku:
+
+```xml
+<type name="Mosin9130">
+    <!-- Zbraň se spawnuje s náboji ve vnitřním zásobníku -->
+</type>
+```
+
+Toto se konfiguruje přes `cfgspawnabletypes.xml` v kombinaci s `randompresets.xml`. Systém presetů zpracovává typ a počet nábojů, zatímco záznam spawnable type propojuje zbraň s presetem.
+
+### Vnořené presety přes equip="true"
+
+Referenční preset loadouty pro spawnované předměty pomocí atributu `equip`:
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+Když je nastaveno `equip="true"`, preset je aplikován jako kompletní loadout vybavení na spawnovaný předmět místo výběru jednoho náhodného předmětu z poolu presetu. To je užitečné pro definování kompletních konfigurací zbraní jako znovupoužitelných presetů.
+
+### randompresets.xml nyní přidávatelné
+
+Od verze 1.28 lze `randompresets.xml` přidávat přes `cfgeconomycore.xml`, což umožňuje modům přidávat presety bez přepisování vanillových:
+
+```xml
+<!-- V cfgeconomycore.xml -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+Toto je významné zlepšení pro kompatibilitu modů. Předtím musel každý mod, který potřeboval vlastní náhodné presety, nahradit celý soubor `randompresets.xml`, což způsobovalo konflikty při načítání více modů. Nyní může každý mod dodávat vlastní soubor presetů a zaregistrovat ho přes `cfgeconomycore.xml`.
 
 ---
 

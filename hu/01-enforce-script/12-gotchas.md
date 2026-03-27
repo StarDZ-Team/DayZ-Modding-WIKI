@@ -37,6 +37,18 @@
   28. [No Destructor Guarantee on Server Shutdown](#28-no-destructor-guarantee-on-server-shutdown)
   29. [No Scope-Based Resource Management (RAII)](#29-no-scope-based-resource-management-raii)
   30. [GetGame().GetPlayer() Returns null on Server](#30-getgamegetplayer-returns-null-on-server)
+  31. [`sealed` osztalyok nem bovithetok (1.28+)](#31-sealed-osztalyok-nem-bovithetok-128)
+  32. [Metodus parameter limit: maximum 16 (1.28+)](#32-metodus-parameter-limit-maximum-16-128)
+  33. [`Obsolete` attributum figyelmeztetesek (1.28+)](#33-obsolete-attributum-figyelmeztetesek-128)
+  34. [`int.MIN` osszehasonlitasi hiba](#34-intmin-osszehasonlitasi-hiba)
+  35. [Tomb elem boolean negacio nem mukodik](#35-tomb-elem-boolean-negacio-nem-mukodik)
+  36. [Osszetett kifejezes tomb ertekadasban osszeomlast okoz](#36-osszetett-kifejezes-tomb-ertekadasban-osszeomlast-okoz)
+  37. [`foreach` metodus visszateresi erteken osszeomlast okoz](#37-foreach-metodus-visszateresi-erteken-osszeomlast-okoz)
+  38. [Bitmuveleti vs osszehasonlito operator precedencia](#38-bitmuveleti-vs-osszehasonlito-operator-precedencia)
+  39. [Ures `#ifdef` / `#ifndef` blokkok osszeomlast okoznak](#39-ures-ifdef--ifndef-blokkok-osszeomlast-okoznak)
+  40. [`GetGame().IsClient()` False-t ad vissza betoltes kozben](#40-getgameisclient-false-t-ad-vissza-betoltes-kozben)
+  41. [Forditasi hibauzenet rossz fajlt jelol](#41-forditasi-hibauzenet-rossz-fajlt-jelol)
+  42. [`crash_*.log` fajlok nem valos osszeomlasok](#42-crashlog-fajlok-nem-valos-osszeomlasok)
 - [Coming From C++](#coming-from-c)
 - [Coming From C#](#coming-from-c-1)
 - [Coming From Java](#coming-from-java)
@@ -924,6 +936,167 @@ player.DoSomething();  // CRASH on server!
 
 ---
 
+### 31. `sealed` osztalyok nem bovithetok (1.28+)
+
+A DayZ 1.28-tol kezdve az Enforce Script fordito ervenyesiti a `sealed` kulcsszot. Egy `sealed` jelolesu osztaly vagy metodus nem orokolheto es nem irhato felul. Ha megprobalod boviteni egy sealed osztalyt:
+
+```c
+// Ha a BI SomeVanillaClass-t sealed-kent jeloli:
+class MyClass : SomeVanillaClass  // FORDITASI HIBA 1.28+-ban
+{
+}
+```
+
+Ellenorizd a vanilla script dump-ot, hogy van-e `sealed` jeloles az osztlyon, mielott megprobalnal orokolni belole. Ha modositanod kell egy sealed osztaly viselkedeset, hasznalj kompoziciot (burkold be tagvaltozokent) az oroklodes helyett.
+
+---
+
+### 32. Metodus parameter limit: maximum 16 (1.28+)
+
+Az Enforce Script-ben mindig volt egy 16 parameteres limit a metodusokon, de 1.28 elott ez nema buffer tulcsordulas volt, ami veletlenszeru osszeomlasokat okozott. 1.28-tol a fordito **kemeny hibat** ad:
+
+```c
+// FORDITASI HIBA 1.28+-ban — tobb mint 16 parameter
+void MyMethod(int a, int b, int c, int d, int e, int f, int g, int h,
+              int i, int j, int k, int l, int m, int n, int o, int p,
+              int q)  // 17. parameter = hiba
+{
+}
+```
+
+**Javitas:** Refaktorald ugy, hogy osztalyt vagy tombot adsz at az egyedi parameterek helyett.
+
+---
+
+### 33. `Obsolete` attributum figyelmeztetesek (1.28+)
+
+A DayZ 1.28 bevezette az `Obsolete` attributumot. A `[Obsolete]` jelolesu fuggvenyek es osztalyok fordito figyelmezteteseket generalnak. Ezek az API-k meg mukodnek, de egy jovobeli frissitesben eltavolitasra kerulnek. Ellenorizd a build kimenetet elavult figyelmeztetesekert es migrald az ajanlott alternativara.
+
+---
+
+### 34. `int.MIN` osszehasonlitasi hiba
+
+Az `int.MIN` (-2147483648) ertekkel valo osszehasonlitasok helytelen eredmenyt adnak:
+
+```c
+int val = 1;
+if (val < int.MIN)  // TRUE-ra ertekelodik — pedig false kellene legyen
+{
+    // Ez a blokk helytelenul lefut
+}
+```
+
+Keruid a kozvetlen osszehasonlitast `int.MIN`-nel. Hasznalj tarolt konstanst, vagy hasonlitsd ossze egy konkret negativ ertekkel.
+
+---
+
+### 35. Tomb elem boolean negacio nem mukodik
+
+A tomb elemek kozvetlen boolean negacioja nem fordithato:
+
+```c
+array<int> list = {0, 1, 2};
+if (!list[1])          // NEM FORDITHATO
+if (list[1] == 0)      // Mukodik — hasznalj explicit osszehasonlitast
+```
+
+Mindig hasznalj explicit egyenloseg-ellenorzest, amikor tomb elemeket tesztelsz igaz/hamis ertekre.
+
+---
+
+### 36. Osszetett kifejezes tomb ertekadasban osszeomlast okoz
+
+Osszetett kifejezes kozvetlen hozzarendelese egy tomb elemhez szegmentacios hibat okozhat:
+
+```c
+// OSSZEOMLAS futasidokor
+m_Values[index] = vector.DistanceSq(posA, posB) <= distSq;
+
+// BIZTONSAGOS — hasznalj koztes valtozot
+bool result = vector.DistanceSq(posA, posB) <= distSq;
+m_Values[index] = result;
+```
+
+Mindig tarold az osszetett kifejezes eredmenyet lokalis valtozoba, mielott tombhoz rendeled.
+
+---
+
+### 37. `foreach` metodus visszateresi erteken osszeomlast okoz
+
+Ha a `foreach`-et kozvetlenul egy metodus visszateresi erteken hasznalod, null pointer kivetelt kapsz a masodik iteracioban:
+
+```c
+// OSSZEOMLAST OKOZ a 2. elemnel
+foreach (string item : GetMyArray())
+{
+}
+
+// BIZTONSAGOS — elobb tarold lokalis valtozoba
+array<string> items = GetMyArray();
+foreach (string item : items)
+{
+}
+```
+
+---
+
+### 38. Bitmuveleti vs osszehasonlito operator precedencia
+
+A bitmuveleti operatorok **alacsonyabb** precedenciaval rendelkeznek, mint az osszehasonlito operatorok, a C/C++ szabalyokat kovetve:
+
+```c
+int flags = 5;
+int mask = 4;
+if (flags & mask == mask)      // HELYTELEN: ugy ertekelodik, mint flags & (mask == mask)
+if ((flags & mask) == mask)    // HELYES: mindig hasznalj zarojelet
+```
+
+---
+
+### 39. Ures `#ifdef` / `#ifndef` blokkok osszeomlast okoznak
+
+Az ures preprocesszor felteteles blokkok — meg azok is, amelyek csak megjegyzeseket tartalmaznak — szegmentacios hibat okoznak:
+
+```c
+#ifdef SOME_DEFINE
+    // Ez a csak-megjegyzeses blokk SEGFAULT-ot okoz
+#endif
+```
+
+Mindig tartalmazz legalabb egy vegrehajtando utasitast, vagy hagyd el teljesen a blokkot.
+
+---
+
+### 40. `GetGame().IsClient()` False-t ad vissza betoltes kozben
+
+A kliens betoltesi fazisaban a `GetGame().IsClient()` **false**-t ad vissza, es a `GetGame().IsServer()` **true**-t — meg klienseken is. Hasznald helyette az `IsDedicatedServer()` metodust:
+
+```c
+// MEGBIZHATATLAN betoltes kozben
+if (GetGame().IsClient()) { }   // false betoltes kozben!
+if (GetGame().IsServer()) { }   // true betoltes kozben, meg kliensen is!
+
+// MEGBIZHATO
+if (!GetGame().IsDedicatedServer()) { /* kliens kod */ }
+if (GetGame().IsDedicatedServer())  { /* szerver kod */ }
+```
+
+**Kivetel:** Ha tamogatnod kell az offline/egyjatekos modot, az `IsDedicatedServer()` false-t ad listen szervereknel is.
+
+---
+
+### 41. Forditasi hibauzenet rossz fajlt jelol
+
+Amikor a fordito meghatarozott osztalyt vagy valtozonevu utkozest talal, a hibat az **utolso sikeresen feldolgozott fajl EOF poziciojanal** jelzi — nem a tenyleges hiba helyenel. Ha olyan fajlra mutato hibat latsz, amelyet nem modositottal, a valos hiba az utana kovetkezo, feldolgozas alatt allo fajlban van.
+
+---
+
+### 42. `crash_*.log` fajlok nem valos osszeomlasok
+
+A `crash_<datum>_<ido>.log` nevu naplofajlok **futasideju kiveteleket** tartalmaznak, nem valos szegmentacios hibakat. Az elnevezes felrevezeto — ezek script hibak, nem motor osszeomalsok.
+
+---
+
 ## C++-bol erkezo fejlesztoknek
 
 If you are a C++ developer, here are the biggest adjustments:
@@ -1030,6 +1203,18 @@ If you are a C++ developer, here are the biggest adjustments:
 | Namespaces | No | Name prefixes |
 | RAII | No | Manual cleanup |
 | `GetGame().GetPlayer()` server | Returns null | Iterate `GetPlayers()` |
+| `sealed` osztaly oroklodes (1.28+) | Forditasi hiba | Hasznalj kompoziciot |
+| 17+ metodus parameter (1.28+) | Forditasi hiba | Adj at osztalyt vagy tombot |
+| `[Obsolete]` API-k (1.28+) | Fordito figyelmezetes | Migrald az uj API-ra |
+| `int.MIN` osszehasonlitas | Helytelen eredmeny | Hasznalj tarolt konstanst |
+| `!array[i]` negacio | Forditasi hiba | Hasznalj `array[i] == 0` format |
+| Osszetett kif. tomb ertekadasban | Segfault | Hasznalj koztes valtozot |
+| `foreach` metodus visszateresre | Null pointer osszeomals | Tarold lokalis valtozoba elobb |
+| Bitmuveleti vs osszehasonlito precedencia | Hibas kiertekelees | Mindig hasznalj zarojelet |
+| Ures `#ifdef` blokkok | Segfault | Adj hozza utasitast vagy torold a blokkot |
+| `IsClient()` betoltes kozben | False-t ad | Hasznald az `IsDedicatedServer()` metodust |
+| Forditasi hiba rossz fajl | Felrevezeto hely | Ellenorizd a jelzett utan kovetkezo fajlt |
+| `crash_*.log` fajlok | Nem valos osszeomlasok | Futasideju script kiveteleket tartalmaznak |
 
 ---
 
@@ -1037,4 +1222,4 @@ If you are a C++ developer, here are the biggest adjustments:
 
 | Elozo | Fel | Kovetkezo |
 |----------|----|------|
-| [1.11 Hibakezelees](11-error-handling.md) | [Part 1: Enforce Script](../README.md) | [Part 2: Mod Structure](../02-mod-structure/01-five-layers.md) |
+| [1.11 Hibakezelees](11-error-handling.md) | [Part 1: Enforce Script](../README.md) | [1.13 Fuggvenyek es metodusok](13-functions-methods.md) |

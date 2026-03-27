@@ -37,6 +37,18 @@
   28. [No Destructor Guarantee on Server Shutdown](#28-no-destructor-guarantee-on-server-shutdown)
   29. [No Scope-Based Resource Management (RAII)](#29-no-scope-based-resource-management-raii)
   30. [GetGame().GetPlayer() Returns null on Server](#30-getgamegetplayer-returns-null-on-server)
+  31. [`sealed` Classes Cannot Be Extended (1.28+)](#31-sealed-classes-cannot-be-extended-128)
+  32. [Method Parameter Limit: 16 Maximum (1.28+)](#32-method-parameter-limit-16-maximum-128)
+  33. [`Obsolete` Attribute Warnings (1.28+)](#33-obsolete-attribute-warnings-128)
+  34. [`int.MIN` Comparison Bug](#34-intmin-comparison-bug)
+  35. [Array Element Boolean Negation Fails](#35-array-element-boolean-negation-fails)
+  36. [Complex Expression in Array Assignment Crashes](#36-complex-expression-in-array-assignment-crashes)
+  37. [`foreach` on Method Return Value Crashes](#37-foreach-on-method-return-value-crashes)
+  38. [Bitwise vs Comparison Operator Precedence](#38-bitwise-vs-comparison-operator-precedence)
+  39. [Empty `#ifdef` / `#ifndef` Blocks Crash](#39-empty-ifdef--ifndef-blocks-crash)
+  40. [`GetGame().IsClient()` Returns False During Load](#40-getgameisclient-returns-false-during-load)
+  41. [Compile Error Messages Report Wrong File](#41-compile-error-messages-report-wrong-file)
+  42. [`crash_*.log` Files Are Not Crashes](#42-crashlog-files-are-not-crashes)
 - [Coming From C++](#coming-from-c)
 - [Coming From C#](#coming-from-c-1)
 - [Coming From Java](#coming-from-java)
@@ -921,6 +933,167 @@ player.DoSomething();  // CRASH on server!
     }
 #endif
 ```
+
+---
+
+### 31. `sealed` třídy nelze rozšířit (1.28+)
+
+Od DayZ 1.28 kompilátor Enforce Scriptu vynucuje klíčové slovo `sealed`. Třída nebo metoda označená `sealed` nemůže být zděděna ani přepsána. Pokud se pokusíte rozšířit zapečetěnou třídu:
+
+```c
+// Pokud BI označí SomeVanillaClass jako sealed:
+class MyClass : SomeVanillaClass  // CHYBA KOMPILACE v 1.28+
+{
+}
+```
+
+Zkontrolujte výpis vanillových skriptů, zda třída není označená `sealed`, než se ji pokusíte zdědit. Pokud potřebujete upravit chování zapečetěné třídy, použijte kompozici (obalte ji) místo dědičnosti.
+
+---
+
+### 32. Limit parametrů metody: maximálně 16 (1.28+)
+
+Enforce Script měl vždy limit 16 parametrů na metodu, ale před verzí 1.28 to byl tichý přetečení bufferu, které způsobovalo náhodné pády. Od verze 1.28 kompilátor produkuje **tvrdou chybu**:
+
+```c
+// CHYBA KOMPILACE v 1.28+ — přesahuje 16 parametrů
+void MyMethod(int a, int b, int c, int d, int e, int f, int g, int h,
+              int i, int j, int k, int l, int m, int n, int o, int p,
+              int q)  // 17. parametr = chyba
+{
+}
+```
+
+**Řešení:** Refaktorujte předávání třídy nebo pole místo jednotlivých parametrů.
+
+---
+
+### 33. Varování atributu `Obsolete` (1.28+)
+
+DayZ 1.28 zavedl atribut `Obsolete`. Funkce a třídy označené `[Obsolete]` generují varování kompilátoru. Tato API stále fungují, ale jsou plánována k odstranění v budoucí aktualizaci. Zkontrolujte výstup sestavení na varování o zastarávání a migrujte na doporučenou náhradu.
+
+---
+
+### 34. Chyba porovnání `int.MIN`
+
+Porovnání zahrnující `int.MIN` (-2147483648) produkují nesprávné výsledky:
+
+```c
+int val = 1;
+if (val < int.MIN)  // Vyhodnotí se jako TRUE — mělo by být false
+{
+    // Tento blok se nesprávně vykoná
+}
+```
+
+Vyhýbejte se přímým porovnáním s `int.MIN`. Místo toho použijte uloženou konstantu nebo porovnávejte s konkrétní zápornou hodnotou.
+
+---
+
+### 35. Booleovská negace prvku pole selhává
+
+Přímá booleovská negace prvků pole se nezkompiluje:
+
+```c
+array<int> list = {0, 1, 2};
+if (!list[1])          // NEZKOMPILUJE SE
+if (list[1] == 0)      // Funguje — použijte explicitní porovnání
+```
+
+Při testování pravdivosti prvků pole vždy používejte explicitní kontroly rovnosti.
+
+---
+
+### 36. Složitý výraz v přiřazení do pole způsobí pád
+
+Přiřazení složitého výrazu přímo do prvku pole může způsobit segmentation fault:
+
+```c
+// SPADNE za běhu
+m_Values[index] = vector.DistanceSq(posA, posB) <= distSq;
+
+// BEZPEČNÉ — použijte mezivariablu
+bool result = vector.DistanceSq(posA, posB) <= distSq;
+m_Values[index] = result;
+```
+
+Výsledky složitých výrazů vždy uložte do lokální proměnné před přiřazením do pole.
+
+---
+
+### 37. `foreach` na návratové hodnotě metody způsobí pád
+
+Použití `foreach` přímo na návratové hodnotě metody způsobí výjimku nulového ukazatele při druhé iteraci:
+
+```c
+// SPADNE na 2. prvku
+foreach (string item : GetMyArray())
+{
+}
+
+// BEZPEČNÉ — nejprve uložte do lokální proměnné
+array<string> items = GetMyArray();
+foreach (string item : items)
+{
+}
+```
+
+---
+
+### 38. Priorita bitových vs porovnávacích operátorů
+
+Bitové operátory mají **nižší** prioritu než porovnávací operátory, podle pravidel C/C++:
+
+```c
+int flags = 5;
+int mask = 4;
+if (flags & mask == mask)      // ŠPATNĚ: vyhodnoceno jako flags & (mask == mask)
+if ((flags & mask) == mask)    // SPRÁVNĚ: vždy používejte závorky
+```
+
+---
+
+### 39. Prázdné bloky `#ifdef` / `#ifndef` způsobí pád
+
+Prázdné bloky podmíněného preprocesoru — i ty obsahující pouze komentáře — způsobují segmentation fault:
+
+```c
+#ifdef SOME_DEFINE
+    // Tento blok obsahující pouze komentář způsobí SEGFAULT
+#endif
+```
+
+Vždy vložte alespoň jeden spustitelný příkaz nebo blok zcela vynechte.
+
+---
+
+### 40. `GetGame().IsClient()` vrací False během načítání
+
+Během fáze načítání klienta `GetGame().IsClient()` vrací **false** a `GetGame().IsServer()` vrací **true** — i na klientech. Místo toho použijte `IsDedicatedServer()`:
+
+```c
+// NESPOLEHLIVÉ během fáze načítání
+if (GetGame().IsClient()) { }   // false během načítání!
+if (GetGame().IsServer()) { }   // true během načítání, i na klientovi!
+
+// SPOLEHLIVÉ
+if (!GetGame().IsDedicatedServer()) { /* kód klienta */ }
+if (GetGame().IsDedicatedServer())  { /* kód serveru */ }
+```
+
+**Výjimka:** Pokud potřebujete podporovat offline/singleplayer režim, `IsDedicatedServer()` vrací false i pro listen servery.
+
+---
+
+### 41. Chybové zprávy kompilace hlásí špatný soubor
+
+Když kompilátor narazí na nedefinovanou třídu nebo konflikt názvů proměnných, hlásí chybu na **konci posledního úspěšně naparsovaného souboru** — ne na skutečném místě chyby. Pokud vidíte chybu ukazující na soubor, který jste neupravovali, skutečná chyba je v souboru, který byl parsován hned po něm.
+
+---
+
+### 42. Soubory `crash_*.log` nejsou pády
+
+Soubory logů pojmenované `crash_<datum>_<čas>.log` obsahují **běhové výjimky**, ne skutečné segmentation fault. Pojmenování je zavádějící — jedná se o chyby skriptů, ne o pády enginu.
 
 ---
 

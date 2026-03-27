@@ -18,6 +18,7 @@
 - [globals.xml -- Gazdasági paraméterek](#globalsxml----gazdasági-paraméterek)
 - [events.xml -- Dinamikus események](#eventsxml----dinamikus-események)
 - [cfgspawnabletypes.xml -- Felszerelések és rakomány](#cfgspawnabletypesxml----felszerelések-és-rakomány)
+- [cfgspawnabletypes.xml bovites (1.28+)](#cfgspawnabletypesxml-bovites-128)
 - [A nominal/restock kapcsolat](#a-nominalrestock-kapcsolat)
 - [Gyakori gazdasági hibák](#gyakori-gazdasági-hibák)
 
@@ -528,6 +529,89 @@ A `<hoarder />` tag hoarder tárolóként jelöli meg a tárgyakat. A CE a `type
 ```
 
 A kötszereket mindig Hibátlan állapotban spawnoltatja, felülírva a `globals.xml` globális `LootDamageMin`/`LootDamageMax` értékeit.
+
+---
+
+## cfgspawnabletypes.xml bovites (1.28+)
+
+A DayZ 1.28 jelentosen bovitette a `cfgspawnabletypes.xml` kepessegeit. Most mar teljesen feltoltott fegyvereket spawnolhatsz felszerelesekkel, rakománnyal, sot toltenyekkel a csobe is.
+
+### quantmin / quantmax halmazmeretekhez
+
+Szabalyozd, mennyire teli legyenek a halmozhato targyak spawnolaskor (0-100%):
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+A `quantmin` es `quantmax` attributumok a beagyazott `<item>` elemeken ugyanugy mukodnek, mint a `types.xml`-ben -- a mennyiseg-alapu targyak, mint loszeg es folyadek szazalekos tartoamnyat allitjak be. Az `50` ertéke azt jelenti, hogy a targy legalabb feleben megtelve spawnol.
+
+### Beagyazott targy rakomany es felszerelesek
+
+A mas targyakba spawnolt targyak maguk is rendelkezhetnek felszerelesekkel es rakománnyal:
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Ez egy M4A1-et spawnol RIS kezveddel es M68 optikával, plusz egy STANAG tarat a rakomanyaban, ami 50-100%-ban teli. 1.28 elott a rakomany targyaknak nem lehetett sajat mennyiseget beallitani inline modon.
+
+### Beagyazott karoseratek min/max
+
+Szabalyozd a beagyazott targyak karosodasi allapotat a szulotol fuggetlenul:
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+A szurony Hibatlan es Kopott allapot kozott spawnol, fueggetlenul az AKM sajat karosodasi allapotatol. Ez lehetove teszi, hogy az ertekes felszerelesek jobb allapotban spawnoljanak, mint maga a fegyver.
+
+### Fegyverek csobe toltott golyoval (1.28+)
+
+A fegyverek most mar betoltott golyoval a csobe es golyokkal a belso tarban spawnolhatnak. Ezt a `cfgspawnabletypes.xml` a `randompresets.xml`-lel kombinálva konfiguralod. A preset rendszer kezeli a loszertipust es mennyiseget, mig a spawnable type bejegyzes koti a fegyvert a presethez.
+
+### Beagyazott presetek `equip="true"` attributummal
+
+Hivatkozz preset felszerelesekre a spawnolt targyakhoz az `equip` attributummal:
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+Ha az `equip="true"` be van allitva, a preset teljes felszereles-osszealitaskent kerul alkalmazasra a spawnolt targyra, ahelyett, hogy egyetlen veletlenszeru targyat valasztana a preset keszletbol. Ez hasznos teljes fegyverkonfiguraciok ujrafelhasznalhato presetkeent valo meghatarozasahoz.
+
+### randompresets.xml most mar hosszaadható
+
+Az 1.28-tol kezdve a `randompresets.xml` hozzaadható a `cfgeconomycore.xml`-en keresztul, igy a modok saját preseteket adhatnak hozza a vanilla felulirasa nelkul:
+
+```xml
+<!-- cfgeconomycore.xml-ben -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+Ez jelentos javitas a mod kompatibilitas szempontjabol. Korabban minden modnak, amelynek egyeni random presetekre volt szuksege, le kellett cserelnie a teljes `randompresets.xml` fajlt, ami konfliktusokat okozott tobb mod egyideju betoltesekor. Most minden mod szallithatja a sajat preset fajljat es regisztralhatja a `cfgeconomycore.xml`-en keresztul.
 
 ---
 

@@ -369,6 +369,45 @@ class B extends A { }     // OK: single parent
 class D extends B { }     // OK: B extends A, D extends B (inheritance chain)
 ```
 
+### `sealed` 关键字 (1.28+)
+
+标记为 `sealed` 的类不能被继承。标记为 `sealed` 的方法不能被覆盖。DayZ 1.28 在编译时强制执行此规则。
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // 此类不能被继承
+    }
+}
+
+class MyChild : FinalClass  // 编译错误：不能从 sealed 类继承
+{
+}
+```
+
+方法也可以单独被标记为 sealed：
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // 不能在子类中被覆盖
+    }
+
+    void OpenMethod()
+    {
+        // 可以正常覆盖
+    }
+}
+```
+
+> **迁移注意：** 如果你更新到 DayZ 1.28 后遇到关于继承 sealed 类的编译错误，你必须进行重构。使用组合（将类作为成员包装）代替继承。
+
+`sealed` 在 DayZ 模组开发中很少使用，因为可扩展性是主要目标。
+
 ---
 
 ## 方法重写
@@ -998,8 +1037,14 @@ Create an abstract `Handler` class with `protected Handler m_下一章` and meth
 | Super call | `super.Method()` | Calls parent's version |
 | Static field | `static int s_Count;` | Shared across all instances |
 | Static method | `static void DoThing()` | Called via `ClassName.DoThing()` |
-| `ref` | `ref MyClass m_Obj;` | Strong reference (owns the object) |
+| `ref` | `ref MyClass m_Obj;` | 强引用（拥有对象） |
+| Sealed 类 | `sealed class Name { }` | 不能被继承（1.28+ 编译错误） |
+| Sealed 方法 | `sealed void Method()` | 不能在子类中被覆盖 |
+| Proto native | `proto native void Func();` | 引擎实现的方法 |
+| `out` 参数 | `void Func(out int val)` | 仅输出参数 |
+| `inout` 参数 | `void Func(inout array<int> a)` | 输入+输出参数 |
+| `notnull` 参数 | `void Func(notnull EntityAI e)` | 编译器强制非 null |
 
 ---
 
-[Home](../README.md) | [<< 上一章：数组、映射与集合](02-arrays-maps-sets.md) | **类与继承** | [下一章：Modded 类 >>](04-modded-classes.md)
+[首页](../README.md) | [<< 上一章：数组、映射与集合](02-arrays-maps-sets.md) | **类与继承** | [下一章：Modded 类 >>](04-modded-classes.md)

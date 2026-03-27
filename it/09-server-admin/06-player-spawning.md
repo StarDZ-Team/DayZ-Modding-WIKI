@@ -84,6 +84,25 @@ Il generatore crea una griglia di posizioni candidate intorno a ogni bolla:
 
 Ogni bolla ottiene una griglia 200x200m con un punto ogni 4m (~2.500 candidati). Il motore filtra per pendenza e distanza dagli oggetti statici, poi applica i `spawn_params` al momento dello spawn.
 
+#### Parametro `allow_in_water` (1.28+)
+
+A partire da DayZ 1.28, e stato aggiunto un nuovo parametro booleano `allow_in_water` in `generator_params` (valore predefinito: `false`). Se impostato su `true`, il generatore di punti di spawn considera valide anche le posizioni in acqua:
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+Per impostazione predefinita, il motore rifiuta qualsiasi posizione candidata che cade in acqua (stagni, fiumi, oceano). Impostare `allow_in_water` su `true` rimuove questo filtro. Questo e utile principalmente per mappe personalizzate con spawn su isole o scenari in cui lo spawn in acqua costiera e intenzionale. Per la maggior parte dei server, lascia questo valore su `false` per evitare che i giocatori spawnino nei laghi o nell'oceano.
+
 ---
 
 ## Parametri di gruppo

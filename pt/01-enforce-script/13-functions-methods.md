@@ -25,6 +25,7 @@ This chapter covers function mechanics in depth: declaration syntax, parameter p
   - [notnull Parâmetros](#notnull-parameters)
 - [Return Valors](#return-values)
 - [Padrão Parâmetro Valors](#default-parameter-values)
+- [Limite de Parametros: Maximo 16](#limite-de-parametros-maximo-16)
 - [Proto Native Métodos (Engine Bindings)](#proto-native-methods-engine-bindings)
 - [Static vs Instance Métodos](#static-vs-instance-methods)
 - [Método Overriding](#method-overriding)
@@ -434,6 +435,37 @@ void DoWork(EntityAI target = null, string name = "")
 {
     if (!target) return;
     // ...
+}
+```
+
+---
+
+## Limite de Parametros: Maximo 16
+
+Metodos em Enforce Script nao podem ter mais de 16 parametros. Desde o DayZ 1.28, exceder esse limite produz um **erro de compilacao definitivo** (anteriormente causava buffer overflows silenciosos e crashes aleatorios):
+
+```c
+// ERRO DE COMPILACAO no 1.28+ — 17 parametros excede o limite
+void TooManyParams(int a, int b, int c, int d, int e, int f, int g, int h,
+                   int i, int j, int k, int l, int m, int n, int o, int p,
+                   int q)
+{
+}
+```
+
+**Solucao:** Passe uma classe ou array em vez de muitos parametros individuais:
+
+```c
+class MyParams
+{
+    int a, b, c, d, e;
+    float x, y, z;
+    string name;
+}
+
+void ProcessData(MyParams params)
+{
+    // Access params.a, params.b, etc.
 }
 ```
 

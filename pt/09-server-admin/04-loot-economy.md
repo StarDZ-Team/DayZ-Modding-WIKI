@@ -18,6 +18,7 @@
 - [globals.xml -- Parametros da Economia](#globalsxml----parametros-da-economia)
 - [events.xml -- Eventos Dinamicos](#eventsxml----eventos-dinamicos)
 - [cfgspawnabletypes.xml -- Anexos e Carga](#cfgspawnabletypesxml----anexos-e-carga)
+- [Expansao do cfgspawnabletypes.xml (1.28+)](#expansao-do-cfgspawnabletypesxml-128)
 - [A Relacao Nominal/Restock](#a-relacao-nominalrestock)
 - [Erros Comuns na Economia](#erros-comuns-na-economia)
 
@@ -528,6 +529,97 @@ A tag `<hoarder />` marca itens como containers de esconderijo. O CE conta itens
 ```
 
 Forca bandagens a sempre spawnarem em condicao Pristine, sobrescrevendo o `LootDamageMin`/`LootDamageMax` global do `globals.xml`.
+
+---
+
+## Expansao do cfgspawnabletypes.xml (1.28+)
+
+O DayZ 1.28 expandiu significativamente o que o `cfgspawnabletypes.xml` pode fazer. Voce agora pode spawnar armas totalmente carregadas com anexos, carga e ate balas na camara.
+
+### quantmin / quantmax para Tamanhos de Pilha
+
+Controle quao cheios itens empilaveis spawnam (0-100%):
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Os atributos `quantmin` e `quantmax` em elementos `<item>` aninhados funcionam da mesma forma que no `types.xml` -- eles definem a faixa percentual para itens baseados em quantidade como municao e liquidos. Um valor de `50` significa que o item spawna pelo menos pela metade.
+
+### Carga e Anexos de Itens Aninhados
+
+Itens spawnados dentro de outros itens podem ter seus proprios anexos e carga:
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Isso spawna uma M4A1 com handguard RIS e mira M68 anexadas, alem de um carregador STANAG em sua carga que esta 50-100% cheio. Antes do 1.28, itens de carga nao podiam ter sua propria quantidade definida inline.
+
+### Dano min/max Aninhado
+
+Controle o estado de dano de itens aninhados independentemente do pai:
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+A baioneta spawna entre condicao Pristine e Gasta, independentemente do estado de dano da propria AKM. Isso permite garantir que anexos valiosos spawnem em melhor condicao do que a arma em si.
+
+### Armas com Balas na Camara (1.28+)
+
+Armas agora podem spawnar com uma bala na camara e balas no carregador interno:
+
+```xml
+<type name="Mosin9130">
+    <!-- Arma spawna com balas no carregador interno -->
+</type>
+```
+
+Isso e configurado via `cfgspawnabletypes.xml` em combinacao com `randompresets.xml`. O sistema de presets lida com o tipo e contagem de balas, enquanto a entrada de tipo spawnavel vincula a arma ao preset.
+
+### Presets Aninhados via equip="true"
+
+Referencie loadouts de preset para itens spawnados usando o atributo `equip`:
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+Quando `equip="true"` esta definido, o preset e aplicado como um loadout de equipamento completo no item spawnado em vez de selecionar um unico item aleatorio do pool de preset. Isso e util para definir configuracoes completas de armas como presets reutilizaveis.
+
+### randompresets.xml Agora Aceitavel por Append
+
+A partir do 1.28, `randompresets.xml` pode ser adicionado via `cfgeconomycore.xml`, permitindo que mods adicionem presets sem sobrescrever o vanilla:
+
+```xml
+<!-- No cfgeconomycore.xml -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+Esta e uma melhoria significativa para compatibilidade de mods. Anteriormente, qualquer mod que precisasse de presets aleatorios customizados tinha que substituir o arquivo `randompresets.xml` inteiro, causando conflitos quando multiplos mods eram carregados. Agora cada mod pode enviar seu proprio arquivo de presets e registra-lo atraves do `cfgeconomycore.xml`.
 
 ---
 

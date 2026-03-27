@@ -17,9 +17,9 @@
   8. [No String Escape for Backslash/Quote](#8-no-string-escape-for-backslashquote)
   9. [No Variable Redeclaration in else-if Blocks](#9-no-variable-redeclaration-in-else-if-blocks)
   10. [No Ternary in Variable Declaration](#10-no-ternary-in-variable-declaration)
-  11. [Object.IsAlive() Does NOT Exist on Base Object](#11-objectisalive-does-not-exist-on-base-object)
+  11. [No Multiline Function Calls](#11-no-multiline-function-calls)
   12. [No nullptr — Use NULL or null](#12-no-nullptr--use-null-or-null)
-  13. [switch/case Does NOT Fall Through](#13-switchcase-does-not-fall-through)
+  13. [switch/case DOES Fall Through](#13-switchcase-does-fall-through)
   14. [No Default Parameter Expressions](#14-no-default-parameter-expressions)
   15. [JsonFileLoader.JsonLoadFile Returns void](#15-jsonfileloaderjsonloadfile-returns-void)
   16. [No #define Value Substitution](#16-no-define-value-substitution)
@@ -37,12 +37,24 @@
   28. [No Destructor Guarantee on Server Shutdown](#28-no-destructor-guarantee-on-server-shutdown)
   29. [No Scope-Based Resource Management (RAII)](#29-no-scope-based-resource-management-raii)
   30. [GetGame().GetPlayer() Returns null on Server](#30-getgamegetplayer-returns-null-on-server)
-- [Coming From C++](#coming-from-c)
-- [Coming From C#](#coming-from-c-1)
-- [Coming From Java](#coming-from-java)
-- [Coming From Python](#coming-from-python)
-- [Quick Reference Table](#quick-reference-table)
-- [Navigation](#navigation)
+  31. [`sealed` Classes Cannot Be Extended (1.28+)](#31-sealed-classes-cannot-be-extended-128)
+  32. [Method Parameter Limit: 16 Maximum (1.28+)](#32-method-parameter-limit-16-maximum-128)
+  33. [`Obsolete` Attribute Warnings (1.28+)](#33-obsolete-attribute-warnings-128)
+  34. [`int.MIN` Comparison Bug](#34-intmin-comparison-bug)
+  35. [Array Element Boolean Negation Fails](#35-array-element-boolean-negation-fails)
+  36. [Complex Expression in Array Assignment Crashes](#36-complex-expression-in-array-assignment-crashes)
+  37. [`foreach` on Method Return Value Crashes](#37-foreach-on-method-return-value-crashes)
+  38. [Bitwise vs Comparison Operator Precedence](#38-bitwise-vs-comparison-operator-precedence)
+  39. [Empty `#ifdef` / `#ifndef` Blocks Crash](#39-empty-ifdef--ifndef-blocks-crash)
+  40. [`GetGame().IsClient()` Returns False During Load](#40-getgameisclient-returns-false-during-load)
+  41. [Compile Error Messages Report Wrong File](#41-compile-error-messages-report-wrong-file)
+  42. [`crash_*.log` Files Are Not Crashes](#42-crashlog-files-are-not-crashes)
+- [C++ から来た方へ](#c-から来た方へ)
+- [C# から来た方へ](#c-から来た方へ-1)
+- [Java から来た方へ](#java-から来た方へ)
+- [Python から来た方へ](#python-から来た方へ)
+- [クイックリファレンス Table](#クイックリファレンス-table)
+- [ナビゲーション](#ナビゲーション)
 
 ---
 
@@ -348,24 +360,29 @@ else
 
 ---
 
-### 11. Object.IsAlive() Does NOT Exist on Base Object
+### 11. No Multiline Function Calls
 
 **普通に書こうとするコード：**
 ```c
-Object obj = GetSomething();
-if (obj.IsAlive())  // Check if alive
+GetGame().CreateObjectEx(
+    "MyItem",
+    pos,
+    ECE_PLACE_ON_SURFACE
+);
 ```
 
-**何が起こるか：** Compile error or runtime crash. `IsAlive()` is defined on `EntityAI`, not on `Object`.
+**何が起こるか：** パーサーが信頼性を失います。引数を複数行に分割すると、コンパイルエラーまたは予期しない動作を引き起こす可能性があります。
 
-**正しい解決策：**
+**正しい解決策：** 関数呼び出しを1行に記述してください。
 ```c
-Object obj = GetSomething();
-EntityAI eai;
-if (Class.CastTo(eai, obj) && eai.IsAlive())
-{
-    // Safely alive
-}
+GetGame().CreateObjectEx("MyItem", pos, ECE_PLACE_ON_SURFACE);
+```
+
+行が長い場合は、引数を事前にローカル変数に格納してください。
+```c
+string className = "MyItem";
+int flags = ECE_PLACE_ON_SURFACE;
+GetGame().CreateObjectEx(className, pos, flags);
 ```
 
 ---
@@ -388,45 +405,39 @@ if (!obj)           // idiomatic null check (preferred)
 
 ---
 
-### 13. switch/case Does NOT Fall Through
+### 13. switch/case DOES Fall Through
 
-**What you would write (expecting C/C++ fall-through):**
+Enforce Script の switch/case は `break` を省略すると C/C++ と同様にフォールスルー **します**。バニラコードでもフォールスルーが意図的に使用されています（biossessionservice.c:182 に "Intentionally no break, fall through to connecting" というコメントがあります）。
+
+**普通に書こうとするコード：**
 ```c
 switch (value)
 {
     case 1:
     case 2:
     case 3:
-        Print("1, 2, or 3");  // In C++, cases 1 and 2 fall through to here
+        Print("1, 2, or 3");  // 3つのケースすべてがここに到達 — フォールスルーが機能します
         break;
 }
 ```
 
-**何が起こるか：** Only case 3 executes the Print. Cases 1 and 2 are empty — they do nothing and do NOT fall through.
+**これは期待通りに動作します。** ケース 1 と 2 はケース 3 のハンドラにフォールスルーします。
 
-**正しい解決策：**
+**落とし穴：** フォールスルーを意図して **いない** のに `break` を忘れること：
 ```c
-if (value >= 1 && value <= 3)
+switch (state)
 {
-    Print("1, 2, or 3");
-}
-
-// Or handle each case explicitly:
-switch (value)
-{
+    case 0:
+        Print("Zero");
+        // break を忘れた！ケース 1 にフォールスルーします
     case 1:
-        Print("1, 2, or 3");
-        break;
-    case 2:
-        Print("1, 2, or 3");
-        break;
-    case 3:
-        Print("1, 2, or 3");
+        Print("One");
         break;
 }
+// state == 0 の場合、"Zero" と "One" の両方が出力されます
 ```
 
-> **注意：** `break` is technically optional in Enforce Script since there is no fall-through, but it is conventional to include it.
+**ルール：** 意図的にフォールスルーしたい場合を除き、すべてのケースの末尾に必ず `break` を使用してください。フォールスルーを意図する場合は、明確にするコメントを追加してください。
 
 ---
 
@@ -924,6 +935,167 @@ player.DoSomething();  // CRASH on server!
 
 ---
 
+### 31. `sealed` Classes Cannot Be Extended (1.28+)
+
+DayZ 1.28 以降、Enforce Script コンパイラは `sealed` キーワードを強制します。`sealed` でマークされたクラスまたはメソッドは、継承またはオーバーライドできません。sealed クラスを拡張しようとすると：
+
+```c
+// BI が SomeVanillaClass を sealed としてマークした場合:
+class MyClass : SomeVanillaClass  // 1.28+ でコンパイルエラー
+{
+}
+```
+
+継承を試みる前に、バニラスクリプトダンプで `sealed` としてマークされたクラスを確認してください。sealed クラスの動作を変更する必要がある場合は、継承ではなくコンポジション（ラップする）を使用してください。
+
+---
+
+### 32. Method Parameter Limit: 16 Maximum (1.28+)
+
+Enforce Script にはメソッドのパラメータ数が16個までという制限がありましたが、1.28 以前はサイレントなバッファオーバーフローによりランダムなクラッシュを引き起こしていました。1.28 以降、コンパイラが **ハードエラー** を生成します：
+
+```c
+// 1.28+ でコンパイルエラー — 16パラメータを超過
+void MyMethod(int a, int b, int c, int d, int e, int f, int g, int h,
+              int i, int j, int k, int l, int m, int n, int o, int p,
+              int q)  // 17番目のパラメータ = エラー
+{
+}
+```
+
+**修正方法：** 個別のパラメータの代わりにクラスまたは配列を渡すようリファクタリングしてください。
+
+---
+
+### 33. `Obsolete` Attribute Warnings (1.28+)
+
+DayZ 1.28 では `Obsolete` 属性が導入されました。`[Obsolete]` でマークされた関数やクラスはコンパイラ警告を生成します。これらの API はまだ動作しますが、将来のアップデートで削除が予定されています。ビルド出力で obsolete 警告を確認し、推奨される代替 API に移行してください。
+
+---
+
+### 34. `int.MIN` Comparison Bug
+
+`int.MIN`（-2147483648）を含む比較は不正確な結果を生成します：
+
+```c
+int val = 1;
+if (val < int.MIN)  // TRUE と評価される — false であるべき
+{
+    // このブロックが誤って実行されます
+}
+```
+
+`int.MIN` との直接比較は避けてください。代わりに格納された定数を使用するか、特定の負の値と比較してください。
+
+---
+
+### 35. Array Element Boolean Negation Fails
+
+配列要素の直接的なブール否定はコンパイルできません：
+
+```c
+array<int> list = {0, 1, 2};
+if (!list[1])          // コンパイルできません
+if (list[1] == 0)      // 動作します — 明示的な比較を使用
+```
+
+配列要素の真偽値をテストする際は、常に明示的な等値チェックを使用してください。
+
+---
+
+### 36. Complex Expression in Array Assignment Crashes
+
+複雑な式を配列要素に直接代入すると、セグメンテーションフォルトが発生する可能性があります：
+
+```c
+// 実行時にクラッシュ
+m_Values[index] = vector.DistanceSq(posA, posB) <= distSq;
+
+// 安全 — 中間変数を使用
+bool result = vector.DistanceSq(posA, posB) <= distSq;
+m_Values[index] = result;
+```
+
+配列に代入する前に、常に複雑な式の結果をローカル変数に格納してください。
+
+---
+
+### 37. `foreach` on Method Return Value Crashes
+
+メソッドの戻り値に対して `foreach` を直接使用すると、2回目のイテレーションでヌルポインタ例外が発生します：
+
+```c
+// 2番目のアイテムでクラッシュ
+foreach (string item : GetMyArray())
+{
+}
+
+// 安全 — まずローカル変数に格納
+array<string> items = GetMyArray();
+foreach (string item : items)
+{
+}
+```
+
+---
+
+### 38. Bitwise vs Comparison Operator Precedence
+
+ビット演算子は比較演算子よりも優先順位が **低く**、C/C++ のルールに従います：
+
+```c
+int flags = 5;
+int mask = 4;
+if (flags & mask == mask)      // 間違い: flags & (mask == mask) と評価される
+if ((flags & mask) == mask)    // 正しい: 常に括弧を使用
+```
+
+---
+
+### 39. Empty `#ifdef` / `#ifndef` Blocks Crash
+
+空のプリプロセッサ条件ブロック --- コメントのみを含むものでも --- セグメンテーションフォルトを引き起こします：
+
+```c
+#ifdef SOME_DEFINE
+    // コメントのみのこのブロックはセグフォルトを引き起こします
+#endif
+```
+
+常に少なくとも1つの実行可能な文を含めるか、ブロックを完全に削除してください。
+
+---
+
+### 40. `GetGame().IsClient()` Returns False During Load
+
+クライアントのロードフェーズ中、`GetGame().IsClient()` は **false** を返し、`GetGame().IsServer()` は **true** を返します --- クライアント上でもです。代わりに `IsDedicatedServer()` を使用してください：
+
+```c
+// ロードフェーズ中は信頼できません
+if (GetGame().IsClient()) { }   // ロード中は false!
+if (GetGame().IsServer()) { }   // クライアント上でもロード中は true!
+
+// 信頼できます
+if (!GetGame().IsDedicatedServer()) { /* クライアントコード */ }
+if (GetGame().IsDedicatedServer())  { /* サーバーコード */ }
+```
+
+**例外：** オフライン/シングルプレイヤーモードをサポートする必要がある場合、`IsDedicatedServer()` はリッスンサーバーでも false を返します。
+
+---
+
+### 41. Compile Error Messages Report Wrong File
+
+コンパイラが未定義のクラスや変数の名前衝突に遭遇した場合、エラーは実際のエラー位置ではなく、**最後に正常にパースされたファイルの EOF** で報告されます。変更していないファイルを指すエラーが表示された場合、実際のエラーはそのファイルの直後にパースされたファイルにあります。
+
+---
+
+### 42. `crash_*.log` Files Are Not Crashes
+
+`crash_<date>_<time>.log` という名前のログファイルには、実際のセグメンテーションフォルトではなく **ランタイム例外** が含まれています。命名は誤解を招きます --- これらはスクリプトエラーであり、エンジンのクラッシュではありません。
+
+---
+
 ## C++ から来た方へ
 
 If you are a C++ developer, here are the biggest adjustments:
@@ -1015,9 +1187,9 @@ If you are a C++ developer, here are the biggest adjustments:
 | Delegates | No | `ScriptInvoker` |
 | `\\` / `\"` in strings | Broken | Avoid them |
 | Variable redeclaration | Broken in else-if | Unique names or declare before if |
-| `Object.IsAlive()` | Not on base Object | Cast to `EntityAI` first |
+| Multiline function calls | Unreliable parsing | Keep calls on one line |
 | `nullptr` | No | `null` / `NULL` |
-| switch fall-through | No | Each case is independent |
+| switch fall-through | Yes (like C/C++) | Always use `break` unless intentional |
 | Default param expressions | No | Literals or NULL only |
 | `#define` values | No | `const` |
 | Interfaces | No | Empty base class |
@@ -1030,6 +1202,18 @@ If you are a C++ developer, here are the biggest adjustments:
 | Namespaces | No | Name prefixes |
 | RAII | No | Manual cleanup |
 | `GetGame().GetPlayer()` server | Returns null | Iterate `GetPlayers()` |
+| `sealed` class inheritance (1.28+) | Compile error | Use composition instead |
+| 17+ method parameters (1.28+) | Compile error | Pass a class or array |
+| `[Obsolete]` APIs (1.28+) | Compiler warning | Migrate to replacement API |
+| `int.MIN` comparisons | Incorrect results | Use a stored constant |
+| `!array[i]` negation | Compile error | Use `array[i] == 0` |
+| Complex expr in array assign | Segfault | Use intermediate variable |
+| `foreach` on method return | Null pointer crash | Store in local variable first |
+| Bitwise vs comparison precedence | Wrong evaluation | Always use parentheses |
+| Empty `#ifdef` blocks | Segfault | Include a statement or remove block |
+| `IsClient()` during load | Returns false | Use `IsDedicatedServer()` |
+| Compile error wrong file | Misleading location | Check file parsed after reported one |
+| `crash_*.log` files | Not actual crashes | They are runtime script exceptions |
 
 ---
 
@@ -1037,4 +1221,4 @@ If you are a C++ developer, here are the biggest adjustments:
 
 | 前 | 上 | 次 |
 |----------|----|------|
-| [1.11 Error Handling](11-error-handling.md) | [Part 1: Enforce Script](../README.md) | [Part 2: Mod Structure](../02-mod-structure/01-five-layers.md) |
+| [1.11 Error Handling](11-error-handling.md) | [Part 1: Enforce Script](../README.md) | [1.13 Functions & Methods](13-functions-methods.md) |

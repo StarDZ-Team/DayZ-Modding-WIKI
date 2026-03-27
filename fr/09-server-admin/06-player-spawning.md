@@ -84,6 +84,25 @@ Le générateur crée une grille de positions candidates autour de chaque bulle 
 
 Chaque bulle obtient une grille de 200x200 m avec un point tous les 4 m (~2 500 candidats). Le moteur filtre par pente et distance statique, puis applique les `spawn_params` au moment de l'apparition.
 
+#### Paramètre `allow_in_water` (1.28+)
+
+À partir de DayZ 1.28, un nouveau paramètre booléen `allow_in_water` a été ajouté à `generator_params` (défaut : `false`). Quand il est défini à `true`, le générateur de points d'apparition considère les positions dans l'eau comme des points d'apparition valides :
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+Par défaut, le moteur rejette toute position candidate qui tombe dans l'eau (étangs, rivières, océan). Définir `allow_in_water` à `true` supprime ce filtre. C'est principalement utile pour les cartes personnalisées avec des apparitions sur des îles ou des scénarios où les apparitions en eau côtière sont intentionnelles. Pour la plupart des serveurs, laissez cette valeur à `false` pour éviter que les joueurs n'apparaissent dans les lacs ou l'océan.
+
 ---
 
 ## Paramètres de groupe

@@ -369,6 +369,45 @@ class B extends A { }     // OK: single parent
 class D extends B { }     // OK: B extends A, D extends B (inheritance chain)
 ```
 
+### Klíčové slovo `sealed` (1.28+)
+
+Třída označená `sealed` nemůže být zděděna. Metoda označená `sealed` nemůže být přepsána. DayZ 1.28 toto vynucuje při kompilaci.
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // Tuto třídu nelze rozšířit
+    }
+}
+
+class MyChild : FinalClass  // CHYBA KOMPILACE: nelze dědit ze zapečetěné třídy
+{
+}
+```
+
+Metody mohou být také zapečetěny jednotlivě:
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // Nelze přepsat v potomcích
+    }
+
+    void OpenMethod()
+    {
+        // Lze přepsat normálně
+    }
+}
+```
+
+> **Poznámka k migraci:** Pokud aktualizujete na DayZ 1.28 a dostanete chybu kompilace o dědění zapečetěné třídy, musíte refaktorovat. Použijte kompozici (obalte třídu jako člen) místo dědičnosti.
+
+`sealed` se v DayZ moddingu používá zřídka, protože rozšiřitelnost je hlavním cílem.
+
 ---
 
 ## Přepisování metod
@@ -999,6 +1038,8 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 | Static field | `static int s_Count;` | Shared across all instances |
 | Static method | `static void DoThing()` | Called via `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Strong reference (owns the object) |
+| Sealed class | `sealed class Name { }` | Nelze dědit (chyba kompilace 1.28+) |
+| Sealed method | `sealed void Method()` | Nelze přepsat v potomcích |
 
 ---
 

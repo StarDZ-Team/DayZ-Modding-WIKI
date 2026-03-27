@@ -369,6 +369,45 @@ class B extends A { }     // OK: single parent
 class D extends B { }     // OK: B extends A, D extends B (inheritance chain)
 ```
 
+### A `sealed` kulcsszo (1.28+)
+
+Egy `sealed` jelolesu osztaly nem orokolheto. Egy `sealed` jelolesu metodus nem irhato felul. A DayZ 1.28 forditaskor kikenyszeriti ezt.
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // Ezt az osztalyt nem lehet boviteni
+    }
+}
+
+class MyChild : FinalClass  // FORDITASI HIBA: nem orokolhet sealed osztalybol
+{
+}
+```
+
+Metodusok egyedileg is sealed-kent jelolhetok:
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // Nem irhato felul gyermekosztalyokban
+    }
+
+    void OpenMethod()
+    {
+        // Normalis modon felulirhato
+    }
+}
+```
+
+> **Migracios megjegyzes:** Ha DayZ 1.28-ra frissitesz es forditasi hibat kapsz sealed osztaly oroklese miatt, refaktoralnod kell. Hasznalj kompoziciot (burkold be az osztalyt tagvaltozokent) oroklodes helyett.
+
+A `sealed` ritkán hasznalt a DayZ moddingban, mivel a bovithetoseg az elsodleges cel.
+
 ---
 
 ## Overriding Methods
@@ -999,6 +1038,12 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 | Static field | `static int s_Count;` | Shared across all instances |
 | Static method | `static void DoThing()` | Called via `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Strong reference (owns the object) |
+| Sealed osztaly | `sealed class Name { }` | Nem orokolheto (1.28+ forditasi hiba) |
+| Sealed metodus | `sealed void Method()` | Nem irhato felul gyermekosztalyokban |
+| Proto native | `proto native void Func();` | Motor altal implementalt metodus |
+| `out` param | `void Func(out int val)` | Csak kimeneti parameter |
+| `inout` param | `void Func(inout array<int> a)` | Bemeneti + kimeneti parameter |
+| `notnull` param | `void Func(notnull EntityAI e)` | Fordito altal kikenyszeritett nem-null |
 
 ---
 

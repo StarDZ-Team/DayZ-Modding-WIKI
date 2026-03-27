@@ -25,6 +25,7 @@ Questo capitolo tratta function mechanics in depth: declaration syntax, paramete
   - [notnull Parameters](#notnull-parameters)
 - [Return Values](#return-values)
 - [Default Parameter Values](#default-parameter-values)
+- [Limite parametri: massimo 16](#limite-parametri-massimo-16)
 - [Proto Native Methods (Engine Bindings)](#proto-native-methods-engine-bindings)
 - [Static vs Instance Methods](#static-vs-instance-methods)
 - [Method Overriding](#method-overriding)
@@ -434,6 +435,37 @@ void DoWork(EntityAI target = null, string name = "")
 {
     if (!target) return;
     // ...
+}
+```
+
+---
+
+## Limite parametri: massimo 16
+
+I metodi Enforce Script non possono avere piu di 16 parametri. A partire da DayZ 1.28, superare questo limite produce un **errore di compilazione hard** (in precedenza causava overflow silenzioso del buffer e crash casuali):
+
+```c
+// ERRORE DI COMPILAZIONE in 1.28+ — 17 parametri superano il limite
+void TooManyParams(int a, int b, int c, int d, int e, int f, int g, int h,
+                   int i, int j, int k, int l, int m, int n, int o, int p,
+                   int q)
+{
+}
+```
+
+**Soluzione:** Passa una classe o un array invece di molti parametri individuali:
+
+```c
+class MyParams
+{
+    int a, b, c, d, e;
+    float x, y, z;
+    string name;
+}
+
+void ProcessData(MyParams params)
+{
+    // Accedi a params.a, params.b, ecc.
 }
 ```
 
@@ -1108,6 +1140,7 @@ class MyMission extends MissionServer
 | Kill thread | `KillThread(owner, "FnName")` | Stops a running coroutine |
 | Deferred call | `CallLater(Fn, delay, repeat)` | Preferred over threads |
 | `Ex()` convention | `void FnEx(...)` | Extended version of `Fn` |
+| Limite parametri | Massimo 16 parametri | Errore di compilazione hard in 1.28+; usa una classe per di piu |
 
 ---
 

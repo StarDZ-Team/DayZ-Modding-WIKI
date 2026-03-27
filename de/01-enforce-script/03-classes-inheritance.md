@@ -369,6 +369,45 @@ class B extends A { }     // OK: einzelne Elternklasse
 class D extends B { }     // OK: B erweitert A, D erweitert B (Vererbungskette)
 ```
 
+### Das `sealed`-Schlüsselwort (1.28+)
+
+Eine Klasse, die als `sealed` markiert ist, kann nicht vererbt werden. Eine Methode, die als `sealed` markiert ist, kann nicht überschrieben werden. DayZ 1.28 erzwingt dies zur Kompilierzeit.
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // Diese Klasse kann nicht erweitert werden
+    }
+}
+
+class MyChild : FinalClass  // KOMPILIERFEHLER: kann nicht von sealed-Klasse erben
+{
+}
+```
+
+Methoden können auch einzeln als sealed markiert werden:
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // Kann in Kindklassen nicht überschrieben werden
+    }
+
+    void OpenMethod()
+    {
+        // Kann normal überschrieben werden
+    }
+}
+```
+
+> **Migrationshinweis:** Wenn Sie auf DayZ 1.28 aktualisieren und einen Kompilierfehler über das Erben einer sealed-Klasse erhalten, müssen Sie refaktorieren. Verwenden Sie Komposition (umschliessen Sie die Klasse als Mitglied) anstelle von Vererbung.
+
+`sealed` wird im DayZ-Modding selten verwendet, da Erweiterbarkeit das primäre Ziel ist.
+
 ---
 
 ## Methoden überschreiben
@@ -999,6 +1038,12 @@ Erstellen Sie eine abstrakte `Handler`-Klasse mit `protected Handler m_Next` und
 | Statisches Feld | `static int s_Count;` | Wird über alle Instanzen geteilt |
 | Statische Methode | `static void DoThing()` | Aufruf über `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Starke Referenz (besitzt das Objekt) |
+| Sealed-Klasse | `sealed class Name { }` | Kann nicht vererbt werden (1.28+ Kompilierfehler) |
+| Sealed-Methode | `sealed void Method()` | Kann in Kindklassen nicht überschrieben werden |
+| Proto native | `proto native void Func();` | Engine-implementierte Methode |
+| `out`-Param | `void Func(out int val)` | Nur-Ausgabe-Parameter |
+| `inout`-Param | `void Func(inout array<int> a)` | Eingabe + Ausgabe-Parameter |
+| `notnull`-Param | `void Func(notnull EntityAI e)` | Compiler-erzwungener Nicht-Null-Wert |
 
 ---
 

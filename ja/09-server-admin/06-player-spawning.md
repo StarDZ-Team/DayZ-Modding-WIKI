@@ -84,6 +84,25 @@
 
 各バブルは4mごとにポイントを持つ200x200mのグリッド（約2,500候補）を取得します。エンジンは傾斜と静的距離でフィルタリングし、スポーン時に `spawn_params` を適用します。
 
+#### `allow_in_water` パラメータ（1.28+）
+
+DayZ 1.28 から、新しいブール値 `allow_in_water` パラメータが `generator_params` に追加されました（デフォルト: `false`）。`true` に設定すると、スポーンポイントジェネレータは水中の位置を有効なスポーンポイントとして認識します。
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+デフォルトでは、エンジンは水中（池、川、海）に位置する候補位置を拒否します。`allow_in_water` を `true` に設定するとこのフィルタが解除されます。これは主に島スポーンのあるカスタムマップや、海岸の水中スポーンが意図的なシナリオに役立ちます。ほとんどのサーバーでは、プレイヤーが湖や海にスポーンするのを避けるため、`false` のままにしてください。
+
 ---
 
 ## グループパラメータ

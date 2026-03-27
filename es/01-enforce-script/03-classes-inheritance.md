@@ -369,6 +369,45 @@ class B extends A { }     // OK: un solo padre
 class D extends B { }     // OK: B extiende A, D extiende B (cadena de herencia)
 ```
 
+### La Palabra Clave `sealed` (1.28+)
+
+Una clase marcada como `sealed` no puede heredarse. Un metodo marcado como `sealed` no puede sobreescribirse. DayZ 1.28 aplica esto en tiempo de compilacion.
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // Esta clase no puede extenderse
+    }
+}
+
+class MyChild : FinalClass  // ERROR DE COMPILACION: no se puede heredar de clase sealed
+{
+}
+```
+
+Los metodos tambien pueden ser sealed individualmente:
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // No puede sobreescribirse en clases hijas
+    }
+
+    void OpenMethod()
+    {
+        // Puede sobreescribirse normalmente
+    }
+}
+```
+
+> **Nota de migracion:** Si actualizas a DayZ 1.28 y obtienes un error de compilacion sobre heredar de una clase sealed, debes refactorizar. Usa composicion (envuelve la clase como un miembro) en lugar de herencia.
+
+`sealed` rara vez se usa en modding de DayZ ya que la extensibilidad es el objetivo principal.
+
 ---
 
 ## Sobreescritura de Metodos
@@ -954,6 +993,39 @@ class FlyingCar extends Car
 
 ---
 
+## Mejores Practicas
+
+- Siempre llama a `super.MethodName()` en sobreescrituras a menos que intencionalmente quieras reemplazar el comportamiento del padre por completo -- las profundas cadenas de herencia de DayZ dependen de ello.
+- Usa `protected` para campos miembro y exponlos via metodos getter/setter -- esto te permite agregar validacion o logging despues sin romper los llamadores.
+- Prefiere composicion sobre herencia profunda al combinar comportamientos no relacionados (por ejemplo, un controlador de vuelo dentro de un vehiculo, no un FlyingCar con multi-herencia).
+- Marca miembros de objeto propios con `ref` en la declaracion -- sin esto, el objeto puede ser recolectado por el garbage collector mientras tu clase todavia lo espera.
+- Usa el patron singleton (`static ref` + `GetInstance()`) para clases manager que deben tener exactamente una instancia.
+
+---
+
+## Observado en Mods Reales
+
+> Patrones confirmados estudiando codigo fuente de mods profesionales de DayZ.
+
+| Patron | Mod | Detalle |
+|---------|-----|--------|
+| Singleton via `static ref` + `GetInstance()` | COT / Expansion | Cada manager importante (permisos, notificaciones, mercado) sigue este patron exacto |
+| Constructor inicializa todas las colecciones `ref` | Dabs Framework | Los constructores siempre crean `new array` / `new map` para cada miembro `ref` |
+| `override` + `super` en cada metodo de ciclo de vida | VPP Admin | `OnInit`, `OnMissionStart`, `OnUpdate` siempre llaman a `super` primero, luego agregan comportamiento |
+| Base abstracta con `scope=0` en config.cpp | Expansion Vehicles | La clase de script base del vehiculo tiene `scope=0` (no se puede spawnear), las subclases concretas tienen `scope=2` |
+
+---
+
+## Teoria vs Practica
+
+| Concepto | Teoria | Realidad |
+|---------|--------|---------|
+| Omitir la palabra clave `override` | Deberia crear un metodo nuevo | A menudo crea un bug sutil donde el metodo del padre se ejecuta en lugar del hijo |
+| Multiples constructores (sobrecarga) | Caracteristica estandar de OOP | Funciona pero rara vez se usa en mods de DayZ -- la mayoria de clases usan un solo constructor con valores predeterminados |
+| Clases/metodos `sealed` | Previene herencia o sobreescritura (forzado en compilacion desde 1.28) | Casi nunca se usa en modding de DayZ porque la extensibilidad es el punto central |
+
+---
+
 ## Ejercicios Practicos
 
 ### Ejercicio 1: Jerarquia de Formas
@@ -999,6 +1071,12 @@ Crea una clase abstracta `Handler` con `protected Handler m_Next` y metodos `Set
 | Campo estatico | `static int s_Count;` | Compartido entre todas las instancias |
 | Metodo estatico | `static void DoThing()` | Se llama via `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Referencia fuerte (posee el objeto) |
+| Clase sealed | `sealed class Name { }` | No puede heredarse (error de compilacion en 1.28+) |
+| Metodo sealed | `sealed void Method()` | No puede sobreescribirse en clases hijas |
+| Proto native | `proto native void Func();` | Metodo implementado en el motor |
+| Parametro `out` | `void Func(out int val)` | Parametro de solo salida |
+| Parametro `inout` | `void Func(inout array<int> a)` | Parametro de entrada + salida |
+| Parametro `notnull` | `void Func(notnull EntityAI e)` | No null forzado por el compilador |
 
 ---
 

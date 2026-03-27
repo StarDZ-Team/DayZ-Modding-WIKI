@@ -18,6 +18,7 @@
 - [globals.xml -- Economy Parameters](#globalsxml----economy-parameters)
 - [events.xml -- Dynamic Events](#eventsxml----dynamic-events)
 - [cfgspawnabletypes.xml -- Attachments and Cargo](#cfgspawnabletypesxml----attachments-and-cargo)
+- [cfgspawnabletypes.xml Expansion (1.28+)](#cfgspawnabletypesxml-expansion-128)
 - [The Nominal/Restock Relationship](#the-nominalrestock-relationship)
 - [Common Economy Mistakes](#common-economy-mistakes)
 
@@ -528,6 +529,97 @@ The `<hoarder />` tag marks items as hoarder containers. The CE counts items ins
 ```
 
 Forces bandages to always spawn in Pristine condition, overriding the global `LootDamageMin`/`LootDamageMax` from `globals.xml`.
+
+---
+
+## cfgspawnabletypes.xml Expansion (1.28+)
+
+DayZ 1.28 significantly expanded what `cfgspawnabletypes.xml` can do. You can now spawn weapons fully loaded with attachments, cargo, and even chambered rounds.
+
+### quantmin / quantmax for Stack Sizes
+
+Control how full stackable items spawn (0-100%):
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+The `quantmin` and `quantmax` attributes on nested `<item>` elements work the same as in `types.xml` -- they set the percentage range for quantity-based items like ammunition and liquids. A value of `50` means the item spawns at least half full.
+
+### Nested Item Cargo and Attachments
+
+Items spawned inside other items can themselves have attachments and cargo:
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+This spawns an M4A1 with a RIS handguard and M68 optic attached, plus a STANAG magazine in its cargo that is 50-100% full. Before 1.28, cargo items could not have their own quantity set inline.
+
+### Nested Damage min/max
+
+Control the damage state of nested items independently from the parent:
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+The bayonet spawns between Pristine and Worn condition, regardless of the AKM's own damage state. This lets you ensure that valuable attachments spawn in better condition than the weapon itself.
+
+### Weapons with Chambered Rounds (1.28+)
+
+Weapons can now spawn with a bullet chambered and bullets in the internal magazine:
+
+```xml
+<type name="Mosin9130">
+    <!-- Weapon spawns with rounds in internal magazine -->
+</type>
+```
+
+This is configured via `cfgspawnabletypes.xml` in combination with `randompresets.xml`. The preset system handles the round type and count, while the spawnable type entry ties the weapon to the preset.
+
+### Nested Presets via equip="true"
+
+Reference preset loadouts for spawned items using the `equip` attribute:
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+When `equip="true"` is set, the preset is applied as a full equipment loadout on the spawned item rather than selecting a single random item from the preset pool. This is useful for defining complete weapon configurations as reusable presets.
+
+### randompresets.xml Now Appendable
+
+Starting in 1.28, `randompresets.xml` can be appended via `cfgeconomycore.xml`, letting mods add presets without overwriting vanilla:
+
+```xml
+<!-- In cfgeconomycore.xml -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+This is a significant improvement for mod compatibility. Previously, any mod that needed custom random presets had to replace the entire `randompresets.xml` file, causing conflicts when multiple mods were loaded. Now each mod can ship its own preset file and register it through `cfgeconomycore.xml`.
 
 ---
 

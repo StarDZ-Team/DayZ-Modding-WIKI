@@ -372,6 +372,9 @@ void FindAllVehicles(out array<Transport> vehicles)
 | 乘员 | `CrewSize()`, `CrewMember(idx)`, `CrewGetOut(idx)` |
 | 部件 | 标准伤害区域：`"Engine"`, `"FuelTank"`, `"Radiator"` 等 |
 | 创建 | `CreateObjectEx` 使用 `ECE_PLACE_ON_SURFACE \| ECE_INITAI \| ECE_CREATEPHYSICS` |
+| 1.28 配置 | `useNewNetworking`、`wheelHubFriction`、制动扭矩值翻倍 |
+| 1.28 物理 | 更新的 Bullet Physics、新 `Contact` API 字段、悬挂始终激活 |
+| 1.29 实验性 | 物理多线程、`Transport` 休眠、所有 transport 的动态碰撞 |
 
 ---
 
@@ -392,6 +395,109 @@ void FindAllVehicles(out array<Transport> vehicles)
 - **Modded 类冲突：** Expansion Vehicles 和原版载具模组经常在 `EEInit()` 和流体初始化上产生冲突。请同时加载两者进行测试。
 - **性能影响：** `EOnSimulate()` 在每个物理帧对每个活动载具运行。在此回调中保持逻辑最小化；对昂贵的操作使用定时器累加器。
 - **服务端/客户端：** `EngineStart()`, `EngineStop()`, `Fill()`, `Leak()` 和 `CrewGetOut()` 是服务端权威的。`GetSpeedometer()`, `EngineIsOn()` 和 `GetFluidFraction()` 在两端都可以安全读取。
+
+---
+
+## 载具配置变更 (1.28+)
+
+> **警告 (1.28)：** DayZ 1.28 引入了重大的载具物理变更。如果你从 1.27 或更早版本更新载具模组，请仔细阅读本节。
+
+### `useNewNetworking` 参数
+
+DayZ 1.28 为所有 `CarScript` 类添加了 `useNewNetworking` 配置参数。默认值为 **1**（启用）。
+
+```cpp
+class CfgVehicles
+{
+    class CarScript;
+    class MyVehicle : CarScript
+    {
+        // 新网络改善了高延迟下的橡皮筋效应
+        useNewNetworking = 1;  // 默认——大多数模组保持启用
+
+        // 仅在你的模组修改了 SimulationModule 配置之外的
+        // 载具物理时禁用：
+        // useNewNetworking = 0;
+    };
+};
+```
+
+**何时禁用：** 如果你的模组通过脚本（自定义 `EOnSimulate` 覆盖、直接力应用、自定义车轮逻辑）而非基于配置的 `SimulationModule` 直接操控载具物理，新的协调系统可能与你的修改冲突。在这种情况下设置 `useNewNetworking = 0;`。
+
+### `wheelHubFriction` 参数 (1.28+)
+
+新的配置变量，定义**没有安装车轮**时的车轴阻力：
+
+```cpp
+class SimulationModule
+{
+    class Axles
+    {
+        class Front
+        {
+            wheelHubFriction = 0.5;  // 缺少车轮时载具减速的速度
+        };
+    };
+};
+```
+
+### 制动扭矩迁移 (1.28)
+
+> **破坏性变更：** 在 1.28 之前，制动和手刹扭矩由于一个 bug 被**施加了两次**。此 bug 在 1.28 中已修复。如果你正在迁移载具模组，请**翻倍**你的 `maxBrakeTorque` 和 `maxHandbrakeTorque` 值以保持相同的制动手感。
+
+```cpp
+// 1.28 之前（bug：施加两次，所以有效值是 2 倍）
+maxBrakeTorque = 2000;
+maxHandbrakeTorque = 3000;
+
+// 1.28 之后（修复：施加一次，所以翻倍以匹配旧行为）
+maxBrakeTorque = 4000;
+maxHandbrakeTorque = 6000;
+```
+
+### 悬挂始终激活 (1.28+)
+
+载具悬挂现在在载具处于唤醒状态时始终激活。之前悬挂在某些状态下可能不激活。这改善了稳定性，但可能改变自定义悬挂调校的手感。
+
+### Bullet Physics 更新 (1.28)
+
+Bullet Physics 库已更新到最新的 Enfusion 版本。碰撞响应、摩擦和恢复系数可能出现细微差异。请彻底测试所有自定义载具配置。
+
+### 物理接触 API 变更 (1.28)
+
+`Contact` 类已被修改：
+
+**已移除：**
+- `MaterialIndex1`、`MaterialIndex2`
+- `Index1`、`Index2`
+
+**已添加：**
+- `ShapeIndex1`、`ShapeIndex2` --- 标识复合体中被碰撞的形状
+- `VelocityBefore1`、`VelocityBefore2` --- 碰撞前速度
+- `VelocityAfter1`、`VelocityAfter2` --- 碰撞后速度
+
+**已更改：**
+- `Material1`、`Material2` --- 类型从 `dMaterial` 改为 `SurfaceProperties`
+
+在 `EOnContact` 中读取 `Contact` 数据的模组必须更新到新的变量名称和类型。
+
+---
+
+## 1.29 载具变更（实验性）
+
+> **注意：** 这些变更来自 DayZ 1.29 实验版，可能在稳定版发布前有所变化。
+
+### Bullet Physics 多线程 (1.29 实验性)
+
+Bullet Physics 库启用了多线程支持。服务器压力测试显示 FPS 提升高达 400%（从 9 FPS 到 50 FPS）。依赖特定物理计时或从脚本回调中进行物理调用的载具模组应进行大量测试。
+
+### Transport 休眠 (1.29 实验性)
+
+`Transport` 上直接添加了物理函数，允许载具在静止时**休眠**。不活动的刚体不再接收 `EOnSimulate` / `EOnPostSimulate` 回调。如果你的载具模组依赖这些回调持续触发，请在 1.29 实验版上测试。
+
+### 所有 Transport 的动态碰撞 (1.29 实验性)
+
+`Transport` 类（`CarScript` 和 `BoatScript` 的父类）现在拥有动态碰撞解算。之前只有 `CarScript` 具备此功能。船只模组受益于正确的碰撞处理。
 
 ---
 

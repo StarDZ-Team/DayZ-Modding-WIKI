@@ -372,6 +372,9 @@ void FindAllVehicles(out array<Transport> vehicles)
 | 乗員 | `CrewSize()`, `CrewMember(idx)`, `CrewGetOut(idx)` |
 | パーツ | 標準ダメージゾーン: `"Engine"`, `"FuelTank"`, `"Radiator"` など |
 | 作成 | `CreateObjectEx` に `ECE_PLACE_ON_SURFACE \| ECE_INITAI \| ECE_CREATEPHYSICS` |
+| 1.28 設定 | `useNewNetworking`、`wheelHubFriction`、ブレーキトルク値の倍増 |
+| 1.28 物理 | 更新された Bullet Physics、新しい `Contact` API フィールド、サスペンションの常時有効化 |
+| 1.29 実験版 | 物理マルチスレッド、`Transport` スリープ、すべてのトランスポートの動的コリジョン |
 
 ---
 
@@ -392,6 +395,108 @@ void FindAllVehicles(out array<Transport> vehicles)
 - **Modded クラスの衝突:** Expansion Vehicles とバニラ車両 Mod は `EEInit()` と流体初期化で頻繁に衝突します。両方をロードした状態でテストしてください。
 - **パフォーマンスへの影響:** `EOnSimulate()` はアクティブな各車両に対して物理ティックごとに実行されます。このコールバックのロジックは最小限に抑え、コストの高い操作にはタイマーアキュムレータを使用してください。
 - **サーバー/クライアント:** `EngineStart()`, `EngineStop()`, `Fill()`, `Leak()`, `CrewGetOut()` はサーバー権限です。`GetSpeedometer()`, `EngineIsOn()`, `GetFluidFraction()` は両側で安全に読み取れます。
+
+---
+
+## 車両設定の変更（1.28+）
+
+> **警告（1.28）：** DayZ 1.28 では車両物理に大幅な変更が導入されました。1.27以前の車両 Mod を更新する場合は、このセクションを注意深くお読みください。
+
+### `useNewNetworking` パラメータ
+
+DayZ 1.28 ではすべての `CarScript` クラスに `useNewNetworking` 設定パラメータが追加されました。デフォルト値は **1**（有効）です。
+
+```cpp
+class CfgVehicles
+{
+    class CarScript;
+    class MyVehicle : CarScript
+    {
+        // 新しいネットワーキングは高pingでのラバーバンディングを改善します
+        useNewNetworking = 1;  // デフォルト — ほとんどのModではそのままにしてください
+
+        // Modが SimulationModule 設定の外で車両物理を変更する場合にのみ無効にしてください:
+        // useNewNetworking = 0;
+    };
+};
+```
+
+**無効にする場合：** Mod がスクリプトで車両物理を直接操作する場合（カスタム `EOnSimulate` オーバーライド、直接的な力の適用、カスタムホイールロジック）、設定ベースの `SimulationModule` ではなく、新しい照合システムが変更と競合する可能性があります。その場合は `useNewNetworking = 0;` に設定してください。
+
+### `wheelHubFriction` パラメータ（1.28+）
+
+**ホイールが装着されていない** 場合のアクスルドラッグを定義する新しい設定変数です。
+
+```cpp
+class SimulationModule
+{
+    class Axles
+    {
+        class Front
+        {
+            wheelHubFriction = 0.5;  // ホイールがない状態で車両が減速する速さ
+        };
+    };
+};
+```
+
+### ブレーキトルクの移行（1.28）
+
+> **破壊的変更：** 1.28以前は、バグによりブレーキおよびハンドブレーキのトルクが **2回** 適用されていました。1.28でこれが修正されました。車両 Mod を移行する場合は、同じブレーキ感覚を維持するために `maxBrakeTorque` と `maxHandbrakeTorque` の値を **倍増** してください。
+
+```cpp
+// 1.28以前（バグ: 2回適用、実効値は2倍）
+maxBrakeTorque = 2000;
+maxHandbrakeTorque = 3000;
+
+// 1.28以降（修正: 1回適用、旧動作に合わせるために倍増）
+maxBrakeTorque = 4000;
+maxHandbrakeTorque = 6000;
+```
+
+### サスペンションの常時有効化（1.28+）
+
+車両がアウェイク状態の間、サスペンションが常に有効になりました。以前は特定の状態でサスペンションが無効になる場合がありました。これにより安定性が向上しますが、カスタムサスペンションの調整の感触が変わる可能性があります。
+
+### Bullet Physics の更新（1.28）
+
+Bullet Physics ライブラリが最新の Enfusion バージョンに更新されました。衝突応答、摩擦、反発における微妙な違いが発生する可能性があります。すべてのカスタム車両設定を十分にテストしてください。
+
+### 物理 Contact API の変更（1.28）
+
+`Contact` クラスが変更されました。
+
+**削除:**
+- `MaterialIndex1`, `MaterialIndex2`
+- `Index1`, `Index2`
+
+**追加:**
+- `ShapeIndex1`, `ShapeIndex2` --- 複合ボディのどのシェイプがヒットしたかを識別します
+- `VelocityBefore1`, `VelocityBefore2` --- 衝突前の速度
+- `VelocityAfter1`, `VelocityAfter2` --- 衝突後の速度
+
+**変更:**
+- `Material1`, `Material2` --- 型が `dMaterial` から `SurfaceProperties` に変更
+
+`EOnContact` で `Contact` データを読み取る Mod は、新しい変数名と型に更新する必要があります。
+
+---
+
+## 1.29 での車両変更（実験版）
+
+> **注意：** これらの変更は DayZ 1.29 実験版からのもので、安定版リリース前に変更される可能性があります。
+
+### Bullet Physics マルチスレッド（1.29 実験版）
+
+Bullet Physics ライブラリのマルチスレッドサポートが有効になりました。サーバーストレステストでは最大 400% の FPS 改善（9 FPS から 50 FPS）が示されました。特定の物理タイミングに依存する車両 Mod や、スクリプトコールバックから物理呼び出しを行う車両 Mod は、十分にテストする必要があります。
+
+### Transport スリープ（1.29 実験版）
+
+車両が静止している時に **スリープ** できるよう、`Transport` に物理関数が直接追加されました。非アクティブなボディは `EOnSimulate` / `EOnPostSimulate` コールバックを受け取らなくなります。車両 Mod がこれらのコールバックの継続的な発火に依存している場合は、1.29 実験版でテストしてください。
+
+### すべての Transport の動的コリジョン（1.29 実験版）
+
+`Transport` クラス（`CarScript` と `BoatScript` の親）に動的コリジョン解決が追加されました。以前は `CarScript` のみがこれを持っていました。ボート Mod は適切なコリジョン処理の恩恵を受けます。
 
 ---
 

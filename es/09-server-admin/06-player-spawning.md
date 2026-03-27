@@ -84,6 +84,25 @@ El generador crea una cuadricula de posiciones candidatas alrededor de cada burb
 
 Cada burbuja obtiene una cuadricula de 200x200m con un punto cada 4m (~2,500 candidatos). El motor filtra por pendiente y distancia estatica, luego aplica `spawn_params` en el momento del spawn.
 
+#### Parametro `allow_in_water` (1.28+)
+
+A partir de DayZ 1.28, se agrego un nuevo parametro booleano `allow_in_water` a `generator_params` (predeterminado: `false`). Cuando se establece en `true`, el generador de puntos de spawn considerara posiciones en el agua como puntos de spawn validos:
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+Por defecto, el motor rechaza cualquier posicion candidata que caiga en agua (estanques, rios, oceano). Establecer `allow_in_water` en `true` elimina este filtro. Esto es principalmente util para mapas personalizados con spawns en islas o escenarios donde los spawns en agua costera son intencionales. Para la mayoria de servidores, deja esto en `false` para evitar que los jugadores spawneen en lagos o el oceano.
+
 ---
 
 ## Parametros de grupo

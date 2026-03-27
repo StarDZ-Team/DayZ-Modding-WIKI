@@ -84,6 +84,25 @@ The generator creates a grid of candidate positions around each bubble:
 
 Each bubble gets a 200x200m grid with a point every 4m (~2,500 candidates). The engine filters by steepness and static distance, then applies `spawn_params` at spawn time.
 
+#### `allow_in_water` Parameter (1.28+)
+
+Starting in DayZ 1.28, a new boolean `allow_in_water` parameter was added to `generator_params` (default: `false`). When set to `true`, the spawn point generator will consider positions in water as valid spawn points:
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+By default, the engine rejects any candidate position that falls in water (ponds, rivers, ocean). Setting `allow_in_water` to `true` removes this filter. This is primarily useful for custom maps with island spawns or scenarios where coastal water spawns are intentional. For most servers, leave this at `false` to avoid players spawning in lakes or the ocean.
+
 ---
 
 ## Group Parameters

@@ -369,18 +369,42 @@ class B extends A { }     // OK: single parent
 class D extends B { }     // OK: B extends A, D extends B (inheritance chain)
 ```
 
-### Sealed Classes
+### The `sealed` Keyword (1.28+)
 
-The `sealed` keyword prevents a class from being inherited:
+A class marked `sealed` cannot be inherited from. A method marked `sealed` cannot be overridden. DayZ 1.28 enforces this at compile time.
 
 ```c
-sealed class FinalImplementation
+sealed class FinalClass
 {
-    // No class can extend this
+    void DoWork()
+    {
+        // This class cannot be extended
+    }
 }
 
-// class Child : FinalImplementation { }  // COMPILE ERROR!
+class MyChild : FinalClass  // COMPILE ERROR: cannot inherit from sealed class
+{
+}
 ```
+
+Methods can also be sealed individually:
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // Cannot be overridden in child classes
+    }
+
+    void OpenMethod()
+    {
+        // Can be overridden normally
+    }
+}
+```
+
+> **Migration note:** If you update to DayZ 1.28 and get a compile error about inheriting a sealed class, you must refactor. Use composition (wrap the class as a member) instead of inheritance.
 
 `sealed` is rarely used in DayZ modding since extensibility is the primary goal.
 
@@ -925,7 +949,7 @@ classDiagram
 |---------|--------|---------|
 | Omitting `override` keyword | Should create a new method | Often creates a subtle bug where the parent method runs instead of the child's |
 | Multiple constructors (overloading) | Standard OOP feature | Works but rarely used in DayZ mods -- most classes use a single constructor with default values |
-| `sealed` classes | Prevents inheritance | Almost never used in DayZ modding because extensibility is the whole point |
+| `sealed` classes/methods | Prevents inheritance or override (enforced at compile time since 1.28) | Almost never used in DayZ modding because extensibility is the whole point |
 
 ---
 
@@ -1108,7 +1132,8 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 | Static field | `static int s_Count;` | Shared across all instances |
 | Static method | `static void DoThing()` | Called via `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Strong reference (owns the object) |
-| Sealed | `sealed class Name { }` | Cannot be inherited |
+| Sealed class | `sealed class Name { }` | Cannot be inherited (1.28+ compile error) |
+| Sealed method | `sealed void Method()` | Cannot be overridden in child classes |
 | Proto native | `proto native void Func();` | Engine-implemented method |
 | `out` param | `void Func(out int val)` | Output-only parameter |
 | `inout` param | `void Func(inout array<int> a)` | Input + output parameter |

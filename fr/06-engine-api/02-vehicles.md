@@ -372,6 +372,9 @@ void FindAllVehicles(out array<Transport> vehicles)
 | Equipage | `CrewSize()`, `CrewMember(idx)`, `CrewGetOut(idx)` |
 | Pieces | Zones de degats standard : `"Engine"`, `"FuelTank"`, `"Radiator"`, etc. |
 | Creation | `CreateObjectEx` avec `ECE_PLACE_ON_SURFACE \| ECE_INITAI \| ECE_CREATEPHYSICS` |
+| Config 1.28 | `useNewNetworking`, `wheelHubFriction`, valeurs de couple de frein doublees |
+| Physique 1.28 | Bullet Physics mis a jour, nouveaux champs API `Contact`, suspension toujours active |
+| 1.29 Experimental | Multithreading physique, sleep `Transport`, collision dynamique pour tout transport |
 
 ---
 
@@ -392,6 +395,109 @@ void FindAllVehicles(out array<Transport> vehicles)
 - **Conflits de classes moddees :** Expansion Vehicles et les mods de vehicules vanilla entrent frequemment en conflit sur `EEInit()` et l'initialisation des fluides. Testez avec les deux charges.
 - **Impact sur les performances :** `EOnSimulate()` s'execute a chaque tick physique pour chaque vehicule actif. Gardez la logique minimale dans ce callback ; utilisez des accumulateurs de timer pour les operations couteuses.
 - **Serveur/Client :** `EngineStart()`, `EngineStop()`, `Fill()`, `Leak()` et `CrewGetOut()` sont autoritatifs cote serveur. `GetSpeedometer()`, `EngineIsOn()` et `GetFluidFraction()` sont surs a lire des deux cotes.
+
+---
+
+## Changements de configuration des vehicules (1.28+)
+
+> **Avertissement (1.28) :** DayZ 1.28 a introduit des changements significatifs de physique des vehicules. Si vous mettez a jour un mod de vehicule depuis la 1.27 ou anterieur, lisez cette section attentivement.
+
+### Parametre `useNewNetworking`
+
+DayZ 1.28 a ajoute le parametre de config `useNewNetworking` pour toutes les classes `CarScript`. La valeur par defaut est **1** (active).
+
+```cpp
+class CfgVehicles
+{
+    class CarScript;
+    class MyVehicle : CarScript
+    {
+        // Le nouveau networking ameliore le rubber-banding a haut ping
+        useNewNetworking = 1;  // defaut — laissez active pour la plupart des mods
+
+        // Desactivez UNIQUEMENT si votre mod modifie la physique du vehicule
+        // en dehors de la config SimulationModule :
+        // useNewNetworking = 0;
+    };
+};
+```
+
+**Quand desactiver :** Si votre mod manipule directement la physique du vehicule via script (overrides personnalises de `EOnSimulate`, application de force directe, logique de roue personnalisee) plutot que via le `SimulationModule` base sur la config, le nouveau systeme de reconciliation peut entrer en conflit avec vos changements. Definissez `useNewNetworking = 0;` dans ce cas.
+
+### Parametre `wheelHubFriction` (1.28+)
+
+Nouvelle variable de config qui definit la trainee d'essieu quand **aucune roue n'est attachee** :
+
+```cpp
+class SimulationModule
+{
+    class Axles
+    {
+        class Front
+        {
+            wheelHubFriction = 0.5;  // Vitesse de deceleration du vehicule sans roues
+        };
+    };
+};
+```
+
+### Migration du couple de frein (1.28)
+
+> **Changement majeur :** Avant la 1.28, le couple de frein et de frein a main etait applique **deux fois** a cause d'un bug. Cela a ete corrige en 1.28. Si vous migrez un mod de vehicule, **doublez** vos valeurs `maxBrakeTorque` et `maxHandbrakeTorque` pour conserver le meme ressenti de freinage.
+
+```cpp
+// Pre-1.28 (bug : applique deux fois, donc valeur effective etait 2x)
+maxBrakeTorque = 2000;
+maxHandbrakeTorque = 3000;
+
+// Post-1.28 (correction : applique une fois, donc doublez pour correspondre a l'ancien comportement)
+maxBrakeTorque = 4000;
+maxHandbrakeTorque = 6000;
+```
+
+### Suspension toujours active (1.28+)
+
+La suspension du vehicule est desormais toujours active quand le vehicule est eveille. Auparavant, la suspension pouvait etre inactive dans certains etats. Cela ameliore la stabilite mais peut changer le ressenti des reglages de suspension personnalises.
+
+### Mise a jour de Bullet Physics (1.28)
+
+La bibliotheque Bullet Physics a ete mise a jour vers la derniere version Enfusion. Des differences subtiles dans la reponse aux collisions, la friction et la restitution peuvent survenir. Testez toutes les configurations de vehicules personnalises de maniere approfondie.
+
+### Changements de l'API Contact physique (1.28)
+
+La classe `Contact` a ete modifiee :
+
+**Supprime :**
+- `MaterialIndex1`, `MaterialIndex2`
+- `Index1`, `Index2`
+
+**Ajoute :**
+- `ShapeIndex1`, `ShapeIndex2` --- identifient quelle forme dans un corps compose a ete touchee
+- `VelocityBefore1`, `VelocityBefore2` --- velocites pre-collision
+- `VelocityAfter1`, `VelocityAfter2` --- velocites post-collision
+
+**Modifie :**
+- `Material1`, `Material2` --- type change de `dMaterial` a `SurfaceProperties`
+
+Les mods qui lisent les donnees `Contact` dans `EOnContact` doivent mettre a jour vers les nouveaux noms de variables et types.
+
+---
+
+## Changements des vehicules en 1.29 (Experimental)
+
+> **Note :** Ces changements proviennent de DayZ 1.29 experimental et peuvent changer avant la version stable.
+
+### Multithreading Bullet Physics (1.29 Experimental)
+
+Le support du multithreading a ete active pour la bibliotheque Bullet Physics. Les tests de stress serveur ont montre jusqu'a 400% d'amelioration des FPS (9 FPS a 50 FPS). Les mods de vehicules qui dependent d'un timing physique specifique ou font des appels physiques depuis les callbacks de script doivent etre testes de maniere approfondie.
+
+### Sleep du Transport (1.29 Experimental)
+
+Des fonctions physiques ont ete ajoutees directement sur `Transport` pour permettre aux vehicules de **dormir** au repos. Les corps inactifs ne recoivent plus les callbacks `EOnSimulate` / `EOnPostSimulate`. Si votre mod de vehicule depend de ces callbacks en execution continue, testez sur la 1.29 experimental.
+
+### Collision dynamique pour tout Transport (1.29 Experimental)
+
+La classe `Transport` (parent de `CarScript` et `BoatScript`) a desormais une resolution de collision dynamique. Auparavant, seul `CarScript` en disposait. Les mods de bateaux beneficient d'une gestion correcte des collisions.
 
 ---
 

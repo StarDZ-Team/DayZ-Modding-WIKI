@@ -25,6 +25,7 @@ This chapter covers function mechanics in depth: declaration syntax, parameter p
   - [notnull Parameters](#notnull-parameters)
 - [Return Values](#return-values)
 - [Default Parameter Values](#default-parameter-values)
+- [Limite de Parametros: 16 Maximo](#limite-de-parametros-16-maximo)
 - [Proto Native Methods (Engine Bindings)](#proto-native-methods-engine-bindings)
 - [Static vs Instance Methods](#static-vs-instance-methods)
 - [Method Overriding](#method-overriding)
@@ -434,6 +435,37 @@ void DoWork(EntityAI target = null, string name = "")
 {
     if (!target) return;
     // ...
+}
+```
+
+---
+
+## Limite de Parametros: 16 Maximo
+
+Los metodos de Enforce Script no pueden tener mas de 16 parametros. Desde DayZ 1.28, exceder este limite produce un **error de compilacion duro** (anteriormente causaba buffer overflows silenciosos y crashes aleatorios):
+
+```c
+// ERROR DE COMPILACION en 1.28+ --- 17 parametros excede el limite
+void TooManyParams(int a, int b, int c, int d, int e, int f, int g, int h,
+                   int i, int j, int k, int l, int m, int n, int o, int p,
+                   int q)
+{
+}
+```
+
+**Solucion:** Pasa una clase o array en lugar de muchos parametros individuales:
+
+```c
+class MyParams
+{
+    int a, b, c, d, e;
+    float x, y, z;
+    string name;
+}
+
+void ProcessData(MyParams params)
+{
+    // Acceder a params.a, params.b, etc.
 }
 ```
 
@@ -1097,6 +1129,7 @@ class MyMission extends MissionServer
 | `inout` param | `void Fn(inout float x)` | Read + write; caller sees changes |
 | `notnull` param | `void Fn(notnull EntityAI e)` | Crashes on null |
 | Default value | `void Fn(int x = 5)` | Literals only, no expressions |
+| Limite de parametros | 16 maximo | Pasar una clase o array si necesitas mas |
 | Override | `override void Fn()` | Must match parent signature |
 | Call parent | `super.Fn()` | Inside override body |
 | Proto native | `proto native void Fn()` | Implemented in C++ |

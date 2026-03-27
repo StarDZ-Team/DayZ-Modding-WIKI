@@ -369,6 +369,45 @@ class B extends A { }     // OK: single parent
 class D extends B { }     // OK: B extends A, D extends B (inheritance chain)
 ```
 
+### La parola chiave `sealed` (1.28+)
+
+Una classe contrassegnata `sealed` non puo essere ereditata. Un metodo contrassegnato `sealed` non puo essere sovrascritto. DayZ 1.28 lo applica a tempo di compilazione.
+
+```c
+sealed class FinalClass
+{
+    void DoWork()
+    {
+        // Questa classe non puo essere estesa
+    }
+}
+
+class MyChild : FinalClass  // ERRORE DI COMPILAZIONE: non puoi ereditare da una classe sealed
+{
+}
+```
+
+I metodi possono anche essere contrassegnati sealed individualmente:
+
+```c
+class MyBase
+{
+    sealed void LockedMethod()
+    {
+        // Non puo essere sovrascritto nelle classi figlie
+    }
+
+    void OpenMethod()
+    {
+        // Puo essere sovrascritto normalmente
+    }
+}
+```
+
+> **Nota sulla migrazione:** Se aggiorni a DayZ 1.28 e ricevi un errore di compilazione riguardante l'ereditarieta di una classe sealed, devi rifattorizzare. Usa la composizione (incapsula la classe come membro) invece dell'ereditarieta.
+
+`sealed` e usato raramente nel modding DayZ poiche l'estensibilita e l'obiettivo principale.
+
 ---
 
 ## Override dei Metodi
@@ -999,6 +1038,12 @@ Create an abstract `Handler` class with `protected Handler m_Next` and methods `
 | Static field | `static int s_Count;` | Shared across all instances |
 | Static method | `static void DoThing()` | Called via `ClassName.DoThing()` |
 | `ref` | `ref MyClass m_Obj;` | Strong reference (owns the object) |
+| Classe sealed | `sealed class Name { }` | Non puo essere ereditata (errore di compilazione 1.28+) |
+| Metodo sealed | `sealed void Method()` | Non puo essere sovrascritto nelle classi figlie |
+| Proto native | `proto native void Func();` | Metodo implementato nel motore |
+| Parametro `out` | `void Func(out int val)` | Parametro solo in uscita |
+| Parametro `inout` | `void Func(inout array<int> a)` | Parametro ingresso + uscita |
+| Parametro `notnull` | `void Func(notnull EntityAI e)` | Non-null applicato dal compilatore |
 
 ---
 

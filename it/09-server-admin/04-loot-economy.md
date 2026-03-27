@@ -18,6 +18,7 @@
 - [globals.xml -- Parametri dell'economia](#globalsxml----parametri-delleconomia)
 - [events.xml -- Eventi dinamici](#eventsxml----eventi-dinamici)
 - [cfgspawnabletypes.xml -- Accessori e cargo](#cfgspawnabletypesxml----accessori-e-cargo)
+- [Espansione cfgspawnabletypes.xml (1.28+)](#espansione-cfgspawnabletypesxml-128)
 - [La relazione Nominal/Restock](#la-relazione-nominalrestock)
 - [Errori comuni nell'economia](#errori-comuni-nelleconomia)
 
@@ -528,6 +529,89 @@ Il tag `<hoarder />` contrassegna gli oggetti come contenitori per accumulatori.
 ```
 
 Forza le bende ad apparire sempre in condizioni Incontaminate, sovrascrivendo i valori globali `LootDamageMin`/`LootDamageMax` da `globals.xml`.
+
+---
+
+## Espansione cfgspawnabletypes.xml (1.28+)
+
+DayZ 1.28 ha ampliato significativamente le funzionalita di `cfgspawnabletypes.xml`. Ora puoi spawnare armi completamente cariche con accessori, cargo e persino proiettili in canna.
+
+### quantmin / quantmax per dimensioni degli stack
+
+Controlla quanto siano pieni gli oggetti impilabili allo spawn (0-100%):
+
+```xml
+<type name="Ammo_556x45">
+    <cargo>
+        <item name="Ammo_556x45" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Gli attributi `quantmin` e `quantmax` sugli elementi `<item>` nidificati funzionano come in `types.xml` -- impostano l'intervallo percentuale per gli oggetti basati sulla quantita come munizioni e liquidi. Un valore di `50` significa che l'oggetto appare riempito almeno a meta.
+
+### Cargo e accessori degli oggetti nidificati
+
+Gli oggetti spawnati dentro altri oggetti possono a loro volta avere accessori e cargo:
+
+```xml
+<type name="M4A1">
+    <attachments>
+        <item name="M4_RISHndgrd" />
+        <item name="M68Optic" />
+    </attachments>
+    <cargo>
+        <item name="Mag_STANAG_30Rnd" quantmin="50" quantmax="100" />
+    </cargo>
+</type>
+```
+
+Questo spawna un M4A1 con paramano RIS e ottica M68 montati, piu un caricatore STANAG nel suo cargo che e pieno al 50-100%. Prima della 1.28, gli oggetti nel cargo non potevano avere la propria quantita impostata inline.
+
+### Danno min/max nidificato
+
+Controlla lo stato di danno degli oggetti nidificati indipendentemente dal genitore:
+
+```xml
+<type name="AKM">
+    <attachments>
+        <item name="AK_Bayonet">
+            <damage min="0.0" max="0.3" />
+        </item>
+    </attachments>
+</type>
+```
+
+La baionetta appare tra condizioni Incontaminate e Usato, indipendentemente dallo stato di danno dell'AKM stesso. Questo ti permette di assicurare che gli accessori di valore appaiano in condizioni migliori rispetto all'arma stessa.
+
+### Armi con proiettili in canna (1.28+)
+
+Le armi possono ora spawnare con un proiettile in canna e proiettili nel caricatore interno. Questo si configura tramite `cfgspawnabletypes.xml` in combinazione con `randompresets.xml`. Il sistema dei preset gestisce il tipo e la quantita dei proiettili, mentre la voce del tipo spawnabile collega l'arma al preset.
+
+### Preset nidificati tramite `equip="true"`
+
+Fai riferimento a loadout preset per gli oggetti spawnati usando l'attributo `equip`:
+
+```xml
+<type name="M4A1">
+    <attachments preset="M4Preset" equip="true" />
+</type>
+```
+
+Quando `equip="true"` e impostato, il preset viene applicato come loadout completo sull'oggetto spawnato anziche selezionare un singolo oggetto casuale dal pool del preset. Questo e utile per definire configurazioni complete delle armi come preset riutilizzabili.
+
+### randompresets.xml ora aggiungibile
+
+A partire dalla 1.28, `randompresets.xml` puo essere aggiunto tramite `cfgeconomycore.xml`, permettendo ai mod di aggiungere preset senza sovrascrivere quelli vanilla:
+
+```xml
+<!-- In cfgeconomycore.xml -->
+<ce folder="db">
+    <file name="my_presets.xml" type="randompresets" />
+</ce>
+```
+
+Questo e un miglioramento significativo per la compatibilita tra mod. In precedenza, qualsiasi mod che necessitava di preset casuali personalizzati doveva sostituire l'intero file `randompresets.xml`, causando conflitti quando piu mod venivano caricati. Ora ogni mod puo includere il proprio file di preset e registrarlo tramite `cfgeconomycore.xml`.
 
 ---
 

@@ -37,6 +37,18 @@
   28. [Sem Garantia de Destrutor no Shutdown do Servidor](#28-sem-garantia-de-destrutor-no-shutdown-do-servidor)
   29. [Sem Gerenciamento de Recursos Baseado em Escopo (RAII)](#29-sem-gerenciamento-de-recursos-baseado-em-escopo-raii)
   30. [GetGame().GetPlayer() Retorna null no Servidor](#30-getgamegetplayer-retorna-null-no-servidor)
+  31. [Classes `sealed` Nao Podem Ser Estendidas (1.28+)](#31-classes-sealed-nao-podem-ser-estendidas-128)
+  32. [Limite de Parametros de Metodo: Maximo 16 (1.28+)](#32-limite-de-parametros-de-metodo-maximo-16-128)
+  33. [Avisos do Atributo `Obsolete` (1.28+)](#33-avisos-do-atributo-obsolete-128)
+  34. [Bug de Comparacao com `int.MIN`](#34-bug-de-comparacao-com-intmin)
+  35. [Negacao Booleana de Elemento de Array Falha](#35-negacao-booleana-de-elemento-de-array-falha)
+  36. [Expressao Complexa em Atribuicao de Array Causa Crash](#36-expressao-complexa-em-atribuicao-de-array-causa-crash)
+  37. [`foreach` em Valor de Retorno de Metodo Causa Crash](#37-foreach-em-valor-de-retorno-de-metodo-causa-crash)
+  38. [Precedencia de Operadores Bitwise vs Comparacao](#38-precedencia-de-operadores-bitwise-vs-comparacao)
+  39. [Blocos `#ifdef` / `#ifndef` Vazios Causam Crash](#39-blocos-ifdef--ifndef-vazios-causam-crash)
+  40. [`GetGame().IsClient()` Retorna False Durante Carregamento](#40-getgameisclient-retorna-false-durante-carregamento)
+  41. [Mensagens de Erro de Compilacao Apontam Arquivo Errado](#41-mensagens-de-erro-de-compilacao-apontam-arquivo-errado)
+  42. [Arquivos `crash_*.log` Nao Sao Crashes](#42-arquivos-crashlog-nao-sao-crashes)
 - [Vindo do C++](#vindo-do-c)
 - [Vindo do C#](#vindo-do-c-1)
 - [Vindo do Java](#vindo-do-java)
@@ -924,6 +936,167 @@ player.DoSomething();  // CRASH on server!
 
 ---
 
+### 31. Classes `sealed` Nao Podem Ser Estendidas (1.28+)
+
+A partir do DayZ 1.28, o compilador do Enforce Script impoe a palavra-chave `sealed`. Uma classe ou metodo marcado como `sealed` nao pode ser herdado ou sobrescrito. Se voce tentar estender uma classe sealed:
+
+```c
+// Se a BI marcar SomeVanillaClass como sealed:
+class MyClass : SomeVanillaClass  // ERRO DE COMPILACAO no 1.28+
+{
+}
+```
+
+Verifique o dump de scripts vanilla para qualquer classe marcada como `sealed` antes de tentar herdar dela. Se voce precisa modificar o comportamento de uma classe sealed, use composicao (encapsule-a) em vez de heranca.
+
+---
+
+### 32. Limite de Parametros de Metodo: Maximo 16 (1.28+)
+
+O Enforce Script sempre teve um limite de 16 parametros em metodos, mas antes do 1.28 era um buffer overflow silencioso que causava crashes aleatorios. A partir do 1.28, o compilador produz um **erro definitivo**:
+
+```c
+// ERRO DE COMPILACAO no 1.28+ — excede 16 parametros
+void MyMethod(int a, int b, int c, int d, int e, int f, int g, int h,
+              int i, int j, int k, int l, int m, int n, int o, int p,
+              int q)  // 17o parametro = erro
+{
+}
+```
+
+**Solucao:** Refatore para passar uma classe ou array em vez de parametros individuais.
+
+---
+
+### 33. Avisos do Atributo `Obsolete` (1.28+)
+
+O DayZ 1.28 introduziu o atributo `Obsolete`. Funcoes e classes marcadas com `[Obsolete]` geram avisos do compilador. Essas APIs ainda funcionam mas estao programadas para remocao em uma atualizacao futura. Verifique a saida do build por avisos de obsolescencia e migre para o substituto recomendado.
+
+---
+
+### 34. Bug de Comparacao com `int.MIN`
+
+Comparacoes envolvendo `int.MIN` (-2147483648) produzem resultados incorretos:
+
+```c
+int val = 1;
+if (val < int.MIN)  // Avalia como TRUE — deveria ser false
+{
+    // Este bloco executa incorretamente
+}
+```
+
+Evite comparacoes diretas com `int.MIN`. Use uma constante armazenada ou compare com um valor negativo especifico.
+
+---
+
+### 35. Negacao Booleana de Elemento de Array Falha
+
+Negacao booleana direta de elementos de array nao compila:
+
+```c
+array<int> list = {0, 1, 2};
+if (!list[1])          // NAO COMPILA
+if (list[1] == 0)      // Funciona — use comparacao explicita
+```
+
+Sempre use verificacoes de igualdade explicitas ao testar elementos de array para veracidade.
+
+---
+
+### 36. Expressao Complexa em Atribuicao de Array Causa Crash
+
+Atribuir uma expressao complexa diretamente a um elemento de array pode causar um segmentation fault:
+
+```c
+// CRASH em tempo de execucao
+m_Values[index] = vector.DistanceSq(posA, posB) <= distSq;
+
+// SEGURO — use variavel intermediaria
+bool result = vector.DistanceSq(posA, posB) <= distSq;
+m_Values[index] = result;
+```
+
+Sempre armazene resultados de expressoes complexas em uma variavel local antes de atribuir a um array.
+
+---
+
+### 37. `foreach` em Valor de Retorno de Metodo Causa Crash
+
+Usar `foreach` diretamente no valor de retorno de um metodo causa uma excecao de ponteiro nulo na segunda iteracao:
+
+```c
+// CRASH no 2o item
+foreach (string item : GetMyArray())
+{
+}
+
+// SEGURO — armazene em variavel local primeiro
+array<string> items = GetMyArray();
+foreach (string item : items)
+{
+}
+```
+
+---
+
+### 38. Precedencia de Operadores Bitwise vs Comparacao
+
+Operadores bitwise tem precedencia **menor** que operadores de comparacao, seguindo as regras do C/C++:
+
+```c
+int flags = 5;
+int mask = 4;
+if (flags & mask == mask)      // ERRADO: avaliado como flags & (mask == mask)
+if ((flags & mask) == mask)    // CORRETO: sempre use parenteses
+```
+
+---
+
+### 39. Blocos `#ifdef` / `#ifndef` Vazios Causam Crash
+
+Blocos condicionais de preprocessador vazios — mesmo aqueles contendo apenas comentarios — causam segmentation faults:
+
+```c
+#ifdef SOME_DEFINE
+    // Este bloco somente com comentario causa um SEGFAULT
+#endif
+```
+
+Sempre inclua pelo menos uma instrucao executavel ou remova o bloco inteiramente.
+
+---
+
+### 40. `GetGame().IsClient()` Retorna False Durante Carregamento
+
+Durante a fase de carregamento do cliente, `GetGame().IsClient()` retorna **false** e `GetGame().IsServer()` retorna **true** — mesmo em clientes. Use `IsDedicatedServer()` em vez disso:
+
+```c
+// NAO CONFIAVEL durante fase de carregamento
+if (GetGame().IsClient()) { }   // false durante carregamento!
+if (GetGame().IsServer()) { }   // true durante carregamento, mesmo no cliente!
+
+// CONFIAVEL
+if (!GetGame().IsDedicatedServer()) { /* codigo de cliente */ }
+if (GetGame().IsDedicatedServer())  { /* codigo de servidor */ }
+```
+
+**Excecao:** Se voce precisa suportar modo offline/singleplayer, `IsDedicatedServer()` retorna false para listen servers tambem.
+
+---
+
+### 41. Mensagens de Erro de Compilacao Apontam Arquivo Errado
+
+Quando o compilador encontra uma classe indefinida ou conflito de nomes de variavel, ele reporta o erro no **EOF do ultimo arquivo parseado com sucesso** — nao no local real do erro. Se voce ver um erro apontando para um arquivo que voce nao modificou, o erro real esta em um arquivo que estava sendo parseado logo apos ele.
+
+---
+
+### 42. Arquivos `crash_*.log` Nao Sao Crashes
+
+Arquivos de log nomeados `crash_<data>_<hora>.log` contem **excecoes de tempo de execucao**, nao segmentation faults reais. O nome e enganoso — sao erros de script, nao crashes da engine.
+
+---
+
 ## Vindo do C++
 
 Se voce e um desenvolvedor C++, aqui estao os maiores ajustes:
@@ -1030,6 +1203,18 @@ Se voce e um desenvolvedor C++, aqui estao os maiores ajustes:
 | Namespaces | Nao | Prefixos de nome |
 | RAII | Nao | Limpeza manual |
 | `GetGame().GetPlayer()` no servidor | Retorna null | Iterar `GetPlayers()` |
+| Heranca de classe `sealed` (1.28+) | Erro de compilacao | Use composicao |
+| 17+ parametros de metodo (1.28+) | Erro de compilacao | Passe uma classe ou array |
+| APIs `[Obsolete]` (1.28+) | Aviso do compilador | Migre para API substituta |
+| Comparacoes com `int.MIN` | Resultados incorretos | Use uma constante armazenada |
+| Negacao `!array[i]` | Erro de compilacao | Use `array[i] == 0` |
+| Expressao complexa em atribuicao de array | Segfault | Use variavel intermediaria |
+| `foreach` em retorno de metodo | Crash de ponteiro nulo | Armazene em variavel local primeiro |
+| Precedencia bitwise vs comparacao | Avaliacao errada | Sempre use parenteses |
+| Blocos `#ifdef` vazios | Segfault | Inclua uma instrucao ou remova o bloco |
+| `IsClient()` durante carregamento | Retorna false | Use `IsDedicatedServer()` |
+| Erro de compilacao em arquivo errado | Local enganoso | Verifique arquivo parseado apos o reportado |
+| Arquivos `crash_*.log` | Nao sao crashes reais | Sao excecoes de script em tempo de execucao |
 
 ---
 

@@ -84,6 +84,25 @@
 
 每个气泡获得一个 200x200 米的网格，每 4 米一个点（约 2,500 个候选位置）。引擎按坡度和静态距离过滤，然后在出生时应用 `spawn_params`。
 
+#### `allow_in_water` 参数 (1.28+)
+
+从 DayZ 1.28 开始，`generator_params` 中新增了布尔参数 `allow_in_water`（默认值：`false`）。当设为 `true` 时，出生点生成器会将水中的位置视为有效出生点：
+
+```xml
+<generator_params>
+    <grid_density>4</grid_density>
+    <grid_width>200</grid_width>
+    <grid_height>200</grid_height>
+    <min_dist_static>0</min_dist_static>
+    <max_dist_static>2</max_dist_static>
+    <min_steepness>-45</min_steepness>
+    <max_steepness>45</max_steepness>
+    <allow_in_water>false</allow_in_water>
+</generator_params>
+```
+
+默认情况下，引擎会拒绝落在水中（池塘、河流、海洋）的任何候选位置。将 `allow_in_water` 设为 `true` 会移除此过滤器。这主要适用于具有岛屿出生点的自定义地图，或有意设置海岸水中出生的场景。对于大多数服务器，保持 `false` 以避免玩家在湖中或海洋中出生。
+
 ---
 
 ## 组参数

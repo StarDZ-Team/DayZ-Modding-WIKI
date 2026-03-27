@@ -372,6 +372,9 @@ void FindAllVehicles(out array<Transport> vehicles)
 | Crew | `CrewSize()`, `CrewMember(idx)`, `CrewGetOut(idx)` |
 | Parts | Standard damage zones: `"Engine"`, `"FuelTank"`, `"Radiator"`, etc. |
 | Creation | `CreateObjectEx` with `ECE_PLACE_ON_SURFACE \| ECE_INITAI \| ECE_CREATEPHYSICS` |
+| 1.28 Config | `useNewNetworking`, `wheelHubFriction`, zdvojnásobené hodnoty brzdného momentu |
+| 1.28 Physics | Aktualizovaný Bullet Physics, nová pole API `Contact`, odpružení vždy aktivní |
+| 1.29 Experimental | Multithreading fyziky, `Transport` sleep, dynamická kolize pro všechny transport |
 
 ---
 
@@ -405,6 +408,109 @@ void FindAllVehicles(out array<Transport> vehicles)
 | `EOnSimulate` accumulator for periodic fuel consumption checks | Vanilla+ vehicle mods | `CarScript` overrides |
 | `CrewGetOut()` loop in admin eject-all command | VPP Admin Tools | Vehicle management module |
 | Custom `OnContact()` override for collision damage tuning | Expansion | `ExpansionCarScript` |
+
+---
+
+## Změny konfigurace vozidel (1.28+)
+
+> **Upozornění (1.28):** DayZ 1.28 přinesl významné změny fyziky vozidel. Pokud aktualizujete mod vozidel z verze 1.27 nebo starší, pečlivě si přečtěte tuto sekci.
+
+### Parametr `useNewNetworking`
+
+DayZ 1.28 přidal konfigurační parametr `useNewNetworking` pro všechny třídy `CarScript`. Výchozí hodnota je **1** (povoleno).
+
+```cpp
+class CfgVehicles
+{
+    class CarScript;
+    class MyVehicle : CarScript
+    {
+        // Nový networking zlepšuje gumování při vysokém pingu
+        useNewNetworking = 1;  // výchozí — pro většinu modů ponechte povoleno
+
+        // Zakažte POUZE pokud váš mod modifikuje fyziku vozidel
+        // mimo konfiguraci SimulationModule:
+        // useNewNetworking = 0;
+    };
+};
+```
+
+**Kdy zakázat:** Pokud váš mod přímo manipuluje s fyzikou vozidel přes skript (vlastní přepisování `EOnSimulate`, přímé aplikování sil, vlastní logika kol) namísto přes konfiguraci `SimulationModule`, nový systém rekonciliace může bojovat s vašimi změnami. V takovém případě nastavte `useNewNetworking = 0;`.
+
+### Parametr `wheelHubFriction` (1.28+)
+
+Nová konfigurační proměnná, která definuje odpor nápravy, když **nejsou připojena žádná kola**:
+
+```cpp
+class SimulationModule
+{
+    class Axles
+    {
+        class Front
+        {
+            wheelHubFriction = 0.5;  // Jak rychle vozidlo zpomaluje bez kol
+        };
+    };
+};
+```
+
+### Migrace brzdného momentu (1.28)
+
+> **Narušující změna:** Před verzí 1.28 se brzdný a ruční brzdný moment aplikoval **dvakrát** kvůli chybě. Ve verzi 1.28 to bylo opraveno. Pokud migrujete mod vozidla, **zdvojnásobte** hodnoty `maxBrakeTorque` a `maxHandbrakeTorque` pro zachování stejného pocitu brzdění.
+
+```cpp
+// Před 1.28 (chyba: aplikováno dvakrát, takže efektivní hodnota byla 2x)
+maxBrakeTorque = 2000;
+maxHandbrakeTorque = 3000;
+
+// Po 1.28 (oprava: aplikováno jednou, takže zdvojnásobte pro zachování starého chování)
+maxBrakeTorque = 4000;
+maxHandbrakeTorque = 6000;
+```
+
+### Odpružení vždy aktivní (1.28+)
+
+Odpružení vozidla je nyní vždy aktivní, dokud je vozidlo probuzené. Předtím mohlo být odpružení v určitých stavech neaktivní. To zlepšuje stabilitu, ale může změnit pocit vlastního nastavení odpružení.
+
+### Aktualizace Bullet Physics (1.28)
+
+Knihovna Bullet Physics byla aktualizována na nejnovější verzi Enfusion. Mohou se vyskytnout jemné rozdíly v kolizní odezvě, tření a restituci. Důkladně otestujte všechny vlastní konfigurace vozidel.
+
+### Změny API fyzických kontaktů (1.28)
+
+Třída `Contact` byla upravena:
+
+**Odstraněno:**
+- `MaterialIndex1`, `MaterialIndex2`
+- `Index1`, `Index2`
+
+**Přidáno:**
+- `ShapeIndex1`, `ShapeIndex2` --- identifikují, který tvar ve složeném tělese byl zasažen
+- `VelocityBefore1`, `VelocityBefore2` --- rychlosti před kolizí
+- `VelocityAfter1`, `VelocityAfter2` --- rychlosti po kolizi
+
+**Změněno:**
+- `Material1`, `Material2` --- typ změněn z `dMaterial` na `SurfaceProperties`
+
+Mody, které čtou data `Contact` v `EOnContact`, musí aktualizovat názvy a typy nových proměnných.
+
+---
+
+## Změny vozidel v 1.29 (experimentální)
+
+> **Poznámka:** Tyto změny pochází z DayZ 1.29 experimentálního a mohou se před stabilní verzí změnit.
+
+### Multithreading Bullet Physics (1.29 experimentální)
+
+Pro knihovnu Bullet Physics byla povolena podpora multithreadingu. Stresové testy serveru ukázaly až 400% zlepšení FPS (z 9 FPS na 50 FPS). Mody vozidel, které se spoléhají na specifické časování fyziky nebo volají funkce fyziky z callbacků skriptů, by měly být důkladně otestovány.
+
+### Transport Sleep (1.29 experimentální)
+
+Na `Transport` byly přidány fyzikální funkce umožňující vozidlům **usnout**, když jsou v klidu. Neaktivní tělesa již nepřijímají callbacky `EOnSimulate` / `EOnPostSimulate`. Pokud se váš mod vozidla spoléhá na to, že tyto callbacky běží nepřetržitě, otestujte na 1.29 experimentálním.
+
+### Dynamická kolize pro všechny Transport (1.29 experimentální)
+
+Třída `Transport` (rodič `CarScript` a `BoatScript`) má nyní dynamické řešení kolizí. Předtím to měl pouze `CarScript`. Mody lodí těží ze správného zpracování kolizí.
 
 ---
 
