@@ -115,20 +115,52 @@ A P3D file contains multiple **LODs** (Levels of Detail), each serving a specifi
 
 ### LOD Types
 
+Every LOD is identified by a single floating-point **resolution value**. The engine
+decides what kind of LOD it is purely from that number -- the friendly name shown in
+Object Builder is derived from it.
+
 | LOD | Resolution Value | Purpose |
 |-----|-----------------|---------|
 | **Resolution 0** | 1.000 | Highest detail visual mesh. Rendered when the object is close to the camera. |
-| **Resolution 1** | 2.000 | Medium detail. Rendered at moderate distance. |
-| **Resolution 2** | 4.000 | Low detail. Rendered at far distance. |
-| **Resolution 3+** | 8.000+ | Additional distance LODs. |
-| **View Geometry** | Special | Determines what blocks the player's view (first person). Simplified mesh. |
-| **Fire Geometry** | Special | Collision for bullets and projectiles. Must be convex or composed of convex parts. |
-| **Geometry** | Special | Physics collision. Used for movement collision, gravity, placement. Must be convex or composed of convex decomposition. |
+| **Resolution 1, 2, 3...** | Author-chosen, ascending | Progressively lower detail. The value is a distance metric, not a fixed series -- vanilla models commonly use 1.0 / 2.0 / 3.0 / 4.0. |
+| **Geometry** | 1e13 | Physics collision. Used for movement collision, gravity, placement. Must be convex or composed of convex decomposition. |
+| **Memory** | 1e15 | Contains named points (no visible geometry). Used for attachment positions, sound origins, animation axes. |
+| **LandContact** | 2e15 | Contact points that decide how the object rests on terrain. |
+| **Roadway** | 3e15 | Defines walkable surfaces on objects (vehicles, buildings with enterable interiors). |
+| **Paths** | 4e15 | AI pathfinding hints for buildings. |
+| **HitPoints** | 5e15 | Per-part damage zones (`dmgZones`). |
+| **View Geometry** | 6e15 | Determines what blocks the player's view, and what the action/cursor raycast can hit. Simplified mesh. |
+| **Fire Geometry** | 7e15 | Collision for bullets and projectiles. Must be convex or composed of convex parts. |
 | **Shadow 0** | Special | Shadow casting mesh (close range). |
 | **Shadow 1000** | Special | Shadow casting mesh (far range). Simpler than Shadow 0. |
-| **Memory** | Special | Contains only named points (no visible geometry). Used for attachment positions, sound origins, etc. |
-| **Roadway** | Special | Defines walkable surfaces on objects (vehicles, buildings with enterable interiors). |
-| **Paths** | Special | AI pathfinding hints for buildings. |
+
+> **Verified:** the special-LOD values above were read from two debinarized vanilla
+> models -- `dz\structures\residential\houses\house_2b02.p3d` (11 LODs: 1.0, 2.0, 3.0,
+> 4.0, Geometry, Memory, Roadway, Paths, HitPoints, View Geometry, Fire Geometry) and
+> `dz\gear\camping\wooden_log.p3d` (eight LODs). LandContact and the Shadow LODs were not
+> present in either sample; their values follow the documented Bohemia convention.
+
+### Resolution Values Are Stored as 32-Bit Floats
+
+This matters the moment you write any tooling that inspects P3D files. The resolution
+is stored as a `float`, not a `double`, so reading it back gives you the nearest
+representable value rather than the round number:
+
+| LOD | Nominal | Value you actually read |
+|-----|---------|------------------------|
+| Geometry | `1e13` | `9999999827968.0` |
+| Memory | `1e15` | `999999986991104.0` |
+| Roadway | `3e15` | `3000000028082176.0` |
+| Paths | `4e15` | `3999999947964416.0` |
+| HitPoints | `5e15` | `5000000136282112.0` |
+| View Geometry | `6e15` | `6000000056164352.0` |
+| Fire Geometry | `7e15` | `6999999976046592.0` |
+
+A test like `resolution == 1e13` is therefore **always false** for a real Geometry LOD.
+Classify with a relative tolerance instead -- treat the LOD as a match when
+`abs(resolution - nominal) / nominal` is smaller than about `1e-3`. A classifier that
+compares for equality silently reports "no Geometry LOD" and "no Fire Geometry LOD" on a
+perfectly healthy model.
 
 ### LOD Hierarchy
 
@@ -264,6 +296,33 @@ Memory points are named positions defined in the **Memory LOD**. They have no vi
 | `pilot` | Driver/pilot seat position (vehicles) |
 | `light_l` / `light_r` | Left/right headlight positions (vehicles) |
 
+### Memory Points on Items and Buildings
+
+Weapons get most of the attention, but items and buildings rely on their own set of
+named points. These were read from the Memory LOD of two vanilla models:
+
+| Point Name | Found on | Purpose |
+|------------|----------|---------|
+| `invview` | Items | Camera framing used to render the inventory icon |
+| `boundingbox_min` / `boundingbox_max` | Items | Placement and snapping volume |
+| `ce_center` / `ce_radius` | Items | Central Economy placement volume |
+| `doorsN` | Buildings | Identifies door number `N` |
+| `doorsN_axis` | Buildings | Hinge axis -- **two** points defining the rotation line |
+| `doorsN_action` | Buildings | Position where the open/close action is offered |
+| `pointfloor`, `pointtable`, `pointwardrobes`, `pointstove` | Buildings | Modeller-side loot placement hints, one selection per furniture class |
+| `sound_rainobjectinner2metal1_1` | Buildings | Rain impact emitter; the name encodes the surface type |
+
+The three-part door contract is the part most often missed. A working door needs
+`doorsN` plus a **two-point** `doorsN_axis` plus `doorsN_action`. With a missing or
+single-point axis the door rotates around the model origin and swings through the wall.
+
+> `pointfloor` and its siblings are hints for the person building the model. They are
+> not what the Central Economy reads at runtime -- loot positions live in
+> `mapgroupproto.xml` as explicit `<point pos= range= height=>` entries per container.
+> `house_2b02` carries 132 `pointfloor` memory points but its `mapgroupproto.xml` group
+> declares 8 `lootFloor` points, so the two are not generated from each other. A custom
+> building needs a `mapgroupproto.xml` group or it will never spawn loot.
+
 ### Directional Memory Points
 
 Many effects need both a position and a direction. This is achieved with paired memory points:
@@ -295,17 +354,37 @@ A proxy is a special reference placed in the Resolution LOD that points to anoth
 
 ### Proxy Naming Convention
 
-Proxy names follow the pattern: `proxy:\path\to\model.p3d`
+Inside the model, a proxy is a named selection whose name is the path of the proxied
+model, **without the `.p3d` extension**, followed by a numeric instance index:
 
-For attachment proxies on weapons, the standard names are:
+```
+proxy:\path\to\model.NNN
+```
 
-| Proxy Path | Attachment Type |
-|------------|----------------|
-| `proxy:\dz\weapons\attachments\magazine\mag_placeholder.p3d` | Magazine slot |
-| `proxy:\dz\weapons\attachments\optics\optic_placeholder.p3d` | Optics rail |
-| `proxy:\dz\weapons\attachments\suppressor\sup_placeholder.p3d` | Suppressor mount |
-| `proxy:\dz\weapons\attachments\handguard\handguard_placeholder.p3d` | Handguard slot |
-| `proxy:\dz\weapons\attachments\stock\stock_placeholder.p3d` | Stock/buttstock slot |
+Real examples, read from the Resolution LOD of `dz\structures\residential\houses\house_2b02.p3d`:
+
+```
+proxy:\dz\structures\furniture\cases\case_cans_b\case_cans_b.001
+proxy:\dz\structures\furniture\cases\case_cans_b\case_cans_b.002
+proxy:\dz\structures\furniture\chairs\ch_mod_c\ch_mod_c.004
+```
+
+The `.001` / `.002` suffix is the **proxy index**, one per placed instance of the same
+model. When you type the path in Object Builder you enter it without the extension and
+without the index; Object Builder appends the index.
+
+> The proxied file must exist on the work drive at build time, or binarization fails.
+
+Vanilla does not ship generic `*_placeholder.p3d` files for attachment slots. Attachment
+proxies point at real models:
+
+| Location | Contents |
+|----------|----------|
+| `dz\weapons\attachments\magazine\` | Real magazine and clip models (`magazine_ak101_30rnd.p3d`, `clip_762x39_10rnd.p3d`, ...) |
+| `dz\weapons\attachments\optics\` | Optic and optic-view models (`opticview_longrange.p3d`, ...) |
+| `dz\weapons\attachments\muzzle\` | Suppressors, compensators, bayonets |
+| `dz\weapons\attachments\support\`, `underslung\`, `light\` | Bipods, grips, underslung and light attachments |
+| `dz\characters\proxies\` | Character-worn proxies (`backpack_dz.p3d`, `eyewear_dz.p3d`, `ak_47_v58_proxy.p3d`, ...) |
 
 ### Adding Proxies in Object Builder
 
@@ -424,6 +503,8 @@ Animation sources are engine-provided values that drive animations:
 
 | Source | Range | Description |
 |--------|-------|-------------|
+| `user` | 0-1 | **Script-driven.** The value is whatever your code passes to `SetAnimationPhase()` |
+| `Hit` | 0-1 | Bound to a damage zone; requires a `hitpoint` property naming the zone |
 | `reload` | 0-1 | Weapon reload phase |
 | `trigger` | 0-1 | Trigger pull |
 | `zeroing` | 0-N | Weapon zeroing setting |
@@ -433,6 +514,47 @@ Animation sources are engine-provided values that drive animations:
 | `speed` | 0-N | Vehicle speed |
 | `fuel` | 0-1 | Vehicle fuel level |
 | `damper` | 0-1 | Vehicle suspension |
+
+> Vanilla drives suspension through script rather than through a `damper` source: the
+> `damper_1_1` and `damper_1_2` classes in `dz\vehicles\wheeled\config.cpp` are declared
+> with `source = "user"` and an `initPhase` per wheel.
+
+### Declaring the Source in config.cpp
+
+`model.cfg` says *how* a selection moves. It does not, on its own, make the source
+available. For anything you intend to drive from script you must also declare it in
+`class AnimationSources` in `config.cpp`:
+
+```cpp
+class AnimationSources
+{
+    class DoorsDriver
+    {
+        source = "user";        // driven from script
+        initPhase = 0;          // phase the model starts in
+        animPeriod = 0.5;       // seconds for a full 0 --> 1 transition
+    };
+    class AnimHitWheel_1_1
+    {
+        source = "Hit";                 // driven by the damage system
+        hitpoint = "HitWheel_1_1";      // the damage zone that feeds it
+    };
+};
+```
+
+Then, from script:
+
+```c
+SetAnimationPhase("DoorsDriver", 1.0);
+```
+
+Three names must agree: the `source` in `model.cfg`, the class name under
+`AnimationSources`, and the string you pass to `SetAnimationPhase()`. A source declared
+in `model.cfg` but missing from `AnimationSources` cannot be driven from script, and the
+call fails silently -- the code is correct, and nothing moves. This is one of the most
+common time sinks when adding animated parts.
+
+The `AnimationSources` example above is taken from `dz\vehicles\wheeled\config.cpp`.
 
 ---
 
@@ -555,6 +677,22 @@ Vehicles combine many systems:
 
 **Symptom:** Object cannot be picked up, or physics interactions behave strangely.
 **Fix:** Select all vertices in the Geometry LOD and assign mass via **Structure --> Mass**.
+
+### 7. SetAnimationPhase Does Nothing
+
+**Symptom:** The script runs, no error appears in the logs, and the part does not move.
+**Fix:** The name must exist in three places -- the `source` of the `class Animations`
+entry in `model.cfg`, a class under `class AnimationSources` in `config.cpp` with
+`source = "user"`, and the string passed to `SetAnimationPhase()`. Missing the
+`AnimationSources` declaration is the usual cause.
+
+### 8. Missing View Geometry LOD
+
+**Symptom:** The object renders and collides correctly, but no action prompt ever
+appears when you look at it, and the cursor does not register it.
+**Fix:** Add a View Geometry LOD. Action targeting raycasts against it, not against the
+Geometry LOD. This one is regularly misdiagnosed as a scripting bug because the script
+is fine.
 
 ---
 
