@@ -131,14 +131,19 @@ Object Builder is derived from it.
 | **HitPoints** | 5e15 | Per-part damage zones (`dmgZones`). |
 | **View Geometry** | 6e15 | Determines what blocks the player's view, and what the action/cursor raycast can hit. Simplified mesh. |
 | **Fire Geometry** | 7e15 | Collision for bullets and projectiles. Must be convex or composed of convex parts. |
-| **Shadow 0** | Special | Shadow casting mesh (close range). |
-| **Shadow 1000** | Special | Shadow casting mesh (far range). Simpler than Shadow 0. |
+| **Shadow 0** | 10000 | Shadow casting mesh (close range). |
+| **Shadow 1000** | 11000 | Shadow casting mesh (far range). Simpler than Shadow 0. |
 
-> **Verified:** the special-LOD values above were read from two debinarized vanilla
-> models -- `dz\structures\residential\houses\house_2b02.p3d` (11 LODs: 1.0, 2.0, 3.0,
-> 4.0, Geometry, Memory, Roadway, Paths, HitPoints, View Geometry, Fire Geometry) and
-> `dz\gear\camping\wooden_log.p3d` (eight LODs). LandContact and the Shadow LODs were not
-> present in either sample; their values follow the documented Bohemia convention.
+Shadow volume resolutions observed in vanilla are `10000` and `11000`, consistent with a
+`10000 + <shadow level>` pattern.
+
+> **Verified:** these values were read from debinarized vanilla models with a MLOD
+> reader. `dz\structures\residential\houses\house_2b02.p3d` alone carries 11 LODs (1.0,
+> 2.0, 3.0, 4.0, Geometry, Memory, Roadway, Paths, HitPoints, View Geometry, Fire
+> Geometry); `dz\gear\camping\wooden_log.p3d` carries eight. LandContact and the shadow
+> volumes were confirmed separately on a wider set of vanilla buildings, ladders and
+> props (`residential\misc\ladder.p3d`, `industrial\garages\garage_small.p3d`,
+> `industrial\farms\barn_wood1.p3d`, `farm_cowsheda.p3d` among others).
 
 ### Resolution Values Are Stored as 32-Bit Floats
 
@@ -263,6 +268,43 @@ In Object Builder:
 
 > **Tip:** Selection names are case-sensitive. `Camo` and `camo` are different selections. Convention is lowercase.
 
+### Collision Components
+
+The Geometry, View Geometry and Fire Geometry LODs are not one mesh. They are split into
+closed convex parts, each held in its own named selection numbered in sequence:
+`component01`, `component02`, and so on. The engine treats each as a single convex
+collision volume, which is how a concave object gets correct collision.
+
+Counts scale with complexity. In `house_2b02.p3d` the Geometry LOD holds 127 components,
+View Geometry 113 and Fire Geometry 472; a single item such as `wooden_log.p3d` has one
+per collision LOD. Numbering continues past 99 -- `component100` and above are valid.
+
+> **Case matters, and it is not the same on both sides.** Object Builder expects
+> `ComponentNN` when you author the selection, while the binarized model stores the name
+> lowercased as `componentNN`. Tooling that reads a binarized model should compare
+> case-insensitively.
+
+### Named Properties
+
+Named properties are key/value pairs attached to a LOD, set in Object Builder via
+**Edit --> Named Properties**. They live in the model, not in any config, and several of
+them decide engine behaviour:
+
+| Property | Typical value | Set on | Effect |
+|----------|--------------|--------|--------|
+| `class` | `house` | Geometry LOD | Engine behaviour category. Required for buildings with doors. |
+| `map` | `building` | Geometry LOD | Icon used for the object on the in-game map. |
+| `damage` | `no` | Geometry LOD | Damage handling for the object. |
+| `mass` | kilograms | Geometry LOD | Physical weight. |
+| `lodnoshadow` | `1` | Resolution LODs | The LOD does not cast a shadow. |
+| `canocclude` | `1` | View Geometry LOD | The LOD participates in occlusion. |
+| `autocenter` | `0` | Any | Do not recentre the model on load. Required on held items so the grip point stays where you put it. |
+| `drawimportance` | e.g. `0.02` | Props and proxies | Render priority for small detail objects. |
+
+`autocenter = 0` is the one that catches people out: leave it at the default and the
+engine recentres the mesh on its bounding box, which shifts every memory point you
+carefully placed relative to the origin.
+
 ### Selections Across LODs
 
 Named selections must be consistent across LODs for animations to work:
@@ -312,9 +354,16 @@ named points. These were read from the Memory LOD of two vanilla models:
 | `pointfloor`, `pointtable`, `pointwardrobes`, `pointstove` | Buildings | Modeller-side loot placement hints, one selection per furniture class |
 | `sound_rainobjectinner2metal1_1` | Buildings | Rain impact emitter; the name encodes the surface type |
 
-The three-part door contract is the part most often missed. A working door needs
-`doorsN` plus a **two-point** `doorsN_axis` plus `doorsN_action`. With a missing or
-single-point axis the door rotates around the model origin and swings through the wall.
+The three-part door contract is the part most often missed. A working door needs the
+selection itself, plus a **two-point** `_axis` selection, plus an `_action` point. With a
+missing or single-point axis the door rotates around the model origin and swings through
+the wall.
+
+The base name is yours to choose -- it only has to match the class under `class Doors` in
+`config.cpp` and the `source` in `model.cfg`. Vanilla buildings happen to use the plural
+form `doors1`, `doors1_axis`, `doors1_action`; [Chapter 4.8](08-building-modeling.md)
+uses the singular `door1` in its worked example. Either works, as long as you stay
+consistent across the model, `model.cfg` and `config.cpp`.
 
 > `pointfloor` and its siblings are hints for the person building the model. They are
 > not what the Central Economy reads at runtime -- loot positions live in
